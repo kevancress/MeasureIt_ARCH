@@ -114,86 +114,86 @@ bpy.utils.register_class(MeasureitFaces)
 # Define property group class for measureit data
 # ------------------------------------------------------------------
 class MeasureitProperties(PropertyGroup):
-    gltype = IntProperty(name="gltype",
+    gltype: IntProperty(name="gltype",
                          description="Measure type (1-Segment, 2-Label, etc..)", default=1)
-    glpointa = IntProperty(name="glpointa",
+    glpointa: IntProperty(name="glpointa",
                            description="Hidden property for opengl")
-    glpointb = IntProperty(name="glpointb",
+    glpointb: IntProperty(name="glpointb",
                            description="Hidden property for opengl")
-    glpointc = IntProperty(name="glpointc",
+    glpointc: IntProperty(name="glpointc",
                            description="Hidden property for opengl")
-    glcolor = FloatVectorProperty(name="glcolor",
+    glcolor: FloatVectorProperty(name="glcolor",
                                   description="Color for the measure",
                                   default=(0.173, 0.545, 1.0, 1.0),
                                   min=0.1,
                                   max=1,
                                   subtype='COLOR',
                                   size=4)
-    glview = BoolProperty(name="glview",
+    glview: BoolProperty(name="glview",
                           description="Measure visible/hide",
                           default=True)
-    glspace = FloatProperty(name='glspace', min=-100, max=100, default=0.1,
+    glspace: FloatProperty(name='glspace', min=-100, max=100, default=0.1,
                             precision=3,
                             description='Distance to display measure')
-    glwidth = IntProperty(name='glwidth', min=1, max=10, default=1,
+    glwidth: IntProperty(name='glwidth', min=1, max=10, default=1,
                           description='line width')
-    glfree = BoolProperty(name="glfree",
+    glfree: BoolProperty(name="glfree",
                           description="This measure is free and can be deleted",
                           default=False)
-    gltxt = StringProperty(name="gltxt", maxlen=256,
+    gltxt: StringProperty(name="gltxt", maxlen=256,
                            description="Short description (use | for line break)")
-    gladvance = BoolProperty(name="gladvance",
+    gladvance: BoolProperty(name="gladvance",
                              description="Advanced options as line width or position",
                              default=False)
-    gldefault = BoolProperty(name="gldefault",
+    gldefault: BoolProperty(name="gldefault",
                              description="Display measure in position calculated by default",
                              default=True)
-    glnormalx = FloatProperty(name="glnormalx",
+    glnormalx: FloatProperty(name="glnormalx",
                               description="Change orientation in X axis",
                               default=1, min=-1, max=1, precision=2)
-    glnormaly = FloatProperty(name="glnormaly",
+    glnormaly: FloatProperty(name="glnormaly",
                               description="Change orientation in Y axis",
                               default=0, min=-1, max=1, precision=2)
-    glnormalz = FloatProperty(name="glnormalz",
+    glnormalz: FloatProperty(name="glnormalz",
                               description="Change orientation in Z axis",
                               default=0, min=-1, max=1, precision=2)
-    glfont_size = IntProperty(name="Text Size",
+    glfont_size: IntProperty(name="Text Size",
                               description="Text size",
                               default=14, min=6, max=150)
-    glfont_align = EnumProperty(items=(('L', "Left Align", ""),
-                                       ('C', "Center Align", ""),
-                                       ('R', "Right Align", "")),
-                                name="Align Font",
-                                description="Set Font Alignment")
-    glfont_rotat = IntProperty(name='Rotate', min=0, max=360, default=0,
+    glfont_align: EnumProperty(items=(('L', "Left align", ""),
+                                       ('C', "Center align", ""),
+                                       ('R', "Right align", "")),
+                                name="align Font",
+                                description="Set Font alignment")
+    glfont_rotat: IntProperty(name='Rotate', min=0, max=360, default=0,
                                 description="Text rotation in degrees")
-    gllink = StringProperty(name="gllink",
+    gllink: StringProperty(name="gllink",
                             description="linked object for linked measures")
-    glocwarning = BoolProperty(name="glocwarning",
+    glocwarning: BoolProperty(name="glocwarning",
                                description="Display a warning if some axis is not used in distance",
                                default=True)
-    glocx = BoolProperty(name="glocx",
+    glocx: BoolProperty(name="glocx",
                          description="Include changes in X axis for calculating the distance",
                          default=True)
-    glocy = BoolProperty(name="glocy",
+    glocy: BoolProperty(name="glocy",
                          description="Include changes in Y axis for calculating the distance",
                          default=True)
-    glocz = BoolProperty(name="glocz",
+    glocz: BoolProperty(name="glocz",
                          description="Include changes in Z axis for calculating the distance",
                          default=True)
-    glfontx = IntProperty(name="glfontx",
+    glfontx: IntProperty(name="glfontx",
                           description="Change font position in X axis",
                           default=0, min=-3000, max=3000)
-    glfonty = IntProperty(name="glfonty",
+    glfonty: IntProperty(name="glfonty",
                           description="Change font position in Y axis",
                           default=0, min=-3000, max=3000)
-    gldist = BoolProperty(name="gldist",
+    gldist: BoolProperty(name="gldist",
                           description="Display distance for this measure",
                           default=True)
-    glnames = BoolProperty(name="glnames",
+    glnames: BoolProperty(name="glnames",
                            description="Display text for this measure",
                            default=True)
-    gltot = EnumProperty(items=(('99', "-", "Select a group for sum"),
+    gltot: EnumProperty(items=(('99', "-", "Select a group for sum"),
                                 ('0', "A", ""),
                                 ('1', "B", ""),
                                 ('2', "C", ""),
@@ -222,74 +222,74 @@ class MeasureitProperties(PropertyGroup):
                                 ('25', "Z", "")),
                          name="Sum in Group",
                          description="Add segment length in selected group")
-    glorto = EnumProperty(items=(('99', "None", ""),
+    glorto: EnumProperty(items=(('99', "None", ""),
                                  ('0', "A", "Point A must use selected point B location"),
                                  ('1', "B", "Point B must use selected point A location")),
                           name="Orthogonal",
                           description="Display point selected as orthogonal (select axis to copy)")
-    glorto_x = BoolProperty(name="ox",
+    glorto_x: BoolProperty(name="ox",
                             description="Copy X location",
                             default=False)
-    glorto_y = BoolProperty(name="oy",
+    glorto_y: BoolProperty(name="oy",
                             description="Copy Y location",
                             default=False)
-    glorto_z = BoolProperty(name="oz",
+    glorto_z: BoolProperty(name="oz",
                             description="Copy Z location",
                             default=False)
-    glarrow_a = EnumProperty(items=(('99', "--", "No arrow"),
+    glarrow_a: EnumProperty(items=(('99', "--", "No arrow"),
                                     ('1', "Line", "The point of the arrow are lines"),
                                     ('2', "Triangle", "The point of the arrow is triangle"),
                                     ('3', "TShape", "The point of the arrow is a T")),
                              name="A end",
                              description="Add arrows to point A")
-    glarrow_b = EnumProperty(items=(('99', "--", "No arrow"),
+    glarrow_b: EnumProperty(items=(('99', "--", "No arrow"),
                                     ('1', "Line", "The point of the arrow are lines"),
                                     ('2', "Triangle", "The point of the arrow is triangle"),
                                     ('3', "TShape", "The point of the arrow is a T")),
                              name="B end",
                              description="Add arrows to point B")
-    glarrow_s = IntProperty(name="Size",
+    glarrow_s: IntProperty(name="Size",
                             description="Arrow size",
                             default=15, min=6, max=500)
 
-    glarc_full = BoolProperty(name="arcfull",
+    glarc_full: BoolProperty(name="arcfull",
                               description="Create full circunference",
                               default=False)
-    glarc_extrad = BoolProperty(name="arcextrad",
+    glarc_extrad: BoolProperty(name="arcextrad",
                                 description="Adapt radio lengh to arc line",
                                 default=True)
-    glarc_rad = BoolProperty(name="arc rad",
+    glarc_rad: BoolProperty(name="arc rad",
                              description="Show arc radius",
                              default=True)
-    glarc_len = BoolProperty(name="arc len",
+    glarc_len: BoolProperty(name="arc len",
                              description="Show arc length",
                              default=True)
-    glarc_ang = BoolProperty(name="arc ang",
+    glarc_ang: BoolProperty(name="arc ang",
                              description="Show arc angle",
                              default=True)
 
-    glarc_a = EnumProperty(items=(('99', "--", "No arrow"),
+    glarc_a: EnumProperty(items=(('99', "--", "No arrow"),
                                   ('1', "Line", "The point of the arrow are lines"),
                                   ('2', "Triangle", "The point of the arrow is triangle"),
                                   ('3', "TShape", "The point of the arrow is a T")),
                            name="Ar end",
                            description="Add arrows to point A")
-    glarc_b = EnumProperty(items=(('99', "--", "No arrow"),
+    glarc_b: EnumProperty(items=(('99', "--", "No arrow"),
                                   ('1', "Line", "The point of the arrow are lines"),
                                   ('2', "Triangle", "The point of the arrow is triangle"),
                                   ('3', "TShape", "The point of the arrow is a T")),
                            name="Br end",
                            description="Add arrows to point B")
-    glarc_s = IntProperty(name="Size",
+    glarc_s: IntProperty(name="Size",
                           description="Arrow size",
                           default=15, min=6, max=500)
-    glarc_txradio = StringProperty(name="txradio",
+    glarc_txradio: StringProperty(name="txradio",
                                    description="Text for radius", default="r=")
-    glarc_txlen = StringProperty(name="txlen",
+    glarc_txlen: StringProperty(name="txlen",
                                  description="Text for length", default="L=")
-    glarc_txang = StringProperty(name="txang",
+    glarc_txang: StringProperty(name="txang",
                                  description="Text for angle", default="A=")
-    glcolorarea = FloatVectorProperty(name="glcolorarea",
+    glcolorarea: FloatVectorProperty(name="glcolorarea",
                                       description="Color for the measure of area",
                                       default=(0.1, 0.1, 0.1, 1.0),
                                       min=0.1,
@@ -359,12 +359,12 @@ class MeasureitEditPanel(Panel):
             if 'MeasureGenerator' in context.object:
                 box = layout.box()
                 row = box.row()
-                row.label(context.object.name)
+                row.label(text=context.object.name)
                 row = box.row()
                 row.prop(scene, 'measureit_gl_precision', text="Precision")
                 row.prop(scene, 'measureit_units')
                 row = box.row()
-                row.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="ALIGN")
+                row.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="ALIGN_CENTER")
                 row.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
                 row = box.row()
                 row.prop(scene, 'measureit_hide_units', text="Hide measurement unit")
@@ -372,7 +372,7 @@ class MeasureitEditPanel(Panel):
                 row = box.row()
                 row.prop(scene, 'measureit_scale', text="Scale")
                 if scene.measureit_scale is True:
-                    split = row.split(percentage=0.25, align=False)
+                    split = row.split(factor=0.25, align=False)
                     split.prop(scene, 'measureit_scale_color', text="")
                     split.prop(scene, 'measureit_scale_factor', text="1")
                     row = box.row()
@@ -389,7 +389,7 @@ class MeasureitEditPanel(Panel):
                 row = box.row()
                 row.prop(scene, 'measureit_ovr', text="Override")
                 if scene.measureit_ovr is True:
-                    split = row.split(percentage=0.25, align=False)
+                    split = row.split(factor=0.25, align=False)
                     split.prop(scene, 'measureit_ovr_color', text="")
                     split.prop(scene, 'measureit_ovr_width', text="Width")
                     row = box.row()
@@ -405,9 +405,9 @@ class MeasureitEditPanel(Panel):
                 # -----------------
                 if mp.measureit_num > 0:
                     box = layout.box()
-                    row = box.row(True)
-                    row.operator("measureit.expandallsegmentbutton", text="Expand all", icon="ZOOMIN")
-                    row.operator("measureit.collapseallsegmentbutton", text="Collapse all", icon="ZOOMOUT")
+                    row = box.row(align = True)
+                    row.operator("measureit.expandallsegmentbutton", text="Expand all", icon="ADD")
+                    row.operator("measureit.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
                     for idx in range(0, mp.measureit_num):
                         if mp.measureit_segments[idx].glfree is False:
                             add_item(box, idx, mp.measureit_segments[idx])
@@ -470,28 +470,28 @@ class MeasureitEditPanel(Panel):
                         units = scene.measureit_units
 
                         box = layout.box()
-                        box.label("Totals", icon='SOLO_ON')
+                        box.label(text="Totals", icon='SOLO_ON')
                         final = 0
                         for idx in range(0, len(tot)):
                             if ac[idx] is True:
                                 final += tot[idx]
                                 tx_dist = format_distance(fmt, units, tot[idx])
                                 row = box.row(True)
-                                row.label("Group " + tx[idx] + ":")
-                                row.label(" ")
-                                row.label(tx_dist)
+                                row.label(text="Group " + tx[idx] + ":")
+                                row.label(text=" ")
+                                row.label(text=tx_dist)
 
                         # Grand total
                         row = box.row(True)
-                        row.label("")
-                        row.label(" ")
-                        row.label("-" * 20)
+                        row.label(text="")
+                        row.label(text=" ")
+                        row.label(text="-" * 20)
                         tx_dist = format_distance(fmt, units, final)
 
                         row = box.row(True)
-                        row.label("")
-                        row.label(" ")
-                        row.label(tx_dist)
+                        row.label(text="")
+                        row.label(text=" ")
+                        row.label(text=tx_dist)
                         # delete all
                         row = box.row()
                         row.operator("measureit.deleteallsumbutton", text="Delete all", icon="X")
@@ -502,25 +502,25 @@ class MeasureitEditPanel(Panel):
 # -----------------------------------------------------
 def add_item(box, idx, segment):
     scene = bpy.context.scene
-    row = box.row(True)
+    row = box.row(align=True)
     if segment.glview is True:
         icon = "VISIBLE_IPO_ON"
     else:
         icon = "VISIBLE_IPO_OFF"
 
     row.prop(segment, 'glview', text="", toggle=True, icon=icon)
-    row.prop(segment, 'gladvance', text="", toggle=True, icon="SCRIPTWIN")
+    row.prop(segment, 'gladvance', text="", toggle=True, icon="PREFERENCES")
     if segment.gltype == 20:  # Area special
-        split = row.split(percentage=0.15, align=True)
+        split = row.split(factor=0.15, align=True)
         split.prop(segment, 'glcolorarea', text="")
-        split = split.split(percentage=0.20, align=True)
+        split = split.split(factor=0.20, align=True)
         split.prop(segment, 'glcolor', text="")
     else:
-        split = row.split(percentage=0.25, align=True)
+        split = row.split(factor=0.25, align=True)
         split.prop(segment, 'glcolor', text="")
     split.prop(segment, 'gltxt', text="")
     op = row.operator("measureit.deletesegmentbutton", text="", icon="X")
-    op.tag = idx  # saves internal data
+    op.tag: idx  # saves internal data
     if segment.gladvance is True:
         row = box.row(True)
         row.prop(segment, 'glfont_size', text="Font")
@@ -538,13 +538,13 @@ def add_item(box, idx, segment):
             row = box.row(True)
             row.prop(segment, 'glarrow_a', text="")
             row.prop(segment, 'glarrow_b', text="")
-            if segment.glarrow_a != '99' or segment.glarrow_b != '99': 
+            if segment.glarrow_a != '99' or segment.glarrow_b != '99':
                 row.prop(segment, 'glarrow_s', text="Size")
 
         if segment.gltype != 2 and segment.gltype != 10:
             row = box.row(True)
             if scene.measureit_gl_show_d is True and segment.gltype != 9:
-                row.prop(segment, 'gldist', text="Distance", toggle=True, icon="ALIGN")
+                row.prop(segment, 'gldist', text="Distance", toggle=True, icon="ALIGN_CENTER")
             if scene.measureit_gl_show_n is True:
                 row.prop(segment, 'glnames', text="Text", toggle=True, icon="FONT_DATA")
             # sum distances
@@ -609,10 +609,10 @@ def add_item(box, idx, segment):
 # Define panel class for main functions.
 # ------------------------------------------------------------------
 class MeasureitMainPanel(Panel):
-    bl_idname = "measureit_main_panel"
+    bl_idname = "MEASUREIT_PT_main_panel"
     bl_label = "MeasureIt Tools"
     bl_space_type = 'VIEW_3D'
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_category = 'Measureit'
 
     # ------------------------------
@@ -642,31 +642,31 @@ class MeasureitMainPanel(Panel):
 
         # Tools
         box = layout.box()
-        box.label("Add Measures")
+        box.label(text="Add Measures")
         row = box.row()
-        row.operator("measureit.addsegmentbutton", text="Segment", icon="ALIGN")
+        row.operator("measureit.addsegmentbutton", text="Segment", icon="ALIGN_CENTER")
         row.prop(scene, "measureit_sum", text="Sum")
 
         # To origin
         row = box.row()
-        op = row.operator("measureit.addsegmentortobutton", text="X", icon="ALIGN")
-        op.tag = 0  # saves internal data
-        op = row.operator("measureit.addsegmentortobutton", text="Y", icon="ALIGN")
-        op.tag = 1  # saves internal data
-        op = row.operator("measureit.addsegmentortobutton", text="Z", icon="ALIGN")
-        op.tag = 2  # saves internal data
+        op = row.operator("measureit.addsegmentortobutton", text="X", icon="ALIGN_CENTER")
+        op.tag: 0  # saves internal data
+        op = row.operator("measureit.addsegmentortobutton", text="Y", icon="ALIGN_CENTER")
+        op.tag: 1  # saves internal data
+        op = row.operator("measureit.addsegmentortobutton", text="Z", icon="ALIGN_CENTER")
+        op.tag: 2  # saves internal data
 
         row = box.row()
         row.operator("measureit.addanglebutton", text="Angle", icon="LINCURVE")
-        row.operator("measureit.addarcbutton", text="Arc", icon="MAN_ROT")
+        row.operator("measureit.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
 
         row = box.row()
         row.operator("measureit.addlabelbutton", text="Label", icon="FONT_DATA")
-        row.operator("measureit.addnotebutton", text="Annotation", icon="NEW")
+        row.operator("measureit.addnotebutton", text="Annotation", icon="FILE_NEW")
 
         row = box.row()
-        row.operator("measureit.addlinkbutton", text="Link", icon="ROTATECENTER")
-        row.operator("measureit.addoriginbutton", text="Origin", icon="CURSOR")
+        row.operator("measureit.addlinkbutton", text="Link", icon="PIVOT_MEDIAN")
+        row.operator("measureit.addoriginbutton", text="Origin", icon="PIVOT_CURSOR")
 
         row = box.row()
         row.operator("measureit.addareabutton", text="Area", icon="MESH_GRID")
@@ -675,7 +675,7 @@ class MeasureitMainPanel(Panel):
         # Debug data
         # ------------------------------
         box = layout.box()
-        row = box.row(False)
+        row = box.row(align=False)
         if scene.measureit_debug is False:
             row.prop(scene, "measureit_debug", icon="TRIA_RIGHT",
                      text="Mesh Debug", emboss=False)
@@ -684,43 +684,43 @@ class MeasureitMainPanel(Panel):
                      text="Mesh Debug", emboss=False)
 
             row = box.row()
-            split = row.split(percentage=0.10, align=True)
+            split = row.split(factor=0.10, align=True)
             split.prop(scene, 'measureit_debug_obj_color', text="")
             split.prop(scene, "measureit_debug_objects", icon="OBJECT_DATA")
             split.prop(scene, "measureit_debug_object_loc", icon="EMPTY_DATA")
 
             row = box.row()
-            split = row.split(percentage=0.10, align=True)
+            split = row.split(factor=0.10, align=True)
             split.prop(scene, 'measureit_debug_vert_color', text="")
-            split.prop(scene, "measureit_debug_vertices", icon="LOOPSEL")
+            split.prop(scene, "measureit_debug_vertices", icon="VERTEXSEL")
             split.prop(scene, "measureit_debug_vert_loc", icon="EMPTY_DATA")
             if scene.measureit_debug_vert_loc is True:
                 split.prop(scene, 'measureit_debug_vert_loc_toggle', text="")
 
             row = box.row()
-            split = row.split(percentage=0.10, align=True)
+            split = row.split(factor=0.10, align=True)
             split.prop(scene, 'measureit_debug_edge_color', text="")
-            split = split.split(percentage=0.5, align=True)
+            split = split.split(factor=0.5, align=True)
             split.prop(scene, "measureit_debug_edges", icon="EDGESEL")
 
             row = box.row()
-            split = row.split(percentage=0.10, align=True)
+            split = row.split(factor=0.10, align=True)
             split.prop(scene, 'measureit_debug_face_color', text="")
-            split = split.split(percentage=0.5, align=True)
+            split = split.split(factor=0.5, align=True)
             split.prop(scene, "measureit_debug_faces", icon="FACESEL")
 
             row = box.row()
-            split = row.split(percentage=0.10, align=True)
+            split = row.split(factor=0.10, align=True)
             split.prop(scene, 'measureit_debug_norm_color', text="")
             if scene.measureit_debug_normals is False:
-                split = split.split(percentage=0.50, align=True)
-                split.prop(scene, "measureit_debug_normals", icon="MAN_TRANS")
+                split = split.split(factor=0.50, align=True)
+                split.prop(scene, "measureit_debug_normals", icon="DRIVER_TRANSFORM")
             else:
-                split = split.split(percentage=0.5, align=True)
-                split.prop(scene, "measureit_debug_normals", icon="MAN_TRANS")
+                split = split.split(factor=0.5, align=True)
+                split.prop(scene, "measureit_debug_normals", icon="DRIVER_TRANSFORM")
                 split.prop(scene, "measureit_debug_normal_size")
                 row = box.row()
-                split = row.split(percentage=0.10, align=True)
+                split = row.split(factor=0.10, align=True)
                 split.separator()
                 split.prop(scene, "measureit_debug_normal_details")
                 split.prop(scene, 'measureit_debug_width', text="Thickness")
@@ -738,7 +738,7 @@ class MeasureitConfPanel(Panel):
     bl_idname = "measureit_conf_panel"
     bl_label = "MeasureIt Configuration"
     bl_space_type = 'VIEW_3D'
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_category = 'Measureit'
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -752,21 +752,21 @@ class MeasureitConfPanel(Panel):
         # Configuration data
         box = layout.box()
         row = box.row()
-        split = row.split(percentage=0.2, align=True)
-        split.label("Text")
-        split = split.split(percentage=0.2, align=True)
+        split = row.split(factor=0.2, align=True)
+        split.label(text="Text")
+        split = split.split(factor=0.2, align=True)
         split.prop(scene, "measureit_default_color", text="")
         split.prop(scene, "measureit_gl_txt", text="")
-        row = box.row(True)
+        row = box.row(align=True)
         row.prop(scene, "measureit_hint_space")
         row.prop(scene, "measureit_font_align", text="")
         # Arrow
-        row = box.row(True)
+        row = box.row(align=True)
         row.prop(scene, "measureit_glarrow_a", text="")
         row.prop(scene, "measureit_glarrow_b", text="")
         if scene.measureit_glarrow_a != '99' or scene.measureit_glarrow_b != '99':
             row.prop(scene, "measureit_glarrow_s", text="Size")
-        row = box.row(True)
+        row = box.row(align=True)
         row.prop(scene, "measureit_font_size")
         if scene.measureit_font_align == 'L':
             row.prop(scene, "measureit_font_rotation", text="Rotate")
@@ -779,7 +779,7 @@ class MeasureitRenderPanel(Panel):
     bl_idname = "measureit_render_panel"
     bl_label = "MeasureIt Render"
     bl_space_type = 'VIEW_3D'
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_category = 'Measureit'
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -994,7 +994,7 @@ class AddSegmentOrtoButton(Operator):
     bl_description = "(EDITMODE only) Add a new measure segment from vertex to object origin for one " \
                      "axis (select 1 vertex)"
     bl_category = 'Measureit'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Poll
@@ -1579,7 +1579,7 @@ class DeleteSegmentButton(Operator):
     bl_label = "Delete"
     bl_description = "Delete a measure"
     bl_category = 'Measureit'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1613,7 +1613,7 @@ class DeleteAllSegmentButton(Operator):
     bl_label = "Delete"
     bl_description = "Delete all measures (it cannot be undone)"
     bl_category = 'Measureit'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1648,7 +1648,7 @@ class DeleteAllSumButton(Operator):
     bl_label = "Delete"
     bl_description = "Delete all sum groups"
     bl_category = 'Measureit'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1674,7 +1674,7 @@ class ExpandAllSegmentButton(Operator):
     bl_label = "Expand"
     bl_description = "Expand all measure properties"
     bl_category = 'Measureit'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1705,7 +1705,7 @@ class CollapseAllSegmentButton(Operator):
     bl_label = "Collapse"
     bl_description = "Collapses all measure properties"
     bl_category = 'Measureit'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1736,7 +1736,7 @@ class RenderSegmentButton(Operator):
     bl_label = "Render"
     bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
     bl_category = 'Measureit'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1871,7 +1871,7 @@ class AddNoteButton(Operator):
     bl_label = "Note"
     bl_description = "(OBJECT mode only) Add a new annotation"
     bl_category = 'Measureit'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Poll
@@ -2175,7 +2175,7 @@ def get_smart_selected(myobject):
     # meshes
     # --------------------
     oldobj = bpy.context.object
-    bpy.context.scene.objects.active = myobject
+    bpy.context.view_layer.objects.active = myobject
     flag = False
     if myobject.mode != 'EDIT':
         bpy.ops.object.mode_set(mode='EDIT')
@@ -2190,7 +2190,7 @@ def get_smart_selected(myobject):
     if flag is True:
         bpy.ops.object.editmode_toggle()
     # Back context object
-    bpy.context.scene.objects.active = oldobj
+    bpy.context.view_layer.objects.active = oldobj
 
     return mylist
 
