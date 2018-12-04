@@ -30,6 +30,9 @@ import bmesh
 from bmesh import from_edit_mesh
 # noinspection PyUnresolvedReferences
 import bgl
+import gpu
+from gpu_extras.batch import batch_for_shader
+
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty
@@ -522,12 +525,12 @@ def add_item(box, idx, segment):
     op = row.operator("measureit.deletesegmentbutton", text="", icon="X")
     op.tag: idx  # saves internal data
     if segment.gladvance is True:
-        row = box.row(True)
+        row = box.row(align = True)
         row.prop(segment, 'glfont_size', text="Font")
         row.prop(segment, 'glfont_align', text="")
         if segment.glfont_align == 'L':
             row.prop(segment, 'glfont_rotat', text="Rotate")
-        row = box.row(True)
+        row = box.row(align =True)
         if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
             row.prop(segment, 'glspace', text="Distance")
         row.prop(segment, 'glfontx', text="X")
@@ -535,14 +538,14 @@ def add_item(box, idx, segment):
 
         # Arrows
         if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
-            row = box.row(True)
+            row = box.row(align = True)
             row.prop(segment, 'glarrow_a', text="")
             row.prop(segment, 'glarrow_b', text="")
             if segment.glarrow_a != '99' or segment.glarrow_b != '99':
                 row.prop(segment, 'glarrow_s', text="Size")
 
         if segment.gltype != 2 and segment.gltype != 10:
-            row = box.row(True)
+            row = box.row(align = True)
             if scene.measureit_gl_show_d is True and segment.gltype != 9:
                 row.prop(segment, 'gldist', text="Distance", toggle=True, icon="ALIGN_CENTER")
             if scene.measureit_gl_show_n is True:
@@ -552,7 +555,7 @@ def add_item(box, idx, segment):
                 row.prop(segment, 'gltot', text="Sum")
 
         if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
-            row = box.row(True)
+            row = box.row(align = True)
             row.prop(segment, 'glwidth', text="Line")
             row.prop(segment, 'gldefault', text="Automatic position")
             if segment.gldefault is False:
@@ -565,7 +568,7 @@ def add_item(box, idx, segment):
         if segment.gltype != 2 and segment.gltype != 9 and segment.gltype != 10 \
                 and segment.gltype != 11 and segment.gltype != 12 and segment.gltype != 13 \
                 and segment.gltype != 14 and segment.gltype != 20:
-            row = box.row(True)
+            row = box.row(align = True)
             row.prop(segment, 'glocx', text="X", toggle=True)
             row.prop(segment, 'glocy', text="Y", toggle=True)
             row.prop(segment, 'glocz', text="Z", toggle=True)
@@ -584,21 +587,21 @@ def add_item(box, idx, segment):
 
         # Arc special
         if segment.gltype == 11:
-            row = box.row(True)
+            row = box.row(align = True)
             row.prop(segment, 'glarc_rad', text="Radius")
             row.prop(segment, 'glarc_len', text="Length")
             row.prop(segment, 'glarc_ang', text="Angle")
 
-            row = box.row(True)
+            row = box.row(align = True)
             row.prop(segment, 'glarc_txradio', text="")
             row.prop(segment, 'glarc_txlen', text="")
             row.prop(segment, 'glarc_txang', text="")
-            row = box.row(True)
+            row = box.row(align = True)
             row.prop(segment, 'glarc_full', text="Full Circle")
             if segment.glarc_rad is True:
                 row.prop(segment, 'glarc_extrad', text="Adapt radio")
 
-            row = box.row(True)
+            row = box.row(align = True)
             row.prop(segment, 'glarc_a', text="")
             row.prop(segment, 'glarc_b', text="")
             if segment.glarc_a != '99' or segment.glarc_b != '99':
@@ -2011,16 +2014,15 @@ def draw_main(context):
         rv3d = context.space_data.region_quadviews[i]
 
     scene = bpy.context.scene
-    # Get visible layers
-    layers = []
-    if bpy.context.space_data.lock_camera_and_layers is True:
-        for x in range(0, 20):
-            if bpy.context.scene.layers[x] is True:
-                layers.extend([x])
-    else:
-        for x in range(20):
-            if bpy.context.space_data.layers[x] is True:
-                layers.extend([x])
+
+    # Get visible collections
+    viewLayer = bpy.context.view_layer
+
+    visibleCollections = []
+
+    for collection in viewLayer.layer_collection.children:
+        if collection.exclude == False:
+            visibleCollections.extend([collection])
 
     # Display selected or all
     if scene.measureit_gl_ghost is False:
@@ -2034,11 +2036,11 @@ def draw_main(context):
     # Generate all OpenGL calls for measures
     # ---------------------------------------
     for myobj in objlist:
-        if myobj.hide is False:
+        if myobj.hide_viewport is False:
             if 'MeasureGenerator' in myobj:
                 # verify visible layer
-                for x in range(0, 20):
-                    if myobj.layers[x] is True and x in layers:
+                for collection in visibleCollections:
+                     if myobj.users_collection == collection:
                         op = myobj.MeasureGenerator[0]
                         draw_segments(context, myobj, op, region, rv3d)
                         break
