@@ -27,6 +27,8 @@
 import bpy
 # noinspection PyUnresolvedReferences
 import bgl
+import gpu
+from gpu_extras.batch import batch_for_shader
 # noinspection PyUnresolvedReferences
 import blf
 from blf import ROTATION
@@ -321,12 +323,12 @@ def draw_segments(context, myobj, op, region, rv3d):
                     # ------------------------------------
                     # colour + line setup
                     # ------------------------------------
-                    if ovr is False:
-                        bgl.glLineWidth(ms.glwidth)
-                    else:
-                        bgl.glLineWidth(ovrline)
+                    #if ovr is False:
+                        #bgl .glLineWidth(ms.glwidth)
+                    #else:
+                        #bgl .glLineWidth(ovrline)
 
-                    bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+                    #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
 
                     # ------------------------------------
                     # Text (distance)
@@ -480,8 +482,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                     # ------------------------------------
                     # Draw lines
                     # ------------------------------------
-                    bgl.glEnable(bgl.GL_BLEND)
-                    bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+                    #bgl .glEnable(bgl.GL_BLEND)
+                    #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
 
                     if ms.gltype == 1:  # Segment
                         draw_line(screen_point_ap1, screen_point_v11)
@@ -843,7 +845,7 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
         new_y = y_pos + (mheight * idx)
         # Draw
         blf.position(font_id, newx, new_y, 0)
-        bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+        #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         blf.draw(font_id, " " + line)
         # sub line
         idx -= 1
@@ -858,20 +860,26 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
 
 
 # -------------------------------------------------------------
-# Draw an OpenGL line
+# Draw an GPU line
 #
 # -------------------------------------------------------------
 def draw_line(v1, v2):
     # noinspection PyBroadException
-    try:
-        if v1 is not None and v2 is not None:
-            bgl.glBegin(bgl.GL_LINES)
-            bgl.glVertex2f(*v1)
-            bgl.glVertex2f(*v2)
-            bgl.glEnd()
-    except:
-        pass
+    if v1 is not None and v2 is not None:
+        coords = [v1,v2]
+        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        batch = batch_for_shader(shader, 'LINES', {"pos": coords})
+        rgb = bpy.context.scene.measureit_default_color
 
+        shader.bind()
+        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+        batch.draw(shader)
+
+        #bgl.glBegin(bgl.GL_LINES)
+        #bgl.glVertex2f(*v1)
+        #bgl.glVertex2f(*v2)
+        #bgl.glEnd()
+    
 
 # -------------------------------------------------------------
 # Draw an OpenGL triangle
@@ -881,11 +889,12 @@ def draw_triangle(v1, v2, v3):
     # noinspection PyBroadException
     try:
         if v1 is not None and v2 is not None and v3 is not None:
-            bgl.glBegin(bgl.GL_TRIANGLES)
-            bgl.glVertex2f(*v1)
-            bgl.glVertex2f(*v2)
-            bgl.glVertex2f(*v3)
-            bgl.glEnd()
+            print ("drawing triangle")
+            #bgl .glBegin(bgl.GL_TRIANGLES)
+            #bgl .glVertex2f(*v1)
+            #bgl .glVertex2f(*v2)
+            #bgl .glVertex2f(*v3)
+            #bgl .glEnd()
     except:
         pass
 
@@ -1011,7 +1020,7 @@ def draw_object(context, myobj, region, rv3d):
                 continue
         a_p1 = Vector(get_location(objs[o]))
         # colour
-        bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+        #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # Text
         txt = ''
         if scene.measureit_debug_objects is True:
@@ -1061,7 +1070,7 @@ def draw_vertices(context, myobj, region, rv3d):
         # try:
         a_p1 = get_point(v.co, myobj)
         # colour
-        bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+        #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # converting to screen coordinates
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
         # Text
@@ -1116,7 +1125,7 @@ def draw_edges(context, myobj, region, rv3d):
         a_mp = midf(e, obverts)
         a_p1 = get_point(a_mp, myobj)
         # colour
-        bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+        #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # converting to screen coordinates
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
         draw_text(myobj, txtpoint2d, str(e.index), rgb, fsize)
@@ -1167,9 +1176,9 @@ def draw_faces(context, myobj, region, rv3d):
 
             a_p2 = (a_p1[0] + normal[0] * ln, a_p1[1] + normal[1] * ln, a_p1[2] + normal[2] * ln)
             # colour + line setup
-            bgl.glEnable(bgl.GL_BLEND)
-            bgl.glLineWidth(th)
-            bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+            #bgl.glEnable(bgl.GL_BLEND)
+            #bgl.glLineWidth(th)
+            #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
             # converting to screen coordinates
             txtpoint2d = get_2d_point(region, rv3d, a_p1)
             point2 = get_2d_point(region, rv3d, a_p2)
@@ -1178,8 +1187,8 @@ def draw_faces(context, myobj, region, rv3d):
                 draw_text(myobj, txtpoint2d, str(f.index), rgb, fsize)
             # Draw Normal
             if scene.measureit_debug_normals is True:
-                bgl.glEnable(bgl.GL_BLEND)
-                bgl.glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
+                #bgl.glEnable(bgl.GL_BLEND)
+                #bgl .glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
                 draw_arrow(txtpoint2d, point2, 10, "99", "1")
 
                 if len(obverts) > 2 and scene.measureit_debug_normal_details is True:
@@ -1271,7 +1280,7 @@ def get_point(v1, mainobject):
     # Using World Matrix
     vt = Vector((v1[0], v1[1], v1[2], 1))
     m4 = mainobject.matrix_world
-    vt2 = m4 * vt
+    vt2 = m4 @ vt
     v2 = [vt2[0], vt2[1], vt2[2]]
 
     return v2

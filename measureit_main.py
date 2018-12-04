@@ -479,19 +479,19 @@ class MeasureitEditPanel(Panel):
                             if ac[idx] is True:
                                 final += tot[idx]
                                 tx_dist = format_distance(fmt, units, tot[idx])
-                                row = box.row(True)
+                                row = box.row(align = True)
                                 row.label(text="Group " + tx[idx] + ":")
                                 row.label(text=" ")
                                 row.label(text=tx_dist)
 
                         # Grand total
-                        row = box.row(True)
+                        row = box.row(align=True)
                         row.label(text="")
                         row.label(text=" ")
                         row.label(text="-" * 20)
                         tx_dist = format_distance(fmt, units, final)
 
-                        row = box.row(True)
+                        row = box.row(align=True)
                         row.label(text="")
                         row.label(text=" ")
                         row.label(text=tx_dist)
@@ -559,7 +559,7 @@ def add_item(box, idx, segment):
             row.prop(segment, 'glwidth', text="Line")
             row.prop(segment, 'gldefault', text="Automatic position")
             if segment.gldefault is False:
-                row = box.row(True)
+                row = box.row(align = True)
                 row.prop(segment, 'glnormalx', text="X")
                 row.prop(segment, 'glnormaly', text="Y")
                 row.prop(segment, 'glnormalz', text="Z")
@@ -580,7 +580,7 @@ def add_item(box, idx, segment):
                 # ortogonal (only segments)
                 if segment.gltype == 1:
                     if segment.glorto != "99":
-                        row = box.row(True)
+                        row = box.row(align=True)
                         row.prop(segment, 'glorto_x', text="X", toggle=True)
                         row.prop(segment, 'glorto_y', text="Y", toggle=True)
                         row.prop(segment, 'glorto_z', text="Z", toggle=True)
@@ -1895,7 +1895,7 @@ class AddNoteButton(Operator):
             bpy.ops.object.empty_add(type='PLAIN_AXES')
             myempty = bpy.data.objects[bpy.context.active_object.name]
             myempty.location = bpy.context.scene.cursor_location
-            myempty.empty_draw_size = 0.01
+            myempty.empty_display_size = 0.01
             myempty.name = "Annotation"
             # Add properties
             scene = context.scene
@@ -2031,7 +2031,7 @@ def draw_main(context):
         objlist = context.scene.objects
 
     # Enable GL drawing
-    bgl.glEnable(bgl.GL_BLEND)
+    #bgl .glEnable(bgl.GL_BLEND)
     # ---------------------------------------
     # Generate all OpenGL calls for measures
     # ---------------------------------------
@@ -2040,7 +2040,9 @@ def draw_main(context):
             if 'MeasureGenerator' in myobj:
                 # verify visible layer
                 for collection in visibleCollections:
-                     if myobj.users_collection == collection:
+                    objCollections = []
+                    objCollections = myobj.users_collection
+                    if objCollections[0].name == collection.collection.name:
                         op = myobj.MeasureGenerator[0]
                         draw_segments(context, myobj, op, region, rv3d)
                         break
@@ -2066,9 +2068,9 @@ def draw_main(context):
     # -----------------------
     # restore opengl defaults
     # -----------------------
-    bgl.glLineWidth(1)
-    bgl.glDisable(bgl.GL_BLEND)
-    bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
+    #bgl.glLineWidth(1)
+    #bgl.glDisable(bgl.GL_BLEND)
+    #bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
 
 
 # -------------------------------------------------------------
@@ -2111,7 +2113,7 @@ def get_selected_vertex(myobject):
     # meshes
     # --------------------
     oldobj = bpy.context.object
-    bpy.context.scene.objects.active = myobject
+    bpy.context.view_layer.objects.active = myobject
     flag = False
     if myobject.mode != 'EDIT':
         bpy.ops.object.mode_set(mode='EDIT')
@@ -2126,7 +2128,7 @@ def get_selected_vertex(myobject):
     if flag is True:
         bpy.ops.object.editmode_toggle()
     # Back context object
-    bpy.context.scene.objects.active = oldobj
+    bpy.context.view_layer.objects.active = oldobj
 
     # if select all vertices, then use origin
     if tv == len(mylist):
@@ -2147,7 +2149,7 @@ def get_selected_vertex_history(myobject):
     # meshes
     # --------------------
     oldobj = bpy.context.object
-    bpy.context.scene.objects.active = myobject
+    bpy.context.view_layer.objects.active = myobject
     flag = False
     if myobject.mode != 'EDIT':
         bpy.ops.object.mode_set(mode='EDIT')
@@ -2160,7 +2162,7 @@ def get_selected_vertex_history(myobject):
     if flag is True:
         bpy.ops.object.editmode_toggle()
     # Back context object
-    bpy.context.scene.objects.active = oldobj
+    bpy.context.view_layer.objects.active = oldobj
 
     return mylist
 
@@ -2209,7 +2211,7 @@ def get_selected_faces(myobject):
     # meshes
     # --------------------
     oldobj = bpy.context.object
-    bpy.context.scene.objects.active = myobject
+    bpy.context.view_layer.objects.active = myobject
     flag = False
     if myobject.mode != 'EDIT':
         bpy.ops.object.mode_set(mode='EDIT')
@@ -2227,6 +2229,6 @@ def get_selected_faces(myobject):
     if flag is True:
         bpy.ops.object.editmode_toggle()
     # Back context object
-    bpy.context.scene.objects.active = oldobj
+    bpy.context.view_layer.objects.active = oldobj
 
     return mylist
