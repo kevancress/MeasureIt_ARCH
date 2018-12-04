@@ -39,7 +39,7 @@ from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
 from sys import exc_info
 
-
+shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
 # -------------------------------------------------------------
 # Draw segments
 #
@@ -329,7 +329,9 @@ def draw_segments(context, myobj, op, region, rv3d):
                         #bgl .glLineWidth(ovrline)
 
                     #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
-
+                    
+                    shader.bind()
+                    shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
                     # ------------------------------------
                     # Text (distance)
                     # ------------------------------------
@@ -483,6 +485,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                     # Draw lines
                     # ------------------------------------
                     #bgl .glEnable(bgl.GL_BLEND)
+                    shader.bind()
+                    shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
                     #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
 
                     if ms.gltype == 1:  # Segment
@@ -867,12 +871,10 @@ def draw_line(v1, v2):
     # noinspection PyBroadException
     if v1 is not None and v2 is not None:
         coords = [v1,v2]
-        shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+        
         batch = batch_for_shader(shader, 'LINES', {"pos": coords})
-        rgb = bpy.context.scene.measureit_default_color
-
-        shader.bind()
-        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+        #rgb = bpy.context.scene.measureit_default_color
+       
         batch.draw(shader)
 
         #bgl.glBegin(bgl.GL_LINES)
@@ -1020,6 +1022,9 @@ def draw_object(context, myobj, region, rv3d):
                 continue
         a_p1 = Vector(get_location(objs[o]))
         # colour
+        
+        shader.bind()
+        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # Text
         txt = ''
@@ -1070,6 +1075,9 @@ def draw_vertices(context, myobj, region, rv3d):
         # try:
         a_p1 = get_point(v.co, myobj)
         # colour
+        
+        shader.bind()
+        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # converting to screen coordinates
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1125,6 +1133,9 @@ def draw_edges(context, myobj, region, rv3d):
         a_mp = midf(e, obverts)
         a_p1 = get_point(a_mp, myobj)
         # colour
+        
+        shader.bind()
+        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
         #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # converting to screen coordinates
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1178,6 +1189,9 @@ def draw_faces(context, myobj, region, rv3d):
             # colour + line setup
             #bgl.glEnable(bgl.GL_BLEND)
             #bgl.glLineWidth(th)
+            
+            shader.bind()
+            shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
             #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
             # converting to screen coordinates
             txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1188,6 +1202,9 @@ def draw_faces(context, myobj, region, rv3d):
             # Draw Normal
             if scene.measureit_debug_normals is True:
                 #bgl.glEnable(bgl.GL_BLEND)
+                
+                shader.bind()
+                shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
                 #bgl .glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
                 draw_arrow(txtpoint2d, point2, 10, "99", "1")
 

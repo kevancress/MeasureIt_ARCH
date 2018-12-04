@@ -404,10 +404,10 @@ class MeasureitEditPanel(Panel):
                 row.prop(scene, 'measureit_gl_precision', text="Precision")
                 row = box.row()
                 row.prop(scene, 'measureit_units')
-                row = box.row()
-                row.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="ALIGN_CENTER")
-                row = box.row()
-                row.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
+                col = box.column(align=True)
+                col.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="ALIGN_CENTER")
+                col.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
+                
                 row = box.row()
                 row.prop(scene, 'measureit_hide_units', text="Hide measurement unit")
                 # Scale factor
@@ -2061,7 +2061,7 @@ def draw_main(context):
         objlist = context.scene.objects
 
     # Enable GL drawing
-    #bgl .glEnable(bgl.GL_BLEND)
+    #bgl.glEnable(bgl.GL_BLEND)
     # ---------------------------------------
     # Generate all OpenGL calls for measures
     # ---------------------------------------
