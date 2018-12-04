@@ -325,11 +325,47 @@ Object.MeasureGenerator = CollectionProperty(type=MeasureContainer)
 
 # ------------------------------------------------------------------
 # Define UI class
+# show/Hide Dimensions
+# ------------------------------------------------------------------
+class MeasureitShowHidePanel(Panel):
+    bl_idname = "measureit.showhidepanel"
+    bl_label = "Show/Hide Dimensions"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'MeasureIt'
+
+    # -----------------------------------------------------
+    # Draw (create UI interface)
+    # -----------------------------------------------------
+    # noinspection PyUnusedLocal
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+
+        box = layout.box()
+        # ------------------------------
+        # Display Buttons
+        # ------------------------------
+        row = box.row()
+        if context.window_manager.measureit_run_opengl is False:
+            icon = 'PLAY'
+            txt = 'Show'
+        else:
+            icon = "PAUSE"
+            txt = 'Hide'
+
+        row.operator("measureit.runopenglbutton", text=txt, icon=icon)
+        row.prop(scene, "measureit_gl_ghost", text="", icon='GHOST_ENABLED')
+
+
+
+# ------------------------------------------------------------------
+# Define UI class
 # Measureit
 # ------------------------------------------------------------------
 class MeasureitEditPanel(Panel):
     bl_idname = "measureit.editpanel"
-    bl_label = "Measureit"
+    bl_label = "Dimensions"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'MeasureIt'
@@ -358,6 +394,7 @@ class MeasureitEditPanel(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
+
         if context.object is not None:
             if 'MeasureGenerator' in context.object:
                 box = layout.box()
@@ -365,9 +402,11 @@ class MeasureitEditPanel(Panel):
                 row.label(text=context.object.name)
                 row = box.row()
                 row.prop(scene, 'measureit_gl_precision', text="Precision")
+                row = box.row()
                 row.prop(scene, 'measureit_units')
                 row = box.row()
                 row.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="ALIGN_CENTER")
+                row = box.row()
                 row.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
                 row = box.row()
                 row.prop(scene, 'measureit_hide_units', text="Hide measurement unit")
@@ -613,7 +652,7 @@ def add_item(box, idx, segment):
 # ------------------------------------------------------------------
 class MeasureitMainPanel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
-    bl_label = "MeasureIt Tools"
+    bl_label = "Add Dimension"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
     bl_category = 'Measureit'
@@ -628,47 +667,38 @@ class MeasureitMainPanel(Panel):
         # ------------------------------
         # Tool Buttons
         # ------------------------------
-        box = layout.box()
-        # ------------------------------
-        # Display Buttons
-        # ------------------------------
-        row = box.row()
-        if context.window_manager.measureit_run_opengl is False:
-            icon = 'PLAY'
-            txt = 'Show'
-        else:
-            icon = "PAUSE"
-            txt = 'Hide'
-
-        row.operator("measureit.runopenglbutton", text=txt, icon=icon)
-        row.prop(scene, "measureit_gl_ghost", text="", icon='GHOST_ENABLED')
 
         # Tools
         box = layout.box()
         box.label(text="Add Measures")
         row = box.row()
         row.operator("measureit.addsegmentbutton", text="Segment", icon="ALIGN_CENTER")
+        row = box.row()
         row.prop(scene, "measureit_sum", text="Sum")
 
         # To origin
         row = box.row()
-        op = row.operator("measureit.addsegmentortobutton", text="X", icon="ALIGN_CENTER")
+        split = row.split(align=True)
+        op = split.operator("measureit.addsegmentortobutton", text="X", icon="ALIGN_CENTER")
         op.tag: 0  # saves internal data
-        op = row.operator("measureit.addsegmentortobutton", text="Y", icon="ALIGN_CENTER")
+        op = split.operator("measureit.addsegmentortobutton", text="Y", icon="ALIGN_CENTER")
         op.tag: 1  # saves internal data
-        op = row.operator("measureit.addsegmentortobutton", text="Z", icon="ALIGN_CENTER")
+        op = split.operator("measureit.addsegmentortobutton", text="Z", icon="ALIGN_CENTER")
         op.tag: 2  # saves internal data
 
         row = box.row()
         row.operator("measureit.addanglebutton", text="Angle", icon="LINCURVE")
+        row = box.row()
         row.operator("measureit.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
 
         row = box.row()
         row.operator("measureit.addlabelbutton", text="Label", icon="FONT_DATA")
+        row = box.row()
         row.operator("measureit.addnotebutton", text="Annotation", icon="FILE_NEW")
 
         row = box.row()
         row.operator("measureit.addlinkbutton", text="Link", icon="PIVOT_MEDIAN")
+        row = box.row()
         row.operator("measureit.addoriginbutton", text="Origin", icon="PIVOT_CURSOR")
 
         row = box.row()
@@ -739,7 +769,7 @@ class MeasureitMainPanel(Panel):
 # ------------------------------------------------------------------
 class MeasureitConfPanel(Panel):
     bl_idname = "measureit_conf_panel"
-    bl_label = "MeasureIt Configuration"
+    bl_label = "Dimension Styles"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
     bl_category = 'Measureit'

@@ -107,7 +107,7 @@ class Measure_Pref(AddonPreferences):
     category = StringProperty(
             name="Tab Category",
             description="Choose a name for the category of the panel",
-            default="Display",
+            default="MeasureIt",
             update=update_panel
             )
 
@@ -137,6 +137,7 @@ def register():
     bpy.utils.register_class(measureit_main.DeleteAllSegmentButton)
     bpy.utils.register_class(measureit_main.DeleteAllSumButton)
     bpy.utils.register_class(measureit_main.MeasureitEditPanel)
+    bpy.utils.register_class(measureit_main.MeasureitShowHidePanel)
     bpy.utils.register_class(measureit_main.MeasureitMainPanel)
     bpy.utils.register_class(measureit_main.MeasureitConfPanel)
     bpy.utils.register_class(measureit_main.MeasureitRenderPanel)
@@ -436,6 +437,7 @@ def unregister():
     bpy.utils.unregister_class(measureit_main.DeleteAllSegmentButton)
     bpy.utils.unregister_class(measureit_main.DeleteAllSumButton)
     bpy.utils.unregister_class(measureit_main.MeasureitEditPanel)
+    bpy.utils.unregister_class(measureit_main.MeasureitShowHidePanel)
     bpy.utils.unregister_class(measureit_main.MeasureitMainPanel)
     bpy.utils.unregister_class(measureit_main.MeasureitConfPanel)
     bpy.utils.unregister_class(measureit_main.MeasureitRenderPanel)
