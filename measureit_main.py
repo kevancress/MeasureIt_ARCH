@@ -562,7 +562,8 @@ def add_item(box, idx, segment):
         split.prop(segment, 'glcolor', text="")
     split.prop(segment, 'gltxt', text="")
     op = row.operator("measureit.deletesegmentbutton", text="", icon="X")
-    op.tag: idx  # saves internal data
+    op.tag = idx  # saves internal data
+
     if segment.gladvance is True:
         row = box.row(align = True)
         row.prop(segment, 'glfont_size', text="Font")
@@ -680,11 +681,11 @@ class MeasureitMainPanel(Panel):
         row = box.row()
         split = row.split(align=True)
         op = split.operator("measureit.addsegmentortobutton", text="X", icon="ALIGN_CENTER")
-        op.tag: 0  # saves internal data
+        op.tag = 0  # saves internal data
         op = split.operator("measureit.addsegmentortobutton", text="Y", icon="ALIGN_CENTER")
-        op.tag: 1  # saves internal data
+        op.tag = 1  # saves internal data
         op = split.operator("measureit.addsegmentortobutton", text="Z", icon="ALIGN_CENTER")
-        op.tag: 2  # saves internal data
+        op.tag = 2  # saves internal data
 
         row = box.row()
         row.operator("measureit.addanglebutton", text="Angle", icon="LINCURVE")
@@ -1027,7 +1028,7 @@ class AddSegmentOrtoButton(Operator):
     bl_description = "(EDITMODE only) Add a new measure segment from vertex to object origin for one " \
                      "axis (select 1 vertex)"
     bl_category = 'Measureit'
-    tag: IntProperty()
+    tag = IntProperty()
 
     # ------------------------------
     # Poll
@@ -1612,7 +1613,7 @@ class DeleteSegmentButton(Operator):
     bl_label = "Delete"
     bl_description = "Delete a measure"
     bl_category = 'Measureit'
-    tag: IntProperty()
+    tag= IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1646,7 +1647,7 @@ class DeleteAllSegmentButton(Operator):
     bl_label = "Delete"
     bl_description = "Delete all measures (it cannot be undone)"
     bl_category = 'Measureit'
-    tag: IntProperty()
+    tag= IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1681,7 +1682,7 @@ class DeleteAllSumButton(Operator):
     bl_label = "Delete"
     bl_description = "Delete all sum groups"
     bl_category = 'Measureit'
-    tag: IntProperty()
+    tag= IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1707,7 +1708,7 @@ class ExpandAllSegmentButton(Operator):
     bl_label = "Expand"
     bl_description = "Expand all measure properties"
     bl_category = 'Measureit'
-    tag: IntProperty()
+    tag= IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1738,7 +1739,7 @@ class CollapseAllSegmentButton(Operator):
     bl_label = "Collapse"
     bl_description = "Collapses all measure properties"
     bl_category = 'Measureit'
-    tag: IntProperty()
+    tag= IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1769,7 +1770,7 @@ class RenderSegmentButton(Operator):
     bl_label = "Render"
     bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
     bl_category = 'Measureit'
-    tag: IntProperty()
+    tag= IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1904,7 +1905,7 @@ class AddNoteButton(Operator):
     bl_label = "Note"
     bl_description = "(OBJECT mode only) Add a new annotation"
     bl_category = 'Measureit'
-    tag: IntProperty()
+    tag= IntProperty()
 
     # ------------------------------
     # Poll

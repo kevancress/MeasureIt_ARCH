@@ -849,7 +849,7 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
         new_y = y_pos + (mheight * idx)
         # Draw
         blf.position(font_id, newx, new_y, 0)
-        #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
+        blf.color(0,rgb[0], rgb[1], rgb[2], rgb[3])
         blf.draw(font_id, " " + line)
         # sub line
         idx -= 1
