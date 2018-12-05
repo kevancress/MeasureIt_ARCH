@@ -332,10 +332,10 @@ def draw_segments(context, myobj, op, region, rv3d):
                     shader.bind()
                     if ovr is False:
                         #bgl .glLineWidth(ms.glwidth)
-                        shader.uniform_float("thickness", ms.glwidth*0.001)
+                        shader.uniform_float("thickness", ms.glwidth)
                     else:
                         #bgl .glLineWidth(ovrline)
-                        shader.uniform_float("thickness", ovrline*0.001)
+                        shader.uniform_float("thickness", ovrline)
                     shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
                     # ------------------------------------
                     # Text (distance)
@@ -1196,7 +1196,7 @@ def draw_faces(context, myobj, region, rv3d):
             #bgl.glLineWidth(th)
             
             shader.bind()
-            shader.uniform_float("thickness", th*0.001)
+            shader.uniform_float("thickness", th)
             shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
             #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
             # converting to screen coordinates

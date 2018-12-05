@@ -53,12 +53,14 @@ def render_main(self, context, animation=False):
     settings.color_depth = '8'
     # noinspection PyBroadException
     try:
-        # Get visible layers
-        layers = []
-        scene = context.scene
-        for x in range(0, 20):
-            if scene.layers[x] is True:
-                layers.extend([x])
+        # Get visible collections
+        viewLayer = bpy.context.view_layer
+
+        visibleCollections = []
+
+        for collection in viewLayer.layer_collection.children:
+            if collection.exclude == False:
+                visibleCollections.extend([collection])
 
         # Get object list
         objlist = context.scene.objects
@@ -107,8 +109,8 @@ def render_main(self, context, animation=False):
         bgl.glGetIntegerv(bgl.GL_VIEWPORT, viewport_info)
 
         # Load image on memory
-        img.gl_load(0, bgl.GL_NEAREST, bgl.GL_NEAREST)
-        tex = img.bindcode[0]
+        img.gl_load(frame=0, filter=bgl.GL_NEAREST, mag=bgl.GL_NEAREST)
+        #tex = img.bindcode[0]
 
         # --------------------------------------------
         # Create output image (to apply texture)
