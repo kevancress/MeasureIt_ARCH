@@ -544,6 +544,7 @@ class MeasureitEditPanel(Panel):
 # -----------------------------------------------------
 def add_item(box, idx, segment):
     scene = bpy.context.scene
+    box = box.box()
     row = box.row(align=True)
     if segment.glview is True:
         icon = "VISIBLE_IPO_ON"
@@ -565,44 +566,66 @@ def add_item(box, idx, segment):
     op.tag = idx  # saves internal data
 
     if segment.gladvance is True:
-        row = box.row(align = True)
-        row.prop(segment, 'glfont_size', text="Font")
-        row.prop(segment, 'glfont_align', text="")
-        if segment.glfont_align == 'L':
-            row.prop(segment, 'glfont_rotat', text="Rotate")
-        row = box.row(align =True)
+        col = box.column()
+        col.use_property_split = True
         if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
-            row.prop(segment, 'glspace', text="Distance")
-        row.prop(segment, 'glfontx', text="X")
-        row.prop(segment, 'glfonty', text="Y")
+            col.prop(segment, 'gldefault', text="Automatic position")
+
+            col = box.column(align=True)
+            col.use_property_split = True
+
+            col.prop(segment, 'glspace', text="Distance")
+            col.prop(segment, 'glwidth', text="Lineweight")
+            if segment.gldefault is False:
+                col.prop(segment, 'glnormalx', text="X")
+                col.prop(segment, 'glnormaly', text="Y")
+                col.prop(segment, 'glnormalz', text="Z")
+            
+            
+
+        col = box.column(align=True)
+        col.use_property_split = True
+
+        col.prop(segment, 'glfont_size', text="Font Size")
+        col.prop(segment, 'glfont_rotat', text="Rotate")
+        col.prop(segment, 'glfontx', text="X")
+        col.prop(segment, 'glfonty', text="Y")
+        col.prop(segment, 'glfont_align', text="Align")
 
         # Arrows
         if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
-            row = box.row(align = True)
-            row.prop(segment, 'glarrow_a', text="")
-            row.prop(segment, 'glarrow_b', text="")
+            col = box.column(align=True)
+            col.use_property_split = True
+
+            col.prop(segment, 'glarrow_a', text="Arrow Start ")
+            col.prop(segment, 'glarrow_b', text="End ")
             if segment.glarrow_a != '99' or segment.glarrow_b != '99':
-                row.prop(segment, 'glarrow_s', text="Size")
+                col.prop(segment, 'glarrow_s', text="Size")
 
         if segment.gltype != 2 and segment.gltype != 10:
-            row = box.row(align = True)
+            col = box.column(align=True)
+            col.use_property_split = True
             if scene.measureit_gl_show_d is True and segment.gltype != 9:
-                row.prop(segment, 'gldist', text="Distance", toggle=True, icon="ALIGN_CENTER")
+                if segment.gldist is True:
+                    icon = "VISIBLE_IPO_ON"
+                else:
+                    icon = "VISIBLE_IPO_OFF"
+                col.prop(segment, 'gldist', text="Distance", toggle=True, icon=icon)
             if scene.measureit_gl_show_n is True:
-                row.prop(segment, 'glnames', text="Text", toggle=True, icon="FONT_DATA")
+                if segment.glnames is True:
+                    icon = "VISIBLE_IPO_ON"
+                else:
+                    icon = "VISIBLE_IPO_OFF"
+                col.prop(segment, 'glnames', text="Text", toggle=True, icon=icon)
             # sum distances
-            if segment.gltype == 1 or segment.gltype == 12 or segment.gltype == 13 or segment.gltype == 14:
-                row.prop(segment, 'gltot', text="Sum")
 
-        if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
-            row = box.row(align = True)
-            row.prop(segment, 'glwidth', text="Line")
-            row.prop(segment, 'gldefault', text="Automatic position")
-            if segment.gldefault is False:
-                row = box.row(align = True)
-                row.prop(segment, 'glnormalx', text="X")
-                row.prop(segment, 'glnormaly', text="Y")
-                row.prop(segment, 'glnormalz', text="Z")
+            col = box.column(align=True)
+            col.use_property_split = True
+
+            if segment.gltype == 1 or segment.gltype == 12 or segment.gltype == 13 or segment.gltype == 14:
+                col.prop(segment, 'gltot', text="Sum")
+
+        
 
         # Loc axis
         if segment.gltype != 2 and segment.gltype != 9 and segment.gltype != 10 \
@@ -787,23 +810,28 @@ class MeasureitConfPanel(Panel):
         box = layout.box()
         row = box.row()
         split = row.split(factor=0.2, align=True)
-        split.label(text="Text")
-        split = split.split(factor=0.2, align=True)
         split.prop(scene, "measureit_default_color", text="")
         split.prop(scene, "measureit_gl_txt", text="")
-        row = box.row(align=True)
-        row.prop(scene, "measureit_hint_space")
-        row.prop(scene, "measureit_font_align", text="")
+
+        col = box.column()
+        col.use_property_split = True
+        col.prop(scene, "measureit_hint_space", text="Distance")
+
+        col = box.column(align=True)
+        col.use_property_split = True
+        col.prop(scene, "measureit_font_size")
+        col.prop(scene, "measureit_font_rotation", text="Rotate")
+        col.prop(scene, "measureit_font_align", text="Alignment")
         # Arrow
-        row = box.row(align=True)
-        row.prop(scene, "measureit_glarrow_a", text="")
-        row.prop(scene, "measureit_glarrow_b", text="")
+        col = box.column()
+        col.use_property_split = True
+
+        col.prop(scene, "measureit_glarrow_a", text="Arrow Start")
+        col.prop(scene, "measureit_glarrow_b", text="End")
         if scene.measureit_glarrow_a != '99' or scene.measureit_glarrow_b != '99':
-            row.prop(scene, "measureit_glarrow_s", text="Size")
+            col.prop(scene, "measureit_glarrow_s", text="Size")
         row = box.row(align=True)
-        row.prop(scene, "measureit_font_size")
-        if scene.measureit_font_align == 'L':
-            row.prop(scene, "measureit_font_rotation", text="Rotate")
+
 
 
 # ------------------------------------------------------------------

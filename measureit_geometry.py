@@ -38,8 +38,10 @@ from bmesh import from_edit_mesh
 from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
 from sys import exc_info
+from .shaders import Base_Shader_2D
 
-shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+shader = gpu.types.GPUShader( Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader, geocode=Base_Shader_2D.geometry_shader)
+
 # -------------------------------------------------------------
 # Draw segments
 #
@@ -323,14 +325,17 @@ def draw_segments(context, myobj, op, region, rv3d):
                     # ------------------------------------
                     # colour + line setup
                     # ------------------------------------
-                    #if ovr is False:
-                        #bgl .glLineWidth(ms.glwidth)
-                    #else:
-                        #bgl .glLineWidth(ovrline)
+                    
 
                     #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
                     
                     shader.bind()
+                    if ovr is False:
+                        #bgl .glLineWidth(ms.glwidth)
+                        shader.uniform_float("thickness", ms.glwidth*0.001)
+                    else:
+                        #bgl .glLineWidth(ovrline)
+                        shader.uniform_float("thickness", ovrline*0.001)
                     shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
                     # ------------------------------------
                     # Text (distance)
@@ -872,7 +877,7 @@ def draw_line(v1, v2):
     if v1 is not None and v2 is not None:
         coords = [v1,v2]
         
-        batch = batch_for_shader(shader, 'LINES', {"pos": coords})
+        batch = batch_for_shader(shader, 'LINE_STRIP', {"pos": coords})
         #rgb = bpy.context.scene.measureit_default_color
        
         batch.draw(shader)
@@ -1191,6 +1196,7 @@ def draw_faces(context, myobj, region, rv3d):
             #bgl.glLineWidth(th)
             
             shader.bind()
+            shader.uniform_float("thickness", th*0.001)
             shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
             #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
             # converting to screen coordinates
