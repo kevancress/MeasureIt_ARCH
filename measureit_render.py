@@ -116,7 +116,7 @@ def render_main(self, context, animation=False):
             x2 = width - rfborder
             y1 = int(ceil(rfborder / (width / height)))
             y2 = height - y1
-            draw_rectangle((x1, y1), (x2, y2), rfcolor)
+            draw_rectangle((x1, y1), (x2, y2))
 
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
         bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)

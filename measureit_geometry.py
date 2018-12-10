@@ -81,10 +81,20 @@ def draw_segments(context, myobj, op, region, rv3d):
         # --------------------
         for idx in range(0, op.measureit_num):
             ms = op.measureit_segments[idx]
-            if ovr is False:
-                fsize = ms.glfont_size
-                fang = get_angle_in_rad(ms.glfont_rotat)
-                faln = ms.glfont_align
+            numStyles =  myobj.StyleGenerator[0].style_num
+
+            #get properties source
+            if ms.style > 0:
+                if ms.style > numStyles:
+                    ms.style = numStyles
+                source = myobj.StyleGenerator[0].measureit_styles[ms.style-1]        
+            else:
+                source = ms 
+
+            if ovr is False:            
+                fsize = source.glfont_size
+                fang = get_angle_in_rad(source.glfont_rotat)
+                faln = source.glfont_align
             else:
                 fsize = ovrfsize
                 fang = ovrfang
@@ -94,13 +104,13 @@ def draw_segments(context, myobj, op, region, rv3d):
             # ------------------------------
             if ms.glview is True and ms.glfree is False:
                 # Arrow data
-                a_size = ms.glarrow_s
-                a_type = ms.glarrow_a
-                b_type = ms.glarrow_b
+                a_size = source.glarrow_s
+                a_type = source.glarrow_a
+                b_type = source.glarrow_b
                 # noinspection PyBroadException
                 try:
                     if ovr is False:
-                        rgb = ms.glcolor
+                        rgb = source.glcolor
                     else:
                         rgb = ovrcolor
                     # ----------------------
@@ -238,6 +248,16 @@ def draw_segments(context, myobj, op, region, rv3d):
                         a_p1 = get_location(myobj)  # Not used
                         b_p1 = get_location(myobj)  # Not used
 
+                    # ----------------------
+                    # Line
+                    # ----------------------
+                    if ms.gltype == 21:
+                        obverts = get_mesh_vertices(myobj)
+
+                        if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts):
+                            a_p1 = get_point(obverts[ms.glpointa].co, myobj)
+                            b_p1 = get_point(obverts[ms.glpointb].co, myobj)
+
                     # Calculate distance
                     dist, distloc = distance(a_p1, b_p1, ms.glocx, ms.glocy, ms.glocz)
                     # ------------------------------------
@@ -332,16 +352,16 @@ def draw_segments(context, myobj, op, region, rv3d):
                     shader.bind()
                     if ovr is False:
                         #bgl .glLineWidth(ms.glwidth)
-                        shader.uniform_float("thickness", ms.glwidth)
+                        shader.uniform_float("thickness", source.glwidth)
                     else:
                         #bgl .glLineWidth(ovrline)
                         shader.uniform_float("thickness", ovrline)
-                    shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+                        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
                     # ------------------------------------
                     # Text (distance)
                     # ------------------------------------
                     # noinspection PyBroadException
-                    if ms.gltype != 2 and ms.gltype != 9 and ms.gltype != 10 and ms.gltype != 11 and ms.gltype != 20:
+                    if ms.gltype != 2 and ms.gltype != 9 and ms.gltype != 10 and ms.gltype != 11 and ms.gltype != 20 and ms.gltype != 21:
                         # noinspection PyBroadException
                         try:
                             midpoint3d = interpolate3d(v1, v2, fabs(dist / 2))
@@ -398,7 +418,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                     # Text (label) and Angles
                     # ------------------------------------
                     # noinspection PyBroadException
-                    if ms.gltype == 2 or ms.gltype == 9 or ms.gltype == 11:
+                    if ms.gltype == 2 or ms.gltype == 9 or ms.gltype == 11 or ms.gltype == 21:
                         tx_dist = ""
                         # noinspection PyBroadException
                         try:
@@ -509,7 +529,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                         draw_arrow(screen_point_ap1, screen_point_v11, a_size, a_type, b_type)
 
                     if ms.gltype == 3 or ms.gltype == 4 or ms.gltype == 5 or ms.gltype == 8 \
-                            or ms.gltype == 6 or ms.gltype == 7:  # Origin and Links
+                            or ms.gltype == 6 or ms.gltype == 7 or ms.gltype == 21:  # Origin and Links
                         draw_arrow(screen_point_ap1, screen_point_bp1, a_size, a_type, b_type)
 
                     if ms.gltype == 9:  # Angle

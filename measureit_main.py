@@ -117,6 +117,9 @@ bpy.utils.register_class(MeasureitFaces)
 # Define property group class for measureit data
 # ------------------------------------------------------------------
 class MeasureitProperties(PropertyGroup):
+    style: IntProperty(name="style",
+                        description="Dimension Style to use",
+                        min = 0)
     gltype: IntProperty(name="gltype",
                          description="Measure type (1-Segment, 2-Label, etc..)", default=1)
     glpointa: IntProperty(name="glpointa",
@@ -138,7 +141,7 @@ class MeasureitProperties(PropertyGroup):
     glspace: FloatProperty(name='glspace', min=-100, max=100, default=0.1,
                             precision=3,
                             description='Distance to display measure')
-    glwidth: IntProperty(name='glwidth', min=1, max=10, default=1,
+    glwidth: IntProperty(name='glwidth', min=1, max=20, default=1,
                           description='line width')
     glfree: BoolProperty(name="glfree",
                           description="This measure is free and can be deleted",
@@ -321,6 +324,204 @@ class MeasureContainer(PropertyGroup):
 
 bpy.utils.register_class(MeasureContainer)
 Object.MeasureGenerator = CollectionProperty(type=MeasureContainer)
+
+class StyleProperties(PropertyGroup):
+    styleName: StringProperty(name="styleName",
+                            description="Name of The Dimension Style")
+    gltype: IntProperty(name="gltype",
+                         description="Measure type (1-Segment, 2-Label, etc..)", default=1)
+    glpointa: IntProperty(name="glpointa",
+                           description="Hidden property for opengl")
+    glpointb: IntProperty(name="glpointb",
+                           description="Hidden property for opengl")
+    glpointc: IntProperty(name="glpointc",
+                           description="Hidden property for opengl")
+    glcolor: FloatVectorProperty(name="glcolor",
+                                  description="Color for the measure",
+                                  default=(0.173, 0.545, 1.0, 1.0),
+                                  min=0.1,
+                                  max=1,
+                                  subtype='COLOR',
+                                  size=4)
+    glview: BoolProperty(name="glview",
+                          description="Measure visible/hide",
+                          default=True)
+    glspace: FloatProperty(name='glspace', min=-100, max=100, default=0.1,
+                            precision=3,
+                            description='Distance to display measure')
+    glwidth: IntProperty(name='glwidth', min=1, max=20, default=1,
+                          description='line width')
+    glfree: BoolProperty(name="glfree",
+                          description="This measure is free and can be deleted",
+                          default=False)
+    gltxt: StringProperty(name="gltxt", maxlen=256,
+                           description="Short description (use | for line break)")
+    gladvance: BoolProperty(name="gladvance",
+                             description="Advanced options as line width or position",
+                             default=False)
+    gldefault: BoolProperty(name="gldefault",
+                             description="Display measure in position calculated by default",
+                             default=True)
+    glnormalx: FloatProperty(name="glnormalx",
+                              description="Change orientation in X axis",
+                              default=1, min=-1, max=1, precision=2)
+    glnormaly: FloatProperty(name="glnormaly",
+                              description="Change orientation in Y axis",
+                              default=0, min=-1, max=1, precision=2)
+    glnormalz: FloatProperty(name="glnormalz",
+                              description="Change orientation in Z axis",
+                              default=0, min=-1, max=1, precision=2)
+    glfont_size: IntProperty(name="Text Size",
+                              description="Text size",
+                              default=14, min=6, max=150)
+    glfont_align: EnumProperty(items=(('L', "Left align", ""),
+                                       ('C', "Center align", ""),
+                                       ('R', "Right align", "")),
+                                name="align Font",
+                                description="Set Font alignment")
+    glfont_rotat: IntProperty(name='Rotate', min=0, max=360, default=0,
+                                description="Text rotation in degrees")
+    gllink: StringProperty(name="gllink",
+                            description="linked object for linked measures")
+    glocwarning: BoolProperty(name="glocwarning",
+                               description="Display a warning if some axis is not used in distance",
+                               default=True)
+    glocx: BoolProperty(name="glocx",
+                         description="Include changes in X axis for calculating the distance",
+                         default=True)
+    glocy: BoolProperty(name="glocy",
+                         description="Include changes in Y axis for calculating the distance",
+                         default=True)
+    glocz: BoolProperty(name="glocz",
+                         description="Include changes in Z axis for calculating the distance",
+                         default=True)
+    glfontx: IntProperty(name="glfontx",
+                          description="Change font position in X axis",
+                          default=0, min=-3000, max=3000)
+    glfonty: IntProperty(name="glfonty",
+                          description="Change font position in Y axis",
+                          default=0, min=-3000, max=3000)
+    gldist: BoolProperty(name="gldist",
+                          description="Display distance for this measure",
+                          default=True)
+    glnames: BoolProperty(name="glnames",
+                           description="Display text for this measure",
+                           default=True)
+    gltot: EnumProperty(items=(('99', "-", "Select a group for sum"),
+                                ('0', "A", ""),
+                                ('1', "B", ""),
+                                ('2', "C", ""),
+                                ('3', "D", ""),
+                                ('4', "E", ""),
+                                ('5', "F", ""),
+                                ('6', "G", ""),
+                                ('7', "H", ""),
+                                ('8', "I", ""),
+                                ('9', "J", ""),
+                                ('10', "K", ""),
+                                ('11', "L", ""),
+                                ('12', "M", ""),
+                                ('13', "N", ""),
+                                ('14', "O", ""),
+                                ('15', "P", ""),
+                                ('16', "Q", ""),
+                                ('17', "R", ""),
+                                ('18', "S", ""),
+                                ('19', "T", ""),
+                                ('20', "U", ""),
+                                ('21', "V", ""),
+                                ('22', "W", ""),
+                                ('23', "X", ""),
+                                ('24', "Y", ""),
+                                ('25', "Z", "")),
+                         name="Sum in Group",
+                         description="Add segment length in selected group")
+    glorto: EnumProperty(items=(('99', "None", ""),
+                                 ('0', "A", "Point A must use selected point B location"),
+                                 ('1', "B", "Point B must use selected point A location")),
+                          name="Orthogonal",
+                          description="Display point selected as orthogonal (select axis to copy)")
+    glorto_x: BoolProperty(name="ox",
+                            description="Copy X location",
+                            default=False)
+    glorto_y: BoolProperty(name="oy",
+                            description="Copy Y location",
+                            default=False)
+    glorto_z: BoolProperty(name="oz",
+                            description="Copy Z location",
+                            default=False)
+    glarrow_a: EnumProperty(items=(('99', "--", "No arrow"),
+                                    ('1', "Line", "The point of the arrow are lines"),
+                                    ('2', "Triangle", "The point of the arrow is triangle"),
+                                    ('3', "TShape", "The point of the arrow is a T")),
+                             name="A end",
+                             description="Add arrows to point A")
+    glarrow_b: EnumProperty(items=(('99', "--", "No arrow"),
+                                    ('1', "Line", "The point of the arrow are lines"),
+                                    ('2', "Triangle", "The point of the arrow is triangle"),
+                                    ('3', "TShape", "The point of the arrow is a T")),
+                             name="B end",
+                             description="Add arrows to point B")
+    glarrow_s: IntProperty(name="Size",
+                            description="Arrow size",
+                            default=15, min=6, max=500)
+
+    glarc_full: BoolProperty(name="arcfull",
+                              description="Create full circunference",
+                              default=False)
+    glarc_extrad: BoolProperty(name="arcextrad",
+                                description="Adapt radio lengh to arc line",
+                                default=True)
+    glarc_rad: BoolProperty(name="arc rad",
+                             description="Show arc radius",
+                             default=True)
+    glarc_len: BoolProperty(name="arc len",
+                             description="Show arc length",
+                             default=True)
+    glarc_ang: BoolProperty(name="arc ang",
+                             description="Show arc angle",
+                             default=True)
+
+    glarc_a: EnumProperty(items=(('99', "--", "No arrow"),
+                                  ('1', "Line", "The point of the arrow are lines"),
+                                  ('2', "Triangle", "The point of the arrow is triangle"),
+                                  ('3', "TShape", "The point of the arrow is a T")),
+                           name="Ar end",
+                           description="Add arrows to point A")
+    glarc_b: EnumProperty(items=(('99', "--", "No arrow"),
+                                  ('1', "Line", "The point of the arrow are lines"),
+                                  ('2', "Triangle", "The point of the arrow is triangle"),
+                                  ('3', "TShape", "The point of the arrow is a T")),
+                           name="Br end",
+                           description="Add arrows to point B")
+    glarc_s: IntProperty(name="Size",
+                          description="Arrow size",
+                          default=15, min=6, max=500)
+    glarc_txradio: StringProperty(name="txradio",
+                                   description="Text for radius", default="r=")
+    glarc_txlen: StringProperty(name="txlen",
+                                 description="Text for length", default="L=")
+    glarc_txang: StringProperty(name="txang",
+                                 description="Text for angle", default="A=")
+    glcolorarea: FloatVectorProperty(name="glcolorarea",
+                                      description="Color for the measure of area",
+                                      default=(0.1, 0.1, 0.1, 1.0),
+                                      min=0.1,
+                                      max=1,
+                                      subtype='COLOR',
+                                      size=4)
+
+bpy.utils.register_class(StyleProperties)
+
+class StyleContainer(PropertyGroup):
+    style_num = IntProperty(name='Number of styles', min=0, max=1000, default=0,
+                                description='Number total of measureit Dimension Styles')
+    # Array of segments
+    measureit_styles = CollectionProperty(type=StyleProperties)
+
+
+bpy.utils.register_class(StyleContainer)
+Object.StyleGenerator = CollectionProperty(type=StyleContainer)
 
 
 # ------------------------------------------------------------------
@@ -553,21 +754,22 @@ def add_item(box, idx, segment):
 
     row.prop(segment, 'glview', text="", toggle=True, icon=icon)
     row.prop(segment, 'gladvance', text="", toggle=True, icon="PREFERENCES")
-    if segment.gltype == 20:  # Area special
-        split = row.split(factor=0.15, align=True)
-        split.prop(segment, 'glcolorarea', text="")
-        split = split.split(factor=0.20, align=True)
-        split.prop(segment, 'glcolor', text="")
-    else:
-        split = row.split(factor=0.25, align=True)
-        split.prop(segment, 'glcolor', text="")
-    split.prop(segment, 'gltxt', text="")
+    row.prop(segment, 'style', text="")
+    row.prop(segment, 'gltxt', text="")
     op = row.operator("measureit.deletesegmentbutton", text="", icon="X")
     op.tag = idx  # saves internal data
 
     if segment.gladvance is True:
         col = box.column()
         col.use_property_split = True
+
+        if segment.gltype == 20:  # Area special
+            
+            col.prop(segment, 'glcolorarea', text="Area Color")
+            col.prop(segment, 'glcolor', text="Color")
+        else:
+            col.prop(segment, 'glcolor', text="Color")
+
         if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
             col.prop(segment, 'gldefault', text="Automatic position")
 
@@ -605,7 +807,7 @@ def add_item(box, idx, segment):
         if segment.gltype != 2 and segment.gltype != 10:
             col = box.column(align=True)
             col.use_property_split = True
-            if scene.measureit_gl_show_d is True and segment.gltype != 9:
+            if scene.measureit_gl_show_d is True and segment.gltype != 9 and segment.gltype != 21:
                 if segment.gldist is True:
                     icon = "VISIBLE_IPO_ON"
                 else:
@@ -727,6 +929,15 @@ class MeasureitMainPanel(Panel):
 
         row = box.row()
         row.operator("measureit.addareabutton", text="Area", icon="MESH_GRID")
+        
+        # ------------------------------
+        # Linework Tools
+        # ------------------------------
+
+        box = layout.box()
+        box.label(text="Add Lines")
+        row = box.row()
+        row.operator("measureit.addlinebutton", text="Line", icon="ALIGN_CENTER")
 
         # ------------------------------
         # Debug data
@@ -808,14 +1019,18 @@ class MeasureitConfPanel(Panel):
 
         # Configuration data
         box = layout.box()
+        box.label(text = 'Default Settings')
         row = box.row()
         split = row.split(factor=0.2, align=True)
+        
         split.prop(scene, "measureit_default_color", text="")
         split.prop(scene, "measureit_gl_txt", text="")
 
-        col = box.column()
+        col = box.column(align=True)
         col.use_property_split = True
+        col.prop(scene, "measureit_default_style", text="Style")
         col.prop(scene, "measureit_hint_space", text="Distance")
+        col.prop(scene, "measureit_gl_width", text="Lineweight")
 
         col = box.column(align=True)
         col.use_property_split = True
@@ -832,7 +1047,77 @@ class MeasureitConfPanel(Panel):
             col.prop(scene, "measureit_glarrow_s", text="Size")
         row = box.row(align=True)
 
+        box = layout.box()
+        box.label(text="Dimension Styles")
+        col = box.column()
+        col.operator("measureit.adddimstylebutton", text="New Dimension Style", icon="ADD")
+        
+        #-------------------
+        # Add Styles to Panel
+        #--------------------
 
+        styleGen = context.object.StyleGenerator[0]
+
+        if styleGen.style_num > 0:
+            box = layout.box()
+            for idx in range(0, styleGen.style_num):
+                add_style_item(box, idx, styleGen.measureit_styles[idx])
+      
+        col = box.column()
+        col.operator("measureit.deleteallstylesbutton", text="Delete All Styles", icon="X")
+
+def add_style_item(box, idx, style):
+    scene = bpy.context.scene
+    box = box.box()
+    row = box.row(align=True)
+    if style.glview is True:
+        icon = "VISIBLE_IPO_ON"
+    else:
+        icon = "VISIBLE_IPO_OFF"
+    
+    row.prop(style, 'glview', text="", toggle=True, icon=icon)
+    row.prop(style, 'gladvance', text="", toggle=True, icon="PREFERENCES")
+
+    split = row.split(factor=0.25, align=True)
+    split.prop(style, 'glcolor', text="")
+    split.prop(style, 'styleName', text="")
+    #op = row.operator("measureit.deletesegmentbutton", text="", icon="X")
+    #op.tag = idx  # saves internal data
+
+    if style.gladvance is True:
+        col = box.column()
+        col.use_property_split = True
+        col.prop(style, 'gltxt', text="Text")
+        col.prop(style, 'gldefault', text="Automatic position")
+
+        col = box.column(align=True)
+        col.use_property_split = True
+
+        col.prop(style, 'glspace', text="Distance")
+        col.prop(style, 'glwidth', text="Lineweight")
+        if style.gldefault is False:
+            col.prop(style, 'glnormalx', text="X")
+            col.prop(style, 'glnormaly', text="Y")
+            col.prop(style, 'glnormalz', text="Z")
+    
+        col = box.column(align=True)
+        col.use_property_split = True
+
+        col.prop(style, 'glfont_size', text="Font Size")
+        col.prop(style, 'glfont_rotat', text="Rotate")
+        col.prop(style, 'glfontx', text="X")
+        col.prop(style, 'glfonty', text="Y")
+        col.prop(style, 'glfont_align', text="Align")
+        
+        # Arrows
+        
+        col = box.column(align=True)
+        col.use_property_split = True
+
+        col.prop(style, 'glarrow_a', text="Arrow Start ")
+        col.prop(style, 'glarrow_b', text="End ")
+        if style.glarrow_a != '99' or style.glarrow_b != '99':
+            col.prop(style, 'glarrow_s', text="Size")
 
 # ------------------------------------------------------------------
 # Define panel class for render functions.
@@ -925,6 +1210,7 @@ class AddSegmentButton(Operator):
                         # Set values
                         ms = mp.measureit_segments[mp.measureit_num]
                         ms.gltype = 1
+                        ms.style = scene.measureit_default_style
                         ms.glpointa = mylist[x]
                         ms.glpointb = mylist[x + 1]
                         ms.glarrow_a = scene.measureit_glarrow_a
@@ -2046,6 +2332,177 @@ class RunHintDisplayButton(Operator):
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
+
+
+
+class AddLineButton(Operator):
+    bl_idname = "measureit.addlinebutton"
+    bl_label = "Add"
+    bl_description = "(EDITMODE only) Add a new measure segment between 2 vertices (select 2 vertices or more)"
+    bl_category = 'Measureit'
+
+    # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        o = context.object
+        if o is None:
+            return False
+        else:
+            if o.type == "MESH":
+                if bpy.context.mode == 'EDIT_MESH':
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        if context.area.type == 'VIEW_3D':
+            # Add properties
+            scene = context.scene
+            mainobject = context.object
+            mylist = get_smart_selected(mainobject)
+            if len(mylist) < 2:  # if not selected linked vertex
+                mylist = get_selected_vertex(mainobject)
+
+            if len(mylist) >= 2:
+                if 'MeasureGenerator' not in mainobject:
+                    mainobject.MeasureGenerator.add()
+
+                mp = mainobject.MeasureGenerator[0]
+                for x in range(0, len(mylist) - 1, 2):
+                    # -----------------------
+                    # Only if not exist
+                    # -----------------------
+                    if exist_segment(mp, mylist[x], mylist[x + 1]) is False:
+                        # Create all array elements
+                        for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
+                            mp.measureit_segments.add()
+
+                        # Set values
+                        ms = mp.measureit_segments[mp.measureit_num]
+                        ms.gltype = 21
+                        ms.style = scene.measureit_default_style
+                        ms.glpointa = mylist[x]
+                        ms.glpointb = mylist[x + 1]
+                        ms.glarrow_a = scene.measureit_glarrow_a
+                        ms.glarrow_b = scene.measureit_glarrow_b
+                        ms.glarrow_s = scene.measureit_glarrow_s
+                        ms.glwidth = scene.measureit_gl_width
+                        # color
+                        ms.glcolor = scene.measureit_default_color
+                        # dist
+                        ms.glspace = scene.measureit_hint_space
+                        # text
+                        ms.gltxt = 'line'
+                        ms.glnames = False
+                        ms.gldist = False
+                        ms.glfont_size = scene.measureit_font_size
+                        ms.glfont_align = scene.measureit_font_align
+                        ms.glfont_rotat = scene.measureit_font_rotation
+                        
+                        # Sum group
+                        ms.gltot = scene.measureit_sum
+                        # Add index
+                        mp.measureit_num += 1
+
+                # redraw
+                context.area.tag_redraw()
+                return {'FINISHED'}
+            else:
+                self.report({'ERROR'},
+                            "MeasureIt: Select at least two vertices for creating measure segment.")
+                return {'FINISHED'}
+        else:
+            self.report({'WARNING'},
+                        "View3D not found, cannot run operator")
+
+        return {'CANCELLED'}
+
+
+class AddDimStyleButton(Operator):
+    bl_idname = "measureit.adddimstylebutton"
+    bl_label = "Add"
+    bl_description = "Create A New Dimension Style"
+    bl_category = 'Measureit'
+
+    def execute(self, context):
+        if context.area.type == 'VIEW_3D':
+            # Add properties
+            scene = context.scene
+            mainobject = context.object
+            mylist = get_smart_selected(mainobject)
+            if 'StyleGenerator' not in mainobject:
+                mainobject.StyleGenerator.add()
+
+            styleGen = mainobject.StyleGenerator[0]
+            styleGen.measureit_styles.add()
+
+            newStyle = styleGen.measureit_styles[styleGen.style_num]
+
+            #Style Properties
+            newStyle.styleName = 'Style1'
+            newStyle.glcolor = scene.measureit_default_color
+            
+            newStyle.glwidth = scene.measureit_gl_width
+            newStyle.glarrow_a = scene.measureit_glarrow_a
+            newStyle.glarrow_b = scene.measureit_glarrow_b
+            newStyle.glarrow_s = scene.measureit_glarrow_s
+            # dist
+            newStyle.glspace = scene.measureit_hint_space
+            # text
+            newStyle.gltxt = scene.measureit_gl_txt
+            newStyle.glfont_size = scene.measureit_font_size
+            newStyle.glfont_align = scene.measureit_font_align
+            newStyle.glfont_rotat = scene.measureit_font_rotation
+            
+
+            styleGen.style_num += 1
+            context.area.tag_redraw()
+            return {'FINISHED'}
+
+        else:
+            self.report({'WARNING'},
+                        "View3D not found, cannot run operator")
+
+        return {'CANCELLED'}
+
+
+class DeleteAllStylesButton(Operator):
+    bl_idname = "measureit.deleteallstylesbutton"
+    bl_label = "Delete"
+    bl_description = "Delete all Styles (it cannot be undone)"
+    bl_category = 'Measureit'
+    tag= IntProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        if context.area.type == 'VIEW_3D':
+            # Add properties
+            mainobject = context.object
+            styleGen = mainobject.StyleGenerator[0]
+
+            while len(styleGen.measureit_styles) > 0:
+                styleGen.measureit_styles.remove(0)
+
+            # reset size
+            styleGen.style_num = len(styleGen.measureit_styles)
+            # redraw
+            context.area.tag_redraw()
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'},
+                        "View3D not found, cannot run operator")
+
+        return {'CANCELLED'}
+
 
 
 # -------------------------------------------------------------

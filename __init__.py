@@ -125,6 +125,9 @@ class Measure_Pref(AddonPreferences):
 def register():
     bpy.utils.register_class(measureit_main.RunHintDisplayButton)
     bpy.utils.register_class(measureit_main.AddSegmentButton)
+    bpy.utils.register_class(measureit_main.AddDimStyleButton)
+    bpy.utils.register_class(measureit_main.DeleteAllStylesButton)
+    bpy.utils.register_class(measureit_main.AddLineButton)
     bpy.utils.register_class(measureit_main.AddAreaButton)
     bpy.utils.register_class(measureit_main.AddSegmentOrtoButton)
     bpy.utils.register_class(measureit_main.AddAngleButton)
@@ -150,11 +153,16 @@ def register():
     Scene.measureit_default_color = FloatVectorProperty(
         name="Default color",
         description="Default Color",
-        default=(0.173, 0.545, 1.0, 1.0),
+        default=(0.0, 0.0, 0.0, 1.0),
         min=0.1,
         max=1,
         subtype='COLOR',
         size=4)
+
+    Scene.measureit_default_style = IntProperty(name="Default Style",
+                                                description="Default Dimension Style",
+                                                default=0,
+                                                min=0,)    
     Scene.measureit_font_size = IntProperty(name="Text Size",
                                             description="Default text size",
                                             default=14, min=10, max=150)
@@ -167,6 +175,9 @@ def register():
                                             default=True)
     Scene.measureit_gl_txt = StringProperty(name="Text", maxlen=256,
                                             description="Short description (use | for line break)")
+    Scene.measureit_gl_width = IntProperty(name="Lineweight",
+                                            description="Default Line Weight",
+                                            default=3, min=0, max=20)
 
     Scene.measureit_gl_precision = IntProperty(name='Precision', min=0, max=5, default=2,
                                                description="Number of decimal precision")
@@ -425,6 +436,10 @@ def register():
 def unregister():
     bpy.utils.unregister_class(measureit_main.RunHintDisplayButton)
     bpy.utils.unregister_class(measureit_main.AddSegmentButton)
+    bpy.utils.unregister_class(measureit_main.AddDimStyleButton)
+    bpy.utils.unregister_class(measureit_main.DeleteAllStylesButton)
+    
+    bpy.utils.unregister_class(measureit_main.AddLineButton)
     bpy.utils.unregister_class(measureit_main.AddAreaButton)
     bpy.utils.unregister_class(measureit_main.AddSegmentOrtoButton)
     bpy.utils.unregister_class(measureit_main.AddAngleButton)
