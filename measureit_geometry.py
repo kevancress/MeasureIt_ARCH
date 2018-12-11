@@ -81,13 +81,13 @@ def draw_segments(context, myobj, op, region, rv3d):
         # --------------------
         for idx in range(0, op.measureit_num):
             ms = op.measureit_segments[idx]
-            numStyles =  myobj.StyleGenerator[0].style_num
+            numStyles =  scene.StyleGenerator[0].style_num
 
             #get properties source
             if ms.style > 0:
                 if ms.style > numStyles:
                     ms.style = numStyles
-                source = myobj.StyleGenerator[0].measureit_styles[ms.style-1]        
+                source = scene.StyleGenerator[0].measureit_styles[ms.style-1]        
             else:
                 source = ms 
 
