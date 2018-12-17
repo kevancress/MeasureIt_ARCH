@@ -47,6 +47,7 @@ from .measureit_geometry import *
 # -------------------------------------------------------------
 def render_main(self, context, animation=False):
     # Save old info
+    bgl.glEnable(bgl.GL_MULTISAMPLE)
     settings = bpy.context.scene.render.image_settings
     depth = settings.color_depth
     settings.color_depth = '8'

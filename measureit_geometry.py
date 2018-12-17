@@ -76,11 +76,13 @@ def draw_segments(context, myobj, op, region, rv3d):
             draw_text(myobj, pos_2d,
                       tx_scale, scene.measureit_scale_color, scene.measureit_scale_font,
                       text_rot=fang)
+
         # --------------------
         # Loop
         # --------------------
         for idx in range(0, op.measureit_num):
             ms = op.measureit_segments[idx]
+            
             numStyles =  scene.StyleGenerator[0].style_num
 
             #get properties source
@@ -350,13 +352,21 @@ def draw_segments(context, myobj, op, region, rv3d):
                     #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
                     
                     shader.bind()
+
+                    # --------------------
+                    # render Size to shader
+                    # --------------------
+                    render = scene.render
+                    
+                    #shader.uniform_float("renderSize", render.resolution_x)
+                    
                     if ovr is False:
                         #bgl .glLineWidth(ms.glwidth)
                         shader.uniform_float("thickness", source.glwidth)
                     else:
                         #bgl .glLineWidth(ovrline)
                         shader.uniform_float("thickness", ovrline)
-                        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+                        shader.uniform_vec4("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
                     # ------------------------------------
                     # Text (distance)
                     # ------------------------------------
@@ -509,9 +519,11 @@ def draw_segments(context, myobj, op, region, rv3d):
                     # ------------------------------------
                     # Draw lines
                     # ------------------------------------
-                    #bgl .glEnable(bgl.GL_BLEND)
+                    bgl.glEnable(bgl.GL_BLEND)
+                    bgl.glEnable(bgl.GL_MULTISAMPLE)
+                    bgl.glDepthMask(bgl.GL_TRUE)
                     shader.bind()
-                    shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+                    shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
                     #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
 
                     if ms.gltype == 1:  # Segment
@@ -1049,7 +1061,7 @@ def draw_object(context, myobj, region, rv3d):
         # colour
         
         shader.bind()
-        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # Text
         txt = ''
@@ -1102,7 +1114,7 @@ def draw_vertices(context, myobj, region, rv3d):
         # colour
         
         shader.bind()
-        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # converting to screen coordinates
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1160,7 +1172,7 @@ def draw_edges(context, myobj, region, rv3d):
         # colour
         
         shader.bind()
-        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
         #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # converting to screen coordinates
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1212,12 +1224,15 @@ def draw_faces(context, myobj, region, rv3d):
 
             a_p2 = (a_p1[0] + normal[0] * ln, a_p1[1] + normal[1] * ln, a_p1[2] + normal[2] * ln)
             # colour + line setup
-            #bgl.glEnable(bgl.GL_BLEND)
+            bgl.glEnable(bgl.GL_BLEND)
+            bgl.glEnable(bgl.GL_MULTISAMPLE)
+            bgl.glDepthMask(bgl.GL_TRUE)
+            bgl.glEnable(bgl.GL_LINE_SMOOTH)
             #bgl.glLineWidth(th)
             
             shader.bind()
             shader.uniform_float("thickness", th)
-            shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+            shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
             #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
             # converting to screen coordinates
             txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1227,10 +1242,11 @@ def draw_faces(context, myobj, region, rv3d):
                 draw_text(myobj, txtpoint2d, str(f.index), rgb, fsize)
             # Draw Normal
             if scene.measureit_debug_normals is True:
-                #bgl.glEnable(bgl.GL_BLEND)
-                
+                bgl.glEnable(bgl.GL_BLEND)
+                bgl.glEnable(bgl.GL_MULTISAMPLE)
+                bgl.glDepthMask(bgl.GL_TRUE)
                 shader.bind()
-                shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], 1))
+                shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 #bgl .glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
                 draw_arrow(txtpoint2d, point2, 10, "99", "1")
 
