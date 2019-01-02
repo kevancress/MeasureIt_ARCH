@@ -32,7 +32,7 @@ from gpu_extras.batch import batch_for_shader
 # noinspection PyUnresolvedReferences
 import blf
 from blf import ROTATION
-from math import fabs, degrees, radians, sqrt, cos, sin, pi
+from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
 from mathutils import Vector, Matrix
 from bmesh import from_edit_mesh
 from bpy_extras import view3d_utils, mesh_utils
@@ -1513,11 +1513,13 @@ def format_distance(fmt, units, value, factor=1):
     # ------------------------
     elif units == "5":
         if hide_units is False:
-            fmt += " ft"
+            fmt += "\""
         if factor == 2:
             fmt += s_code
-        feet = value * (3.2808399 ** factor)
-        tx_dist = fmt % feet
+        decFeet= value * (3.2808399 ** factor)
+        feet = int (floor(decFeet))
+        inches = 12* (decFeet%feet)
+        tx_dist = str(feet) + "' " + fmt % inches
     # ------------------------
     # Units inches
     # ------------------------
