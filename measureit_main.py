@@ -823,50 +823,26 @@ class MeasureitConfPanel(Panel):
 
         # Configuration data
         box = layout.box()
-        box.label(text = 'Default Settings')
-        row = box.row()
-        split = row.split(factor=0.2, align=True)
         
-        split.prop(scene, "measureit_default_color", text="")
-        split.prop(scene, "measureit_gl_txt", text="")
-
         col = box.column(align=True)
         col.use_property_split = True
-        col.prop(scene, "measureit_default_style", text="Style")
-        col.prop(scene, "measureit_hint_space", text="Distance")
-        col.prop(scene, "measureit_gl_width", text="Lineweight")
+        col.prop(scene, "measureit_default_style", text="Active Style")
 
-        col = box.column(align=True)
-        col.use_property_split = True
-        col.prop(scene, "measureit_font_size")
-        col.prop(scene, "measureit_font_rotation", text="Rotate")
-        col.prop(scene, "measureit_font_align", text="Alignment")
-        # Arrow
-        col = box.column()
-        col.use_property_split = True
-
-        col.prop(scene, "measureit_glarrow_a", text="Arrow Start")
-        col.prop(scene, "measureit_glarrow_b", text="End")
-        if scene.measureit_glarrow_a != '99' or scene.measureit_glarrow_b != '99':
-            col.prop(scene, "measureit_glarrow_s", text="Size")
-        row = box.row(align=True)
-
-        box = layout.box()
-        box.label(text="Dimension Styles")
-        col = box.column()
-        col.operator("measureit.adddimstylebutton", text="New Dimension Style", icon="ADD")
+        
         
         #-------------------
         # Add Styles to Panel
         #--------------------
+        box = layout.box()
+        col = box.column()
+        col.operator("measureit.adddimstylebutton", text="New Dimension Style", icon="ADD")
         if 'StyleGenerator' in context.scene:
             styleGen = context.scene.StyleGenerator[0]
 
             if styleGen.style_num > 0:
-                box = layout.box()
                 for idx in range(0, styleGen.style_num):
                     add_style_item(box, idx, styleGen.measureit_styles[idx])
-      
+       
         col = box.column()
         col.operator("measureit.deleteallstylesbutton", text="Delete All Styles", icon="X")
 
@@ -885,8 +861,8 @@ def add_style_item(box, idx, style):
     split = row.split(factor=0.25, align=True)
     split.prop(style, 'glcolor', text="")
     split.prop(style, 'styleName', text="")
-    #op = row.operator("measureit.deletesegmentbutton", text="", icon="X")
-    #op.tag = idx  # saves internal data
+    op = row.operator("measureit.deletestylebutton", text="", icon="X")
+    op.tag = idx  # saves internal data
 
     if style.gladvance is True:
         col = box.column()
@@ -1762,10 +1738,9 @@ class DeleteSegmentButton(Operator):
 # -------------------------------------------------------------
 class DeleteAllSegmentButton(Operator):
     bl_idname = "measureit.deleteallsegmentbutton"
-    bl_label = "Delete"
+    bl_label = "Delete All Segments?"
     bl_description = "Delete all measures (it cannot be undone)"
     bl_category = 'Measureit'
-    tag= IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -1789,6 +1764,10 @@ class DeleteAllSegmentButton(Operator):
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 # -------------------------------------------------------------
@@ -2239,8 +2218,7 @@ class AddDimStyleButton(Operator):
         if context.area.type == 'VIEW_3D':
             # Add properties
             scene = context.scene
-            mainobject = context.object
-            mylist = get_smart_selected(mainobject)
+
             if 'StyleGenerator' not in scene:
                 scene.StyleGenerator.add()
 
@@ -2250,7 +2228,7 @@ class AddDimStyleButton(Operator):
             newStyle = styleGen.measureit_styles[styleGen.style_num]
 
             #Style Properties
-            newStyle.styleName = 'Style1'
+            newStyle.styleName = 'Style ' + str(styleGen.style_num)
             newStyle.glcolor = scene.measureit_default_color
             
             newStyle.glwidth = scene.measureit_gl_width
@@ -2277,12 +2255,41 @@ class AddDimStyleButton(Operator):
         return {'CANCELLED'}
 
 
-class DeleteAllStylesButton(Operator):
-    bl_idname = "measureit.deleteallstylesbutton"
-    bl_label = "Delete"
-    bl_description = "Delete all Styles (it cannot be undone)"
+class DeleteStyleButton(Operator):
+    bl_idname = "measureit.deletestylebutton"
+    bl_label = "Delete Style"
+    bl_description = "Delete a Style"
     bl_category = 'Measureit'
     tag= IntProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        if context.area.type == 'VIEW_3D':
+            # Add properties
+            mp = context.scene.StyleGenerator[0]
+            ms = mp.measureit_styles[self.tag]
+            ms.glfree = True
+            # Delete element
+            mp.measureit_styles.remove(self.tag)
+            mp.style_num -= 1
+            # redraw
+            context.area.tag_redraw()
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'},
+                        "View3D not found, cannot run operator")
+
+        return {'CANCELLED'}
+
+
+
+class DeleteAllStylesButton(Operator):
+    bl_idname = "measureit.deleteallstylesbutton"
+    bl_label = "Delete All Styles?"
+    bl_description = "Delete all Styles (it cannot be undone)"
+    bl_category = 'Measureit'
 
     # ------------------------------
     # Execute button action
@@ -2308,6 +2315,9 @@ class DeleteAllStylesButton(Operator):
 
         return {'CANCELLED'}
 
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 # -------------------------------------------------------------

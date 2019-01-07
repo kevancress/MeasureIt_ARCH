@@ -93,7 +93,7 @@ def update_panel(self, context):
                 bpy.utils.unregister_class(panel)
 
         for panel in panels:
-            panel.bl_category = context.user_preferences.addons[__name__].preferences.category
+            panel.bl_category = context.preferences.addons[__name__].preferences.category
             bpy.utils.register_class(panel)
 
     except Exception as e:
@@ -326,6 +326,7 @@ def register():
     bpy.utils.register_class(measureit_main.RunHintDisplayButton)
     bpy.utils.register_class(measureit_main.AddSegmentButton)
     bpy.utils.register_class(measureit_main.AddDimStyleButton)
+    bpy.utils.register_class(measureit_main.DeleteStyleButton)
     bpy.utils.register_class(measureit_main.DeleteAllStylesButton)
     bpy.utils.register_class(measureit_main.AddLineButton)
     bpy.utils.register_class(measureit_main.AddAreaButton)
@@ -639,7 +640,7 @@ def unregister():
     bpy.utils.unregister_class(measureit_main.AddSegmentButton)
     bpy.utils.unregister_class(measureit_main.AddDimStyleButton)
     bpy.utils.unregister_class(measureit_main.DeleteAllStylesButton)
-    
+    bpy.utils.unregister_class(measureit_main.DeleteStyleButton)
     bpy.utils.unregister_class(measureit_main.AddLineButton)
     bpy.utils.unregister_class(measureit_main.AddAreaButton)
     bpy.utils.unregister_class(measureit_main.AddSegmentOrtoButton)
