@@ -366,7 +366,6 @@ def draw_segments(context, myobj, op, region, rv3d):
                     else:
                         #bgl .glLineWidth(ovrline)
                         shader.uniform_float("thickness", ovrline)
-                        shader.uniform_vec4("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
                     # ------------------------------------
                     # Text (distance)
                     # ------------------------------------

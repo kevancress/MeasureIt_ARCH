@@ -351,7 +351,8 @@ class MeasureitShowHidePanel(Panel):
         # ------------------------------
         # Display Buttons
         # ------------------------------
-        row = box.row()
+        row = box.row(align=True)
+        
         if context.window_manager.measureit_run_opengl is False:
             icon = 'PLAY'
             txt = 'Show'
@@ -359,7 +360,7 @@ class MeasureitShowHidePanel(Panel):
             icon = "PAUSE"
             txt = 'Hide'
 
-        row.operator("measureit.runopenglbutton", text=txt, icon=icon)
+        row.operator("measureit.runopenglbutton", text=txt, icon=icon ,)
         row.prop(scene, "measureit_gl_ghost", text="", icon='GHOST_ENABLED')
 
 
@@ -370,27 +371,10 @@ class MeasureitShowHidePanel(Panel):
 # ------------------------------------------------------------------
 class MeasureitEditPanel(Panel):
     bl_idname = "measureit.editpanel"
-    bl_label = "Dimensions"
+    bl_label = "Dimension Settings"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'MeasureIt'
-
-    # -----------------------------------------------------
-    # Verify if visible
-    # -----------------------------------------------------
-    @classmethod
-    def poll(cls, context):
-        o = context.object
-        if o is None:
-            return False
-        if 'MeasureGenerator' not in o:
-            return False
-        else:
-            mp = context.object.MeasureGenerator[0]
-            if mp.measureit_num > 0:
-                return True
-            else:
-                return False
 
     # -----------------------------------------------------
     # Draw (create UI interface)
@@ -398,55 +382,67 @@ class MeasureitEditPanel(Panel):
     # noinspection PyUnusedLocal
     def draw(self, context):
         layout = self.layout
+        layout.use_property_decorate = False
+        layout.use_property_split = True
         scene = context.scene
 
         if context.object is not None:
-            if 'MeasureGenerator' in context.object:
-                box = layout.box()
-                row = box.row()
-                row.label(text=context.object.name)
-                row = box.row()
-                row.prop(scene, 'measureit_gl_precision', text="Precision")
-                row = box.row()
-                row.prop(scene, 'measureit_units')
-                col = box.column(align=True)
-                col.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="ALIGN_CENTER")
-                col.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
+            box = layout.box()
+            row = box.row()
+            row.label(text='Dimension Settings')
+
+            col = box.column(align = True)
+            col.prop(scene, 'measureit_gl_precision', text="Precision")
+            col.prop(scene, 'measureit_units')
+
+            col = box.column(align=True)
+            col.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
+            col.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
+            #col.prop(scene, 'measureit_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
+            
+            # Scale factor
+            col = box.column(align = True)
+            col.use_property_split= True
+            col.alignment = 'RIGHT'
+            col.label(text = 'Override:')
+            col.prop(scene, 'measureit_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
+            col.prop(scene, 'measureit_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
+
+            if scene.measureit_scale is True:
+                scaleBox = box.box()
+                scaleBox.label(text='Scale Override')
+                col = scaleBox.column(align = True)
+                col.prop(scene, 'measureit_scale_color', text="Color")
+                col.prop(scene, 'measureit_scale_factor', text="Factor")
+
+                col = scaleBox.column(align = True)
+                col.prop(scene, 'measureit_gl_scaletxt', text="Text")
+                col.prop(scene, 'measureit_scale_font', text="Font Size")
+                col.prop(scene, 'measureit_scale_precision', text="Precision")
                 
-                row = box.row()
-                row.prop(scene, 'measureit_hide_units', text="Hide measurement unit")
-                # Scale factor
-                row = box.row()
-                row.prop(scene, 'measureit_scale', text="Scale")
-                if scene.measureit_scale is True:
-                    split = row.split(factor=0.25, align=False)
-                    split.prop(scene, 'measureit_scale_color', text="")
-                    split.prop(scene, 'measureit_scale_factor', text="1")
-                    row = box.row()
-                    row.separator()
-                    row.prop(scene, 'measureit_gl_scaletxt', text="")
-                    row.prop(scene, 'measureit_scale_font')
-                    row.prop(scene, 'measureit_scale_precision', text="")
-                    row = box.row()
-                    row.separator()
-                    row.prop(scene, 'measureit_scale_pos_x')
-                    row.prop(scene, 'measureit_scale_pos_y')
+                col = scaleBox.column(align = True)
+                col.prop(scene, 'measureit_scale_pos_x')
+                col.prop(scene, 'measureit_scale_pos_y')
 
-                # Override
-                row = box.row()
-                row.prop(scene, 'measureit_ovr', text="Override")
-                if scene.measureit_ovr is True:
-                    split = row.split(factor=0.25, align=False)
-                    split.prop(scene, 'measureit_ovr_color', text="")
-                    split.prop(scene, 'measureit_ovr_width', text="Width")
-                    row = box.row()
-                    row.separator()
-                    row.prop(scene, 'measureit_ovr_font', text="Font")
-                    row.prop(scene, 'measureit_ovr_font_align', text="")
-                    if scene.measureit_ovr_font_align == 'L':
-                        row.prop(scene, 'measureit_ovr_font_rotation', text="Rotate")
-
+            # Override
+            
+            if scene.measureit_ovr is True:
+                styleBox = box.box()
+                styleBox.label(text='Style Override')
+                col = styleBox.column(align = True)
+                col.prop(scene, 'measureit_ovr_color', text="Colour")
+                col.prop(scene, 'measureit_ovr_width', text="Width")
+                col = styleBox.column(align = True)
+                col.prop(scene, 'measureit_ovr_font', text="Font Size")
+                col.prop(scene, 'measureit_ovr_font_align', text="Alignment")
+                if scene.measureit_ovr_font_align == 'L':
+                    col.prop(scene, 'measureit_ovr_font_rotation', text="Rotation")
+            
+            o = context.object
+            if 'MeasureGenerator' in o:
                 mp = context.object.MeasureGenerator[0]
+
+            if 'MeasureGenerator' in context.object:
                 # -----------------
                 # loop
                 # -----------------
@@ -459,8 +455,8 @@ class MeasureitEditPanel(Panel):
                         if mp.measureit_segments[idx].glfree is False:
                             add_item(box, idx, mp.measureit_segments[idx])
 
-                row = box.row()
-                row.operator("measureit.deleteallsegmentbutton", text="Delete all", icon="X")
+                    row = box.row()
+                    row.operator("measureit.deleteallsegmentbutton", text="Delete all", icon="X")
                 # -----------------
                 # Sum loop segments
                 # -----------------
@@ -549,7 +545,8 @@ class MeasureitEditPanel(Panel):
 # -----------------------------------------------------
 def add_item(box, idx, segment):
     scene = bpy.context.scene
-    box = box.box()
+    if segment.gladvance is True:
+        box = box.box()
     row = box.row(align=True)
     if segment.glview is True:
         icon = "VISIBLE_IPO_ON"
@@ -564,8 +561,8 @@ def add_item(box, idx, segment):
     op.tag = idx  # saves internal data
 
     if segment.gladvance is True:
+
         col = box.column()
-        col.use_property_split = True
 
         if segment.gltype == 20:  # Area special
             
@@ -578,7 +575,6 @@ def add_item(box, idx, segment):
             col.prop(segment, 'gldefault', text="Automatic position")
 
             col = box.column(align=True)
-            col.use_property_split = True
 
             col.prop(segment, 'glspace', text="Distance")
             col.prop(segment, 'glwidth', text="Lineweight")
@@ -590,7 +586,6 @@ def add_item(box, idx, segment):
             
 
         col = box.column(align=True)
-        col.use_property_split = True
 
         col.prop(segment, 'glfont_size', text="Font Size")
         col.prop(segment, 'glfont_rotat', text="Rotate")
@@ -601,7 +596,6 @@ def add_item(box, idx, segment):
         # Arrows
         if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
             col = box.column(align=True)
-            col.use_property_split = True
 
             col.prop(segment, 'glarrow_a', text="Arrow Start ")
             col.prop(segment, 'glarrow_b', text="End ")
@@ -610,7 +604,6 @@ def add_item(box, idx, segment):
 
         if segment.gltype != 2 and segment.gltype != 10:
             col = box.column(align=True)
-            col.use_property_split = True
             if scene.measureit_gl_show_d is True and segment.gltype != 9 and segment.gltype != 21:
                 if segment.gldist is True:
                     icon = "VISIBLE_IPO_ON"
@@ -626,7 +619,6 @@ def add_item(box, idx, segment):
             # sum distances
 
             col = box.column(align=True)
-            col.use_property_split = True
 
             if segment.gltype == 1 or segment.gltype == 12 or segment.gltype == 13 or segment.gltype == 14:
                 col.prop(segment, 'gltot', text="Sum")
@@ -638,6 +630,7 @@ def add_item(box, idx, segment):
                 and segment.gltype != 11 and segment.gltype != 12 and segment.gltype != 13 \
                 and segment.gltype != 14 and segment.gltype != 20:
             row = box.row(align = True)
+            row.use_property_split = False
             row.prop(segment, 'glocx', text="X", toggle=True)
             row.prop(segment, 'glocy', text="Y", toggle=True)
             row.prop(segment, 'glocz', text="Z", toggle=True)
@@ -737,7 +730,7 @@ class MeasureitMainPanel(Panel):
         # ------------------------------
         # Linework Tools
         # ------------------------------
-
+    
         box = layout.box()
         box.label(text="Add Lines")
         row = box.row()
@@ -819,13 +812,14 @@ class MeasureitConfPanel(Panel):
     # ------------------------------
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
         scene = context.scene
 
         # Configuration data
         box = layout.box()
         
         col = box.column(align=True)
-        col.use_property_split = True
         col.prop(scene, "measureit_default_style", text="Active Style")
 
         
@@ -848,7 +842,8 @@ class MeasureitConfPanel(Panel):
 
 def add_style_item(box, idx, style):
     scene = bpy.context.scene
-    box = box.box()
+    if style.gladvance is True:
+        box = box.box()
     row = box.row(align=True)
     if style.glview is True:
         icon = "VISIBLE_IPO_ON"
@@ -866,12 +861,10 @@ def add_style_item(box, idx, style):
 
     if style.gladvance is True:
         col = box.column()
-        col.use_property_split = True
         col.prop(style, 'gltxt', text="Text")
         col.prop(style, 'gldefault', text="Automatic position")
 
         col = box.column(align=True)
-        col.use_property_split = True
 
         col.prop(style, 'glspace', text="Distance")
         col.prop(style, 'glwidth', text="Lineweight")
@@ -881,7 +874,6 @@ def add_style_item(box, idx, style):
             col.prop(style, 'glnormalz', text="Z")
     
         col = box.column(align=True)
-        col.use_property_split = True
 
         col.prop(style, 'glfont_size', text="Font Size")
         col.prop(style, 'glfont_rotat', text="Rotate")
@@ -892,7 +884,6 @@ def add_style_item(box, idx, style):
         # Arrows
         
         col = box.column(align=True)
-        col.use_property_split = True
 
         col.prop(style, 'glarrow_a', text="Arrow Start ")
         col.prop(style, 'glarrow_b', text="End ")
@@ -2228,7 +2219,7 @@ class AddDimStyleButton(Operator):
             newStyle = styleGen.measureit_styles[styleGen.style_num]
 
             #Style Properties
-            newStyle.styleName = 'Style ' + str(styleGen.style_num)
+            newStyle.styleName = 'Style ' + str(styleGen.style_num + 1)
             newStyle.glcolor = scene.measureit_default_color
             
             newStyle.glwidth = scene.measureit_gl_width
