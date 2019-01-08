@@ -47,9 +47,11 @@ if "bpy" in locals():
     import importlib
 
     importlib.reload(measureit_main)
+    importlib.reload(measureit_obj_ui)
     print("measureit: Reloaded multifiles")
 else:
     from . import measureit_main
+    from . import measureit_obj_ui
     print("measureit: Imported multifiles")
 
 # noinspection PyUnresolvedReferences
@@ -82,6 +84,7 @@ panels = (
         measureit_main.MeasureitMainPanel,
         measureit_main.MeasureitConfPanel,
         measureit_main.MeasureitRenderPanel,
+        measureit_obj_ui.MeasureitObjDimensionsPanel,
         )
 
 
@@ -323,6 +326,7 @@ Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
 # noinspection PyUnusedLocal
 def register():
 
+    bpy.utils.register_class(measureit_obj_ui.MeasureitObjDimensionsPanel)
     bpy.utils.register_class(measureit_main.RunHintDisplayButton)
     bpy.utils.register_class(measureit_main.AddSegmentButton)
     bpy.utils.register_class(measureit_main.AddDimStyleButton)
@@ -636,6 +640,7 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_class(measureit_obj_ui.MeasureitObjDimensionsPanel)
     bpy.utils.unregister_class(measureit_main.RunHintDisplayButton)
     bpy.utils.unregister_class(measureit_main.AddSegmentButton)
     bpy.utils.unregister_class(measureit_main.AddDimStyleButton)

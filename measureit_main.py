@@ -386,289 +386,57 @@ class MeasureitEditPanel(Panel):
         layout.use_property_split = True
         scene = context.scene
 
-        if context.object is not None:
-            box = layout.box()
-            row = box.row()
-            row.label(text='Dimension Settings')
+        box = layout.box()
+        row = box.row()
+        row.label(text='Dimension Settings')
 
-            col = box.column(align = True)
-            col.prop(scene, 'measureit_gl_precision', text="Precision")
-            col.prop(scene, 'measureit_units')
-
-            col = box.column(align=True)
-            col.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
-            col.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
-            #col.prop(scene, 'measureit_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
-            
-            # Scale factor
-            col = box.column(align = True)
-            col.use_property_split= True
-            col.alignment = 'RIGHT'
-            col.label(text = 'Override:')
-            col.prop(scene, 'measureit_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
-            col.prop(scene, 'measureit_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
-
-            if scene.measureit_scale is True:
-                scaleBox = box.box()
-                scaleBox.label(text='Scale Override')
-                col = scaleBox.column(align = True)
-                col.prop(scene, 'measureit_scale_color', text="Color")
-                col.prop(scene, 'measureit_scale_factor', text="Factor")
-
-                col = scaleBox.column(align = True)
-                col.prop(scene, 'measureit_gl_scaletxt', text="Text")
-                col.prop(scene, 'measureit_scale_font', text="Font Size")
-                col.prop(scene, 'measureit_scale_precision', text="Precision")
-                
-                col = scaleBox.column(align = True)
-                col.prop(scene, 'measureit_scale_pos_x')
-                col.prop(scene, 'measureit_scale_pos_y')
-
-            # Override
-            
-            if scene.measureit_ovr is True:
-                styleBox = box.box()
-                styleBox.label(text='Style Override')
-                col = styleBox.column(align = True)
-                col.prop(scene, 'measureit_ovr_color', text="Colour")
-                col.prop(scene, 'measureit_ovr_width', text="Width")
-                col = styleBox.column(align = True)
-                col.prop(scene, 'measureit_ovr_font', text="Font Size")
-                col.prop(scene, 'measureit_ovr_font_align', text="Alignment")
-                if scene.measureit_ovr_font_align == 'L':
-                    col.prop(scene, 'measureit_ovr_font_rotation', text="Rotation")
-            
-            o = context.object
-            if 'MeasureGenerator' in o:
-                mp = context.object.MeasureGenerator[0]
-
-            if 'MeasureGenerator' in context.object:
-                # -----------------
-                # loop
-                # -----------------
-                if mp.measureit_num > 0:
-                    box = layout.box()
-                    row = box.row(align = True)
-                    row.operator("measureit.expandallsegmentbutton", text="Expand all", icon="ADD")
-                    row.operator("measureit.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
-                    for idx in range(0, mp.measureit_num):
-                        if mp.measureit_segments[idx].glfree is False:
-                            add_item(box, idx, mp.measureit_segments[idx])
-
-                    row = box.row()
-                    row.operator("measureit.deleteallsegmentbutton", text="Delete all", icon="X")
-                # -----------------
-                # Sum loop segments
-                # -----------------
-                if mp.measureit_num > 0:
-                    scale = bpy.context.scene.unit_settings.scale_length
-                    tx = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
-                          "T", "U", "V", "W", "X", "Y", "Z"]
-                    tot = [0.0] * len(tx)
-                    ac = [False] * len(tx)
-                    myobj = context.object
-                    obverts = get_mesh_vertices(myobj)
-                    viewtot = False
-                    for idx in range(0, mp.measureit_num):
-                        ms = mp.measureit_segments[idx]
-                        if (ms.gltype == 1 or ms.gltype == 12
-                            or ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
-                                and ms.glfree is False:  # only segments
-                            if bpy.context.mode == "EDIT_MESH":
-                                bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
-                                if hasattr(bm.verts, "ensure_lookup_table"):
-                                    bm.verts.ensure_lookup_table()
-                            if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts):
-                                p1 = get_point(obverts[ms.glpointa].co, myobj)
-                                if ms.gltype == 1:
-                                    p2 = get_point(obverts[ms.glpointb].co, myobj)
-                                elif ms.gltype == 12:
-                                    p2 = get_point((0.0,
-                                                    obverts[ms.glpointa].co[1],
-                                                    obverts[ms.glpointa].co[2]), myobj)
-                                elif ms.gltype == 13:
-                                    p2 = get_point((obverts[ms.glpointa].co[0],
-                                                    0.0,
-                                                    obverts[ms.glpointa].co[2]), myobj)
-                                else:
-                                    p2 = get_point((obverts[ms.glpointa].co[0],
-                                                    obverts[ms.glpointa].co[1],
-                                                    0.0), myobj)
-
-                                dist, distloc = distance(p1, p2, ms.glocx, ms.glocy, ms.glocz)
-                                if dist == distloc:
-                                    usedist = dist
-                                else:
-                                    usedist = distloc
-                                usedist *= scale
-                                tot[int(ms.gltot)] += usedist
-                                ac[int(ms.gltot)] = True
-                                viewtot = True
-                    # -----------------
-                    # Print values
-                    # -----------------
-                    if viewtot is True:
-                        pr = scene.measureit_gl_precision
-                        fmt = "%1." + str(pr) + "f"
-                        units = scene.measureit_units
-
-                        box = layout.box()
-                        box.label(text="Totals", icon='SOLO_ON')
-                        final = 0
-                        for idx in range(0, len(tot)):
-                            if ac[idx] is True:
-                                final += tot[idx]
-                                tx_dist = format_distance(fmt, units, tot[idx])
-                                row = box.row(align = True)
-                                row.label(text="Group " + tx[idx] + ":")
-                                row.label(text=" ")
-                                row.label(text=tx_dist)
-
-                        # Grand total
-                        row = box.row(align=True)
-                        row.label(text="")
-                        row.label(text=" ")
-                        row.label(text="-" * 20)
-                        tx_dist = format_distance(fmt, units, final)
-
-                        row = box.row(align=True)
-                        row.label(text="")
-                        row.label(text=" ")
-                        row.label(text=tx_dist)
-                        # delete all
-                        row = box.row()
-                        row.operator("measureit.deleteallsumbutton", text="Delete all", icon="X")
-
-
-# -----------------------------------------------------
-# Add segment options to the panel.
-# -----------------------------------------------------
-def add_item(box, idx, segment):
-    scene = bpy.context.scene
-    if segment.gladvance is True:
-        box = box.box()
-    row = box.row(align=True)
-    if segment.glview is True:
-        icon = "VISIBLE_IPO_ON"
-    else:
-        icon = "VISIBLE_IPO_OFF"
-
-    row.prop(segment, 'glview', text="", toggle=True, icon=icon)
-    row.prop(segment, 'gladvance', text="", toggle=True, icon="PREFERENCES")
-    row.prop(segment, 'style', text="")
-    row.prop(segment, 'gltxt', text="")
-    op = row.operator("measureit.deletesegmentbutton", text="", icon="X")
-    op.tag = idx  # saves internal data
-
-    if segment.gladvance is True:
-
-        col = box.column()
-
-        if segment.gltype == 20:  # Area special
-            
-            col.prop(segment, 'glcolorarea', text="Area Color")
-            col.prop(segment, 'glcolor', text="Color")
-        else:
-            col.prop(segment, 'glcolor', text="Color")
-
-        if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
-            col.prop(segment, 'gldefault', text="Automatic position")
-
-            col = box.column(align=True)
-
-            col.prop(segment, 'glspace', text="Distance")
-            col.prop(segment, 'glwidth', text="Lineweight")
-            if segment.gldefault is False:
-                col.prop(segment, 'glnormalx', text="X")
-                col.prop(segment, 'glnormaly', text="Y")
-                col.prop(segment, 'glnormalz', text="Z")
-            
-            
+        col = box.column(align = True)
+        col.prop(scene, 'measureit_gl_precision', text="Precision")
+        col.prop(scene, 'measureit_units')
 
         col = box.column(align=True)
-
-        col.prop(segment, 'glfont_size', text="Font Size")
-        col.prop(segment, 'glfont_rotat', text="Rotate")
-        col.prop(segment, 'glfontx', text="X")
-        col.prop(segment, 'glfonty', text="Y")
-        col.prop(segment, 'glfont_align', text="Align")
-
-        # Arrows
-        if segment.gltype != 9 and segment.gltype != 10 and segment.gltype != 20:
-            col = box.column(align=True)
-
-            col.prop(segment, 'glarrow_a', text="Arrow Start ")
-            col.prop(segment, 'glarrow_b', text="End ")
-            if segment.glarrow_a != '99' or segment.glarrow_b != '99':
-                col.prop(segment, 'glarrow_s', text="Size")
-
-        if segment.gltype != 2 and segment.gltype != 10:
-            col = box.column(align=True)
-            if scene.measureit_gl_show_d is True and segment.gltype != 9 and segment.gltype != 21:
-                if segment.gldist is True:
-                    icon = "VISIBLE_IPO_ON"
-                else:
-                    icon = "VISIBLE_IPO_OFF"
-                col.prop(segment, 'gldist', text="Distance", toggle=True, icon=icon)
-            if scene.measureit_gl_show_n is True:
-                if segment.glnames is True:
-                    icon = "VISIBLE_IPO_ON"
-                else:
-                    icon = "VISIBLE_IPO_OFF"
-                col.prop(segment, 'glnames', text="Text", toggle=True, icon=icon)
-            # sum distances
-
-            col = box.column(align=True)
-
-            if segment.gltype == 1 or segment.gltype == 12 or segment.gltype == 13 or segment.gltype == 14:
-                col.prop(segment, 'gltot', text="Sum")
-
+        col.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
+        col.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
+        #col.prop(scene, 'measureit_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
         
+        # Scale factor
+        col = box.column(align = True)
+        col.use_property_split= True
+        col.alignment = 'RIGHT'
+        col.label(text = 'Override:')
+        col.prop(scene, 'measureit_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
+        col.prop(scene, 'measureit_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
 
-        # Loc axis
-        if segment.gltype != 2 and segment.gltype != 9 and segment.gltype != 10 \
-                and segment.gltype != 11 and segment.gltype != 12 and segment.gltype != 13 \
-                and segment.gltype != 14 and segment.gltype != 20:
-            row = box.row(align = True)
-            row.use_property_split = False
-            row.prop(segment, 'glocx', text="X", toggle=True)
-            row.prop(segment, 'glocy', text="Y", toggle=True)
-            row.prop(segment, 'glocz', text="Z", toggle=True)
-            if segment.glocx is False or segment.glocy is False or segment.glocz is False:
-                row = box.row()
-                if segment.gltype == 1:
-                    row.prop(segment, 'glorto', text="Orthogonal")
-                row.prop(segment, 'glocwarning', text="Warning")
-                # ortogonal (only segments)
-                if segment.gltype == 1:
-                    if segment.glorto != "99":
-                        row = box.row(align=True)
-                        row.prop(segment, 'glorto_x', text="X", toggle=True)
-                        row.prop(segment, 'glorto_y', text="Y", toggle=True)
-                        row.prop(segment, 'glorto_z', text="Z", toggle=True)
+        if scene.measureit_scale is True:
+            scaleBox = box.box()
+            scaleBox.label(text='Scale Override')
+            col = scaleBox.column(align = True)
+            col.prop(scene, 'measureit_scale_color', text="Color")
+            col.prop(scene, 'measureit_scale_factor', text="Factor")
 
-        # Arc special
-        if segment.gltype == 11:
-            row = box.row(align = True)
-            row.prop(segment, 'glarc_rad', text="Radius")
-            row.prop(segment, 'glarc_len', text="Length")
-            row.prop(segment, 'glarc_ang', text="Angle")
+            col = scaleBox.column(align = True)
+            col.prop(scene, 'measureit_gl_scaletxt', text="Text")
+            col.prop(scene, 'measureit_scale_font', text="Font Size")
+            col.prop(scene, 'measureit_scale_precision', text="Precision")
+            
+            col = scaleBox.column(align = True)
+            col.prop(scene, 'measureit_scale_pos_x')
+            col.prop(scene, 'measureit_scale_pos_y')
 
-            row = box.row(align = True)
-            row.prop(segment, 'glarc_txradio', text="")
-            row.prop(segment, 'glarc_txlen', text="")
-            row.prop(segment, 'glarc_txang', text="")
-            row = box.row(align = True)
-            row.prop(segment, 'glarc_full', text="Full Circle")
-            if segment.glarc_rad is True:
-                row.prop(segment, 'glarc_extrad', text="Adapt radio")
-
-            row = box.row(align = True)
-            row.prop(segment, 'glarc_a', text="")
-            row.prop(segment, 'glarc_b', text="")
-            if segment.glarc_a != '99' or segment.glarc_b != '99':
-                row.prop(segment, 'glarc_s', text="Size")
-
+        # Override
+        
+        if scene.measureit_ovr is True:
+            styleBox = box.box()
+            styleBox.label(text='Style Override')
+            col = styleBox.column(align = True)
+            col.prop(scene, 'measureit_ovr_color', text="Colour")
+            col.prop(scene, 'measureit_ovr_width', text="Width")
+            col = styleBox.column(align = True)
+            col.prop(scene, 'measureit_ovr_font', text="Font Size")
+            col.prop(scene, 'measureit_ovr_font_align', text="Alignment")
+            if scene.measureit_ovr_font_align == 'L':
+                col.prop(scene, 'measureit_ovr_font_rotation', text="Rotation")
+        
 
 # ------------------------------------------------------------------
 # Define panel class for main functions.
@@ -1704,23 +1472,27 @@ class DeleteSegmentButton(Operator):
     # Execute button action
     # ------------------------------
     def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            # Add properties
-            mainobject = context.object
-            mp = mainobject.MeasureGenerator[0]
-            ms = mp.measureit_segments[self.tag]
-            ms.glfree = True
-            # Delete element
-            mp.measureit_segments.remove(self.tag)
-            mp.measureit_num -= 1
-            # redraw
-            context.area.tag_redraw()
-            return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
 
-        return {'CANCELLED'}
+        # Add properties
+        mainobject = context.object
+        mp = mainobject.MeasureGenerator[0]
+        ms = mp.measureit_segments[self.tag]
+        ms.glfree = True
+        # Delete element
+        mp.measureit_segments.remove(self.tag)
+        mp.measureit_num -= 1
+        # redraw
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    area.tag_redraw()
+                    context.area.tag_redraw()
+                    return {'FINISHED'}
+                
+        return {'FINISHED'}
+
 
 
 # -------------------------------------------------------------
@@ -1737,24 +1509,26 @@ class DeleteAllSegmentButton(Operator):
     # Execute button action
     # ------------------------------
     def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            # Add properties
-            mainobject = context.object
-            mp = mainobject.MeasureGenerator[0]
+        # Add properties
+        mainobject = context.object
+        mp = mainobject.MeasureGenerator[0]
 
-            while len(mp.measureit_segments) > 0:
-                mp.measureit_segments.remove(0)
+        while len(mp.measureit_segments) > 0:
+            mp.measureit_segments.remove(0)
 
-            # reset size
-            mp.measureit_num = len(mp.measureit_segments)
-            # redraw
-            context.area.tag_redraw()
-            return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
+        # reset size
+        mp.measureit_num = len(mp.measureit_segments)
+        # redraw
 
-        return {'CANCELLED'}
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    area.tag_redraw()
+                    context.area.tag_redraw()
+                    return {'FINISHED'} 
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
