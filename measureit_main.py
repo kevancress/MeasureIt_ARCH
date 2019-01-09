@@ -326,6 +326,44 @@ bpy.utils.register_class(MeasureContainer)
 Object.MeasureGenerator = CollectionProperty(type=MeasureContainer)
 
 
+# ------------------------------------------------------------------
+# Define property group class for line data
+# ------------------------------------------------------------------
+
+class LineProperties(PropertyGroup):
+    lineStyle: IntProperty(name="lineStyle",
+                        description="Dimension Style to use",
+                        min = 0)
+    
+    lineColor: FloatVectorProperty(name="lineColor",
+                        description="Color for the measure",
+                        default=(0.173, 0.545, 1.0, 1.0),
+                        min=0.1,
+                        max=1,
+                        subtype='COLOR',
+                        size=4) 
+
+    lineVis: BoolProperty(name="lineVis",
+                          description="Line show/hide",
+                          default=True)
+
+# Register
+bpy.utils.register_class(LineProperties)
+
+
+# ------------------------------------------------------------------
+# Define object class (container of lines)
+# Measureit
+# ------------------------------------------------------------------
+class LineContainer(PropertyGroup):
+    line_num = IntProperty(name='Number of Line Groups', min=0, max=1000, default=0,
+                                description='Number total of line groups')
+    # Array of segments
+    line_segments = CollectionProperty(type=LineProperties)
+
+
+bpy.utils.register_class(LineContainer)
+Object.LineGenerator = CollectionProperty(type=LineContainer)
 
 
 # ------------------------------------------------------------------
@@ -388,7 +426,9 @@ class MeasureitEditPanel(Panel):
 
         box = layout.box()
         row = box.row()
-        row.label(text='Dimension Settings')
+
+        col = box.column(align=True)
+        col.prop(scene, "measureit_default_style", text="Active Style")
 
         col = box.column(align = True)
         col.prop(scene, 'measureit_gl_precision', text="Precision")
@@ -583,14 +623,6 @@ class MeasureitConfPanel(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
         scene = context.scene
-
-        # Configuration data
-        box = layout.box()
-        
-        col = box.column(align=True)
-        col.prop(scene, "measureit_default_style", text="Active Style")
-
-        
         
         #-------------------
         # Add Styles to Panel
@@ -1576,20 +1608,15 @@ class ExpandAllSegmentButton(Operator):
     # Execute button action
     # ------------------------------
     def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            # Add properties
-            mainobject = context.object
-            mp = mainobject.MeasureGenerator[0]
+        # Add properties
+        mainobject = context.object
+        mp = mainobject.MeasureGenerator[0]
 
-            for i in mp.measureit_segments:
-                i.gladvance = True
+        for i in mp.measureit_segments:
+            i.gladvance = True
 
-            return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
-        return {'CANCELLED'}
+        return {'FINISHED'}
+    
 
 
 # -------------------------------------------------------------
@@ -1607,20 +1634,15 @@ class CollapseAllSegmentButton(Operator):
     # Execute button action
     # ------------------------------
     def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            # Add properties
-            mainobject = context.object
-            mp = mainobject.MeasureGenerator[0]
+        # Add properties
+        mainobject = context.object
+        mp = mainobject.MeasureGenerator[0]
 
-            for i in mp.measureit_segments:
-                i.gladvance = False
+        for i in mp.measureit_segments:
+            i.gladvance = False
 
-            return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
-        return {'CANCELLED'}
+        return {'FINISHED'}
+    
 
 
 # -------------------------------------------------------------

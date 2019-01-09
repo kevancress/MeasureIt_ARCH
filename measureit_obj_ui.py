@@ -53,8 +53,7 @@ class MeasureitObjDimensionsPanel(Panel):
     
         
     def draw(self, context):
-         
-
+         scene = context.scene
          if context.object is not None:
             if 'MeasureGenerator' in context.object:
                 layout = self.layout
