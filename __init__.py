@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 # ----------------------------------------------------------
-# Author: Antonio Vazquez (antonioya)
+# Author: Antonio Vazquez (antonioya), Kevan Cress
 # ----------------------------------------------------------
 
 # ----------------------------------------------
@@ -327,6 +327,8 @@ Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
 def register():
 
     bpy.utils.register_class(measureit_obj_ui.MeasureitObjDimensionsPanel)
+    bpy.utils.register_class(measureit_obj_ui.DeleteLineButton)
+    bpy.utils.register_class(measureit_obj_ui.MeasureitObjLinesPanel)
     bpy.utils.register_class(measureit_main.RunHintDisplayButton)
     bpy.utils.register_class(measureit_main.AddSegmentButton)
     bpy.utils.register_class(measureit_main.AddDimStyleButton)
@@ -640,6 +642,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_class(measureit_obj_ui.MeasureitObjLinesPanel)
+    bpy.utils.unregister_class(measureit_obj_ui.DeleteLineButton)
     bpy.utils.unregister_class(measureit_obj_ui.MeasureitObjDimensionsPanel)
     bpy.utils.unregister_class(measureit_main.RunHintDisplayButton)
     bpy.utils.unregister_class(measureit_main.AddSegmentButton)

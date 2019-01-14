@@ -20,7 +20,7 @@
 
 # ----------------------------------------------------------
 # support routines for OpenGL
-# Author: Antonio Vazquez (antonioya)
+# Author: Antonio Vazquez (antonioya), Kevan Cress
 #
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
@@ -38,10 +38,10 @@ from bmesh import from_edit_mesh
 from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
 from sys import exc_info
-from .shaders import Base_Shader_2D
+from .shaders import Base_Shader_2D, Base_Shader_3D
 
 shader = gpu.types.GPUShader( Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader, geocode=Base_Shader_2D.geometry_shader)
-
+lineShader = gpu.types.GPUShader( Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
 # -------------------------------------------------------------
 # Draw segments
 #
@@ -358,14 +358,13 @@ def draw_segments(context, myobj, op, region, rv3d):
                     # --------------------
                     render = scene.render
                     
-                    #shader.uniform_float("renderSize", render.resolution_x)
-                    
                     if ovr is False:
                         #bgl .glLineWidth(ms.glwidth)
                         shader.uniform_float("thickness", source.glwidth)
                     else:
                         #bgl .glLineWidth(ovrline)
                         shader.uniform_float("thickness", ovrline)
+                   
                     # ------------------------------------
                     # Text (distance)
                     # ------------------------------------
@@ -518,9 +517,6 @@ def draw_segments(context, myobj, op, region, rv3d):
                     # ------------------------------------
                     # Draw lines
                     # ------------------------------------
-                    bgl.glEnable(bgl.GL_BLEND)
-                    bgl.glEnable(bgl.GL_MULTISAMPLE)
-                    bgl.glDepthMask(bgl.GL_TRUE)
                     shader.bind()
                     shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
                     #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
@@ -695,6 +691,30 @@ def draw_segments(context, myobj, op, region, rv3d):
     return
 
 
+
+def draw_line_group(context, myobj, lineGen):
+    obverts = get_mesh_vertices(myobj)
+
+    for idx in range(0, lineGen.line_num):
+        lineGroup = lineGen.line_groups[idx]
+        rgb = lineGroup.lineColor
+        bgl.glLineWidth(lineGroup.lineStyle)  
+
+        lineShader.bind()
+        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
+
+        for x in range(0,lineGroup.numLines):
+            sLine = lineGroup.singleLine[x]
+            if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
+                a_p1 = get_point(obverts[sLine.pointA].co, myobj)
+                b_p1 = get_point(obverts[sLine.pointB].co, myobj)
+
+            if  a_p1 is not None and b_p1 is not None:
+                coords =[a_p1,b_p1]
+                batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+                batch3d.program_set(lineShader)
+                batch3d.draw() 
+        bgl.glLineWidth(1)  
 # ------------------------------------------
 # Get polygon area and paint area
 #
@@ -900,19 +920,24 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
 
 
 # -------------------------------------------------------------
-# Draw an GPU line
+# Draw a GPU line
 #
 # -------------------------------------------------------------
 def draw_line(v1, v2):
     # noinspection PyBroadException
     if v1 is not None and v2 is not None:
+
+
+
+
+
         coords = [v1,v2]
         
         batch = batch_for_shader(shader, 'LINE_STRIP', {"pos": coords})
         #rgb = bpy.context.scene.measureit_default_color
-       
-        batch.draw(shader)
-
+        batch.program_set(shader)
+        batch.draw()
+        
         #bgl.glBegin(bgl.GL_LINES)
         #bgl.glVertex2f(*v1)
         #bgl.glVertex2f(*v2)
@@ -1059,8 +1084,6 @@ def draw_object(context, myobj, region, rv3d):
         a_p1 = Vector(get_location(objs[o]))
         # colour
         
-        shader.bind()
-        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # Text
         txt = ''
@@ -1111,9 +1134,7 @@ def draw_vertices(context, myobj, region, rv3d):
         # try:
         a_p1 = get_point(v.co, myobj)
         # colour
-        
-        shader.bind()
-        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
+
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # converting to screen coordinates
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1169,9 +1190,7 @@ def draw_edges(context, myobj, region, rv3d):
         a_mp = midf(e, obverts)
         a_p1 = get_point(a_mp, myobj)
         # colour
-        
-        shader.bind()
-        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
+
         #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # converting to screen coordinates
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1222,16 +1241,8 @@ def draw_faces(context, myobj, region, rv3d):
                 a_p1 = get_point(f.center, myobj)
 
             a_p2 = (a_p1[0] + normal[0] * ln, a_p1[1] + normal[1] * ln, a_p1[2] + normal[2] * ln)
-            # colour + line setup
-            bgl.glEnable(bgl.GL_BLEND)
-            bgl.glEnable(bgl.GL_MULTISAMPLE)
-            bgl.glDepthMask(bgl.GL_TRUE)
-            bgl.glEnable(bgl.GL_LINE_SMOOTH)
-            #bgl.glLineWidth(th)
-            
-            shader.bind()
-            shader.uniform_float("thickness", th)
-            shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
+
+          
             #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
             # converting to screen coordinates
             txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1241,10 +1252,8 @@ def draw_faces(context, myobj, region, rv3d):
                 draw_text(myobj, txtpoint2d, str(f.index), rgb, fsize)
             # Draw Normal
             if scene.measureit_debug_normals is True:
-                bgl.glEnable(bgl.GL_BLEND)
-                bgl.glEnable(bgl.GL_MULTISAMPLE)
-                bgl.glDepthMask(bgl.GL_TRUE)
                 shader.bind()
+                shader.uniform_float("thickness", th)
                 shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 #bgl .glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
                 draw_arrow(txtpoint2d, point2, 10, "99", "1")
@@ -1547,3 +1556,4 @@ def get_angle_in_rad(fangle):
         return 0.0
     else:
         return radians(fangle)
+

@@ -66,26 +66,48 @@ def render_main(self, context, animation=False):
     # Loop to draw all lines in Offsecreen
     # --------------------------------------
     offscreen = gpu.types.GPUOffScreen(width, height)
+    
     view_matrix = Matrix([
         [2 / width, 0, 0, -1],
         [0, 2 / height, 0, -1],
         [0, 0, 1, 0],
         [0, 0, 0, 1]])
 
-    with offscreen.bind():
-        bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
-        gpu.matrix.reset()
-        gpu.matrix.load_matrix(view_matrix)
-        gpu.matrix.load_projection_matrix(Matrix.Identity(4))
+    view_matrix_3d = scene.camera.matrix_world.inverted()
+    projection_matrix = scene.camera.calc_matrix_camera(context.depsgraph, x=width, y=height)
 
+    
+
+    with offscreen.bind():
+        bpy.ops.render.render
+        bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT);  
+        bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthFunc(bgl.GL_LEQUAL)
+        
         # -----------------------------
         # Loop to draw all objects
         # -----------------------------
         for myobj in objlist:
             if myobj.visible_get() is True:
                 if 'MeasureGenerator' in myobj:
+                    gpu.matrix.reset()
+                    gpu.matrix.load_matrix(view_matrix)
+                    gpu.matrix.load_projection_matrix(Matrix.Identity(4))
                     op = myobj.MeasureGenerator[0]
                     draw_segments(context, myobj, op, None, None)
+
+                if 'LineGenerator' in myobj:
+                    gpu.matrix.reset()
+                    gpu.matrix.load_matrix(view_matrix_3d)
+                    gpu.matrix.load_projection_matrix(projection_matrix)
+
+                   
+
+                    op = myobj.LineGenerator[0]
+                    draw_line_group(context, myobj, op)
+
+        bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT);  
         # -----------------------------
         # Loop to draw all debug
         # -----------------------------

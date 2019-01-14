@@ -21,7 +21,7 @@
 # ----------------------------------------------------------
 # File: measureit_main.py
 # Main panel for different Measureit general actions
-# Author: Antonio Vazquez (antonioya)
+# Author: Antonio Vazquez (antonioya), Kevan Cress
 #
 # ----------------------------------------------------------
 # noinspection PyUnresolvedReferences
@@ -41,6 +41,12 @@ from bpy.app.handlers import persistent
 from .measureit_geometry import *
 from .measureit_render import *
 
+import gpu
+from gpu_extras.batch import batch_for_shader
+
+coords = [(100, 100, 1), (200, 400, 0), (-2, -1, 3), (0, 1, 1)]
+shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+batch = batch_for_shader(shader, 'LINES', {"pos": coords})
 
 # ------------------------------------------------------
 # Handler to detect new Blend load
@@ -106,7 +112,7 @@ class MeasureitFaces(PropertyGroup):
     glface = IntProperty(name="glface",
                          description="Face number")
     # Array of index
-    measureit_index = CollectionProperty(type=MeasureitIndex)
+    measureit_index: CollectionProperty(type=MeasureitIndex)
 
 
 # Register
@@ -304,7 +310,7 @@ class MeasureitProperties(PropertyGroup):
                                       size=4)
 
     # Array of faces
-    measureit_faces = CollectionProperty(type=MeasureitFaces)
+    measureit_faces: CollectionProperty(type=MeasureitFaces)
 
 
 # Register
@@ -325,6 +331,18 @@ class MeasureContainer(PropertyGroup):
 bpy.utils.register_class(MeasureContainer)
 Object.MeasureGenerator = CollectionProperty(type=MeasureContainer)
 
+# ------------------------------------------------------------------
+# Define property group class for individual line Data
+# ------------------------------------------------------------------
+class SingleLineProperties(PropertyGroup):
+    pointA: IntProperty(name = "pointA",
+                        description = "Hidden property for opengl")
+                        
+    pointB: IntProperty(name = "pointB",
+                        description = "Second index of the line")
+                        
+
+bpy.utils.register_class(SingleLineProperties)
 
 # ------------------------------------------------------------------
 # Define property group class for line data
@@ -344,11 +362,21 @@ class LineProperties(PropertyGroup):
                         size=4) 
 
     lineVis: BoolProperty(name="lineVis",
-                          description="Line show/hide",
-                          default=True)
+                        description="Line show/hide",
+                        default=True)
+
+    lineFree: BoolProperty(name="lineFree",
+                        description="This line is free and can be deleted",
+                        default=False)
+
+    numLines: IntProperty(name="numLines",
+                        description="Number Of Single Lines")
+    #collection of indicies                        
+    singleLine: CollectionProperty(type=SingleLineProperties)
 
 # Register
 bpy.utils.register_class(LineProperties)
+
 
 
 # ------------------------------------------------------------------
@@ -356,10 +384,10 @@ bpy.utils.register_class(LineProperties)
 # Measureit
 # ------------------------------------------------------------------
 class LineContainer(PropertyGroup):
-    line_num = IntProperty(name='Number of Line Groups', min=0, max=1000, default=0,
+    line_num: IntProperty(name='Number of Line Groups', min=0, max=1000, default=0,
                                 description='Number total of line groups')
     # Array of segments
-    line_segments = CollectionProperty(type=LineProperties)
+    line_groups: CollectionProperty(type=LineProperties)
 
 
 bpy.utils.register_class(LineContainer)
@@ -1861,7 +1889,7 @@ class RunHintDisplayButton(Operator):
     bl_category = 'Measureit'
 
     _handle = None  # keep function handler
-
+    _handle3d = None
     # ----------------------------------
     # Enable gl drawing adding handler
     # ----------------------------------
@@ -1871,6 +1899,7 @@ class RunHintDisplayButton(Operator):
             RunHintDisplayButton._handle = SpaceView3D.draw_handler_add(draw_callback_px, (self, context),
                                                                         'WINDOW',
                                                                         'POST_PIXEL')
+            RunHintDisplayButton._handle3d = SpaceView3D.draw_handler_add(draw_callback_3d, (self,context), 'WINDOW', 'POST_VIEW')
             context.window_manager.measureit_run_opengl = True
 
     # ------------------------------------
@@ -1881,6 +1910,7 @@ class RunHintDisplayButton(Operator):
     def handle_remove(self, context):
         if RunHintDisplayButton._handle is not None:
             SpaceView3D.draw_handler_remove(RunHintDisplayButton._handle, 'WINDOW')
+            SpaceView3D.draw_handler_remove(RunHintDisplayButton._handle3d, 'WINDOW')
         RunHintDisplayButton._handle = None
         context.window_manager.measureit_run_opengl = False
 
@@ -1941,45 +1971,25 @@ class AddLineButton(Operator):
                 mylist = get_selected_vertex(mainobject)
 
             if len(mylist) >= 2:
-                if 'MeasureGenerator' not in mainobject:
-                    mainobject.MeasureGenerator.add()
+                if 'LineGenerator' not in mainobject:
+                    mainobject.LineGenerator.add()
 
-                mp = mainobject.MeasureGenerator[0]
-                for x in range(0, len(mylist) - 1, 2):
-                    # -----------------------
-                    # Only if not exist
-                    # -----------------------
-                    if exist_segment(mp, mylist[x], mylist[x + 1]) is False:
-                        # Create all array elements
-                        for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
-                            mp.measureit_segments.add()
+                lineGen = mainobject.LineGenerator[0]
+                lGroup = lineGen.line_groups.add()
 
-                        # Set values
-                        ms = mp.measureit_segments[mp.measureit_num]
-                        ms.gltype = 21
-                        ms.style = scene.measureit_default_style
-                        ms.glpointa = mylist[x]
-                        ms.glpointb = mylist[x + 1]
-                        ms.glarrow_a = scene.measureit_glarrow_a
-                        ms.glarrow_b = scene.measureit_glarrow_b
-                        ms.glarrow_s = scene.measureit_glarrow_s
-                        ms.glwidth = scene.measureit_gl_width
-                        # color
-                        ms.glcolor = scene.measureit_default_color
-                        # dist
-                        ms.glspace = scene.measureit_hint_space
-                        # text
-                        ms.gltxt = 'line'
-                        ms.glnames = False
-                        ms.gldist = False
-                        ms.glfont_size = scene.measureit_font_size
-                        ms.glfont_align = scene.measureit_font_align
-                        ms.glfont_rotat = scene.measureit_font_rotation
-                        
-                        # Sum group
-                        ms.gltot = scene.measureit_sum
-                        # Add index
-                        mp.measureit_num += 1
+                # Set values
+                lGroup.lineStyle = scene.measureit_default_style
+                lGroup.lineWidth = scene.measureit_gl_width
+                lGroup.lineColor = scene.measureit_default_color
+                
+                for x in range (0, len(mylist)-1, 2):
+                    sLine = lGroup.singleLine.add()
+                    sLine.pointA = mylist[x]
+                    sLine.pointB = mylist[x+1]
+                    lGroup.numLines +=1
+
+                lineGen.line_num += 1
+
 
                 # redraw
                 context.area.tag_redraw()
@@ -2146,10 +2156,10 @@ def draw_main(context):
     if scene.measureit_gl_ghost is False:
         objlist = context.selected_objects
     else:
-        objlist = context.scene.objects
+        objlist = context.view_layer.objects
 
     # Enable GL drawing
-    #bgl.glEnable(bgl.GL_BLEND)
+    bgl.glEnable(bgl.GL_BLEND)
     # ---------------------------------------
     # Generate all OpenGL calls for measures
     # ---------------------------------------
@@ -2163,8 +2173,10 @@ def draw_main(context):
                     objCollections = myobj.users_collection
                     if objCollections[0].name == collection.collection.name:
                         op = myobj.MeasureGenerator[0]
+
                         draw_segments(context, myobj, op, region, rv3d)
                         break
+                
     # ---------------------------------------
     # Generate all OpenGL calls for debug
     # ---------------------------------------
@@ -2198,6 +2210,9 @@ def draw_main(context):
 # noinspection PyUnusedLocal
 def draw_callback_px(self, context):
     draw_main(context)
+
+def draw_callback_3d(self, context):
+    draw_main_3d(context)
 
 
 # -------------------------------------------------------------
@@ -2351,3 +2366,24 @@ def get_selected_faces(myobject):
     bpy.context.view_layer.objects.active = oldobj
 
     return mylist
+
+def draw_main_3d (context):
+
+    scene = context.scene
+
+    # Display selected or all
+    if scene.measureit_gl_ghost is False:
+        objlist = context.selected_objects
+    else:
+        objlist = context.view_layer.objects
+
+    # Enable GL drawing
+    bgl.glEnable(bgl.GL_BLEND)
+    # ---------------------------------------
+    # Generate all OpenGL calls for measures
+    # ---------------------------------------
+    for myobj in objlist:
+        if myobj.hide_viewport is False:              
+            if 'LineGenerator' in myobj:
+                lineGen = myobj.LineGenerator[0]
+                draw_line_group(context,myobj,lineGen)

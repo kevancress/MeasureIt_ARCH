@@ -286,3 +286,90 @@ def add_item(box, idx, segment):
             row.prop(segment, 'glarc_b', text="")
             if segment.glarc_a != '99' or segment.glarc_b != '99':
                 row.prop(segment, 'glarc_s', text="Size")
+
+
+class MeasureitObjLinesPanel(Panel):
+    bl_idname = "obj_lines"
+    bl_label = "Object Lines"
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "object"
+    
+        
+    def draw(self, context):
+         scene = context.scene
+         if context.object is not None:
+            if 'LineGenerator' in context.object:
+                layout = self.layout
+                layout.use_property_split = True
+                layout.use_property_decorate = False
+                # -----------------
+                # loop
+                # -----------------
+                
+                mp = context.object.LineGenerator[0]
+                if mp.line_num > 0:
+                    box = layout.box()
+                    row = box.row(align = True)
+                    #row.operator("measureit.expandallsegmentbutton", text="Expand all", icon="ADD")
+                    #row.operator("measureit.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
+                    for idx in range(0, mp.line_num):
+                        add_line_item(box, idx, mp.line_groups[idx])
+
+                    row = box.row()
+                    #row.operator("measureit.deleteallsegmentbutton", text="Delete all", icon="X")
+    
+# -----------------------------------------------------
+# Add line options to the panel.
+# -----------------------------------------------------
+def add_line_item(box, idx, line):
+    scene = bpy.context.scene
+
+    row = box.row(align=True)
+    if line.lineVis is True:
+        icon = "VISIBLE_IPO_ON"
+    else:
+        icon = "VISIBLE_IPO_OFF"
+
+    row.prop(line, 'lineVis', text="", toggle=True, icon=icon)
+    row.prop(line, 'lineColor', text="" )
+    row.prop(line, 'lineStyle', text="")
+
+    op = row.operator("measureit.deletelinebutton", text="", icon="X")
+    op.tag = idx  # saves internal data
+
+
+
+
+class DeleteLineButton(Operator):
+    bl_idname = "measureit.deletelinebutton"
+    bl_label = "Delete Line"
+    bl_description = "Delete a Line"
+    bl_category = 'Measureit'
+    tag= IntProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        # Add properties
+        mainObj = context.object
+        mp = mainObj.LineGenerator[0]
+        ms = mp.line_groups[self.tag]
+        ms.lineFree = True
+        # Delete element
+        mp.line_groups.remove(self.tag)
+        mp.line_num -= 1
+        # redraw
+        context.area.tag_redraw()
+        
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    area.tag_redraw()
+                    context.area.tag_redraw()
+                    return {'FINISHED'}
+                
+        return {'FINISHED'}
