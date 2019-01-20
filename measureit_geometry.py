@@ -39,7 +39,6 @@ from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
 from sys import exc_info
 from .shaders import Base_Shader_2D, Base_Shader_3D
-
 shader = gpu.types.GPUShader( Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader, geocode=Base_Shader_2D.geometry_shader)
 lineShader = gpu.types.GPUShader( Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
 # -------------------------------------------------------------
@@ -693,16 +692,19 @@ def draw_segments(context, myobj, op, region, rv3d):
 
 
 def draw_line_group(context, myobj, lineGen):
-    obverts = get_mesh_vertices(myobj)
-
+    obverts = get_mesh_vertices(myobj) 
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthFunc(bgl.GL_LEQUAL)   
+    
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
         rgb = lineGroup.lineColor
+        thickness = lineGroup.lineStyle
         bgl.glLineWidth(lineGroup.lineStyle)  
 
         lineShader.bind()
         shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
-
+        shader.uniform_float("thickness", thickness)
         for x in range(0,lineGroup.numLines):
             sLine = lineGroup.singleLine[x]
             if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
@@ -713,8 +715,9 @@ def draw_line_group(context, myobj, lineGen):
                 coords =[a_p1,b_p1]
                 batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
                 batch3d.program_set(lineShader)
-                batch3d.draw() 
-        bgl.glLineWidth(1)  
+                batch3d.draw()   
+
+    bgl.glDisable(bgl.GL_DEPTH_TEST)
 # ------------------------------------------
 # Get polygon area and paint area
 #
@@ -1117,7 +1120,7 @@ def draw_vertices(context, myobj, region, rv3d):
     if scene.measureit_debug_vert_loc_toggle == '1':
         co_mult = lambda c: c
     else:  # if global, convert local c to global
-        co_mult = lambda c: myobj.matrix_world * c
+        co_mult = lambda c: myobj.matrix_world @ c
 
     if myobj.mode == 'EDIT':
         bm = from_edit_mesh(myobj.data)

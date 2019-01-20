@@ -325,7 +325,7 @@ Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
 # Define menu
 # noinspection PyUnusedLocal
 def register():
-
+    
     bpy.utils.register_class(measureit_obj_ui.MeasureitObjDimensionsPanel)
     bpy.utils.register_class(measureit_obj_ui.DeleteLineButton)
     bpy.utils.register_class(measureit_obj_ui.MeasureitObjLinesPanel)
@@ -639,8 +639,7 @@ def register():
     wm = WindowManager
     # register internal property
     wm.measureit_run_opengl = BoolProperty(default=False)
-
-
+    
 def unregister():
     bpy.utils.unregister_class(measureit_obj_ui.MeasureitObjLinesPanel)
     bpy.utils.unregister_class(measureit_obj_ui.DeleteLineButton)
@@ -736,7 +735,6 @@ def unregister():
     p = 'measureit_run_opengl'
     if p in wm:
         del wm[p]
-
 
 if __name__ == '__main__':
     register()

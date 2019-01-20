@@ -27,6 +27,7 @@
 import bpy
 # noinspection PyUnresolvedReferences
 import bgl
+import gpu
 # noinspection PyUnresolvedReferences
 import blf
 from os import path, remove
@@ -39,8 +40,9 @@ import bpy_extras.object_utils as object_utils
 from bpy_extras import view3d_utils
 from math import ceil
 from .measureit_geometry import *
-
-
+from gpu_extras.presets import draw_texture_2d
+from bgl import *
+import numpy as np
 # -------------------------------------------------------------
 # Render image main entry point
 #
@@ -50,10 +52,11 @@ def render_main(self, context, animation=False):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     settings = bpy.context.scene.render.image_settings
     depth = settings.color_depth
-    settings.color_depth = '8'
-    # noinspection PyBroadException
+    settings.color_depth = '16'
    # Get object list
     scene = context.scene
+    clipdepth = context.scene.camera.data.clip_end
+    path = scene.render.filepath
     objlist = context.scene.objects
     # --------------------
     # Get resolution
@@ -61,6 +64,7 @@ def render_main(self, context, animation=False):
     render_scale = scene.render.resolution_percentage / 100
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
+
 
     # --------------------------------------
     # Loop to draw all lines in Offsecreen
@@ -76,15 +80,18 @@ def render_main(self, context, animation=False):
     view_matrix_3d = scene.camera.matrix_world.inverted()
     projection_matrix = scene.camera.calc_matrix_camera(context.depsgraph, x=width, y=height)
 
-    
+
+    viewport_info = bgl.Buffer(bgl.GL_INT, 4)
+    bgl.glGetIntegerv(bgl.GL_VIEWPORT, viewport_info)
 
     with offscreen.bind():
-        bpy.ops.render.render
-        bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT);  
-        bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthFunc(bgl.GL_LEQUAL)
+        bgl.glClearDepth(clipdepth)
+        bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+
+        draw_scene(self,context, projection_matrix) 
         
+        bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+
         # -----------------------------
         # Loop to draw all objects
         # -----------------------------
@@ -102,12 +109,10 @@ def render_main(self, context, animation=False):
                     gpu.matrix.load_matrix(view_matrix_3d)
                     gpu.matrix.load_projection_matrix(projection_matrix)
 
-                   
-
                     op = myobj.LineGenerator[0]
                     draw_line_group(context, myobj, op)
 
-        bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT);  
+
         # -----------------------------
         # Loop to draw all debug
         # -----------------------------
@@ -144,7 +149,6 @@ def render_main(self, context, animation=False):
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
         bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
-
     offscreen.free()
 
     # -----------------------------
@@ -236,3 +240,53 @@ def save_image(self, filepath, myimage):
         print("Unexpected error:" + str(exc_info()))
         self.report({'ERROR'}, "MeasureIt: Unable to save render image")
         return
+
+
+#--------------------------------------
+# Draw Scene Geometry for Depth Buffer
+#--------------------------------------
+
+def draw_scene(self,context,projection_matrix):
+  
+    objs = []
+
+    for obj in context.view_layer.objects:
+            if obj.type == 'MESH':
+                objs.append(obj)
+    view_matrix_3d = context.scene.camera.matrix_world.inverted()
+
+
+    for obj in objs:
+        mesh = obj.data
+        mesh.calc_loop_triangles()
+
+        vertices = []
+        indices = np.empty((len(mesh.loop_triangles), 3), 'i')
+
+        
+        for vert in mesh.vertices:
+            vertices.append(obj.matrix_world @ vert.co)
+        print(vertices) 
+        mesh.loop_triangles.foreach_get(
+            "vertices", np.reshape(indices, len(mesh.loop_triangles) * 3))
+        
+      
+                   
+        #---------------
+        # Draw
+        #---------------
+        
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthFunc(bgl.GL_LESS)   
+
+        shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+        batch = batch_for_shader(shader, 'TRIS',{"pos": vertices}, indices=indices)
+
+        gpu.matrix.reset()
+        gpu.matrix.load_matrix(view_matrix_3d)
+        gpu.matrix.load_projection_matrix(projection_matrix)
+
+        shader.bind()
+        shader.uniform_float("color", (1, 0, 0, 1))
+        batch.draw(shader)
+        bgl.glDisable(bgl.GL_DEPTH_TEST)

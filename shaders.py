@@ -121,16 +121,37 @@ class Base_Shader_3D ():
 
     vertex_shader = '''
 
-    uniform mat4 ModelViewProjectionMatrix;
+        uniform mat4 ModelViewProjectionMatrix;
 
-    in vec3 pos;
+        in vec3 pos;
 
-    void main()
-    {
-        gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-    }
+        void main()
+        {
+            vec3 newPos = pos;
+            vec4 project = ModelViewProjectionMatrix * vec4(newPos, 1.0);
+            gl_Position = project;
+        }
 
-'''
+        '''
+    geometry_shader = '''
+        layout(lines) in;
+        layout(line_strip, max_vertices = 4) out;
+
+        uniform vec4 color;
+        uniform mat4 ModelViewProjectionMatrix;
+        uniform float thickness;
+
+        void main()
+        {
+            gl_Position = gl_in[0].gl_Position;
+            EmitVertex();
+
+            gl_Position = gl_in[1].gl_Position;
+            EmitVertex();
+
+            EndPrimitive();
+        }
+        '''
 
     fragment_shader = '''
         uniform vec4 finalColor;
@@ -138,6 +159,7 @@ class Base_Shader_3D ():
 
         void main()
         {
+            //vec4 depthCol = vec4(vec3(gl_FragCoord.z), 1.0);
             fragColor = finalColor;
         }
     '''
