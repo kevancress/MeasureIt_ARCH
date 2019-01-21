@@ -20,21 +20,21 @@
 
 # ----------------------------------------------------------
 # support routines for render measures in final image
-# Author: Antonio Vazquez (antonioya)
+# Author: Antonio Vazquez (antonioya), Kevan Cress
 #
 # ----------------------------------------------------------
-# noinspection PyUnresolvedReferences
+
 import bpy
-# noinspection PyUnresolvedReferences
+
 import bgl
 import gpu
-# noinspection PyUnresolvedReferences
+
 import blf
 from os import path, remove
 from sys import exc_info
-# noinspection PyUnresolvedReferences
+
 import bpy_extras.image_utils as img_utils
-# noinspection PyUnresolvedReferences
+
 import bpy_extras.object_utils as object_utils
 # noinspection PyUnresolvedReferences
 from bpy_extras import view3d_utils
@@ -43,31 +43,208 @@ from .measureit_geometry import *
 from gpu_extras.presets import draw_texture_2d
 from bgl import *
 import numpy as np
+import bmesh
+
+from bpy.props import IntProperty
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
+# ------------------------------------------------------------------
+# Define panel class for render functions.
+# ------------------------------------------------------------------
+class MeasureitRenderPanel(Panel):
+    bl_idname = "measureit_render_panel"
+    bl_label = "MeasureIt Render"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = "WINDOW"
+    bl_context = "render"
+
+    # ------------------------------
+    # Draw UI
+    # ------------------------------
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        scene = context.scene
+
+        # Render settings
+        col = layout.column()
+
+
+        col.operator("measureit.rendersegmentbutton", icon='RENDER_STILL')
+        col.prop(scene, "measureit_render_type")
+
+        col.prop(scene, "measureit_render", text="Save render image")
+        col.prop(scene, "measureit_use_depth_clipping")
+        col.prop(scene, "measureit_rf", text="Border")
+
+        if scene.measureit_rf is True:
+            col.prop(scene, "measureit_rf_color", text="Color")
+            col.prop(scene, "measureit_rf_border", text="Space")
+            col.prop(scene, "measureit_rf_line", text="Width")
+
+# -------------------------------------------------------------
+# Defines button for render option
+#
+# -------------------------------------------------------------
+class RenderSegmentButton(Operator):
+    bl_idname = "measureit.rendersegmentbutton"
+    bl_label = "Render"
+    bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
+    bl_category = 'Measureit'
+    tag= IntProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    def execute(self, context):
+        scene = context.scene
+        msg = "New image created with measures. Open it in UV/image editor"
+        camera_msg = "Unable to render. No camera found"
+        # -----------------------------
+        # Check camera
+        # -----------------------------
+        if scene.camera is None:
+            self.report({'ERROR'}, camera_msg)
+            return {'FINISHED'}
+        # -----------------------------
+        # Use default render
+        # -----------------------------
+        if scene.measureit_render_type == "1":
+            # noinspection PyBroadException
+            try:
+                result = bpy.data.images['Render Result']
+                bpy.ops.render.render()
+            except:
+                bpy.ops.render.render()
+            print("MeasureIt: Using current render image on buffer")
+            if render_main(self, context) is True:
+                self.report({'INFO'}, msg)
+
+        # -----------------------------
+        # OpenGL image
+        # -----------------------------
+        if scene.measureit_render_type == "2":
+            self.set_camera_view()
+            self.set_only_render(True)
+
+            print("MeasureIt: Rendering opengl image")
+            bpy.ops.render.opengl()
+            if render_main(self, context) is True:
+                self.report({'INFO'}, msg)
+
+            self.set_only_render(False)
+
+        # -----------------------------
+        # OpenGL Animation
+        # -----------------------------
+        if scene.measureit_render_type == "3":
+            oldframe = scene.frame_current
+            self.set_camera_view()
+            self.set_only_render(True)
+            flag = False
+            # loop frames
+            for frm in range(scene.frame_start, scene.frame_end + 1):
+                scene.frame_set(frm)
+                print("MeasureIt: Rendering opengl frame %04d" % frm)
+                bpy.ops.render.opengl()
+                flag = render_main(self, context, True)
+                if flag is False:
+                    break
+
+            self.set_only_render(False)
+            scene.frame_current = oldframe
+            if flag is True:
+                self.report({'INFO'}, msg)
+
+        # -----------------------------
+        # Image
+        # -----------------------------
+        if scene.measureit_render_type == "4":
+            print("MeasureIt: Rendering image")
+            bpy.ops.render.render()
+            if render_main(self, context) is True:
+                self.report({'INFO'}, msg)
+
+        # -----------------------------
+        # Animation
+        # -----------------------------
+        if scene.measureit_render_type == "5":
+            oldframe = scene.frame_current
+            flag = False
+            # loop frames
+            for frm in range(scene.frame_start, scene.frame_end + 1):
+                scene.frame_set(frm)
+                print("MeasureIt: Rendering frame %04d" % frm)
+                bpy.ops.render.render()
+                flag = render_main(self, context, True)
+                if flag is False:
+                    break
+
+            scene.frame_current = oldframe
+            if flag is True:
+                self.report({'INFO'}, msg)
+
+        return {'FINISHED'}
+
+    # ---------------------
+    # Set cameraView
+    # ---------------------
+    # noinspection PyMethodMayBeStatic
+    def set_camera_view(self):
+        for area in bpy.context.screen.areas:
+            if area.type == 'VIEW_3D':
+                area.spaces[0].region_3d.view_perspective = 'CAMERA'
+
+    # -------------------------------------
+    # Set only render status
+    # -------------------------------------
+    # noinspection PyMethodMayBeStatic
+    def set_only_render(self, status):
+        screen = bpy.context.screen
+
+        v3d = False
+        s = None
+        # get spaceview_3d in current screen
+        for a in screen.areas:
+            if a.type == 'VIEW_3D':
+                for s in a.spaces:
+                    if s.type == 'VIEW_3D':
+                        v3d = s
+                        break
+
+        if v3d is not False:
+            s.show_only_render = status
+
+
 # -------------------------------------------------------------
 # Render image main entry point
 #
 # -------------------------------------------------------------
 def render_main(self, context, animation=False):
+
     # Save old info
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     settings = bpy.context.scene.render.image_settings
     depth = settings.color_depth
     settings.color_depth = '16'
-   # Get object list
+
     scene = context.scene
     clipdepth = context.scene.camera.data.clip_end
     path = scene.render.filepath
-    objlist = context.scene.objects
+    objlist = context.view_layer.objects
+
     # --------------------
     # Get resolution
     # --------------------
+
     render_scale = scene.render.resolution_percentage / 100
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
 
 
     # --------------------------------------
-    # Loop to draw all lines in Offsecreen
+    # Draw all lines in Offsecreen
     # --------------------------------------
     offscreen = gpu.types.GPUOffScreen(width, height)
     
@@ -80,17 +257,17 @@ def render_main(self, context, animation=False):
     view_matrix_3d = scene.camera.matrix_world.inverted()
     projection_matrix = scene.camera.calc_matrix_camera(context.depsgraph, x=width, y=height)
 
-
-    viewport_info = bgl.Buffer(bgl.GL_INT, 4)
-    bgl.glGetIntegerv(bgl.GL_VIEWPORT, viewport_info)
-
     with offscreen.bind():
+        #Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
         bgl.glClearDepth(clipdepth)
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
 
-        draw_scene(self,context, projection_matrix) 
+        #Draw Scene If Necessary
+        if scene.measureit_use_depth_clipping == True:
+            draw_scene(self,context, projection_matrix) 
         
-        bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+        #Clear Color Keep on depth info
+        #bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
         # -----------------------------
         # Loop to draw all objects
@@ -98,17 +275,23 @@ def render_main(self, context, animation=False):
         for myobj in objlist:
             if myobj.visible_get() is True:
                 if 'MeasureGenerator' in myobj:
+                    #Set 2D Projection Matrix
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix)
                     gpu.matrix.load_projection_matrix(Matrix.Identity(4))
+
+                    #Draw Segments
                     op = myobj.MeasureGenerator[0]
                     draw_segments(context, myobj, op, None, None)
 
                 if 'LineGenerator' in myobj:
+
+                    #Set 3D Projection Martix
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix_3d)
                     gpu.matrix.load_projection_matrix(projection_matrix)
 
+                    #Draw Line Groups
                     op = myobj.LineGenerator[0]
                     draw_line_group(context, myobj, op)
 
@@ -131,6 +314,7 @@ def render_main(self, context, animation=False):
                     draw_edges(context, myobj, None, None)
                 if scene.measureit_debug_faces is True or scene.measureit_debug_normals is True:
                     draw_faces(context, myobj, None, None)
+        
         # -----------------------------
         # Draw a rectangle frame
         # -----------------------------
@@ -179,39 +363,6 @@ def render_main(self, context, animation=False):
     # restore default value
     settings.color_depth = depth
 
-
-# --------------------------------------------------------------------
-# Get the final render image and return as image object
-#
-# return None if no render available
-# --------------------------------------------------------------------
-def get_render_image(outpath):
-    saved = False
-    # noinspection PyBroadException
-    try:
-        # noinspection PyBroadException
-        try:
-            result = bpy.data.images['Render Result']
-            if result.has_data is False:
-                # this save produce to fill data image
-                result.save_render(outpath)
-                saved = True
-        except:
-            print("No render image found")
-            return None
-
-        # Save and reload
-        if saved is False:
-            result.save_render(outpath)
-
-        img = img_utils.load_image(outpath)
-
-        return img
-    except:
-        print("Unexpected render image error")
-        return None
-
-
 # -------------------------------------
 # Save image to file
 # -------------------------------------
@@ -247,31 +398,34 @@ def save_image(self, filepath, myimage):
 #--------------------------------------
 
 def draw_scene(self,context,projection_matrix):
-  
+    
+    #Get List of Mesh Objects
     objs = []
-
     for obj in context.view_layer.objects:
             if obj.type == 'MESH':
                 objs.append(obj)
+
+    #get 3D view matrix
     view_matrix_3d = context.scene.camera.matrix_world.inverted()
 
-
+    #Get Vertices and Indices of Objects
     for obj in objs:
         mesh = obj.data
+        bm = bmesh.new()
+        bm.from_object(obj,context.depsgraph,deform=True)
         mesh.calc_loop_triangles()
-
         vertices = []
         indices = np.empty((len(mesh.loop_triangles), 3), 'i')
 
-        
-        for vert in mesh.vertices:
+        for vert in bm.verts:
+            #Multipy vertex Position by Object Transform Matrix
             vertices.append(obj.matrix_world @ vert.co)
-        print(vertices) 
+
+        #get Indices
         mesh.loop_triangles.foreach_get(
             "vertices", np.reshape(indices, len(mesh.loop_triangles) * 3))
         
       
-                   
         #---------------
         # Draw
         #---------------
@@ -286,7 +440,5 @@ def draw_scene(self,context,projection_matrix):
         gpu.matrix.load_matrix(view_matrix_3d)
         gpu.matrix.load_projection_matrix(projection_matrix)
 
-        shader.bind()
-        shader.uniform_float("color", (1, 0, 0, 1))
         batch.draw(shader)
         bgl.glDisable(bgl.GL_DEPTH_TEST)

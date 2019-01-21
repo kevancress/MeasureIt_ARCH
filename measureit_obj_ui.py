@@ -65,15 +65,14 @@ class MeasureitObjDimensionsPanel(Panel):
                 
                 mp = context.object.MeasureGenerator[0]
                 if mp.measureit_num > 0:
-                    box = layout.box()
-                    row = box.row(align = True)
+                    row = layout.row(align = True)
                     row.operator("measureit.expandallsegmentbutton", text="Expand all", icon="ADD")
                     row.operator("measureit.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
                     for idx in range(0, mp.measureit_num):
                         if mp.measureit_segments[idx].glfree is False:
-                            add_item(box, idx, mp.measureit_segments[idx])
+                            add_item(layout, idx, mp.measureit_segments[idx])
 
-                    row = box.row()
+                    row = layout.row()
                     row.operator("measureit.deleteallsegmentbutton", text="Delete all", icon="X")
                 # -----------------
                 # Sum loop segments
@@ -156,7 +155,6 @@ class MeasureitObjDimensionsPanel(Panel):
                         # delete all
                         row = box.row()
                         row.operator("measureit.deleteallsumbutton", text="Delete all", icon="X")
-
 
 # -----------------------------------------------------
 # Add segment options to the panel.
@@ -287,7 +285,6 @@ def add_item(box, idx, segment):
             if segment.glarc_a != '99' or segment.glarc_b != '99':
                 row.prop(segment, 'glarc_s', text="Size")
 
-
 class MeasureitObjLinesPanel(Panel):
     bl_idname = "obj_lines"
     bl_label = "Object Lines"
@@ -337,9 +334,6 @@ def add_line_item(box, idx, line):
 
     op = row.operator("measureit.deletelinebutton", text="", icon="X")
     op.tag = idx  # saves internal data
-
-
-
 
 class DeleteLineButton(Operator):
     bl_idname = "measureit.deletelinebutton"

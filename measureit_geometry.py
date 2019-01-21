@@ -34,13 +34,14 @@ import blf
 from blf import ROTATION
 from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
 from mathutils import Vector, Matrix
-from bmesh import from_edit_mesh
+import bmesh
 from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
 from sys import exc_info
 from .shaders import Base_Shader_2D, Base_Shader_3D
 shader = gpu.types.GPUShader( Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader, geocode=Base_Shader_2D.geometry_shader)
 lineShader = gpu.types.GPUShader( Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
+
 # -------------------------------------------------------------
 # Draw segments
 #
@@ -121,15 +122,15 @@ def draw_segments(context, myobj, op, region, rv3d):
                         obverts = get_mesh_vertices(myobj)
 
                         if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts):
-                            a_p1 = get_point(obverts[ms.glpointa].co, myobj)
-                            b_p1 = get_point(obverts[ms.glpointb].co, myobj)
+                            a_p1 = get_point(obverts[ms.glpointa], myobj)
+                            b_p1 = get_point(obverts[ms.glpointb], myobj)
                     # ----------------------
                     # Segment or Label
                     # ----------------------
                     if ms.gltype == 12 or ms.gltype == 13 or ms.gltype == 14:
                         obverts = get_mesh_vertices(myobj)
                         if ms.glpointa <= len(obverts):
-                            a_p1 = get_point(obverts[ms.glpointa].co, myobj)
+                            a_p1 = get_point(obverts[ms.glpointa], myobj)
                             if ms.gltype == 12:  # X
                                 b_p1 = get_point((0.0,
                                                   obverts[ms.glpointa].co[1],
@@ -148,14 +149,14 @@ def draw_segments(context, myobj, op, region, rv3d):
                     if ms.gltype == 3:
                         obverts = get_mesh_vertices(myobj)
                         linkverts = bpy.data.objects[ms.gllink].data.vertices
-                        a_p1 = get_point(obverts[ms.glpointa].co, myobj)
-                        b_p1 = get_point(linkverts[ms.glpointb].co, bpy.data.objects[ms.gllink])
+                        a_p1 = get_point(obverts[ms.glpointa], myobj)
+                        b_p1 = get_point(linkverts[ms.glpointb], bpy.data.objects[ms.gllink])
                     # ----------------------
                     # Vertex to Object (link)
                     # ----------------------
                     if ms.gltype == 4:
                         obverts = get_mesh_vertices(myobj)
-                        a_p1 = get_point(obverts[ms.glpointa].co, myobj)
+                        a_p1 = get_point(obverts[ms.glpointa], myobj)
                         b_p1 = get_location(bpy.data.objects[ms.gllink])
                     # ----------------------
                     # Object to Vertex (link)
@@ -163,7 +164,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                     if ms.gltype == 5:
                         linkverts = bpy.data.objects[ms.gllink].data.vertices
                         a_p1 = get_location(myobj)
-                        b_p1 = get_point(linkverts[ms.glpointb].co, bpy.data.objects[ms.gllink])
+                        b_p1 = get_point(linkverts[ms.glpointb], bpy.data.objects[ms.gllink])
                     # ----------------------
                     # Object to Object (link)
                     # ----------------------
@@ -176,7 +177,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                     if ms.gltype == 6:
                         obverts = get_mesh_vertices(myobj)
                         a_p1 = (0, 0, 0)
-                        b_p1 = get_point(obverts[ms.glpointa].co, myobj)
+                        b_p1 = get_point(obverts[ms.glpointa], myobj)
                     # ----------------------
                     # Object to origin
                     # ----------------------
@@ -189,9 +190,9 @@ def draw_segments(context, myobj, op, region, rv3d):
                     if ms.gltype == 9:
                         obverts = get_mesh_vertices(myobj)
                         if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts) and ms.glpointc <= len(obverts):
-                            an_p1 = get_point(obverts[ms.glpointa].co, myobj)
-                            an_p2 = get_point(obverts[ms.glpointb].co, myobj)
-                            an_p3 = get_point(obverts[ms.glpointc].co, myobj)
+                            an_p1 = get_point(obverts[ms.glpointa], myobj)
+                            an_p2 = get_point(obverts[ms.glpointb], myobj)
+                            an_p3 = get_point(obverts[ms.glpointc], myobj)
 
                             ang_1 = Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
                             ang_2 = Vector((an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
@@ -213,9 +214,9 @@ def draw_segments(context, myobj, op, region, rv3d):
                     if ms.gltype == 11:
                         obverts = get_mesh_vertices(myobj)
                         if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts) and ms.glpointc <= len(obverts):
-                            an_p1 = get_point(obverts[ms.glpointa].co, myobj)
-                            an_p2 = get_point(obverts[ms.glpointb].co, myobj)
-                            an_p3 = get_point(obverts[ms.glpointc].co, myobj)
+                            an_p1 = get_point(obverts[ms.glpointa], myobj)
+                            an_p2 = get_point(obverts[ms.glpointb], myobj)
+                            an_p3 = get_point(obverts[ms.glpointc], myobj)
                             # reference for maths: http://en.wikipedia.org/wiki/Circumscribed_circle
                             an_p12 = Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
                             an_p13 = Vector((an_p1[0] - an_p3[0], an_p1[1] - an_p3[1], an_p1[2] - an_p3[2]))
@@ -256,8 +257,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                         obverts = get_mesh_vertices(myobj)
 
                         if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts):
-                            a_p1 = get_point(obverts[ms.glpointa].co, myobj)
-                            b_p1 = get_point(obverts[ms.glpointb].co, myobj)
+                            a_p1 = get_point(obverts[ms.glpointa], myobj)
+                            b_p1 = get_point(obverts[ms.glpointb], myobj)
 
                     # Calculate distance
                     dist, distloc = distance(a_p1, b_p1, ms.glocx, ms.glocy, ms.glocz)
@@ -653,8 +654,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                             a = face.measureit_index[0].glidx
                             b = face.measureit_index[2].glidx
 
-                            p1 = get_point(obverts[a].co, myobj)
-                            p2 = get_point(obverts[b].co, myobj)
+                            p1 = get_point(obverts[a], myobj)
+                            p2 = get_point(obverts[b], myobj)
 
                             d1, dn = distance(p1, p2)
                             midpoint3d = interpolate3d(p1, p2, fabs(d1 / 2))
@@ -692,7 +693,8 @@ def draw_segments(context, myobj, op, region, rv3d):
 
 
 def draw_line_group(context, myobj, lineGen):
-    obverts = get_mesh_vertices(myobj) 
+    obverts = get_mesh_vertices(myobj)
+
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL)   
     
@@ -708,8 +710,8 @@ def draw_line_group(context, myobj, lineGen):
         for x in range(0,lineGroup.numLines):
             sLine = lineGroup.singleLine[x]
             if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
-                a_p1 = get_point(obverts[sLine.pointA].co, myobj)
-                b_p1 = get_point(obverts[sLine.pointB].co, myobj)
+                a_p1 = get_point(obverts[sLine.pointA], myobj)
+                b_p1 = get_point(obverts[sLine.pointB], myobj)
 
             if  a_p1 is not None and b_p1 is not None:
                 coords =[a_p1,b_p1]
@@ -730,7 +732,7 @@ def get_area_and_paint(myvertices, myobj, obverts, region, rv3d):
         if myobj.mode != 'EDIT':
             tris = mesh_utils.ngon_tessellate(mymesh, myvertices)
         else:
-            bm = from_edit_mesh(myobj.data)
+            bm = bmesh.from_edit_mesh(myobj.data)
             myv = []
             for v in bm.verts:
                 myv.extend([v.co])
@@ -738,9 +740,9 @@ def get_area_and_paint(myvertices, myobj, obverts, region, rv3d):
 
         for t in tris:
             v1, v2, v3 = t
-            p1 = get_point(obverts[myvertices[v1]].co, myobj)
-            p2 = get_point(obverts[myvertices[v2]].co, myobj)
-            p3 = get_point(obverts[myvertices[v3]].co, myobj)
+            p1 = get_point(obverts[myvertices[v1]], myobj)
+            p2 = get_point(obverts[myvertices[v2]], myobj)
+            p3 = get_point(obverts[myvertices[v3]], myobj)
 
             screen_point_p1 = get_2d_point(region, rv3d, p1)
             screen_point_p2 = get_2d_point(region, rv3d, p2)
@@ -753,9 +755,9 @@ def get_area_and_paint(myvertices, myobj, obverts, region, rv3d):
             totarea += area
     elif len(myvertices) == 3:
         v1, v2, v3 = myvertices
-        p1 = get_point(obverts[v1].co, myobj)
-        p2 = get_point(obverts[v2].co, myobj)
-        p3 = get_point(obverts[v3].co, myobj)
+        p1 = get_point(obverts[v1], myobj)
+        p2 = get_point(obverts[v2], myobj)
+        p3 = get_point(obverts[v3], myobj)
 
         screen_point_p1 = get_2d_point(region, rv3d, p1)
         screen_point_p2 = get_2d_point(region, rv3d, p2)
@@ -821,9 +823,9 @@ def get_group_sum(myobj, tag):
                 ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
                     and ms.glfree is False and g == tx[int(ms.gltot)]:  # only segments
                 if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts):
-                    p1 = get_point(obverts[ms.glpointa].co, myobj)
+                    p1 = get_point(obverts[ms.glpointa], myobj)
                     if ms.gltype == 1:
-                        p2 = get_point(obverts[ms.glpointb].co, myobj)
+                        p2 = get_point(obverts[ms.glpointb], myobj)
                     elif ms.gltype == 12:
                         p2 = get_point((0.0,
                                         obverts[ms.glpointa].co[1],
@@ -1135,7 +1137,7 @@ def draw_vertices(context, myobj, region, rv3d):
                 continue
         # noinspection PyBroadException
         # try:
-        a_p1 = get_point(v.co, myobj)
+        a_p1 = get_point(v, myobj)
         # colour
 
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
@@ -1146,7 +1148,7 @@ def draw_vertices(context, myobj, region, rv3d):
         if scene.measureit_debug_vertices is True:
             txt += str(v.index)
         if scene.measureit_debug_vert_loc is True:
-            txt += format_point(co_mult(v.co), precision)
+            txt += format_point(co_mult(v), precision)
         draw_text(myobj, txtpoint2d, txt, rgb, fsize)
         # except:
         #     print("Unexpected error:" + str(exc_info()))
@@ -1179,11 +1181,11 @@ def draw_edges(context, myobj, region, rv3d):
         bm = from_edit_mesh(myobj.data)
         obedges = bm.edges
         obverts = None  # dummy value to avoid duplicating for loop
-        midf = lambda e, v: e.verts[0].co.lerp(e.verts[1].co, 0.5)
+        midf = lambda e, v: e.verts[0].co.lerp(e.verts[1], 0.5)
     else:
         obedges = myobj.data.edges
         obverts = myobj.data.vertices
-        midf = lambda e, v: v[e.vertices[0]].co.lerp(v[e.vertices[1]].co, 0.5)
+        midf = lambda e, v: v[e.vertices[0]].lerp(v[e.vertices[1]], 0.5)
 
     for e in obedges:
         # Display only selected
@@ -1271,9 +1273,9 @@ def draw_faces(context, myobj, region, rv3d):
                         i2 = f.vertices[1]
                         i3 = f.vertices[2]
 
-                    a_p1 = get_point(obverts[i1].co, myobj)
-                    a_p2 = get_point(obverts[i2].co, myobj)
-                    a_p3 = get_point(obverts[i3].co, myobj)
+                    a_p1 = get_point(obverts[i1], myobj)
+                    a_p2 = get_point(obverts[i2], myobj)
+                    a_p3 = get_point(obverts[i3], myobj)
                     # converting to screen coordinates
                     a2d = get_2d_point(region, rv3d, a_p1)
                     b2d = get_2d_point(region, rv3d, a_p2)
@@ -1374,11 +1376,18 @@ def get_location(mainobject):
 # --------------------------------------------------------------------
 def get_mesh_vertices(myobj):
     try:
+        obverts = []
         if myobj.mode == 'EDIT':
-            bm = from_edit_mesh(myobj.data)
-            obverts = bm.verts
+            bm = bmesh.from_edit_mesh(myobj.data)
+            verts = bm.verts
+            for vert in verts:
+                obverts.append(vert.co)
         else:
-            obverts = myobj.data.vertices
+            bm = bmesh.new()
+            bm.from_object(myobj,bpy.context.depsgraph,deform=True)
+            verts = bm.verts
+            for vert in verts:
+                obverts.append(vert.co)
 
         return obverts
     except AttributeError:

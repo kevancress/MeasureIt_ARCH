@@ -430,82 +430,6 @@ class MeasureitShowHidePanel(Panel):
         row.prop(scene, "measureit_gl_ghost", text="", icon='GHOST_ENABLED')
 
 
-
-# ------------------------------------------------------------------
-# Define UI class
-# Measureit
-# ------------------------------------------------------------------
-class MeasureitEditPanel(Panel):
-    bl_idname = "measureit.editpanel"
-    bl_label = "Dimension Settings"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'MeasureIt'
-
-    # -----------------------------------------------------
-    # Draw (create UI interface)
-    # -----------------------------------------------------
-    # noinspection PyUnusedLocal
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_decorate = False
-        layout.use_property_split = True
-        scene = context.scene
-
-        box = layout.box()
-        row = box.row()
-
-        col = box.column(align=True)
-        col.prop(scene, "measureit_default_style", text="Active Style")
-
-        col = box.column(align = True)
-        col.prop(scene, 'measureit_gl_precision', text="Precision")
-        col.prop(scene, 'measureit_units')
-
-        col = box.column(align=True)
-        col.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
-        col.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
-        #col.prop(scene, 'measureit_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
-        
-        # Scale factor
-        col = box.column(align = True)
-        col.use_property_split= True
-        col.alignment = 'RIGHT'
-        col.label(text = 'Override:')
-        col.prop(scene, 'measureit_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
-        col.prop(scene, 'measureit_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
-
-        if scene.measureit_scale is True:
-            scaleBox = box.box()
-            scaleBox.label(text='Scale Override')
-            col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_scale_color', text="Color")
-            col.prop(scene, 'measureit_scale_factor', text="Factor")
-
-            col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_gl_scaletxt', text="Text")
-            col.prop(scene, 'measureit_scale_font', text="Font Size")
-            col.prop(scene, 'measureit_scale_precision', text="Precision")
-            
-            col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_scale_pos_x')
-            col.prop(scene, 'measureit_scale_pos_y')
-
-        # Override
-        
-        if scene.measureit_ovr is True:
-            styleBox = box.box()
-            styleBox.label(text='Style Override')
-            col = styleBox.column(align = True)
-            col.prop(scene, 'measureit_ovr_color', text="Colour")
-            col.prop(scene, 'measureit_ovr_width', text="Width")
-            col = styleBox.column(align = True)
-            col.prop(scene, 'measureit_ovr_font', text="Font Size")
-            col.prop(scene, 'measureit_ovr_font_align', text="Alignment")
-            if scene.measureit_ovr_font_align == 'L':
-                col.prop(scene, 'measureit_ovr_font_rotation', text="Rotation")
-        
-
 # ------------------------------------------------------------------
 # Define panel class for main functions.
 # ------------------------------------------------------------------
@@ -514,7 +438,7 @@ class MeasureitMainPanel(Panel):
     bl_label = "Add Dimension"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureIt'
 
     # ------------------------------
     # Draw UI
@@ -635,122 +559,6 @@ class MeasureitMainPanel(Panel):
 # ------------------------------------------------------------------
 # Define panel class for conf functions.
 # ------------------------------------------------------------------
-class MeasureitConfPanel(Panel):
-    bl_idname = "measureit_conf_panel"
-    bl_label = "Dimension Styles"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = "UI"
-    bl_category = 'Measureit'
-    bl_options = {'DEFAULT_CLOSED'}
-
-    # ------------------------------
-    # Draw UI
-    # ------------------------------
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-        scene = context.scene
-        
-        #-------------------
-        # Add Styles to Panel
-        #--------------------
-        box = layout.box()
-        col = box.column()
-        col.operator("measureit.adddimstylebutton", text="New Dimension Style", icon="ADD")
-        if 'StyleGenerator' in context.scene:
-            styleGen = context.scene.StyleGenerator[0]
-
-            if styleGen.style_num > 0:
-                for idx in range(0, styleGen.style_num):
-                    add_style_item(box, idx, styleGen.measureit_styles[idx])
-       
-        col = box.column()
-        col.operator("measureit.deleteallstylesbutton", text="Delete All Styles", icon="X")
-
-def add_style_item(box, idx, style):
-    scene = bpy.context.scene
-    if style.gladvance is True:
-        box = box.box()
-    row = box.row(align=True)
-    if style.glview is True:
-        icon = "VISIBLE_IPO_ON"
-    else:
-        icon = "VISIBLE_IPO_OFF"
-    
-    row.prop(style, 'glview', text="", toggle=True, icon=icon)
-    row.prop(style, 'gladvance', text="", toggle=True, icon="PREFERENCES")
-
-    split = row.split(factor=0.25, align=True)
-    split.prop(style, 'glcolor', text="")
-    split.prop(style, 'styleName', text="")
-    op = row.operator("measureit.deletestylebutton", text="", icon="X")
-    op.tag = idx  # saves internal data
-
-    if style.gladvance is True:
-        col = box.column()
-        col.prop(style, 'gltxt', text="Text")
-        col.prop(style, 'gldefault', text="Automatic position")
-
-        col = box.column(align=True)
-
-        col.prop(style, 'glspace', text="Distance")
-        col.prop(style, 'glwidth', text="Lineweight")
-        if style.gldefault is False:
-            col.prop(style, 'glnormalx', text="X")
-            col.prop(style, 'glnormaly', text="Y")
-            col.prop(style, 'glnormalz', text="Z")
-    
-        col = box.column(align=True)
-
-        col.prop(style, 'glfont_size', text="Font Size")
-        col.prop(style, 'glfont_rotat', text="Rotate")
-        col.prop(style, 'glfontx', text="X")
-        col.prop(style, 'glfonty', text="Y")
-        col.prop(style, 'glfont_align', text="Align")
-        
-        # Arrows
-        
-        col = box.column(align=True)
-
-        col.prop(style, 'glarrow_a', text="Arrow Start ")
-        col.prop(style, 'glarrow_b', text="End ")
-        if style.glarrow_a != '99' or style.glarrow_b != '99':
-            col.prop(style, 'glarrow_s', text="Size")
-
-# ------------------------------------------------------------------
-# Define panel class for render functions.
-# ------------------------------------------------------------------
-class MeasureitRenderPanel(Panel):
-    bl_idname = "measureit_render_panel"
-    bl_label = "MeasureIt Render"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = "UI"
-    bl_category = 'Measureit'
-    bl_options = {'DEFAULT_CLOSED'}
-
-    # ------------------------------
-    # Draw UI
-    # ------------------------------
-    def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-
-        # Render settings
-        box = layout.box()
-        row = box.row()
-        row.prop(scene, "measureit_render_type")
-        row = box.row()
-        row.operator("measureit.rendersegmentbutton", icon='SCRIPT')
-        row = box.row()
-        row.prop(scene, "measureit_render", text="Save render image")
-        row = box.row()
-        row.prop(scene, "measureit_rf", text="Frame")
-        if scene.measureit_rf is True:
-            row.prop(scene, "measureit_rf_color", text="Color")
-            row = box.row()
-            row.prop(scene, "measureit_rf_border", text="Space")
-            row.prop(scene, "measureit_rf_line", text="Width")
 
 
 # -------------------------------------------------------------
@@ -1645,8 +1453,6 @@ class ExpandAllSegmentButton(Operator):
 
         return {'FINISHED'}
     
-
-
 # -------------------------------------------------------------
 # Defines button that collapses all measure segments
 #
@@ -1671,142 +1477,6 @@ class CollapseAllSegmentButton(Operator):
 
         return {'FINISHED'}
     
-
-
-# -------------------------------------------------------------
-# Defines button for render option
-#
-# -------------------------------------------------------------
-class RenderSegmentButton(Operator):
-    bl_idname = "measureit.rendersegmentbutton"
-    bl_label = "Render"
-    bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
-    bl_category = 'Measureit'
-    tag= IntProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def execute(self, context):
-        scene = context.scene
-        msg = "New image created with measures. Open it in UV/image editor"
-        camera_msg = "Unable to render. No camera found"
-        # -----------------------------
-        # Check camera
-        # -----------------------------
-        if scene.camera is None:
-            self.report({'ERROR'}, camera_msg)
-            return {'FINISHED'}
-        # -----------------------------
-        # Use default render
-        # -----------------------------
-        if scene.measureit_render_type == "1":
-            # noinspection PyBroadException
-            try:
-                result = bpy.data.images['Render Result']
-                bpy.ops.render.render()
-            except:
-                bpy.ops.render.render()
-            print("MeasureIt: Using current render image on buffer")
-            if render_main(self, context) is True:
-                self.report({'INFO'}, msg)
-
-        # -----------------------------
-        # OpenGL image
-        # -----------------------------
-        if scene.measureit_render_type == "2":
-            self.set_camera_view()
-            self.set_only_render(True)
-
-            print("MeasureIt: Rendering opengl image")
-            bpy.ops.render.opengl()
-            if render_main(self, context) is True:
-                self.report({'INFO'}, msg)
-
-            self.set_only_render(False)
-
-        # -----------------------------
-        # OpenGL Animation
-        # -----------------------------
-        if scene.measureit_render_type == "3":
-            oldframe = scene.frame_current
-            self.set_camera_view()
-            self.set_only_render(True)
-            flag = False
-            # loop frames
-            for frm in range(scene.frame_start, scene.frame_end + 1):
-                scene.frame_set(frm)
-                print("MeasureIt: Rendering opengl frame %04d" % frm)
-                bpy.ops.render.opengl()
-                flag = render_main(self, context, True)
-                if flag is False:
-                    break
-
-            self.set_only_render(False)
-            scene.frame_current = oldframe
-            if flag is True:
-                self.report({'INFO'}, msg)
-
-        # -----------------------------
-        # Image
-        # -----------------------------
-        if scene.measureit_render_type == "4":
-            print("MeasureIt: Rendering image")
-            bpy.ops.render.render()
-            if render_main(self, context) is True:
-                self.report({'INFO'}, msg)
-
-        # -----------------------------
-        # Animation
-        # -----------------------------
-        if scene.measureit_render_type == "5":
-            oldframe = scene.frame_current
-            flag = False
-            # loop frames
-            for frm in range(scene.frame_start, scene.frame_end + 1):
-                scene.frame_set(frm)
-                print("MeasureIt: Rendering frame %04d" % frm)
-                bpy.ops.render.render()
-                flag = render_main(self, context, True)
-                if flag is False:
-                    break
-
-            scene.frame_current = oldframe
-            if flag is True:
-                self.report({'INFO'}, msg)
-
-        return {'FINISHED'}
-
-    # ---------------------
-    # Set cameraView
-    # ---------------------
-    # noinspection PyMethodMayBeStatic
-    def set_camera_view(self):
-        for area in bpy.context.screen.areas:
-            if area.type == 'VIEW_3D':
-                area.spaces[0].region_3d.view_perspective = 'CAMERA'
-
-    # -------------------------------------
-    # Set only render status
-    # -------------------------------------
-    # noinspection PyMethodMayBeStatic
-    def set_only_render(self, status):
-        screen = bpy.context.screen
-
-        v3d = False
-        s = None
-        # get spaceview_3d in current screen
-        for a in screen.areas:
-            if a.type == 'VIEW_3D':
-                for s in a.spaces:
-                    if s.type == 'VIEW_3D':
-                        v3d = s
-                        break
-
-        if v3d is not False:
-            s.show_only_render = status
-
 
 # -------------------------------------------------------------
 # Defines a new note
@@ -1934,7 +1604,6 @@ class RunHintDisplayButton(Operator):
         return {'CANCELLED'}
 
 
-
 class AddLineButton(Operator):
     bl_idname = "measureit.addlinebutton"
     bl_label = "Add"
@@ -2003,118 +1672,6 @@ class AddLineButton(Operator):
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
-
-
-class AddDimStyleButton(Operator):
-    bl_idname = "measureit.adddimstylebutton"
-    bl_label = "Add"
-    bl_description = "Create A New Dimension Style"
-    bl_category = 'Measureit'
-
-    def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            # Add properties
-            scene = context.scene
-
-            if 'StyleGenerator' not in scene:
-                scene.StyleGenerator.add()
-
-            styleGen = scene.StyleGenerator[0]
-            styleGen.measureit_styles.add()
-
-            newStyle = styleGen.measureit_styles[styleGen.style_num]
-
-            #Style Properties
-            newStyle.styleName = 'Style ' + str(styleGen.style_num + 1)
-            newStyle.glcolor = scene.measureit_default_color
-            
-            newStyle.glwidth = scene.measureit_gl_width
-            newStyle.glarrow_a = scene.measureit_glarrow_a
-            newStyle.glarrow_b = scene.measureit_glarrow_b
-            newStyle.glarrow_s = scene.measureit_glarrow_s
-            # dist
-            newStyle.glspace = scene.measureit_hint_space
-            # text
-            newStyle.gltxt = scene.measureit_gl_txt
-            newStyle.glfont_size = scene.measureit_font_size
-            newStyle.glfont_align = scene.measureit_font_align
-            newStyle.glfont_rotat = scene.measureit_font_rotation
-            
-
-            styleGen.style_num += 1
-            context.area.tag_redraw()
-            return {'FINISHED'}
-
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
-        return {'CANCELLED'}
-
-
-class DeleteStyleButton(Operator):
-    bl_idname = "measureit.deletestylebutton"
-    bl_label = "Delete Style"
-    bl_description = "Delete a Style"
-    bl_category = 'Measureit'
-    tag= IntProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            # Add properties
-            mp = context.scene.StyleGenerator[0]
-            ms = mp.measureit_styles[self.tag]
-            ms.glfree = True
-            # Delete element
-            mp.measureit_styles.remove(self.tag)
-            mp.style_num -= 1
-            # redraw
-            context.area.tag_redraw()
-            return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
-        return {'CANCELLED'}
-
-
-
-class DeleteAllStylesButton(Operator):
-    bl_idname = "measureit.deleteallstylesbutton"
-    bl_label = "Delete All Styles?"
-    bl_description = "Delete all Styles (it cannot be undone)"
-    bl_category = 'Measureit'
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            # Add properties
-            scene =bpy.context.scene
-            mainobject = context.object
-            styleGen = scene.StyleGenerator[0]
-
-            while len(styleGen.measureit_styles) > 0:
-                styleGen.measureit_styles.remove(0)
-
-            # reset size
-            styleGen.style_num = len(styleGen.measureit_styles)
-            # redraw
-            context.area.tag_redraw()
-            return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
-        return {'CANCELLED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
 
 
 # -------------------------------------------------------------
@@ -2202,7 +1759,6 @@ def draw_main(context):
     #bgl.glLineWidth(1)
     #bgl.glDisable(bgl.GL_BLEND)
     #bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
-
 
 # -------------------------------------------------------------
 # Handler for drawing OpenGl
