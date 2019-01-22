@@ -354,12 +354,16 @@ class LineProperties(PropertyGroup):
                         min = 0)
     
     lineColor: FloatVectorProperty(name="lineColor",
-                        description="Color for the measure",
-                        default=(0.173, 0.545, 1.0, 1.0),
-                        min=0.1,
+                        description="Color for Lines",
+                        default=(0.1, 0.1, 0.1, 1.0),
+                        min=0.0,
                         max=1,
                         subtype='COLOR',
                         size=4) 
+
+    lineWeight: IntProperty(name="lineWeight",
+                        description="Lineweight",
+                        min = 0)
 
     lineVis: BoolProperty(name="lineVis",
                         description="Line show/hide",
@@ -371,6 +375,33 @@ class LineProperties(PropertyGroup):
 
     numLines: IntProperty(name="numLines",
                         description="Number Of Single Lines")
+
+    lineDrawHidden: BoolProperty(name= "lineDrawHidden",
+                        description= "Draw Hidden Lines",
+                        default= False)
+    
+    lineSettings: BoolProperty(name= "lineSettings",
+                        description= "Show Line Settings",
+                        default=False)
+
+    lineHiddenColor: FloatVectorProperty(name="lineHiddenColor",
+                        description="Color for Hidden Lines",
+                        default=(0.2, 0.2, 0.2, 1.0),
+                        min=0.0,
+                        max=1,
+                        subtype='COLOR',
+                        size=4) 
+
+    lineHiddenWeight: IntProperty(name="lineHiddenWeight",
+                        description="Hidden Line Lineweight",
+                        default= 1,
+                        min = 0)
+    
+    lineHiddenDashScale: IntProperty(name="lineHiddenDashScale",
+                        description="Hidden Line Dash Scale",
+                        default= 10,
+                        min = 0)
+
     #collection of indicies                        
     singleLine: CollectionProperty(type=SingleLineProperties)
 

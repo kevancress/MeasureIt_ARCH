@@ -159,11 +159,15 @@ class MeasureitObjDimensionsPanel(Panel):
 # -----------------------------------------------------
 # Add segment options to the panel.
 # -----------------------------------------------------
-def add_item(box, idx, segment):
+def add_item(layout, idx, segment):
     scene = bpy.context.scene
     if segment.gladvance is True:
-        box = box.box()
-    row = box.row(align=True)
+        box = layout.box()
+        row = box.row(align=True)
+    else:
+        row = layout.row(align=True)
+
+
     if segment.glview is True:
         icon = "VISIBLE_IPO_ON"
     else:
@@ -306,31 +310,48 @@ class MeasureitObjLinesPanel(Panel):
                 
                 mp = context.object.LineGenerator[0]
                 if mp.line_num > 0:
-                    box = layout.box()
-                    row = box.row(align = True)
+                    row = layout.row(align = True)
                     #row.operator("measureit.expandallsegmentbutton", text="Expand all", icon="ADD")
                     #row.operator("measureit.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
                     for idx in range(0, mp.line_num):
-                        add_line_item(box, idx, mp.line_groups[idx])
+                        add_line_item(layout, idx, mp.line_groups[idx])
 
-                    row = box.row()
+                    row = layout.row()
                     #row.operator("measureit.deleteallsegmentbutton", text="Delete all", icon="X")
     
 # -----------------------------------------------------
 # Add line options to the panel.
 # -----------------------------------------------------
-def add_line_item(box, idx, line):
+def add_line_item(layout, idx, line):
     scene = bpy.context.scene
+    if line.lineSettings is True:
+        box = layout.box()
+        row = box.row(align=True)
+    else:
+        row = layout.row(align=True)
 
-    row = box.row(align=True)
+
     if line.lineVis is True:
         icon = "VISIBLE_IPO_ON"
     else:
         icon = "VISIBLE_IPO_OFF"
 
     row.prop(line, 'lineVis', text="", toggle=True, icon=icon)
+    row.prop(line, 'lineSettings', text="",toggle=True, icon="PREFERENCES")
+    row.prop(line, 'lineDrawHidden', text="", toggle=True, icon='CUBE')
     row.prop(line, 'lineColor', text="" )
-    row.prop(line, 'lineStyle', text="")
+    row.prop(line, 'lineWeight', text="")
+    
+    
+    if line.lineSettings is True:
+        col = box.column()
+        col.prop(line, 'lineWeight', text="Lineweight" )
+        if line.lineDrawHidden is True:
+            col = box.column()
+            col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
+            col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
+            col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+        
 
     op = row.operator("measureit.deletelinebutton", text="", icon="X")
     op.tag = idx  # saves internal data

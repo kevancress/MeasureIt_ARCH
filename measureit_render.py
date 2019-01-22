@@ -267,7 +267,7 @@ def render_main(self, context, animation=False):
             draw_scene(self,context, projection_matrix) 
         
         #Clear Color Keep on depth info
-        #bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+        bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
         # -----------------------------
         # Loop to draw all objects

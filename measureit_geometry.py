@@ -38,9 +38,12 @@ import bmesh
 from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
 from sys import exc_info
-from .shaders import Base_Shader_2D, Base_Shader_3D
-shader = gpu.types.GPUShader( Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader, geocode=Base_Shader_2D.geometry_shader)
+from .shaders import *
+
+shader = gpu.types.GPUShader( Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader)
 lineShader = gpu.types.GPUShader( Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
+dashedLineShader = gpu.types.GPUShader( Dashed_Shader_3D.vertex_shader, Dashed_Shader_3D.fragment_shader)
+
 
 # -------------------------------------------------------------
 # Draw segments
@@ -359,11 +362,11 @@ def draw_segments(context, myobj, op, region, rv3d):
                     render = scene.render
                     
                     if ovr is False:
-                        #bgl .glLineWidth(ms.glwidth)
-                        shader.uniform_float("thickness", source.glwidth)
+                        bgl.glLineWidth(source.glwidth)
+                        #shader.uniform_float("thickness", source.glwidth)
                     else:
-                        #bgl .glLineWidth(ovrline)
-                        shader.uniform_float("thickness", ovrline)
+                        bgl.glLineWidth(ovrline)
+                        #shader.uniform_float("thickness", ovrline)
                    
                     # ------------------------------------
                     # Text (distance)
@@ -694,31 +697,57 @@ def draw_segments(context, myobj, op, region, rv3d):
 
 def draw_line_group(context, myobj, lineGen):
     obverts = get_mesh_vertices(myobj)
+    bgl.glEnable(bgl.GL_MULTISAMPLE)
+    bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    bgl.glEnable(bgl.GL_BLEND)
 
     bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthFunc(bgl.GL_LEQUAL)   
+  
     
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
         rgb = lineGroup.lineColor
-        thickness = lineGroup.lineStyle
-        bgl.glLineWidth(lineGroup.lineStyle)  
+        drawHidden = lineGroup.lineDrawHidden
+        #thickness = lineGroup.lineStyle
+          
 
         lineShader.bind()
-        shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        shader.uniform_float("thickness", thickness)
+        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        #shader.uniform_float("thickness", thickness)
         for x in range(0,lineGroup.numLines):
             sLine = lineGroup.singleLine[x]
+            
             if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
                 a_p1 = get_point(obverts[sLine.pointA], myobj)
                 b_p1 = get_point(obverts[sLine.pointB], myobj)
 
             if  a_p1 is not None and b_p1 is not None:
+                bgl.glDepthFunc(bgl.GL_LEQUAL) 
+                bgl.glLineWidth(lineGroup.lineWeight)
+
                 coords =[a_p1,b_p1]
                 batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
                 batch3d.program_set(lineShader)
-                batch3d.draw()   
+                batch3d.draw()
+                gpu.shader.unbind()
 
+                #Draw Hidden Lines
+                if drawHidden == True:
+                    bgl.glDepthFunc(bgl.GL_GREATER)
+                    bgl.glLineWidth(lineGroup.lineHiddenWeight)
+                    rgb = lineGroup.lineHiddenColor
+                    dashedLineShader.bind()
+                    dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
+                    dashedLineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                    
+
+                    arclengths = [0.0,(Vector(a_p1)-Vector(b_p1)).length]
+                    coords = [a_p1,b_p1]
+                    #batch3d.draw()
+                    batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
+                    batchHidden.program_set(dashedLineShader)
+                    batchHidden.draw()
+                    gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
 # ------------------------------------------
 # Get polygon area and paint area
@@ -931,7 +960,9 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
 def draw_line(v1, v2):
     # noinspection PyBroadException
     if v1 is not None and v2 is not None:
-
+        bgl.glEnable(bgl.GL_MULTISAMPLE)
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glEnable(bgl.GL_BLEND)
 
 
 
@@ -1178,7 +1209,7 @@ def draw_edges(context, myobj, region, rv3d):
     # edge vert coordinate is not stored in same places as in obj mode
     # --------------------
     if myobj.mode == 'EDIT':
-        bm = from_edit_mesh(myobj.data)
+        bm = bmesh.from_edit_mesh(myobj.data)
         obedges = bm.edges
         obverts = None  # dummy value to avoid duplicating for loop
         midf = lambda e, v: e.verts[0].co.lerp(e.verts[1], 0.5)
@@ -1258,7 +1289,8 @@ def draw_faces(context, myobj, region, rv3d):
             # Draw Normal
             if scene.measureit_debug_normals is True:
                 shader.bind()
-                shader.uniform_float("thickness", th)
+                #shader.uniform_float("thickness", th)
+                bgl.glLineWidth(th)
                 shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 #bgl .glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
                 draw_arrow(txtpoint2d, point2, 10, "99", "1")

@@ -41,6 +41,7 @@ class Base_Shader_2D ():
     fragment_shader = '''
 
         uniform vec4 color;
+        in vec4 fColor;
         out vec4 fragColor;
 
 
@@ -83,22 +84,19 @@ class Base_Shader_2D ():
 
             vec4 tanFac = vec4(offset*lineNrml[0], offset*lineNrml[1],0.0,0.0);
 
-            gl_Position = gl_in[0].gl_Position;
-            EmitVertex();
-
-            gl_Position = gl_in[0].gl_Position+normFac;
-            EmitVertex();
-
             gl_Position = gl_in[0].gl_Position-tanFac;
             EmitVertex();
-            
+
             gl_Position = gl_in[0].gl_Position-normFac;
             EmitVertex();
-
-            gl_Position = gl_in[1].gl_Position;
+            
+            gl_Position = gl_in[1].gl_Position+tanFac;
             EmitVertex();
 
             gl_Position = gl_in[1].gl_Position-normFac;
+            EmitVertex();
+
+            gl_Position = gl_in[0].gl_Position-normFac;
             EmitVertex();
 
             gl_Position = gl_in[1].gl_Position+tanFac;
@@ -107,10 +105,13 @@ class Base_Shader_2D ():
             gl_Position = gl_in[1].gl_Position+normFac;
             EmitVertex();
 
-            gl_Position = gl_in[0].gl_Position;
+            gl_Position = gl_in[0].gl_Position+normFac;
             EmitVertex();
 
-            gl_Position = gl_in[0].gl_Position+normFac;
+            gl_Position = gl_in[0].gl_Position-tanFac;
+            EmitVertex();
+
+            gl_Position = gl_in[1].gl_Position+tanFac;
             EmitVertex();
             
             EndPrimitive();
@@ -156,10 +157,41 @@ class Base_Shader_3D ():
     fragment_shader = '''
         uniform vec4 finalColor;
         out vec4 fragColor;
+        in vec4 fColor;
 
         void main()
         {
             //vec4 depthCol = vec4(vec3(gl_FragCoord.z), 1.0);
             fragColor = finalColor;
+        }
+    '''
+
+class Dashed_Shader_3D ():
+
+    vertex_shader = '''
+    uniform mat4 ModelViewProjectionMatrix;
+
+    in vec3 pos;
+    in float arcLength;    
+    
+    out float v_ArcLength;
+
+    void main()
+    {
+        v_ArcLength = arcLength;
+        gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0f);
+    }
+    '''
+
+    fragment_shader = '''
+        uniform float u_Scale;
+        uniform vec4 finalColor;
+        
+        in float v_ArcLength;
+        
+        void main()
+        {
+            if (step(sin(v_ArcLength * u_Scale), 0.5) == 1) discard;
+            gl_FragColor = finalColor;
         }
     '''
