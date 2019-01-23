@@ -123,14 +123,22 @@ class Base_Shader_3D ():
     vertex_shader = '''
 
         uniform mat4 ModelViewProjectionMatrix;
-
+        //uniform bool isOtho;
         in vec3 pos;
+        
+
+        vec4 offset = vec4(0.0, 0.0, -0.001, 0.0);
+
+        //if ( isOrtho ) {
+        //    offset = vec4(0.0, 0.0, -0.0001, 0.0);
+        //}
+
 
         void main()
         {
             vec3 newPos = pos;
             vec4 project = ModelViewProjectionMatrix * vec4(newPos, 1.0);
-            gl_Position = project;
+            gl_Position = project + offset;
         }
 
         '''
@@ -195,3 +203,28 @@ class Dashed_Shader_3D ():
             gl_FragColor = finalColor;
         }
     '''
+
+class Silhouette_Shader_3D ():
+
+    vertex_shader = '''
+
+        uniform mat4 ModelViewProjectionMatrix;
+        //uniform bool isOtho;
+
+        in vec3 pos;
+
+        vec4 offset = vec4(0.0, 0.0, 0.003, 0.0);
+
+        //if isOrtho {
+        //    offset = vec4(0.0, 0.0, 0.00001, 0.0);
+        //}
+
+
+        void main()
+        {
+            vec3 newPos = pos;
+            vec4 project = ModelViewProjectionMatrix * vec4(newPos, 1.0);
+            gl_Position = project + offset;
+        }
+
+        '''

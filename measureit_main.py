@@ -336,11 +336,10 @@ Object.MeasureGenerator = CollectionProperty(type=MeasureContainer)
 # ------------------------------------------------------------------
 class SingleLineProperties(PropertyGroup):
     pointA: IntProperty(name = "pointA",
-                        description = "Hidden property for opengl")
+                        description = "first vertex index of the line")
                         
     pointB: IntProperty(name = "pointB",
-                        description = "Second index of the line")
-                        
+                        description = "Second vertex index of the line")
 
 bpy.utils.register_class(SingleLineProperties)
 
@@ -363,7 +362,7 @@ class LineProperties(PropertyGroup):
 
     lineWeight: IntProperty(name="lineWeight",
                         description="Lineweight",
-                        min = 0)
+                        min = 1)
 
     lineVis: BoolProperty(name="lineVis",
                         description="Line show/hide",
@@ -402,6 +401,9 @@ class LineProperties(PropertyGroup):
                         default= 10,
                         min = 0)
 
+    isOutline: BoolProperty(name= "isOutline",
+                        description= "Line Group Is For Drawing Outlines",
+                        default=False)
     #collection of indicies                        
     singleLine: CollectionProperty(type=SingleLineProperties)
 

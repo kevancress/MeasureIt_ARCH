@@ -42,6 +42,7 @@ from .shaders import *
 
 shader = gpu.types.GPUShader( Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader)
 lineShader = gpu.types.GPUShader( Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
+silhouetteShader = gpu.types.GPUShader( Silhouette_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
 dashedLineShader = gpu.types.GPUShader( Dashed_Shader_3D.vertex_shader, Dashed_Shader_3D.fragment_shader)
 
 
@@ -708,11 +709,17 @@ def draw_line_group(context, myobj, lineGen):
         lineGroup = lineGen.line_groups[idx]
         rgb = lineGroup.lineColor
         drawHidden = lineGroup.lineDrawHidden
+        #isOrtho = False
         #thickness = lineGroup.lineStyle
           
-
-        lineShader.bind()
-        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        if lineGroup.isOutline:
+            silhouetteShader.bind()
+            silhouetteShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            #silhouetteShader.uniform_bool("isOrtho", isOrtho)
+        else:
+            lineShader.bind()
+            lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            #lineShader.uniform_bool("isOrtho", isOrtho)
         #shader.uniform_float("thickness", thickness)
         for x in range(0,lineGroup.numLines):
             sLine = lineGroup.singleLine[x]
@@ -726,28 +733,34 @@ def draw_line_group(context, myobj, lineGen):
                 bgl.glLineWidth(lineGroup.lineWeight)
 
                 coords =[a_p1,b_p1]
-                batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-                batch3d.program_set(lineShader)
-                batch3d.draw()
-                gpu.shader.unbind()
-
-                #Draw Hidden Lines
-                if drawHidden == True:
-                    bgl.glDepthFunc(bgl.GL_GREATER)
-                    bgl.glLineWidth(lineGroup.lineHiddenWeight)
-                    rgb = lineGroup.lineHiddenColor
-                    dashedLineShader.bind()
-                    dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
-                    dashedLineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                    
-
-                    arclengths = [0.0,(Vector(a_p1)-Vector(b_p1)).length]
-                    coords = [a_p1,b_p1]
-                    #batch3d.draw()
-                    batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
-                    batchHidden.program_set(dashedLineShader)
-                    batchHidden.draw()
+                if lineGroup.isOutline:
+                    batch3d = batch_for_shader(silhouetteShader, 'LINES', {"pos": coords})
+                    batch3d.program_set(silhouetteShader)
+                    batch3d.draw()
                     gpu.shader.unbind()
+                else:
+                    batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+                    batch3d.program_set(lineShader)
+                    batch3d.draw()
+                    gpu.shader.unbind()
+
+                    #Draw Hidden Lines
+                    if drawHidden == True:
+                        bgl.glDepthFunc(bgl.GL_GREATER)
+                        bgl.glLineWidth(lineGroup.lineHiddenWeight)
+                        rgb = lineGroup.lineHiddenColor
+                        dashedLineShader.bind()
+                        dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
+                        dashedLineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                        
+
+                        arclengths = [0.0,(Vector(a_p1)-Vector(b_p1)).length]
+                        coords = [a_p1,b_p1]
+                        #batch3d.draw()
+                        batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
+                        batchHidden.program_set(dashedLineShader)
+                        batchHidden.draw()
+                        gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
 # ------------------------------------------
 # Get polygon area and paint area
@@ -1156,7 +1169,7 @@ def draw_vertices(context, myobj, region, rv3d):
         co_mult = lambda c: myobj.matrix_world @ c
 
     if myobj.mode == 'EDIT':
-        bm = from_edit_mesh(myobj.data)
+        bm = bmesh.from_edit_mesh(myobj.data)
         obverts = bm.verts
     else:
         obverts = myobj.data.vertices
@@ -1168,7 +1181,7 @@ def draw_vertices(context, myobj, region, rv3d):
                 continue
         # noinspection PyBroadException
         # try:
-        a_p1 = get_point(v, myobj)
+        a_p1 = get_point(v.co, myobj)
         # colour
 
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])

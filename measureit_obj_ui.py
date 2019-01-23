@@ -42,7 +42,7 @@ from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
 from .measureit_geometry import *
 from .measureit_render import *
-
+from .measureit_main import get_smart_selected, get_selected_vertex
 
 class MeasureitObjDimensionsPanel(Panel):
     bl_idname = "obj_dimensions"
@@ -337,13 +337,21 @@ def add_line_item(layout, idx, line):
         icon = "VISIBLE_IPO_OFF"
 
     row.prop(line, 'lineVis', text="", toggle=True, icon=icon)
-    row.prop(line, 'lineSettings', text="",toggle=True, icon="PREFERENCES")
-    row.prop(line, 'lineDrawHidden', text="", toggle=True, icon='CUBE')
+    row.prop(line, 'lineSettings', text="",toggle=True, icon='PREFERENCES')
+    row.prop(line, 'isOutline', text="", toggle=True, icon='SEQ_CHROMA_SCOPE')
+    row.prop(line, 'lineDrawHidden', text="", toggle=True, icon='MOD_WIREFRAME')
     row.prop(line, 'lineColor', text="" )
     row.prop(line, 'lineWeight', text="")
-    
+    op = row.operator("measureit.deletelinebutton", text="", icon="X")
+    op.tag = idx  # saves internal data
     
     if line.lineSettings is True:
+        row = box.row(align=True)
+        
+        op = row.operator('measureit.addtolinegroup', text="Add Line", icon='ADD')
+        op.tag = idx
+        op = row.operator('measureit.removefromlinegroup', text="Remove Line", icon='REMOVE')
+        op.tag = idx
         col = box.column()
         col.prop(line, 'lineWeight', text="Lineweight" )
         if line.lineDrawHidden is True:
@@ -353,10 +361,10 @@ def add_line_item(layout, idx, line):
             col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
         
 
-    op = row.operator("measureit.deletelinebutton", text="", icon="X")
-    op.tag = idx  # saves internal data
+
 
 class DeleteLineButton(Operator):
+
     bl_idname = "measureit.deletelinebutton"
     bl_label = "Delete Line"
     bl_description = "Delete a Line"
@@ -388,3 +396,139 @@ class DeleteLineButton(Operator):
                     return {'FINISHED'}
                 
         return {'FINISHED'}
+
+class AddToLineGroup(Operator):   
+    bl_idname = "measureit.addtolinegroup"
+    bl_label = "Add Selection to Line Group"
+    bl_description = "Add Selection to Line Group"
+    bl_category = 'Measureit'
+    tag= IntProperty()
+
+    # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        o = context.object
+        if o is None:
+            return False
+        else:
+            if o.type == "MESH":
+                if bpy.context.mode == 'EDIT_MESH':
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+         for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    # get selected
+
+                    mainobject = context.object
+                    mylist = get_smart_selected(mainobject)
+                    if len(mylist) < 2:  # if not selected linked vertex
+                        mylist = get_selected_vertex(mainobject)
+
+                    if len(mylist) >= 2:
+
+                        lineGen = mainobject.LineGenerator[0]
+                        lGroup = lineGen.line_groups[self.tag]
+                        
+
+                        for x in range (0, len(mylist)-1, 2):
+                            if lineExists(lGroup,mylist[x],mylist[x+1]) is False:
+
+                                sLine = lGroup.singleLine.add()
+                                sLine.pointA = mylist[x]
+                                sLine.pointB = mylist[x+1]
+                                lGroup.numLines +=1
+                                #print("line made" + str(sLine.pointA) + ", " +str(sLine.pointB))
+
+                                # redraw
+                                context.area.tag_redraw()
+                        return {'FINISHED'}
+
+class RemoveFromLineGroup(Operator):   
+    bl_idname = "measureit.removefromlinegroup"
+    bl_label = "Remove Selection from Line Group"
+    bl_description = "Remove Selection from Line Group"
+    bl_category = 'Measureit'
+    tag= IntProperty()
+
+    # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        o = context.object
+        if o is None:
+            return False
+        else:
+            if o.type == "MESH":
+                if bpy.context.mode == 'EDIT_MESH':
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    # get selected
+
+                    mainobject = context.object
+                    mylist = get_smart_selected(mainobject)
+
+                    if len(mylist) < 2:  # if not selected linked vertex
+                        mylist = get_selected_vertex(mainobject)
+
+                    if len(mylist) >= 2:
+
+                        lineGen = mainobject.LineGenerator[0]
+                        lGroup = lineGen.line_groups[self.tag]
+                        idx = 0
+                        for sLine in lGroup.singleLine:
+                            for x in range (0, len(mylist), 2):
+                                if sLineExists(sLine,mylist[x],mylist[x+1]):
+                                    #print("checked Pair: (" + str(mylist[x]) +   "," + str(mylist[x+1]) + ")" )
+                                    #print("A:" + str(sLine.pointA) + "B:" + str(sLine.pointB) ) 
+                                    lGroup.singleLine.remove(idx) 
+                                    lGroup.numLines -= 1     
+                            idx +=1
+  
+                        # redraw
+                        context.area.tag_redraw()
+                        return {'FINISHED'}
+
+def sLineExists(sLine,a,b):
+    if (sLine.pointA == a and sLine.pointB == b):
+        return True
+    elif (sLine.pointA == b and sLine.pointB == a):
+        return True
+    else:
+        return False
+
+def lineExists(lGroup,a,b):
+    for sLine in lGroup.singleLine:
+        if (sLine.pointA == a and sLine.pointB == b):
+            return True
+        elif (sLine.pointA == b and sLine.pointB == a):
+            return True
+    return False
