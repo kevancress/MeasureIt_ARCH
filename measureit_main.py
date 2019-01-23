@@ -362,7 +362,8 @@ class LineProperties(PropertyGroup):
 
     lineWeight: IntProperty(name="lineWeight",
                         description="Lineweight",
-                        min = 1)
+                        min = 1,
+                        max = 10)
 
     lineVis: BoolProperty(name="lineVis",
                         description="Line show/hide",
@@ -394,7 +395,8 @@ class LineProperties(PropertyGroup):
     lineHiddenWeight: IntProperty(name="lineHiddenWeight",
                         description="Hidden Line Lineweight",
                         default= 1,
-                        min = 0)
+                        min = 0,
+                        max = 10)
     
     lineHiddenDashScale: IntProperty(name="lineHiddenDashScale",
                         description="Hidden Line Dash Scale",

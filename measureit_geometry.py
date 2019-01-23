@@ -40,11 +40,11 @@ import bpy_extras.object_utils as object_utils
 from sys import exc_info
 from .shaders import *
 
-shader = gpu.types.GPUShader( Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader)
-lineShader = gpu.types.GPUShader( Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
-silhouetteShader = gpu.types.GPUShader( Silhouette_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
-dashedLineShader = gpu.types.GPUShader( Dashed_Shader_3D.vertex_shader, Dashed_Shader_3D.fragment_shader)
-
+shader = gpu.types.GPUShader(Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader)
+lineShader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
+silhouetteShader = gpu.types.GPUShader(Silhouette_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
+dashedLineShader = gpu.types.GPUShader(Dashed_Shader_3D.vertex_shader, Dashed_Shader_3D.fragment_shader)
+pointShader = gpu.types.GPUShader(Point_Shader_3D.vertex_shader,Point_Shader_3D.fragment_shader)
 
 # -------------------------------------------------------------
 # Draw segments
@@ -703,6 +703,7 @@ def draw_line_group(context, myobj, lineGen):
     bgl.glEnable(bgl.GL_BLEND)
 
     bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthMask(False)
   
     
     for idx in range(0, lineGen.line_num):
@@ -733,8 +734,26 @@ def draw_line_group(context, myobj, lineGen):
                 bgl.glLineWidth(lineGroup.lineWeight)
 
                 coords =[a_p1,b_p1]
+
+                #Point Pass for Clean Corners
+                
+                pointShader.bind()
+                pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 if lineGroup.isOutline:
-                    batch3d = batch_for_shader(silhouetteShader, 'LINES', {"pos": coords})
+                    pointShader.uniform_float("offset", (0, 0, 0.005, 0))
+                else:
+                    pointShader.uniform_float("offset", (0, 0, 0.0, 0))
+                bgl.glPointSize(lineGroup.lineWeight)
+                pointShader.uniform_float("size", 1)
+
+                batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
+                batch3d.program_set(pointShader)
+                batch3d.draw()
+                gpu.shader.unbind()
+                
+
+                if lineGroup.isOutline:
+                    #batch3d = batch_for_shader(silhouetteShader, 'LINES', {"pos": coords})
                     batch3d.program_set(silhouetteShader)
                     batch3d.draw()
                     gpu.shader.unbind()
@@ -743,15 +762,15 @@ def draw_line_group(context, myobj, lineGen):
                     batch3d.program_set(lineShader)
                     batch3d.draw()
                     gpu.shader.unbind()
-
+                
                     #Draw Hidden Lines
                     if drawHidden == True:
                         bgl.glDepthFunc(bgl.GL_GREATER)
                         bgl.glLineWidth(lineGroup.lineHiddenWeight)
-                        rgb = lineGroup.lineHiddenColor
+                        dashRGB = lineGroup.lineHiddenColor
                         dashedLineShader.bind()
                         dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
-                        dashedLineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                        dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
                         
 
                         arclengths = [0.0,(Vector(a_p1)-Vector(b_p1)).length]
@@ -762,6 +781,7 @@ def draw_line_group(context, myobj, lineGen):
                         batchHidden.draw()
                         gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthMask(True)
 # ------------------------------------------
 # Get polygon area and paint area
 #

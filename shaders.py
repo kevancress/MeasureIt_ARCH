@@ -123,21 +123,13 @@ class Base_Shader_3D ():
     vertex_shader = '''
 
         uniform mat4 ModelViewProjectionMatrix;
-        //uniform bool isOtho;
         in vec3 pos;
         
-
+        vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
         vec4 offset = vec4(0.0, 0.0, -0.001, 0.0);
-
-        //if ( isOrtho ) {
-        //    offset = vec4(0.0, 0.0, -0.0001, 0.0);
-        //}
-
 
         void main()
         {
-            vec3 newPos = pos;
-            vec4 project = ModelViewProjectionMatrix * vec4(newPos, 1.0);
             gl_Position = project + offset;
         }
 
@@ -169,6 +161,7 @@ class Base_Shader_3D ():
 
         void main()
         {
+
             //vec4 depthCol = vec4(vec3(gl_FragCoord.z), 1.0);
             fragColor = finalColor;
         }
@@ -184,10 +177,13 @@ class Dashed_Shader_3D ():
     
     out float v_ArcLength;
 
+    vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0f);
+    vec4 offset = vec4(0,0,-0.001,0);
+
     void main()
     {
         v_ArcLength = arcLength;
-        gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0f);
+        gl_Position = project + offset;
     }
     '''
 
@@ -213,7 +209,7 @@ class Silhouette_Shader_3D ():
 
         in vec3 pos;
 
-        vec4 offset = vec4(0.0, 0.0, 0.003, 0.0);
+        vec4 offset = vec4(0.0, 0.0, 0.005, 0.0);
 
         //if isOrtho {
         //    offset = vec4(0.0, 0.0, 0.00001, 0.0);
@@ -228,3 +224,63 @@ class Silhouette_Shader_3D ():
         }
 
         '''
+
+class Point_Shader_3D ():
+
+    vertex_shader = '''
+
+        uniform mat4 ModelViewProjectionMatrix;
+        uniform float size;
+        uniform vec4 offset;
+
+        in vec3 pos;
+        out vec2 radii;
+
+        vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
+
+
+        void main() {
+            gl_Position = project + offset;
+            gl_PointSize = size;
+
+            // calculate concentric radii in pixels
+            float radius = 0.5 * size;
+
+            // start at the outside and progress toward the center
+            radii[0] = radius;
+            radii[1] = radius - 1.0;
+
+            // convert to PointCoord units
+            radii /= size;
+        }
+    '''
+
+    fragment_shader = '''
+            
+        uniform vec4 finalColor;
+
+
+        out vec4 fragColor;
+
+        void main()
+        {
+            vec2 centered = gl_PointCoord - vec2(0.5);
+            float dist_squared = dot(centered, centered);
+            const float rad_squared = 0.25;
+
+            // round point with jaggy edges
+            if (dist_squared > rad_squared)
+                discard;
+
+            fragColor = finalColor;
+        }
+    '''
+
+class DepthOnlyFrag():
+    fragment_shader = ''' 
+        void main()
+        {
+            // no color output, only depth (line below is implicit)
+            // gl_FragDepth = gl_FragCoord.z;
+        }
+    '''
