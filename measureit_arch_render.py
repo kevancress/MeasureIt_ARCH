@@ -39,7 +39,7 @@ import bpy_extras.object_utils as object_utils
 # noinspection PyUnresolvedReferences
 from bpy_extras import view3d_utils
 from math import ceil
-from .measureit_geometry import *
+from .measureit_arch_geometry import *
 from gpu_extras.presets import draw_texture_2d
 from bgl import *
 import numpy as np
@@ -50,9 +50,9 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 # ------------------------------------------------------------------
 # Define panel class for render functions.
 # ------------------------------------------------------------------
-class MeasureitRenderPanel(Panel):
-    bl_idname = "measureit_render_panel"
-    bl_label = "MeasureIt Render"
+class MeasureitArchRenderPanel(Panel):
+    bl_idname = "measureit_arch_render_panel"
+    bl_label = "MeasureIt-ARCH Render"
     bl_space_type = 'PROPERTIES'
     bl_region_type = "WINDOW"
     bl_context = "render"
@@ -70,27 +70,27 @@ class MeasureitRenderPanel(Panel):
         col = layout.column()
 
 
-        col.operator("measureit.rendersegmentbutton", icon='RENDER_STILL')
-        col.prop(scene, "measureit_render_type")
+        col.operator("measureit_arch.rendersegmentbutton", icon='RENDER_STILL')
+        col.prop(scene, "measureit_arch_render_type")
 
-        col.prop(scene, "measureit_render", text="Save render image")
-        col.prop(scene, "measureit_use_depth_clipping")
-        col.prop(scene, "measureit_rf", text="Border")
+        col.prop(scene, "measureit_arch_render", text="Save render image")
+        col.prop(scene, "measureit_arch_use_depth_clipping")
+        col.prop(scene, "measureit_arch_rf", text="Border")
 
-        if scene.measureit_rf is True:
-            col.prop(scene, "measureit_rf_color", text="Color")
-            col.prop(scene, "measureit_rf_border", text="Space")
-            col.prop(scene, "measureit_rf_line", text="Width")
+        if scene.measureit_arch_rf is True:
+            col.prop(scene, "measureit_arch_rf_color", text="Color")
+            col.prop(scene, "measureit_arch_rf_border", text="Space")
+            col.prop(scene, "measureit_arch_rf_line", text="Width")
 
 # -------------------------------------------------------------
 # Defines button for render option
 #
 # -------------------------------------------------------------
 class RenderSegmentButton(Operator):
-    bl_idname = "measureit.rendersegmentbutton"
+    bl_idname = "measureit_arch.rendersegmentbutton"
     bl_label = "Render"
     bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------
@@ -110,25 +110,25 @@ class RenderSegmentButton(Operator):
         # -----------------------------
         # Use default render
         # -----------------------------
-        if scene.measureit_render_type == "1":
+        if scene.measureit_arch_render_type == "1":
             # noinspection PyBroadException
             try:
                 result = bpy.data.images['Render Result']
                 bpy.ops.render.render()
             except:
                 bpy.ops.render.render()
-            print("MeasureIt: Using current render image on buffer")
+            print("MeasureIt-ARCH: Using current render image on buffer")
             if render_main(self, context) is True:
                 self.report({'INFO'}, msg)
 
         # -----------------------------
         # OpenGL image
         # -----------------------------
-        if scene.measureit_render_type == "2":
+        if scene.measureit_arch_render_type == "2":
             self.set_camera_view()
             self.set_only_render(True)
 
-            print("MeasureIt: Rendering opengl image")
+            print("MeasureIt-ARCH: Rendering opengl image")
             bpy.ops.render.opengl()
             if render_main(self, context) is True:
                 self.report({'INFO'}, msg)
@@ -138,7 +138,7 @@ class RenderSegmentButton(Operator):
         # -----------------------------
         # OpenGL Animation
         # -----------------------------
-        if scene.measureit_render_type == "3":
+        if scene.measureit_arch_render_type == "3":
             oldframe = scene.frame_current
             self.set_camera_view()
             self.set_only_render(True)
@@ -146,7 +146,7 @@ class RenderSegmentButton(Operator):
             # loop frames
             for frm in range(scene.frame_start, scene.frame_end + 1):
                 scene.frame_set(frm)
-                print("MeasureIt: Rendering opengl frame %04d" % frm)
+                print("MeasureIt-ARCH: Rendering opengl frame %04d" % frm)
                 bpy.ops.render.opengl()
                 flag = render_main(self, context, True)
                 if flag is False:
@@ -160,8 +160,8 @@ class RenderSegmentButton(Operator):
         # -----------------------------
         # Image
         # -----------------------------
-        if scene.measureit_render_type == "4":
-            print("MeasureIt: Rendering image")
+        if scene.measureit_arch_render_type == "4":
+            print("MeasureIt-ARCH: Rendering image")
             bpy.ops.render.render()
             if render_main(self, context) is True:
                 self.report({'INFO'}, msg)
@@ -169,13 +169,13 @@ class RenderSegmentButton(Operator):
         # -----------------------------
         # Animation
         # -----------------------------
-        if scene.measureit_render_type == "5":
+        if scene.measureit_arch_render_type == "5":
             oldframe = scene.frame_current
             flag = False
             # loop frames
             for frm in range(scene.frame_start, scene.frame_end + 1):
                 scene.frame_set(frm)
-                print("MeasureIt: Rendering frame %04d" % frm)
+                print("MeasureIt-ARCH: Rendering frame %04d" % frm)
                 bpy.ops.render.render()
                 flag = render_main(self, context, True)
                 if flag is False:
@@ -263,7 +263,7 @@ def render_main(self, context, animation=False):
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
 
         #Draw Scene If Necessary
-        if scene.measureit_use_depth_clipping == True:
+        if scene.measureit_arch_use_depth_clipping == True:
             draw_scene(self,context, projection_matrix) 
         
         #Clear Color Keep on depth info
@@ -299,29 +299,29 @@ def render_main(self, context, animation=False):
         # -----------------------------
         # Loop to draw all debug
         # -----------------------------
-        if scene.measureit_debug is True:
+        if scene.measureit_arch_debug is True:
             selobj = bpy.context.selected_objects
             for myobj in selobj:
-                if scene.measureit_debug_objects is True:
+                if scene.measureit_arch_debug_objects is True:
                     draw_object(context, myobj, None, None)
-                elif scene.measureit_debug_object_loc is True:
+                elif scene.measureit_arch_debug_object_loc is True:
                     draw_object(context, myobj, None, None)
-                if scene.measureit_debug_vertices is True:
+                if scene.measureit_arch_debug_vertices is True:
                     draw_vertices(context, myobj, None, None)
-                elif scene.measureit_debug_vert_loc is True:
+                elif scene.measureit_arch_debug_vert_loc is True:
                     draw_vertices(context, myobj, None, None)
-                if scene.measureit_debug_edges is True:
+                if scene.measureit_arch_debug_edges is True:
                     draw_edges(context, myobj, None, None)
-                if scene.measureit_debug_faces is True or scene.measureit_debug_normals is True:
+                if scene.measureit_arch_debug_faces is True or scene.measureit_arch_debug_normals is True:
                     draw_faces(context, myobj, None, None)
         
         # -----------------------------
         # Draw a rectangle frame
         # -----------------------------
-        if scene.measureit_rf is True:
-            rfcolor = scene.measureit_rf_color
-            rfborder = scene.measureit_rf_border
-            rfline = scene.measureit_rf_line
+        if scene.measureit_arch_rf is True:
+            rfcolor = scene.measureit_arch_rf_color
+            rfborder = scene.measureit_arch_rf_border
+            rfline = scene.measureit_arch_rf_line
 
             bgl.glLineWidth(rfline)
             x1 = rfborder
@@ -338,7 +338,7 @@ def render_main(self, context, animation=False):
     # -----------------------------
     # Create image
     # -----------------------------
-    image_name = "measureit_output"
+    image_name = "measureit_arch_output"
     if not image_name in bpy.data.images:
         bpy.data.images.new(image_name, width, height)
 
@@ -347,7 +347,7 @@ def render_main(self, context, animation=False):
     image.pixels = [v / 255 for v in buffer]
 
     # Saves image
-    if image is not None and (scene.measureit_render is True or animation is True):
+    if image is not None and (scene.measureit_arch_render is True or animation is True):
         ren_path = bpy.context.scene.render.filepath
         filename = "mit_frame"
         if len(ren_path) > 0:
@@ -381,7 +381,7 @@ def save_image(self, filepath, myimage):
         settings.color_mode = "RGBA"
         settings.color_depth = '8'
         myimage.save_render(filepath)
-        print("MeasureIt: Image " + filepath + " saved")
+        print("MeasureIt-ARCH: Image " + filepath + " saved")
 
         # Restore old info
         settings.file_format = myformat
@@ -389,7 +389,7 @@ def save_image(self, filepath, myimage):
         settings.color_depth = depth
     except:
         print("Unexpected error:" + str(exc_info()))
-        self.report({'ERROR'}, "MeasureIt: Unable to save render image")
+        self.report({'ERROR'}, "MeasureIt-ARCH: Unable to save render image")
         return
 
 

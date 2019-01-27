@@ -19,8 +19,8 @@
 # <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: measureit_main.py
-# Main panel for different Measureit general actions
+# File: measureit_arch_main.py
+# Main panel for different MeasureitArch general actions
 # Author: Kevan Cress
 #
 # ----------------------------------------------------------
@@ -40,11 +40,11 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
-from .measureit_geometry import *
-from .measureit_render import *
-from .measureit_main import get_smart_selected, get_selected_vertex
+from .measureit_arch_geometry import *
+from .measureit_arch_render import *
+from .measureit_arch_main import get_smart_selected, get_selected_vertex
 
-class MeasureitObjDimensionsPanel(Panel):
+class MeasureitArchObjDimensionsPanel(Panel):
     bl_idname = "obj_dimensions"
     bl_label = "Object Dimensions"
     bl_space_type = "PROPERTIES"
@@ -64,20 +64,20 @@ class MeasureitObjDimensionsPanel(Panel):
                 # -----------------
                 
                 mp = context.object.MeasureGenerator[0]
-                if mp.measureit_num > 0:
+                if mp.measureit_arch_num > 0:
                     row = layout.row(align = True)
-                    row.operator("measureit.expandallsegmentbutton", text="Expand all", icon="ADD")
-                    row.operator("measureit.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
-                    for idx in range(0, mp.measureit_num):
-                        if mp.measureit_segments[idx].glfree is False:
-                            add_item(layout, idx, mp.measureit_segments[idx])
+                    row.operator("measureit_arch.expandallsegmentbutton", text="Expand all", icon="ADD")
+                    row.operator("measureit_arch.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
+                    for idx in range(0, mp.measureit_arch_num):
+                        if mp.measureit_arch_segments[idx].glfree is False:
+                            add_item(layout, idx, mp.measureit_arch_segments[idx])
 
                     row = layout.row()
-                    row.operator("measureit.deleteallsegmentbutton", text="Delete all", icon="X")
+                    row.operator("measureit_arch.deleteallsegmentbutton", text="Delete all", icon="X")
                 # -----------------
                 # Sum loop segments
                 # -----------------
-                if mp.measureit_num > 0:
+                if mp.measureit_arch_num > 0:
                     scale = bpy.context.scene.unit_settings.scale_length
                     tx = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
                           "T", "U", "V", "W", "X", "Y", "Z"]
@@ -86,8 +86,8 @@ class MeasureitObjDimensionsPanel(Panel):
                     myobj = context.object
                     obverts = get_mesh_vertices(myobj)
                     viewtot = False
-                    for idx in range(0, mp.measureit_num):
-                        ms = mp.measureit_segments[idx]
+                    for idx in range(0, mp.measureit_arch_num):
+                        ms = mp.measureit_arch_segments[idx]
                         if (ms.gltype == 1 or ms.gltype == 12
                             or ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
                                 and ms.glfree is False:  # only segments
@@ -125,9 +125,9 @@ class MeasureitObjDimensionsPanel(Panel):
                     # Print values
                     # -----------------
                     if viewtot is True:
-                        pr = scene.measureit_gl_precision
+                        pr = scene.measureit_arch_gl_precision
                         fmt = "%1." + str(pr) + "f"
-                        units = scene.measureit_units
+                        units = scene.measureit_arch_units
 
                         box = layout.box()
                         box.label(text="Totals", icon='SOLO_ON')
@@ -154,7 +154,7 @@ class MeasureitObjDimensionsPanel(Panel):
                         row.label(text=tx_dist)
                         # delete all
                         row = box.row()
-                        row.operator("measureit.deleteallsumbutton", text="Delete all", icon="X")
+                        row.operator("measureit_arch.deleteallsumbutton", text="Delete all", icon="X")
 
 # -----------------------------------------------------
 # Add segment options to the panel.
@@ -177,7 +177,7 @@ def add_item(layout, idx, segment):
     row.prop(segment, 'gladvance', text="", toggle=True, icon="PREFERENCES")
     row.prop(segment, 'style', text="")
     row.prop(segment, 'gltxt', text="")
-    op = row.operator("measureit.deletesegmentbutton", text="", icon="X")
+    op = row.operator("measureit_arch.deletesegmentbutton", text="", icon="X")
     op.tag = idx  # saves internal data
 
     if segment.gladvance is True:
@@ -224,13 +224,13 @@ def add_item(layout, idx, segment):
 
         if segment.gltype != 2 and segment.gltype != 10:
             col = box.column(align=True)
-            if scene.measureit_gl_show_d is True and segment.gltype != 9 and segment.gltype != 21:
+            if scene.measureit_arch_gl_show_d is True and segment.gltype != 9 and segment.gltype != 21:
                 if segment.gldist is True:
                     icon = "VISIBLE_IPO_ON"
                 else:
                     icon = "VISIBLE_IPO_OFF"
                 col.prop(segment, 'gldist', text="Distance", toggle=True, icon=icon)
-            if scene.measureit_gl_show_n is True:
+            if scene.measureit_arch_gl_show_n is True:
                 if segment.glnames is True:
                     icon = "VISIBLE_IPO_ON"
                 else:
@@ -289,7 +289,7 @@ def add_item(layout, idx, segment):
             if segment.glarc_a != '99' or segment.glarc_b != '99':
                 row.prop(segment, 'glarc_s', text="Size")
 
-class MeasureitObjLinesPanel(Panel):
+class MeasureitArchObjLinesPanel(Panel):
     bl_idname = "obj_lines"
     bl_label = "Object Lines"
     bl_space_type = "PROPERTIES"
@@ -311,13 +311,13 @@ class MeasureitObjLinesPanel(Panel):
                 mp = context.object.LineGenerator[0]
                 if mp.line_num > 0:
                     row = layout.row(align = True)
-                    #row.operator("measureit.expandallsegmentbutton", text="Expand all", icon="ADD")
-                    #row.operator("measureit.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
+                    #row.operator("measureit_arch.expandallsegmentbutton", text="Expand all", icon="ADD")
+                    #row.operator("measureit_arch.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
                     for idx in range(0, mp.line_num):
                         add_line_item(layout, idx, mp.line_groups[idx])
 
                     row = layout.row()
-                    #row.operator("measureit.deleteallsegmentbutton", text="Delete all", icon="X")
+                    #row.operator("measureit_arch.deleteallsegmentbutton", text="Delete all", icon="X")
     
 # -----------------------------------------------------
 # Add line options to the panel.
@@ -342,15 +342,15 @@ def add_line_item(layout, idx, line):
     row.prop(line, 'lineDrawHidden', text="", toggle=True, icon='MOD_WIREFRAME')
     row.prop(line, 'lineColor', text="" )
     row.prop(line, 'lineWeight', text="")
-    op = row.operator("measureit.deletelinebutton", text="", icon="X")
+    op = row.operator("measureit_arch.deletelinebutton", text="", icon="X")
     op.tag = idx  # saves internal data
     
     if line.lineSettings is True:
         row = box.row(align=True)
         
-        op = row.operator('measureit.addtolinegroup', text="Add Line", icon='ADD')
+        op = row.operator('measureit_arch.addtolinegroup', text="Add Line", icon='ADD')
         op.tag = idx
-        op = row.operator('measureit.removefromlinegroup', text="Remove Line", icon='REMOVE')
+        op = row.operator('measureit_arch.removefromlinegroup', text="Remove Line", icon='REMOVE')
         op.tag = idx
         col = box.column()
         col.prop(line, 'lineWeight', text="Lineweight" )
@@ -365,10 +365,10 @@ def add_line_item(layout, idx, line):
 
 class DeleteLineButton(Operator):
 
-    bl_idname = "measureit.deletelinebutton"
+    bl_idname = "measureit_arch.deletelinebutton"
     bl_label = "Delete Line"
     bl_description = "Delete a Line"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------
@@ -398,10 +398,10 @@ class DeleteLineButton(Operator):
         return {'FINISHED'}
 
 class AddToLineGroup(Operator):   
-    bl_idname = "measureit.addtolinegroup"
+    bl_idname = "measureit_arch.addtolinegroup"
     bl_label = "Add Selection to Line Group"
     bl_description = "Add Selection to Line Group"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------
@@ -458,10 +458,10 @@ class AddToLineGroup(Operator):
                         return {'FINISHED'}
 
 class RemoveFromLineGroup(Operator):   
-    bl_idname = "measureit.removefromlinegroup"
+    bl_idname = "measureit_arch.removefromlinegroup"
     bl_label = "Remove Selection from Line Group"
     bl_description = "Remove Selection from Line Group"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------

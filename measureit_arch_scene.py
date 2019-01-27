@@ -19,8 +19,8 @@
 # <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: measureit_main.py
-# Main panel for different Measureit general actions
+# File: measureit_arch_main.py
+# Main panel for different MeasureitArch general actions
 # Author: Antonio Vazquez (antonioya), Kevan Cress
 #
 # ----------------------------------------------------------
@@ -43,8 +43,8 @@ from bpy.props import (
 #
 ###################################
 
-class MeasureitDimensionStylesPanel(Panel):
-    bl_idname = "measureit.dim_styles"
+class MeasureitArchDimensionStylesPanel(Panel):
+    bl_idname = "measureit_arch.dim_styles"
     bl_label = "Dimension Styles"
     bl_space_type = 'PROPERTIES'
     bl_region_type = "WINDOW"
@@ -64,19 +64,19 @@ class MeasureitDimensionStylesPanel(Panel):
         # Add Styles to Panel
         #--------------------
         col = layout.column()
-        col.operator("measureit.adddimstylebutton", text="New Dimension Style", icon="ADD")
+        col.operator("measureit_arch.adddimstylebutton", text="New Dimension Style", icon="ADD")
         if 'StyleGenerator' in context.scene:
             styleGen = context.scene.StyleGenerator[0]
 
             if styleGen.style_num > 0:
                 for idx in range(0, styleGen.style_num):
-                    add_style_item(layout, idx, styleGen.measureit_styles[idx])
+                    add_style_item(layout, idx, styleGen.measureit_arch_styles[idx])
        
         col = layout.column()
-        col.operator("measureit.deleteallstylesbutton", text="Delete All Styles", icon="X")
+        col.operator("measureit_arch.deleteallstylesbutton", text="Delete All Styles", icon="X")
 
-class MeasureitDimensionSettingsPanel(Panel):
-    bl_idname = "measureit.settings_panel"
+class MeasureitArchDimensionSettingsPanel(Panel):
+    bl_idname = "measureit_arch.settings_panel"
     bl_label = "Dimension Settings"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -95,54 +95,54 @@ class MeasureitDimensionSettingsPanel(Panel):
         row = layout.row()
 
         col = layout.column(align=True)
-        col.prop(scene, "measureit_default_style", text="Active Style")
+        col.prop(scene, "measureit_arch_default_style", text="Active Style")
 
         col = layout.column(align = True)
-        col.prop(scene, 'measureit_gl_precision', text="Precision")
-        col.prop(scene, 'measureit_units')
+        col.prop(scene, 'measureit_arch_gl_precision', text="Precision")
+        col.prop(scene, 'measureit_arch_units')
 
         col = layout.column(align=True)
-        col.prop(scene, 'measureit_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
-        col.prop(scene, 'measureit_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
-        #col.prop(scene, 'measureit_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
+        col.prop(scene, 'measureit_arch_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
+        col.prop(scene, 'measureit_arch_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
+        #col.prop(scene, 'measureit_arch_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
         
         # Scale factor
         col = layout.column(align = True)
         col.use_property_split= True
         col.alignment = 'RIGHT'
         col.label(text = 'Override:')
-        col.prop(scene, 'measureit_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
-        col.prop(scene, 'measureit_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
+        col.prop(scene, 'measureit_arch_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
+        col.prop(scene, 'measureit_arch_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
 
-        if scene.measureit_scale is True:
+        if scene.measureit_arch_scale is True:
             scaleBox = layout.box()
             scaleBox.label(text='Scale Override')
             col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_scale_color', text="Color")
-            col.prop(scene, 'measureit_scale_factor', text="Factor")
+            col.prop(scene, 'measureit_arch_scale_color', text="Color")
+            col.prop(scene, 'measureit_arch_scale_factor', text="Factor")
 
             col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_gl_scaletxt', text="Text")
-            col.prop(scene, 'measureit_scale_font', text="Font Size")
-            col.prop(scene, 'measureit_scale_precision', text="Precision")
+            col.prop(scene, 'measureit_arch_gl_scaletxt', text="Text")
+            col.prop(scene, 'measureit_arch_scale_font', text="Font Size")
+            col.prop(scene, 'measureit_arch_scale_precision', text="Precision")
             
             col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_scale_pos_x')
-            col.prop(scene, 'measureit_scale_pos_y')
+            col.prop(scene, 'measureit_arch_scale_pos_x')
+            col.prop(scene, 'measureit_arch_scale_pos_y')
 
         # Override
         
-        if scene.measureit_ovr is True:
+        if scene.measureit_arch_ovr is True:
             styleBox = layout.box()
             styleBox.label(text='Style Override')
             col = styleBox.column(align = True)
-            col.prop(scene, 'measureit_ovr_color', text="Colour")
-            col.prop(scene, 'measureit_ovr_width', text="Width")
+            col.prop(scene, 'measureit_arch_ovr_color', text="Colour")
+            col.prop(scene, 'measureit_arch_ovr_width', text="Width")
             col = styleBox.column(align = True)
-            col.prop(scene, 'measureit_ovr_font', text="Font Size")
-            col.prop(scene, 'measureit_ovr_font_align', text="Alignment")
-            if scene.measureit_ovr_font_align == 'L':
-                col.prop(scene, 'measureit_ovr_font_rotation', text="Rotation")
+            col.prop(scene, 'measureit_arch_ovr_font', text="Font Size")
+            col.prop(scene, 'measureit_arch_ovr_font_align', text="Alignment")
+            if scene.measureit_arch_ovr_font_align == 'L':
+                col.prop(scene, 'measureit_arch_ovr_font_rotation', text="Rotation")
 
 def add_style_item(box, idx, style):
 
@@ -160,7 +160,7 @@ def add_style_item(box, idx, style):
     split = row.split(factor=0.25, align=True)
     split.prop(style, 'glcolor', text="")
     split.prop(style, 'styleName', text="")
-    op = row.operator("measureit.deletestylebutton", text="", icon="X")
+    op = row.operator("measureit_arch.deletestylebutton", text="", icon="X")
     op.tag = idx  # saves internal data
 
     if style.gladvance is True:
@@ -391,9 +391,9 @@ bpy.utils.register_class(StyleProperties)
 
 class StyleContainer(PropertyGroup):
     style_num = IntProperty(name='Number of styles', min=0, max=1000, default=0,
-                                description='Number total of measureit Dimension Styles')
+                                description='Number total of measureit_arch Dimension Styles')
     # Array of styles
-    measureit_styles = CollectionProperty(type=StyleProperties)
+    measureit_arch_styles = CollectionProperty(type=StyleProperties)
 
 bpy.utils.register_class(StyleContainer)
 Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
@@ -405,10 +405,10 @@ Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
 ###################################
 
 class AddDimStyleButton(Operator):
-    bl_idname = "measureit.adddimstylebutton"
+    bl_idname = "measureit_arch.adddimstylebutton"
     bl_label = "Add"
     bl_description = "Create A New Dimension Style"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
@@ -423,25 +423,25 @@ class AddDimStyleButton(Operator):
                         scene.StyleGenerator.add()
 
                     styleGen = scene.StyleGenerator[0]
-                    styleGen.measureit_styles.add()
+                    styleGen.measureit_arch_styles.add()
 
-                    newStyle = styleGen.measureit_styles[styleGen.style_num]
+                    newStyle = styleGen.measureit_arch_styles[styleGen.style_num]
 
                     #Style Properties
                     newStyle.styleName = 'Style ' + str(styleGen.style_num + 1)
-                    newStyle.glcolor = scene.measureit_default_color
+                    newStyle.glcolor = scene.measureit_arch_default_color
                     
-                    newStyle.glwidth = scene.measureit_gl_width
-                    newStyle.glarrow_a = scene.measureit_glarrow_a
-                    newStyle.glarrow_b = scene.measureit_glarrow_b
-                    newStyle.glarrow_s = scene.measureit_glarrow_s
+                    newStyle.glwidth = scene.measureit_arch_gl_width
+                    newStyle.glarrow_a = scene.measureit_arch_glarrow_a
+                    newStyle.glarrow_b = scene.measureit_arch_glarrow_b
+                    newStyle.glarrow_s = scene.measureit_arch_glarrow_s
                     # dist
-                    newStyle.glspace = scene.measureit_hint_space
+                    newStyle.glspace = scene.measureit_arch_hint_space
                     # text
-                    newStyle.gltxt = scene.measureit_gl_txt
-                    newStyle.glfont_size = scene.measureit_font_size
-                    newStyle.glfont_align = scene.measureit_font_align
-                    newStyle.glfont_rotat = scene.measureit_font_rotation
+                    newStyle.gltxt = scene.measureit_arch_gl_txt
+                    newStyle.glfont_size = scene.measureit_arch_font_size
+                    newStyle.glfont_align = scene.measureit_arch_font_align
+                    newStyle.glfont_rotat = scene.measureit_arch_font_rotation
                     
 
                     styleGen.style_num += 1
@@ -450,10 +450,10 @@ class AddDimStyleButton(Operator):
         return {'FINISHED'}
 
 class DeleteStyleButton(Operator):
-    bl_idname = "measureit.deletestylebutton"
+    bl_idname = "measureit_arch.deletestylebutton"
     bl_label = "Delete Style"
     bl_description = "Delete a Style"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------
@@ -467,10 +467,10 @@ class DeleteStyleButton(Operator):
                 if area.type == 'VIEW_3D':
                     # Add properties
                     mp = context.scene.StyleGenerator[0]
-                    ms = mp.measureit_styles[self.tag]
+                    ms = mp.measureit_arch_styles[self.tag]
                     ms.glfree = True
                     # Delete element
-                    mp.measureit_styles.remove(self.tag)
+                    mp.measureit_arch_styles.remove(self.tag)
                     mp.style_num -= 1
                     # redraw
                     context.area.tag_redraw()
@@ -478,10 +478,10 @@ class DeleteStyleButton(Operator):
         return {'FINISHED'}
 
 class DeleteAllStylesButton(Operator):
-    bl_idname = "measureit.deleteallstylesbutton"
+    bl_idname = "measureit_arch.deleteallstylesbutton"
     bl_label = "Delete All Styles?"
     bl_description = "Delete all Styles (it cannot be undone)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Execute button action
@@ -497,11 +497,11 @@ class DeleteAllStylesButton(Operator):
                     mainobject = context.object
                     styleGen = scene.StyleGenerator[0]
 
-                    while len(styleGen.measureit_styles) > 0:
-                        styleGen.measureit_styles.remove(0)
+                    while len(styleGen.measureit_arch_styles) > 0:
+                        styleGen.measureit_arch_styles.remove(0)
 
                     # reset size
-                    styleGen.style_num = len(styleGen.measureit_styles)
+                    styleGen.style_num = len(styleGen.measureit_arch_styles)
                     # redraw
                     context.area.tag_redraw()
                     return {'FINISHED'}

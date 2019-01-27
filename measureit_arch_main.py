@@ -19,8 +19,8 @@
 # <pep8 compliant>
 
 # ----------------------------------------------------------
-# File: measureit_main.py
-# Main panel for different Measureit general actions
+# File: measureit_arch_main.py
+# Main panel for different MeasureitArch general actions
 # Author: Antonio Vazquez (antonioya), Kevan Cress
 #
 # ----------------------------------------------------------
@@ -38,8 +38,8 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
-from .measureit_geometry import *
-from .measureit_render import *
+from .measureit_arch_geometry import *
+from .measureit_arch_render import *
 
 import gpu
 from gpu_extras.batch import batch_for_shader
@@ -68,23 +68,23 @@ def load_handler(dummy):
 def save_handler(dummy):
     # noinspection PyBroadException
     try:
-        print("MeasureIt: Cleaning data")
+        print("MeasureIt-ARCH: Cleaning data")
         objlist = bpy.context.scene.objects
         for myobj in objlist:
             if 'MeasureGenerator' in myobj:
                 mp = myobj.MeasureGenerator[0]
                 x = 0
-                for ms in mp.measureit_segments:
+                for ms in mp.measureit_arch_segments:
                     ms.name = "segment_" + str(x)
                     x += 1
                     if ms.glfree is True:
-                        idx = mp.measureit_segments.find(ms.name)
+                        idx = mp.measureit_arch_segments.find(ms.name)
                         if idx > -1:
-                            print("MeasureIt: Removed segment not used")
-                            mp.measureit_segments.remove(idx)
+                            print("MeasureIt-ARCH: Removed segment not used")
+                            mp.measureit_arch_segments.remove(idx)
 
                 # reset size
-                mp.measureit_num = len(mp.measureit_segments)
+                mp.measureit_arch_num = len(mp.measureit_arch_segments)
     except:
         pass
 
@@ -94,35 +94,35 @@ bpy.app.handlers.save_pre.append(save_handler)
 
 
 # ------------------------------------------------------------------
-# Define property group class for measureit faces index
+# Define property group class for measureit_arch faces index
 # ------------------------------------------------------------------
-class MeasureitIndex(PropertyGroup):
+class MeasureitArchIndex(PropertyGroup):
     glidx = IntProperty(name="index",
                         description="vertex index")
 
 
 # Register
-bpy.utils.register_class(MeasureitIndex)
+bpy.utils.register_class(MeasureitArchIndex)
 
 
 # ------------------------------------------------------------------
-# Define property group class for measureit faces
+# Define property group class for measureit_arch faces
 # ------------------------------------------------------------------
-class MeasureitFaces(PropertyGroup):
+class MeasureitArchFaces(PropertyGroup):
     glface = IntProperty(name="glface",
                          description="Face number")
     # Array of index
-    measureit_index: CollectionProperty(type=MeasureitIndex)
+    measureit_arch_index: CollectionProperty(type=MeasureitArchIndex)
 
 
 # Register
-bpy.utils.register_class(MeasureitFaces)
+bpy.utils.register_class(MeasureitArchFaces)
 
 
 # ------------------------------------------------------------------
-# Define property group class for measureit data
+# Define property group class for measureit_arch data
 # ------------------------------------------------------------------
-class MeasureitProperties(PropertyGroup):
+class MeasureitArchProperties(PropertyGroup):
     style: IntProperty(name="style",
                         description="Dimension Style to use",
                         min = 0)
@@ -310,22 +310,22 @@ class MeasureitProperties(PropertyGroup):
                                       size=4)
 
     # Array of faces
-    measureit_faces: CollectionProperty(type=MeasureitFaces)
+    measureit_arch_faces: CollectionProperty(type=MeasureitArchFaces)
 
 
 # Register
-bpy.utils.register_class(MeasureitProperties)
+bpy.utils.register_class(MeasureitArchProperties)
 
 
 # ------------------------------------------------------------------
 # Define object class (container of segments)
-# Measureit
+# MeasureitArch
 # ------------------------------------------------------------------
 class MeasureContainer(PropertyGroup):
-    measureit_num = IntProperty(name='Number of measures', min=0, max=1000, default=0,
-                                description='Number total of measureit elements')
+    measureit_arch_num = IntProperty(name='Number of measures', min=0, max=1000, default=0,
+                                description='Number total of measureit_arch elements')
     # Array of segments
-    measureit_segments = CollectionProperty(type=MeasureitProperties)
+    measureit_arch_segments = CollectionProperty(type=MeasureitArchProperties)
 
 
 bpy.utils.register_class(MeasureContainer)
@@ -416,7 +416,7 @@ bpy.utils.register_class(LineProperties)
 
 # ------------------------------------------------------------------
 # Define object class (container of lines)
-# Measureit
+# MeasureitArch
 # ------------------------------------------------------------------
 class LineContainer(PropertyGroup):
     line_num: IntProperty(name='Number of Line Groups', min=0, max=1000, default=0,
@@ -433,12 +433,12 @@ Object.LineGenerator = CollectionProperty(type=LineContainer)
 # Define UI class
 # show/Hide Dimensions
 # ------------------------------------------------------------------
-class MeasureitShowHidePanel(Panel):
-    bl_idname = "measureit.showhidepanel"
+class MeasureitArchShowHidePanel(Panel):
+    bl_idname = "measureit_arch.showhidepanel"
     bl_label = "Show/Hide Dimensions"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'MeasureIt'
+    bl_category = 'MeasureIt-ARCH'
 
     # -----------------------------------------------------
     # Draw (create UI interface)
@@ -454,26 +454,26 @@ class MeasureitShowHidePanel(Panel):
         # ------------------------------
         row = box.row(align=True)
         
-        if context.window_manager.measureit_run_opengl is False:
+        if context.window_manager.measureit_arch_run_opengl is False:
             icon = 'PLAY'
             txt = 'Show'
         else:
             icon = "PAUSE"
             txt = 'Hide'
 
-        row.operator("measureit.runopenglbutton", text=txt, icon=icon ,)
-        row.prop(scene, "measureit_gl_ghost", text="", icon='GHOST_ENABLED')
+        row.operator("measureit_arch.runopenglbutton", text=txt, icon=icon ,)
+        row.prop(scene, "measureit_arch_gl_ghost", text="", icon='GHOST_ENABLED')
 
 
 # ------------------------------------------------------------------
 # Define panel class for main functions.
 # ------------------------------------------------------------------
-class MeasureitMainPanel(Panel):
+class MeasureitArchMainPanel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
     bl_label = "Add Dimension"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
-    bl_category = 'MeasureIt'
+    bl_category = 'MeasureIt-ARCH'
 
     # ------------------------------
     # Draw UI
@@ -490,37 +490,37 @@ class MeasureitMainPanel(Panel):
         box = layout.box()
         box.label(text="Add Measures")
         row = box.row()
-        row.operator("measureit.addsegmentbutton", text="Segment", icon="ALIGN_CENTER")
+        row.operator("measureit_arch.addsegmentbutton", text="Segment", icon="ALIGN_CENTER")
         row = box.row()
-        row.prop(scene, "measureit_sum", text="Sum")
+        row.prop(scene, "measureit_arch_sum", text="Sum")
 
         # To origin
         row = box.row()
         split = row.split(align=True)
-        op = split.operator("measureit.addsegmentortobutton", text="X", icon="ALIGN_CENTER")
+        op = split.operator("measureit_arch.addsegmentortobutton", text="X", icon="ALIGN_CENTER")
         op.tag = 0  # saves internal data
-        op = split.operator("measureit.addsegmentortobutton", text="Y", icon="ALIGN_CENTER")
+        op = split.operator("measureit_arch.addsegmentortobutton", text="Y", icon="ALIGN_CENTER")
         op.tag = 1  # saves internal data
-        op = split.operator("measureit.addsegmentortobutton", text="Z", icon="ALIGN_CENTER")
+        op = split.operator("measureit_arch.addsegmentortobutton", text="Z", icon="ALIGN_CENTER")
         op.tag = 2  # saves internal data
 
         row = box.row()
-        row.operator("measureit.addanglebutton", text="Angle", icon="LINCURVE")
+        row.operator("measureit_arch.addanglebutton", text="Angle", icon="LINCURVE")
         row = box.row()
-        row.operator("measureit.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
+        row.operator("measureit_arch.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
 
         row = box.row()
-        row.operator("measureit.addlabelbutton", text="Label", icon="FONT_DATA")
+        row.operator("measureit_arch.addlabelbutton", text="Label", icon="FONT_DATA")
         row = box.row()
-        row.operator("measureit.addnotebutton", text="Annotation", icon="FILE_NEW")
+        row.operator("measureit_arch.addnotebutton", text="Annotation", icon="FILE_NEW")
 
         row = box.row()
-        row.operator("measureit.addlinkbutton", text="Link", icon="PIVOT_MEDIAN")
+        row.operator("measureit_arch.addlinkbutton", text="Link", icon="PIVOT_MEDIAN")
         row = box.row()
-        row.operator("measureit.addoriginbutton", text="Origin", icon="PIVOT_CURSOR")
+        row.operator("measureit_arch.addoriginbutton", text="Origin", icon="PIVOT_CURSOR")
 
         row = box.row()
-        row.operator("measureit.addareabutton", text="Area", icon="MESH_GRID")
+        row.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
         
         # ------------------------------
         # Linework Tools
@@ -529,66 +529,66 @@ class MeasureitMainPanel(Panel):
         box = layout.box()
         box.label(text="Add Lines")
         row = box.row()
-        row.operator("measureit.addlinebutton", text="Line", icon="ALIGN_CENTER")
+        row.operator("measureit_arch.addlinebutton", text="Line", icon="ALIGN_CENTER")
 
         # ------------------------------
         # Debug data
         # ------------------------------
         box = layout.box()
         row = box.row(align=False)
-        if scene.measureit_debug is False:
-            row.prop(scene, "measureit_debug", icon="TRIA_RIGHT",
+        if scene.measureit_arch_debug is False:
+            row.prop(scene, "measureit_arch_debug", icon="TRIA_RIGHT",
                      text="Mesh Debug", emboss=False)
         else:
-            row.prop(scene, "measureit_debug", icon="TRIA_DOWN",
+            row.prop(scene, "measureit_arch_debug", icon="TRIA_DOWN",
                      text="Mesh Debug", emboss=False)
 
             row = box.row()
             split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_debug_obj_color', text="")
-            split.prop(scene, "measureit_debug_objects", icon="OBJECT_DATA")
-            split.prop(scene, "measureit_debug_object_loc", icon="EMPTY_DATA")
+            split.prop(scene, 'measureit_arch_debug_obj_color', text="")
+            split.prop(scene, "measureit_arch_debug_objects", icon="OBJECT_DATA")
+            split.prop(scene, "measureit_arch_debug_object_loc", icon="EMPTY_DATA")
 
             row = box.row()
             split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_debug_vert_color', text="")
-            split.prop(scene, "measureit_debug_vertices", icon="VERTEXSEL")
-            split.prop(scene, "measureit_debug_vert_loc", icon="EMPTY_DATA")
-            if scene.measureit_debug_vert_loc is True:
-                split.prop(scene, 'measureit_debug_vert_loc_toggle', text="")
+            split.prop(scene, 'measureit_arch_debug_vert_color', text="")
+            split.prop(scene, "measureit_arch_debug_vertices", icon="VERTEXSEL")
+            split.prop(scene, "measureit_arch_debug_vert_loc", icon="EMPTY_DATA")
+            if scene.measureit_arch_debug_vert_loc is True:
+                split.prop(scene, 'measureit_arch_debug_vert_loc_toggle', text="")
 
             row = box.row()
             split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_debug_edge_color', text="")
+            split.prop(scene, 'measureit_arch_debug_edge_color', text="")
             split = split.split(factor=0.5, align=True)
-            split.prop(scene, "measureit_debug_edges", icon="EDGESEL")
+            split.prop(scene, "measureit_arch_debug_edges", icon="EDGESEL")
 
             row = box.row()
             split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_debug_face_color', text="")
+            split.prop(scene, 'measureit_arch_debug_face_color', text="")
             split = split.split(factor=0.5, align=True)
-            split.prop(scene, "measureit_debug_faces", icon="FACESEL")
+            split.prop(scene, "measureit_arch_debug_faces", icon="FACESEL")
 
             row = box.row()
             split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_debug_norm_color', text="")
-            if scene.measureit_debug_normals is False:
+            split.prop(scene, 'measureit_arch_debug_norm_color', text="")
+            if scene.measureit_arch_debug_normals is False:
                 split = split.split(factor=0.50, align=True)
-                split.prop(scene, "measureit_debug_normals", icon="DRIVER_TRANSFORM")
+                split.prop(scene, "measureit_arch_debug_normals", icon="DRIVER_TRANSFORM")
             else:
                 split = split.split(factor=0.5, align=True)
-                split.prop(scene, "measureit_debug_normals", icon="DRIVER_TRANSFORM")
-                split.prop(scene, "measureit_debug_normal_size")
+                split.prop(scene, "measureit_arch_debug_normals", icon="DRIVER_TRANSFORM")
+                split.prop(scene, "measureit_arch_debug_normal_size")
                 row = box.row()
                 split = row.split(factor=0.10, align=True)
                 split.separator()
-                split.prop(scene, "measureit_debug_normal_details")
-                split.prop(scene, 'measureit_debug_width', text="Thickness")
+                split.prop(scene, "measureit_arch_debug_normal_details")
+                split.prop(scene, 'measureit_arch_debug_width', text="Thickness")
 
             row = box.row(align=True)
-            row.prop(scene, "measureit_debug_select", icon="GHOST_ENABLED")
-            row.prop(scene, 'measureit_debug_font', text="Font")
-            row.prop(scene, 'measureit_debug_precision', text="Precision")
+            row.prop(scene, "measureit_arch_debug_select", icon="GHOST_ENABLED")
+            row.prop(scene, 'measureit_arch_debug_font', text="Font")
+            row.prop(scene, 'measureit_arch_debug_precision', text="Precision")
 
 
 # ------------------------------------------------------------------
@@ -601,10 +601,10 @@ class MeasureitMainPanel(Panel):
 #
 # -------------------------------------------------------------
 class AddSegmentButton(Operator):
-    bl_idname = "measureit.addsegmentbutton"
+    bl_idname = "measureit_arch.addsegmentbutton"
     bl_label = "Add"
     bl_description = "(EDITMODE only) Add a new measure segment between 2 vertices (select 2 vertices or more)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Poll
@@ -646,38 +646,38 @@ class AddSegmentButton(Operator):
                     # -----------------------
                     if exist_segment(mp, mylist[x], mylist[x + 1]) is False:
                         # Create all array elements
-                        for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
-                            mp.measureit_segments.add()
+                        for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
+                            mp.measureit_arch_segments.add()
 
                         # Set values
-                        ms = mp.measureit_segments[mp.measureit_num]
+                        ms = mp.measureit_arch_segments[mp.measureit_arch_num]
                         ms.gltype = 1
-                        ms.style = scene.measureit_default_style
+                        ms.style = scene.measureit_arch_default_style
                         ms.glpointa = mylist[x]
                         ms.glpointb = mylist[x + 1]
-                        ms.glarrow_a = scene.measureit_glarrow_a
-                        ms.glarrow_b = scene.measureit_glarrow_b
-                        ms.glarrow_s = scene.measureit_glarrow_s
+                        ms.glarrow_a = scene.measureit_arch_glarrow_a
+                        ms.glarrow_b = scene.measureit_arch_glarrow_b
+                        ms.glarrow_s = scene.measureit_arch_glarrow_s
                         # color
-                        ms.glcolor = scene.measureit_default_color
+                        ms.glcolor = scene.measureit_arch_default_color
                         # dist
-                        ms.glspace = scene.measureit_hint_space
+                        ms.glspace = scene.measureit_arch_hint_space
                         # text
-                        ms.gltxt = scene.measureit_gl_txt
-                        ms.glfont_size = scene.measureit_font_size
-                        ms.glfont_align = scene.measureit_font_align
-                        ms.glfont_rotat = scene.measureit_font_rotation
+                        ms.gltxt = scene.measureit_arch_gl_txt
+                        ms.glfont_size = scene.measureit_arch_font_size
+                        ms.glfont_align = scene.measureit_arch_font_align
+                        ms.glfont_rotat = scene.measureit_arch_font_rotation
                         # Sum group
-                        ms.gltot = scene.measureit_sum
+                        ms.gltot = scene.measureit_arch_sum
                         # Add index
-                        mp.measureit_num += 1
+                        mp.measureit_arch_num += 1
 
                 # redraw
                 context.area.tag_redraw()
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt: Select at least two vertices for creating measure segment.")
+                            "MeasureIt-ARCH: Select at least two vertices for creating measure segment.")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -691,10 +691,10 @@ class AddSegmentButton(Operator):
 #
 # -------------------------------------------------------------
 class AddAreaButton(Operator):
-    bl_idname = "measureit.addareabutton"
+    bl_idname = "measureit_arch.addareabutton"
     bl_label = "Area"
     bl_description = "(EDITMODE only) Add a new measure for area (select 1 o more faces)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Poll
@@ -727,45 +727,45 @@ class AddAreaButton(Operator):
                     mainobject.MeasureGenerator.add()
 
                 mp = mainobject.MeasureGenerator[0]
-                mp.measureit_segments.add()
-                ms = mp.measureit_segments[mp.measureit_num]
+                mp.measureit_arch_segments.add()
+                ms = mp.measureit_arch_segments[mp.measureit_arch_num]
                 ms.gltype = 20
 
                 f = -1
                 for face in mylist:
                     # Create array elements
-                    ms.measureit_faces.add()
+                    ms.measureit_arch_faces.add()
                     f += 1
                     # Set values
-                    mf = ms.measureit_faces[f]
+                    mf = ms.measureit_arch_faces[f]
                     mf.glface = f
                     i = 0
                     for v in face:
-                        mf.measureit_index.add()
-                        mi = mf.measureit_index[i]
+                        mf.measureit_arch_index.add()
+                        mi = mf.measureit_arch_index[i]
                         mi.glidx = v
                         i += 1
 
                 # color
-                rgb = scene.measureit_default_color
+                rgb = scene.measureit_arch_default_color
                 ms.glcolor = (rgb[0], rgb[1], rgb[2], 0.4)
                 # dist
-                ms.glspace = scene.measureit_hint_space
+                ms.glspace = scene.measureit_arch_hint_space
                 # text
-                ms.gltxt = scene.measureit_gl_txt
-                ms.glfont_size = scene.measureit_font_size
-                ms.glfont_align = scene.measureit_font_align
-                ms.glfont_rotat = scene.measureit_font_rotation
+                ms.gltxt = scene.measureit_arch_gl_txt
+                ms.glfont_size = scene.measureit_arch_font_size
+                ms.glfont_align = scene.measureit_arch_font_align
+                ms.glfont_rotat = scene.measureit_arch_font_rotation
                 # Sum group
-                ms.gltot = scene.measureit_sum
+                ms.gltot = scene.measureit_arch_sum
                 # Add index
-                mp.measureit_num += 1
+                mp.measureit_arch_num += 1
                 # redraw
                 context.area.tag_redraw()
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt: Select at least one face for creating area measure. ")
+                            "MeasureIt-ARCH: Select at least one face for creating area measure. ")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -779,11 +779,11 @@ class AddAreaButton(Operator):
 #
 # -------------------------------------------------------------
 class AddSegmentOrtoButton(Operator):
-    bl_idname = "measureit.addsegmentortobutton"
+    bl_idname = "measureit_arch.addsegmentortobutton"
     bl_label = "Add"
     bl_description = "(EDITMODE only) Add a new measure segment from vertex to object origin for one " \
                      "axis (select 1 vertex)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag = IntProperty()
 
     # ------------------------------
@@ -826,37 +826,37 @@ class AddSegmentOrtoButton(Operator):
                     # -----------------------
                     if exist_segment(mp, mylist[x], mylist[x], 12 + int(self.tag)) is False:
                         # Create all array elements
-                        for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
-                            mp.measureit_segments.add()
+                        for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
+                            mp.measureit_arch_segments.add()
 
                         # Set values
-                        ms = mp.measureit_segments[mp.measureit_num]
+                        ms = mp.measureit_arch_segments[mp.measureit_arch_num]
                         ms.gltype = 12 + int(self.tag)
                         ms.glpointa = mylist[x]
                         ms.glpointb = mylist[x]
-                        ms.glarrow_a = scene.measureit_glarrow_a
-                        ms.glarrow_b = scene.measureit_glarrow_b
-                        ms.glarrow_s = scene.measureit_glarrow_s
+                        ms.glarrow_a = scene.measureit_arch_glarrow_a
+                        ms.glarrow_b = scene.measureit_arch_glarrow_b
+                        ms.glarrow_s = scene.measureit_arch_glarrow_s
                         # color
-                        ms.glcolor = scene.measureit_default_color
+                        ms.glcolor = scene.measureit_arch_default_color
                         # dist
-                        ms.glspace = scene.measureit_hint_space
+                        ms.glspace = scene.measureit_arch_hint_space
                         # text
-                        ms.gltxt = scene.measureit_gl_txt
-                        ms.glfont_size = scene.measureit_font_size
-                        ms.glfont_align = scene.measureit_font_align
-                        ms.glfont_rotat = scene.measureit_font_rotation
+                        ms.gltxt = scene.measureit_arch_gl_txt
+                        ms.glfont_size = scene.measureit_arch_font_size
+                        ms.glfont_align = scene.measureit_arch_font_align
+                        ms.glfont_rotat = scene.measureit_arch_font_rotation
                         # Sum group
-                        ms.gltot = scene.measureit_sum
+                        ms.gltot = scene.measureit_arch_sum
                         # Add index
-                        mp.measureit_num += 1
+                        mp.measureit_arch_num += 1
 
                 # redraw
                 context.area.tag_redraw()
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt: Select at least one vertex for creating measure segment.")
+                            "MeasureIt-ARCH: Select at least one vertex for creating measure segment.")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -870,10 +870,10 @@ class AddSegmentOrtoButton(Operator):
 #
 # -------------------------------------------------------------
 class AddAngleButton(Operator):
-    bl_idname = "measureit.addanglebutton"
+    bl_idname = "measureit_arch.addanglebutton"
     bl_label = "Angle"
     bl_description = "(EDITMODE only) Add a new angle measure (select 3 vertices, 2nd is angle vertex)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Poll
@@ -911,33 +911,33 @@ class AddAngleButton(Operator):
                 # -----------------------
                 if exist_segment(mp, mylist[0], mylist[1], 9, mylist[2]) is False:
                     # Create all array elements
-                    for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
-                        mp.measureit_segments.add()
+                    for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
+                        mp.measureit_arch_segments.add()
 
                     # Set values
-                    ms = mp.measureit_segments[mp.measureit_num]
+                    ms = mp.measureit_arch_segments[mp.measureit_arch_num]
                     ms.gltype = 9
                     ms.glpointa = mylist[0]
                     ms.glpointb = mylist[1]
                     ms.glpointc = mylist[2]
                     # color
-                    ms.glcolor = scene.measureit_default_color
+                    ms.glcolor = scene.measureit_arch_default_color
                     # dist
-                    ms.glspace = scene.measureit_hint_space
+                    ms.glspace = scene.measureit_arch_hint_space
                     # text
-                    ms.gltxt = scene.measureit_gl_txt
-                    ms.glfont_size = scene.measureit_font_size
-                    ms.glfont_align = scene.measureit_font_align
-                    ms.glfont_rotat = scene.measureit_font_rotation
+                    ms.gltxt = scene.measureit_arch_gl_txt
+                    ms.glfont_size = scene.measureit_arch_font_size
+                    ms.glfont_align = scene.measureit_arch_font_align
+                    ms.glfont_rotat = scene.measureit_arch_font_rotation
                     # Add index
-                    mp.measureit_num += 1
+                    mp.measureit_arch_num += 1
 
                 # redraw
                 context.area.tag_redraw()
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt: Select three vertices for creating angle measure")
+                            "MeasureIt-ARCH: Select three vertices for creating angle measure")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -951,11 +951,11 @@ class AddAngleButton(Operator):
 #
 # -------------------------------------------------------------
 class AddArcButton(Operator):
-    bl_idname = "measureit.addarcbutton"
+    bl_idname = "measureit_arch.addarcbutton"
     bl_label = "Angle"
     bl_description = "(EDITMODE only) Add a new arc measure (select 3 vertices of the arc," \
                      " vertices 1st and 3rd are arc extremes)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Poll
@@ -993,36 +993,36 @@ class AddArcButton(Operator):
                 # -----------------------
                 if exist_segment(mp, mylist[0], mylist[1], 11, mylist[2]) is False:
                     # Create all array elements
-                    for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
-                        mp.measureit_segments.add()
+                    for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
+                        mp.measureit_arch_segments.add()
 
                     # Set values
-                    ms = mp.measureit_segments[mp.measureit_num]
+                    ms = mp.measureit_arch_segments[mp.measureit_arch_num]
                     ms.gltype = 11
                     ms.glpointa = mylist[0]
                     ms.glpointb = mylist[1]
                     ms.glpointc = mylist[2]
-                    ms.glarrow_a = scene.measureit_glarrow_a
-                    ms.glarrow_b = scene.measureit_glarrow_b
-                    ms.glarrow_s = scene.measureit_glarrow_s
+                    ms.glarrow_a = scene.measureit_arch_glarrow_a
+                    ms.glarrow_b = scene.measureit_arch_glarrow_b
+                    ms.glarrow_s = scene.measureit_arch_glarrow_s
                     # color
-                    ms.glcolor = scene.measureit_default_color
+                    ms.glcolor = scene.measureit_arch_default_color
                     # dist
-                    ms.glspace = scene.measureit_hint_space
+                    ms.glspace = scene.measureit_arch_hint_space
                     # text
-                    ms.gltxt = scene.measureit_gl_txt
-                    ms.glfont_size = scene.measureit_font_size
-                    ms.glfont_align = scene.measureit_font_align
-                    ms.glfont_rotat = scene.measureit_font_rotation
+                    ms.gltxt = scene.measureit_arch_gl_txt
+                    ms.glfont_size = scene.measureit_arch_font_size
+                    ms.glfont_align = scene.measureit_arch_font_align
+                    ms.glfont_rotat = scene.measureit_arch_font_rotation
                     # Add index
-                    mp.measureit_num += 1
+                    mp.measureit_arch_num += 1
 
                 # redraw
                 context.area.tag_redraw()
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt: Select three vertices for creating arc measure")
+                            "MeasureIt-ARCH: Select three vertices for creating arc measure")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -1036,10 +1036,10 @@ class AddArcButton(Operator):
 #
 # -------------------------------------------------------------
 class AddLabelButton(Operator):
-    bl_idname = "measureit.addlabelbutton"
+    bl_idname = "measureit_arch.addlabelbutton"
     bl_label = "Add"
     bl_description = "(EDITMODE only) Add a new measure label (select 1 vertex)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Poll
@@ -1077,35 +1077,35 @@ class AddLabelButton(Operator):
                 # -----------------------
                 if exist_segment(mp, mylist[0], mylist[0], 2) is False:  # Both equal
                     # Create all array elements
-                    for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
-                        mp.measureit_segments.add()
+                    for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
+                        mp.measureit_arch_segments.add()
 
                     # Set values
-                    ms = mp.measureit_segments[mp.measureit_num]
+                    ms = mp.measureit_arch_segments[mp.measureit_arch_num]
                     ms.gltype = 2
                     ms.glpointa = mylist[0]
                     ms.glpointb = mylist[0]  # Equal
-                    ms.glarrow_a = scene.measureit_glarrow_a
-                    ms.glarrow_b = scene.measureit_glarrow_b
-                    ms.glarrow_s = scene.measureit_glarrow_s
+                    ms.glarrow_a = scene.measureit_arch_glarrow_a
+                    ms.glarrow_b = scene.measureit_arch_glarrow_b
+                    ms.glarrow_s = scene.measureit_arch_glarrow_s
                     # color
-                    ms.glcolor = scene.measureit_default_color
+                    ms.glcolor = scene.measureit_arch_default_color
                     # dist
-                    ms.glspace = scene.measureit_hint_space
+                    ms.glspace = scene.measureit_arch_hint_space
                     # text
-                    ms.gltxt = scene.measureit_gl_txt
-                    ms.glfont_size = scene.measureit_font_size
-                    ms.glfont_align = scene.measureit_font_align
-                    ms.glfont_rotat = scene.measureit_font_rotation
+                    ms.gltxt = scene.measureit_arch_gl_txt
+                    ms.glfont_size = scene.measureit_arch_font_size
+                    ms.glfont_align = scene.measureit_arch_font_align
+                    ms.glfont_rotat = scene.measureit_arch_font_rotation
                     # Add index
-                    mp.measureit_num += 1
+                    mp.measureit_arch_num += 1
 
                 # redraw
                 context.area.tag_redraw()
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt: Select one vertex for creating measure label")
+                            "MeasureIt-ARCH: Select one vertex for creating measure label")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -1119,11 +1119,11 @@ class AddLabelButton(Operator):
 #
 # -------------------------------------------------------------
 class AddLinkButton(Operator):
-    bl_idname = "measureit.addlinkbutton"
+    bl_idname = "measureit_arch.addlinkbutton"
     bl_label = "Add"
     bl_description = "(OBJECT mode only) Add a new measure between objects (select 2 " \
                      "objects and optionally 1 or 2 vertices)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Poll
@@ -1154,7 +1154,7 @@ class AddLinkButton(Operator):
             # -------------------------------
             if len(context.selected_objects) != 2:
                 self.report({'ERROR'},
-                            "MeasureIt: Select two objects only, and optionally 1 vertex or 2 vertices "
+                            "MeasureIt-ARCH: Select two objects only, and optionally 1 vertex or 2 vertices "
                             "(one of each object)")
                 return {'FINISHED'}
             # Locate other object
@@ -1167,14 +1167,14 @@ class AddLinkButton(Operator):
             mylinkvertex = get_selected_vertex(lkobj)
             if len(mylinkvertex) > 1:
                 self.report({'ERROR'},
-                            "MeasureIt: The destination object has more than one vertex selected. "
+                            "MeasureIt-ARCH: The destination object has more than one vertex selected. "
                             "Select only 1 or none")
                 return {'FINISHED'}
             # Verify origin vertex
             myobjvertex = get_selected_vertex(mainobject)
             if len(mylinkvertex) > 1:
                 self.report({'ERROR'},
-                            "MeasureIt: The active object has more than one vertex selected. Select only 1 or none")
+                            "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1 or none")
                 return {'FINISHED'}
 
             # -------------------------------
@@ -1189,11 +1189,11 @@ class AddLinkButton(Operator):
             # if exist_segment(mp, mylist[0], mylist[0], 3) is False:
             #     flag = True
             # Create all array elements
-            for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
-                mp.measureit_segments.add()
+            for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
+                mp.measureit_arch_segments.add()
 
             # Set values
-            ms = mp.measureit_segments[mp.measureit_num]
+            ms = mp.measureit_arch_segments[mp.measureit_arch_num]
             # -----------------------
             # Vertex to Vertex
             # -----------------------
@@ -1231,22 +1231,22 @@ class AddLinkButton(Operator):
             # only if created
             # ------------------
             if flag is True:
-                ms.glarrow_a = scene.measureit_glarrow_a
-                ms.glarrow_b = scene.measureit_glarrow_b
-                ms.glarrow_s = scene.measureit_glarrow_s
+                ms.glarrow_a = scene.measureit_arch_glarrow_a
+                ms.glarrow_b = scene.measureit_arch_glarrow_b
+                ms.glarrow_s = scene.measureit_arch_glarrow_s
                 # color
-                ms.glcolor = scene.measureit_default_color
+                ms.glcolor = scene.measureit_arch_default_color
                 # dist
-                ms.glspace = scene.measureit_hint_space
+                ms.glspace = scene.measureit_arch_hint_space
                 # text
-                ms.gltxt = scene.measureit_gl_txt
-                ms.glfont_size = scene.measureit_font_size
-                ms.glfont_align = scene.measureit_font_align
-                ms.glfont_rotat = scene.measureit_font_rotation
+                ms.gltxt = scene.measureit_arch_gl_txt
+                ms.glfont_size = scene.measureit_arch_font_size
+                ms.glfont_align = scene.measureit_arch_font_align
+                ms.glfont_rotat = scene.measureit_arch_font_rotation
                 # link
                 ms.gllink = linkobject
                 # Add index
-                mp.measureit_num += 1
+                mp.measureit_arch_num += 1
 
                 # -----------------------
                 # Only if not exist
@@ -1266,10 +1266,10 @@ class AddLinkButton(Operator):
 #
 # -------------------------------------------------------------
 class AddOriginButton(Operator):
-    bl_idname = "measureit.addoriginbutton"
+    bl_idname = "measureit_arch.addoriginbutton"
     bl_label = "Add"
     bl_description = "(OBJECT mode only) Add a new measure to origin (select object and optionally 1 vertex)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Poll
@@ -1302,13 +1302,13 @@ class AddOriginButton(Operator):
 
             mp = mainobject.MeasureGenerator[0]
             # Create all array elements
-            for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
-                mp.measureit_segments.add()
+            for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
+                mp.measureit_arch_segments.add()
 
             # -----------------------
             # Set values
             # -----------------------
-            ms = mp.measureit_segments[mp.measureit_num]
+            ms = mp.measureit_arch_segments[mp.measureit_arch_num]
             flag = False
             if len(mylist) > 0:
                 if len(mylist) == 1:
@@ -1320,7 +1320,7 @@ class AddOriginButton(Operator):
                         ms.glpointb = mylist[0]
                 else:
                     self.report({'ERROR'},
-                                "MeasureIt: Enter in EDITMODE and select one vertex only for creating "
+                                "MeasureIt-ARCH: Enter in EDITMODE and select one vertex only for creating "
                                 "measure from vertex to origin")
                     return {'FINISHED'}
             else:
@@ -1334,20 +1334,20 @@ class AddOriginButton(Operator):
             # only if created
             # ------------------
             if flag is True:
-                ms.glarrow_a = scene.measureit_glarrow_a
-                ms.glarrow_b = scene.measureit_glarrow_b
-                ms.glarrow_s = scene.measureit_glarrow_s
+                ms.glarrow_a = scene.measureit_arch_glarrow_a
+                ms.glarrow_b = scene.measureit_arch_glarrow_b
+                ms.glarrow_s = scene.measureit_arch_glarrow_s
                 # color
-                ms.glcolor = scene.measureit_default_color
+                ms.glcolor = scene.measureit_arch_default_color
                 # dist
-                ms.glspace = scene.measureit_hint_space
+                ms.glspace = scene.measureit_arch_hint_space
                 # text
-                ms.gltxt = scene.measureit_gl_txt
-                ms.glfont_size = scene.measureit_font_size
-                ms.glfont_align = scene.measureit_font_align
-                ms.glfont_rotat = scene.measureit_font_rotation
+                ms.gltxt = scene.measureit_arch_gl_txt
+                ms.glfont_size = scene.measureit_arch_font_size
+                ms.glfont_align = scene.measureit_arch_font_align
+                ms.glfont_rotat = scene.measureit_arch_font_rotation
                 # Add index
-                mp.measureit_num += 1
+                mp.measureit_arch_num += 1
 
             # redraw
             context.area.tag_redraw()
@@ -1365,10 +1365,10 @@ class AddOriginButton(Operator):
 #
 # -------------------------------------------------------------
 class DeleteSegmentButton(Operator):
-    bl_idname = "measureit.deletesegmentbutton"
+    bl_idname = "measureit_arch.deletesegmentbutton"
     bl_label = "Delete"
     bl_description = "Delete a measure"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------
@@ -1379,11 +1379,11 @@ class DeleteSegmentButton(Operator):
         # Add properties
         mainobject = context.object
         mp = mainobject.MeasureGenerator[0]
-        ms = mp.measureit_segments[self.tag]
+        ms = mp.measureit_arch_segments[self.tag]
         ms.glfree = True
         # Delete element
-        mp.measureit_segments.remove(self.tag)
-        mp.measureit_num -= 1
+        mp.measureit_arch_segments.remove(self.tag)
+        mp.measureit_arch_num -= 1
         # redraw
         for window in bpy.context.window_manager.windows:
             screen = window.screen
@@ -1403,10 +1403,10 @@ class DeleteSegmentButton(Operator):
 #
 # -------------------------------------------------------------
 class DeleteAllSegmentButton(Operator):
-    bl_idname = "measureit.deleteallsegmentbutton"
+    bl_idname = "measureit_arch.deleteallsegmentbutton"
     bl_label = "Delete All Segments?"
     bl_description = "Delete all measures (it cannot be undone)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Execute button action
@@ -1416,11 +1416,11 @@ class DeleteAllSegmentButton(Operator):
         mainobject = context.object
         mp = mainobject.MeasureGenerator[0]
 
-        while len(mp.measureit_segments) > 0:
-            mp.measureit_segments.remove(0)
+        while len(mp.measureit_arch_segments) > 0:
+            mp.measureit_arch_segments.remove(0)
 
         # reset size
-        mp.measureit_num = len(mp.measureit_segments)
+        mp.measureit_arch_num = len(mp.measureit_arch_segments)
         # redraw
 
         for window in bpy.context.window_manager.windows:
@@ -1443,10 +1443,10 @@ class DeleteAllSegmentButton(Operator):
 #
 # -------------------------------------------------------------
 class DeleteAllSumButton(Operator):
-    bl_idname = "measureit.deleteallsumbutton"
+    bl_idname = "measureit_arch.deleteallsumbutton"
     bl_label = "Delete"
     bl_description = "Delete all sum groups"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------
@@ -1457,8 +1457,8 @@ class DeleteAllSumButton(Operator):
         if context.object is not None:
             if 'MeasureGenerator' in context.object:
                 mp = context.object.MeasureGenerator[0]
-                for idx in range(0, mp.measureit_num):
-                    ms = mp.measureit_segments[idx]
+                for idx in range(0, mp.measureit_arch_num):
+                    ms = mp.measureit_arch_segments[idx]
                     ms.gltot = '99'
 
             return {'FINISHED'}
@@ -1469,10 +1469,10 @@ class DeleteAllSumButton(Operator):
 #
 # -------------------------------------------------------------
 class ExpandAllSegmentButton(Operator):
-    bl_idname = "measureit.expandallsegmentbutton"
+    bl_idname = "measureit_arch.expandallsegmentbutton"
     bl_label = "Expand"
     bl_description = "Expand all measure properties"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------
@@ -1483,7 +1483,7 @@ class ExpandAllSegmentButton(Operator):
         mainobject = context.object
         mp = mainobject.MeasureGenerator[0]
 
-        for i in mp.measureit_segments:
+        for i in mp.measureit_arch_segments:
             i.gladvance = True
 
         return {'FINISHED'}
@@ -1493,10 +1493,10 @@ class ExpandAllSegmentButton(Operator):
 #
 # -------------------------------------------------------------
 class CollapseAllSegmentButton(Operator):
-    bl_idname = "measureit.collapseallsegmentbutton"
+    bl_idname = "measureit_arch.collapseallsegmentbutton"
     bl_label = "Collapse"
     bl_description = "Collapses all measure properties"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------
@@ -1507,7 +1507,7 @@ class CollapseAllSegmentButton(Operator):
         mainobject = context.object
         mp = mainobject.MeasureGenerator[0]
 
-        for i in mp.measureit_segments:
+        for i in mp.measureit_arch_segments:
             i.gladvance = False
 
         return {'FINISHED'}
@@ -1518,10 +1518,10 @@ class CollapseAllSegmentButton(Operator):
 #
 # -------------------------------------------------------------
 class AddNoteButton(Operator):
-    bl_idname = "measureit.addnotebutton"
+    bl_idname = "measureit_arch.addnotebutton"
     bl_label = "Note"
     bl_description = "(OBJECT mode only) Add a new annotation"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
     tag= IntProperty()
 
     # ------------------------------
@@ -1553,25 +1553,25 @@ class AddNoteButton(Operator):
 
             mp = mainobject.MeasureGenerator[0]
             # Create all array elements
-            for cont in range(len(mp.measureit_segments) - 1, mp.measureit_num):
-                mp.measureit_segments.add()
+            for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
+                mp.measureit_arch_segments.add()
 
             # Set values
-            ms = mp.measureit_segments[mp.measureit_num]
+            ms = mp.measureit_arch_segments[mp.measureit_arch_num]
             ms.gltype = 10
             ms.glpointa = 0
             ms.glpointb = 0  # Equal
             # color
-            ms.glcolor = scene.measureit_default_color
+            ms.glcolor = scene.measureit_arch_default_color
             # dist
-            ms.glspace = scene.measureit_hint_space
+            ms.glspace = scene.measureit_arch_hint_space
             # text
-            ms.gltxt = scene.measureit_gl_txt
-            ms.glfont_size = scene.measureit_font_size
-            ms.glfont_align = scene.measureit_font_align
-            ms.glfont_rotat = scene.measureit_font_rotation
+            ms.gltxt = scene.measureit_arch_gl_txt
+            ms.glfont_size = scene.measureit_arch_font_size
+            ms.glfont_align = scene.measureit_arch_font_align
+            ms.glfont_rotat = scene.measureit_arch_font_rotation
             # Add index
-            mp.measureit_num += 1
+            mp.measureit_arch_num += 1
 
             # redraw
             context.area.tag_redraw()
@@ -1588,10 +1588,10 @@ class AddNoteButton(Operator):
 #
 # -------------------------------------------------------------
 class RunHintDisplayButton(Operator):
-    bl_idname = "measureit.runopenglbutton"
+    bl_idname = "measureit_arch.runopenglbutton"
     bl_label = "Display hint data manager"
     bl_description = "Main control for enabling or disabling the display of measurements in the viewport"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     _handle = None  # keep function handler
     _handle3d = None
@@ -1605,7 +1605,7 @@ class RunHintDisplayButton(Operator):
                                                                         'WINDOW',
                                                                         'POST_PIXEL')
             RunHintDisplayButton._handle3d = SpaceView3D.draw_handler_add(draw_callback_3d, (self,context), 'WINDOW', 'POST_VIEW')
-            context.window_manager.measureit_run_opengl = True
+            context.window_manager.measureit_arch_run_opengl = True
 
     # ------------------------------------
     # Disable gl drawing removing handler
@@ -1617,14 +1617,14 @@ class RunHintDisplayButton(Operator):
             SpaceView3D.draw_handler_remove(RunHintDisplayButton._handle, 'WINDOW')
             SpaceView3D.draw_handler_remove(RunHintDisplayButton._handle3d, 'WINDOW')
         RunHintDisplayButton._handle = None
-        context.window_manager.measureit_run_opengl = False
+        context.window_manager.measureit_arch_run_opengl = False
 
     # ------------------------------
     # Execute button action
     # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
-            if context.window_manager.measureit_run_opengl is False:
+            if context.window_manager.measureit_arch_run_opengl is False:
                 self.handle_add(self, context)
                 context.area.tag_redraw()
             else:
@@ -1640,10 +1640,10 @@ class RunHintDisplayButton(Operator):
 
 
 class AddLineButton(Operator):
-    bl_idname = "measureit.addlinebutton"
+    bl_idname = "measureit_arch.addlinebutton"
     bl_label = "Add"
     bl_description = "(EDITMODE only) Add a new measure segment between 2 vertices (select 2 vertices or more)"
-    bl_category = 'Measureit'
+    bl_category = 'MeasureitArch'
 
     # ------------------------------
     # Poll
@@ -1682,9 +1682,9 @@ class AddLineButton(Operator):
                 lGroup = lineGen.line_groups.add()
 
                 # Set values
-                lGroup.lineStyle = scene.measureit_default_style
+                lGroup.lineStyle = scene.measureit_arch_default_style
                 lGroup.lineWidth = 2     
-                lGroup.lineColor = scene.measureit_default_color
+                lGroup.lineColor = scene.measureit_arch_default_color
                 
                 for x in range (0, len(mylist)-1, 2):
                     sLine = lGroup.singleLine.add()
@@ -1700,7 +1700,7 @@ class AddLineButton(Operator):
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt: Select at least two vertices for creating measure segment.")
+                            "MeasureIt-ARCH: Select at least two vertices for creating measure segment.")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -1745,7 +1745,7 @@ def draw_main(context):
             visibleCollections.extend([collection])
 
     # Display selected or all
-    if scene.measureit_gl_ghost is False:
+    if scene.measureit_arch_gl_ghost is False:
         objlist = context.selected_objects
     else:
         objlist = context.view_layer.objects
@@ -1772,20 +1772,20 @@ def draw_main(context):
     # ---------------------------------------
     # Generate all OpenGL calls for debug
     # ---------------------------------------
-    if scene.measureit_debug is True:
+    if scene.measureit_arch_debug is True:
         selobj = bpy.context.selected_objects
         for myobj in selobj:
-            if scene.measureit_debug_objects is True:
+            if scene.measureit_arch_debug_objects is True:
                 draw_object(context, myobj, region, rv3d)
-            elif scene.measureit_debug_object_loc is True:
+            elif scene.measureit_arch_debug_object_loc is True:
                 draw_object(context, myobj, region, rv3d)
-            if scene.measureit_debug_vertices is True:
+            if scene.measureit_arch_debug_vertices is True:
                 draw_vertices(context, myobj, region, rv3d)
-            elif scene.measureit_debug_vert_loc is True:
+            elif scene.measureit_arch_debug_vert_loc is True:
                 draw_vertices(context, myobj, region, rv3d)
-            if scene.measureit_debug_edges is True:
+            if scene.measureit_arch_debug_edges is True:
                 draw_edges(context, myobj, region, rv3d)
-            if scene.measureit_debug_faces is True or scene.measureit_debug_normals is True:
+            if scene.measureit_arch_debug_faces is True or scene.measureit_arch_debug_normals is True:
                 draw_faces(context, myobj, region, rv3d)
 
     # -----------------------
@@ -1811,8 +1811,8 @@ def draw_callback_3d(self, context):
 #
 # -------------------------------------------------------------
 def exist_segment(mp, pointa, pointb, typ=1, pointc=None):
-    #  for ms in mp.measureit_segments[mp.measureit_num]
-    for ms in mp.measureit_segments:
+    #  for ms in mp.measureit_arch_segments[mp.measureit_arch_num]
+    for ms in mp.measureit_arch_segments:
         if ms.gltype == typ and ms.glfree is False:
             if typ != 9:
                 if ms.glpointa == pointa and ms.glpointb == pointb:
@@ -1963,7 +1963,7 @@ def draw_main_3d (context):
     scene = context.scene
 
     # Display selected or all
-    if scene.measureit_gl_ghost is False:
+    if scene.measureit_arch_gl_ghost is False:
         objlist = context.selected_objects
     else:
         objlist = context.view_layer.objects
