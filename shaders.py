@@ -126,7 +126,7 @@ class Base_Shader_3D ():
         in vec3 pos;
         
         vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
-        vec4 offset = vec4(0.0, 0.0, -0.001, 0.0);
+        vec4 offset = vec4(0.0, 0.0, -0.00005, 0.0);
 
         void main()
         {
@@ -178,7 +178,7 @@ class Dashed_Shader_3D ():
     out float v_ArcLength;
 
     vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0f);
-    vec4 offset = vec4(0,0,-0.001,0);
+    vec4 offset = vec4(0,0,0,0);
 
     void main()
     {
@@ -209,7 +209,7 @@ class Silhouette_Shader_3D ():
 
         in vec3 pos;
 
-        vec4 offset = vec4(0.0, 0.0, 0.005, 0.0);
+        vec4 offset = vec4(0.0, 0.0, 0.0005, 0.0);
 
         //if isOrtho {
         //    offset = vec4(0.0, 0.0, 0.00001, 0.0);

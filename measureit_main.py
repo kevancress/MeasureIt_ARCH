@@ -1683,7 +1683,7 @@ class AddLineButton(Operator):
 
                 # Set values
                 lGroup.lineStyle = scene.measureit_default_style
-                lGroup.lineWidth = scene.measureit_gl_width
+                lGroup.lineWidth = 2     
                 lGroup.lineColor = scene.measureit_default_color
                 
                 for x in range (0, len(mylist)-1, 2):

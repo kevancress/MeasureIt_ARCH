@@ -116,9 +116,14 @@ def draw_segments(context, myobj, op, region, rv3d):
                 # noinspection PyBroadException
                 try:
                     if ovr is False:
-                        rgb = source.glcolor
+                        rawRGB = source.glcolor
                     else:
-                        rgb = ovrcolor
+                        rawRGB = ovrcolor
+                    
+                    #undo blenders Default Gamma Correction
+                    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
+
                     # ----------------------
                     # Segment or Label
                     # ----------------------
@@ -708,11 +713,13 @@ def draw_line_group(context, myobj, lineGen):
     
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
-        rgb = lineGroup.lineColor
+        rawRGB = lineGroup.lineColor
+        #undo blenders Default Gamma Correction
+        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         drawHidden = lineGroup.lineDrawHidden
         #isOrtho = False
         #thickness = lineGroup.lineStyle
-          
+
         if lineGroup.isOutline:
             silhouetteShader.bind()
             silhouetteShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
@@ -722,6 +729,9 @@ def draw_line_group(context, myobj, lineGen):
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             #lineShader.uniform_bool("isOrtho", isOrtho)
         #shader.uniform_float("thickness", thickness)
+
+        coords =[]
+        arclengths = []
         for x in range(0,lineGroup.numLines):
             sLine = lineGroup.singleLine[x]
             
@@ -733,53 +743,59 @@ def draw_line_group(context, myobj, lineGen):
                 bgl.glDepthFunc(bgl.GL_LEQUAL) 
                 bgl.glLineWidth(lineGroup.lineWeight)
 
-                coords =[a_p1,b_p1]
-
-                #Point Pass for Clean Corners
+                coords.append(a_p1)
+                arclengths.append(0)
                 
-                pointShader.bind()
-                pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                if lineGroup.isOutline:
-                    pointShader.uniform_float("offset", (0, 0, 0.005, 0))
-                else:
-                    pointShader.uniform_float("offset", (0, 0, 0.0, 0))
-                bgl.glPointSize(lineGroup.lineWeight)
-                pointShader.uniform_float("size", 1)
+                coords.append(b_p1)
+                arclengths.append((Vector(a_p1)-Vector(b_p1)).length)
+                
 
-                batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
-                batch3d.program_set(pointShader)
-                batch3d.draw()
+        #Point Pass for Clean Corners
+        
+        pointShader.bind()
+        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        if lineGroup.isOutline:
+            pointShader.uniform_float("offset", (0, 0, 0.0005, 0))
+        else:
+            pointShader.uniform_float("offset", (0, 0, 0.0, 0))
+        bgl.glPointSize(lineGroup.lineWeight)
+        pointShader.uniform_float("size", 1)
+
+        batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
+        batch3d.program_set(pointShader)
+        batch3d.draw()
+        gpu.shader.unbind()
+        
+
+        if lineGroup.isOutline:
+            batch3d = batch_for_shader(silhouetteShader, 'LINES', {"pos": coords})
+            batch3d.program_set(silhouetteShader)
+            batch3d.draw()
+            gpu.shader.unbind()
+        else:
+            batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+            batch3d.program_set(lineShader)
+            batch3d.draw()
+            gpu.shader.unbind()
+        
+            #Draw Hidden Lines
+            if drawHidden == True:
+                bgl.glDepthFunc(bgl.GL_GREATER)
+                bgl.glLineWidth(lineGroup.lineHiddenWeight)
+                rawRGB = lineGroup.lineHiddenColor
+                #undo blenders Default Gamma Correction
+                dashRGB = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
+
+                dashedLineShader.bind()
+                dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
+                dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
+            
+                #batch3d.draw()
+                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
+                batchHidden.program_set(dashedLineShader)
+                batchHidden.draw()
                 gpu.shader.unbind()
-                
-
-                if lineGroup.isOutline:
-                    #batch3d = batch_for_shader(silhouetteShader, 'LINES', {"pos": coords})
-                    batch3d.program_set(silhouetteShader)
-                    batch3d.draw()
-                    gpu.shader.unbind()
-                else:
-                    batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-                    batch3d.program_set(lineShader)
-                    batch3d.draw()
-                    gpu.shader.unbind()
-                
-                    #Draw Hidden Lines
-                    if drawHidden == True:
-                        bgl.glDepthFunc(bgl.GL_GREATER)
-                        bgl.glLineWidth(lineGroup.lineHiddenWeight)
-                        dashRGB = lineGroup.lineHiddenColor
-                        dashedLineShader.bind()
-                        dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
-                        dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
-                        
-
-                        arclengths = [0.0,(Vector(a_p1)-Vector(b_p1)).length]
-                        coords = [a_p1,b_p1]
-                        #batch3d.draw()
-                        batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
-                        batchHidden.program_set(dashedLineShader)
-                        batchHidden.draw()
-                        gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 # ------------------------------------------
@@ -1137,7 +1153,9 @@ def format_point(mypoint, pr):
 # noinspection PyUnresolvedReferences,PyUnboundLocalVariable,PyUnusedLocal
 def draw_object(context, myobj, region, rv3d):
     scene = bpy.context.scene
-    rgb = scene.measureit_debug_obj_color
+    rawRGB = scene.measureit_debug_obj_color
+    #undo blenders Default Gamma Correction
+    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
     fsize = scene.measureit_debug_font
     precision = scene.measureit_debug_precision
     # --------------------
@@ -1177,7 +1195,10 @@ def draw_vertices(context, myobj, region, rv3d):
         return
 
     scene = bpy.context.scene
-    rgb = scene.measureit_debug_vert_color
+    rawRGB = scene.measureit_debug_vert_color
+    #undo blenders Default Gamma Correction
+    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
     fsize = scene.measureit_debug_font
     precision = scene.measureit_debug_precision
     # --------------------
@@ -1232,7 +1253,10 @@ def draw_edges(context, myobj, region, rv3d):
         return
 
     scene = bpy.context.scene
-    rgb = scene.measureit_debug_edge_color
+    rawRGB = scene.measureit_debug_edge_color
+    #undo blenders Default Gamma Correction
+    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
     fsize = scene.measureit_debug_font
     precision = scene.measureit_debug_precision
     # --------------------
@@ -1278,8 +1302,16 @@ def draw_faces(context, myobj, region, rv3d):
         return
 
     scene = bpy.context.scene
-    rgb = scene.measureit_debug_face_color
-    rgb2 = scene.measureit_debug_norm_color
+    rawRGB = scene.measureit_debug_face_color
+    #undo blenders Default Gamma Correction
+    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
+
+    rawRGB2 = scene.measureit_debug_norm_color
+    #undo blenders Default Gamma Correction
+    rgb2 = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
+
     fsize = scene.measureit_debug_font
     ln = scene.measureit_debug_normal_size
     th = scene.measureit_debug_width
