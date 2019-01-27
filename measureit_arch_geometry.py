@@ -54,38 +54,38 @@ pointShader = gpu.types.GPUShader(Point_Shader_3D.vertex_shader,Point_Shader_3D.
 # -------------------------------------------------------------
 # noinspection PyUnresolvedReferences,PyUnboundLocalVariable
 def draw_segments(context, myobj, op, region, rv3d):
-    if op.measureit_num > 0:
+    if op.measureit_arch_num > 0:
         a_code = "\u00b0"  # degree
         scale = bpy.context.scene.unit_settings.scale_length
         scene = bpy.context.scene
-        pr = scene.measureit_gl_precision
+        pr = scene.measureit_arch_gl_precision
         fmt = "%1." + str(pr) + "f"
-        ovr = scene.measureit_ovr
-        ovrcolor = scene.measureit_ovr_color
-        ovrfsize = scene.measureit_ovr_font
-        ovrfang = get_angle_in_rad(scene.measureit_ovr_font_rotation)
-        ovrfaln = scene.measureit_ovr_font_align
-        ovrline = scene.measureit_ovr_width
-        units = scene.measureit_units
-        fang = get_angle_in_rad(scene.measureit_font_rotation)
+        ovr = scene.measureit_arch_ovr
+        ovrcolor = scene.measureit_arch_ovr_color
+        ovrfsize = scene.measureit_arch_ovr_font
+        ovrfang = get_angle_in_rad(scene.measureit_arch_ovr_font_rotation)
+        ovrfaln = scene.measureit_arch_ovr_font_align
+        ovrline = scene.measureit_arch_ovr_width
+        units = scene.measureit_arch_units
+        fang = get_angle_in_rad(scene.measureit_arch_font_rotation)
         # --------------------
         # Scene Scale
         # --------------------
-        if scene.measureit_scale is True:
-            prs = scene.measureit_scale_precision
+        if scene.measureit_arch_scale is True:
+            prs = scene.measureit_arch_scale_precision
             fmts = "%1." + str(prs) + "f"
             pos_2d = get_scale_txt_location(context)
-            tx_dsp = fmts % scene.measureit_scale_factor
-            tx_scale = scene.measureit_gl_scaletxt + " 1:" + tx_dsp
+            tx_dsp = fmts % scene.measureit_arch_scale_factor
+            tx_scale = scene.measureit_arch_gl_scaletxt + " 1:" + tx_dsp
             draw_text(myobj, pos_2d,
-                      tx_scale, scene.measureit_scale_color, scene.measureit_scale_font,
+                      tx_scale, scene.measureit_arch_scale_color, scene.measureit_arch_scale_font,
                       text_rot=fang)
 
         # --------------------
         # Loop
         # --------------------
-        for idx in range(0, op.measureit_num):
-            ms = op.measureit_segments[idx]
+        for idx in range(0, op.measureit_arch_num):
+            ms = op.measureit_arch_segments[idx]
             
             numStyles =  scene.StyleGenerator[0].style_num
 
@@ -93,7 +93,7 @@ def draw_segments(context, myobj, op, region, rv3d):
             if ms.style > 0:
                 if ms.style > numStyles:
                     ms.style = numStyles
-                source = scene.StyleGenerator[0].measureit_styles[ms.style-1]        
+                source = scene.StyleGenerator[0].measureit_arch_styles[ms.style-1]        
             else:
                 source = ms 
 
@@ -108,7 +108,7 @@ def draw_segments(context, myobj, op, region, rv3d):
             # ------------------------------
             # only active and visible
             # ------------------------------
-            if ms.glview is True and ms.glfree is False:
+            if ms.glview is True and source.glview is True and ms.glfree is False:
                 # Arrow data
                 a_size = source.glarrow_s
                 a_type = source.glarrow_a
@@ -250,7 +250,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                         a_n.normalize()  # normal vector
                         arc_angle, arc_length = get_arc_data(an_p1, a_p1, an_p2, an_p3)
                         # Apply scale to arc_length
-                        arc_length *= scene.measureit_scale_factor
+                        arc_length *= scene.measureit_arch_scale_factor
 
                     # ----------------------
                     # Area
@@ -388,9 +388,9 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 pass
                             txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
                             # Scale
-                            if scene.measureit_scale is True:
-                                dist = dist * scene.measureit_scale_factor
-                                distloc = distloc * scene.measureit_scale_factor
+                            if scene.measureit_arch_scale is True:
+                                dist = dist * scene.measureit_arch_scale_factor
+                                distloc = distloc * scene.measureit_arch_scale_factor
 
                             # decide dist to use
                             if dist == distloc:
@@ -405,13 +405,13 @@ def draw_segments(context, myobj, op, region, rv3d):
                             # -----------------------------------
                             # Draw text
                             # -----------------------------------
-                            if scene.measureit_gl_show_d is True and ms.gldist is True:
+                            if scene.measureit_arch_gl_show_d is True and ms.gldist is True:
                                 msg = tx_dist + " "
                             else:
                                 msg = " "
-                            if scene.measureit_gl_show_n is True and ms.glnames is True:
+                            if scene.measureit_arch_gl_show_n is True and ms.glnames is True:
                                 msg += ms.gltxt
-                            if scene.measureit_gl_show_d is True or scene.measureit_gl_show_n is True:
+                            if scene.measureit_arch_gl_show_d is True or scene.measureit_arch_gl_show_n is True:
                                 draw_text(myobj, txtpoint2d, msg, rgb, fsize, faln, fang)
 
                             # ------------------------------
@@ -451,7 +451,7 @@ def draw_segments(context, myobj, op, region, rv3d):
                                 if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
                                     tx_dist += a_code
 
-                                if scene.measureit_gl_show_n is True:
+                                if scene.measureit_arch_gl_show_n is True:
                                     tx_dist += " " + ms.gltxt
                             if ms.gltype == 11:  # arc
                                 # print length or arc and angle
@@ -471,15 +471,15 @@ def draw_segments(context, myobj, op, region, rv3d):
                                     if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
                                         tx_dist += a_code
 
-                                if scene.measureit_gl_show_d is True and ms.gldist is True:
+                                if scene.measureit_arch_gl_show_d is True and ms.gldist is True:
                                     msg = tx_dist + " "
                                 else:
                                     msg = " "
 
-                                if scene.measureit_gl_show_n is True and ms.glnames is True:
+                                if scene.measureit_arch_gl_show_n is True and ms.glnames is True:
                                     msg += ms.gltxt
 
-                                if scene.measureit_gl_show_d is True or scene.measureit_gl_show_n is True:
+                                if scene.measureit_arch_gl_show_d is True or scene.measureit_arch_gl_show_n is True:
                                     # Normal vector
                                     vna = Vector((b_p1[0] - a_p1[0],
                                                   b_p1[1] - a_p1[1],
@@ -493,10 +493,10 @@ def draw_segments(context, myobj, op, region, rv3d):
                                         txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
                                         draw_text(myobj, txtpoint2d, msg, rgb, fsize, faln, fang)
                                 # Radius
-                                if scene.measureit_gl_show_d is True and ms.gldist is True and \
+                                if scene.measureit_arch_gl_show_d is True and ms.gldist is True and \
                                         ms.glarc_rad is True:
                                     tx_dist = ms.glarc_txradio + format_distance(fmt, units,
-                                                                                 dist * scene.measureit_scale_factor)
+                                                                                 dist * scene.measureit_arch_scale_factor)
                                 else:
                                     tx_dist = " "
                             if ms.gltype == 2:
@@ -650,18 +650,18 @@ def draw_segments(context, myobj, op, region, rv3d):
                     if ms.gltype == 20:  # Area
                         obverts = get_mesh_vertices(myobj)
                         tot = 0
-                        for face in ms.measureit_faces:
+                        for face in ms.measureit_arch_faces:
                             myvertices = []
-                            for v in face.measureit_index:
+                            for v in face.measureit_arch_index:
                                 myvertices.extend([v.glidx])
 
                             area = get_area_and_paint(myvertices, myobj, obverts, region, rv3d)
                             tot += area
                         # Draw Area number over first face
-                        if len(ms.measureit_faces) > 0:
-                            face = ms.measureit_faces[0]
-                            a = face.measureit_index[0].glidx
-                            b = face.measureit_index[2].glidx
+                        if len(ms.measureit_arch_faces) > 0:
+                            face = ms.measureit_arch_faces[0]
+                            a = face.measureit_arch_index[0].glidx
+                            b = face.measureit_arch_index[2].glidx
 
                             p1 = get_point(obverts[a], myobj)
                             p2 = get_point(obverts[b], myobj)
@@ -669,8 +669,8 @@ def draw_segments(context, myobj, op, region, rv3d):
                             d1, dn = distance(p1, p2)
                             midpoint3d = interpolate3d(p1, p2, fabs(d1 / 2))
                             # Scale
-                            if scene.measureit_scale is True:
-                                tot = tot * scene.measureit_scale_factor
+                            if scene.measureit_arch_scale is True:
+                                tot = tot * scene.measureit_arch_scale_factor
 
                             # mult by world scale
                             tot *= scale
@@ -678,13 +678,13 @@ def draw_segments(context, myobj, op, region, rv3d):
                             # -----------------------------------
                             # Draw text
                             # -----------------------------------
-                            if scene.measureit_gl_show_d is True and ms.gldist is True:
+                            if scene.measureit_arch_gl_show_d is True and ms.gldist is True:
                                 msg = tx_dist + " "
                             else:
                                 msg = " "
-                            if scene.measureit_gl_show_n is True and ms.glnames is True:
+                            if scene.measureit_arch_gl_show_n is True and ms.glnames is True:
                                 msg += ms.gltxt
-                            if scene.measureit_gl_show_d is True or scene.measureit_gl_show_n is True:
+                            if scene.measureit_arch_gl_show_d is True or scene.measureit_arch_gl_show_n is True:
                                 tmp_point = get_2d_point(region, rv3d, midpoint3d)
                                 if tmp_point is not None:
                                     txtpoint2d = tmp_point[0] + ms.glfontx, tmp_point[1] + ms.glfonty
@@ -710,92 +710,93 @@ def draw_line_group(context, myobj, lineGen):
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
   
-    
+
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
-        rawRGB = lineGroup.lineColor
-        #undo blenders Default Gamma Correction
-        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-        drawHidden = lineGroup.lineDrawHidden
-        #isOrtho = False
-        #thickness = lineGroup.lineStyle
+        if lineGroup.lineVis is True:
+            rawRGB = lineGroup.lineColor
+            #undo blenders Default Gamma Correction
+            rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+            drawHidden = lineGroup.lineDrawHidden
+            #isOrtho = False
+            #thickness = lineGroup.lineStyle
 
-        if lineGroup.isOutline:
-            silhouetteShader.bind()
-            silhouetteShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            #silhouetteShader.uniform_bool("isOrtho", isOrtho)
-        else:
-            lineShader.bind()
-            lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            #lineShader.uniform_bool("isOrtho", isOrtho)
-        #shader.uniform_float("thickness", thickness)
+            if lineGroup.isOutline:
+                silhouetteShader.bind()
+                silhouetteShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                #silhouetteShader.uniform_bool("isOrtho", isOrtho)
+            else:
+                lineShader.bind()
+                lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                #lineShader.uniform_bool("isOrtho", isOrtho)
+            #shader.uniform_float("thickness", thickness)
 
-        coords =[]
-        arclengths = []
-        for x in range(0,lineGroup.numLines):
-            sLine = lineGroup.singleLine[x]
+            coords =[]
+            arclengths = []
+            for x in range(0,lineGroup.numLines):
+                sLine = lineGroup.singleLine[x]
+                
+                if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
+                    a_p1 = get_point(obverts[sLine.pointA], myobj)
+                    b_p1 = get_point(obverts[sLine.pointB], myobj)
+
+                if  a_p1 is not None and b_p1 is not None:
+                    bgl.glDepthFunc(bgl.GL_LEQUAL) 
+                    bgl.glLineWidth(lineGroup.lineWeight)
+
+                    coords.append(a_p1)
+                    arclengths.append(0)
+                    
+                    coords.append(b_p1)
+                    arclengths.append((Vector(a_p1)-Vector(b_p1)).length)
+                    
+
+            #Point Pass for Clean Corners
             
-            if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
-                a_p1 = get_point(obverts[sLine.pointA], myobj)
-                b_p1 = get_point(obverts[sLine.pointB], myobj)
+            pointShader.bind()
+            pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            if lineGroup.isOutline:
+                pointShader.uniform_float("offset", (0, 0, 0.0005, 0))
+            else:
+                pointShader.uniform_float("offset", (0, 0, 0.0, 0))
+            bgl.glPointSize(lineGroup.lineWeight)
+            pointShader.uniform_float("size", 1)
 
-            if  a_p1 is not None and b_p1 is not None:
-                bgl.glDepthFunc(bgl.GL_LEQUAL) 
-                bgl.glLineWidth(lineGroup.lineWeight)
-
-                coords.append(a_p1)
-                arclengths.append(0)
-                
-                coords.append(b_p1)
-                arclengths.append((Vector(a_p1)-Vector(b_p1)).length)
-                
-
-        #Point Pass for Clean Corners
-        
-        pointShader.bind()
-        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        if lineGroup.isOutline:
-            pointShader.uniform_float("offset", (0, 0, 0.0005, 0))
-        else:
-            pointShader.uniform_float("offset", (0, 0, 0.0, 0))
-        bgl.glPointSize(lineGroup.lineWeight)
-        pointShader.uniform_float("size", 1)
-
-        batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
-        batch3d.program_set(pointShader)
-        batch3d.draw()
-        gpu.shader.unbind()
-        
-
-        if lineGroup.isOutline:
-            batch3d = batch_for_shader(silhouetteShader, 'LINES', {"pos": coords})
-            batch3d.program_set(silhouetteShader)
+            batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
+            batch3d.program_set(pointShader)
             batch3d.draw()
             gpu.shader.unbind()
-        else:
-            batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-            batch3d.program_set(lineShader)
-            batch3d.draw()
-            gpu.shader.unbind()
-        
-            #Draw Hidden Lines
-            if drawHidden == True:
-                bgl.glDepthFunc(bgl.GL_GREATER)
-                bgl.glLineWidth(lineGroup.lineHiddenWeight)
-                rawRGB = lineGroup.lineHiddenColor
-                #undo blenders Default Gamma Correction
-                dashRGB = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-
-
-                dashedLineShader.bind()
-                dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
-                dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
             
-                #batch3d.draw()
-                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
-                batchHidden.program_set(dashedLineShader)
-                batchHidden.draw()
+
+            if lineGroup.isOutline:
+                batch3d = batch_for_shader(silhouetteShader, 'LINES', {"pos": coords})
+                batch3d.program_set(silhouetteShader)
+                batch3d.draw()
                 gpu.shader.unbind()
+            else:
+                batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+                batch3d.program_set(lineShader)
+                batch3d.draw()
+                gpu.shader.unbind()
+            
+                #Draw Hidden Lines
+                if drawHidden == True:
+                    bgl.glDepthFunc(bgl.GL_GREATER)
+                    bgl.glLineWidth(lineGroup.lineHiddenWeight)
+                    rawRGB = lineGroup.lineHiddenColor
+                    #undo blenders Default Gamma Correction
+                    dashRGB = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
+
+                    dashedLineShader.bind()
+                    dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
+                    dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
+                
+                    #batch3d.draw()
+                    batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
+                    batchHidden.program_set(dashedLineShader)
+                    batchHidden.draw()
+                    gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 # ------------------------------------------
@@ -895,8 +896,8 @@ def get_group_sum(myobj, tag):
         scale = bpy.context.scene.unit_settings.scale_length
         tot = 0.0
         obverts = get_mesh_vertices(myobj)
-        for idx in range(0, mp.measureit_num):
-            ms = mp.measureit_segments[idx]
+        for idx in range(0, mp.measureit_arch_num):
+            ms = mp.measureit_arch_segments[idx]
             if (ms.gltype == 1 or ms.gltype == 12 or
                 ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
                     and ms.glfree is False and g == tx[int(ms.gltot)]:  # only segments
@@ -928,9 +929,9 @@ def get_group_sum(myobj, tag):
 
         if flag is True:
             # Return value
-            pr = bpy.context.scene.measureit_gl_precision
+            pr = bpy.context.scene.measureit_arch_gl_precision
             fmt = "%1." + str(pr) + "f"
-            units = bpy.context.scene.measureit_units
+            units = bpy.context.scene.measureit_arch_units
 
             return format_distance(fmt, units, tot)
         else:
@@ -1019,7 +1020,7 @@ def draw_line(v1, v2):
         coords = [v1,v2]
         
         batch = batch_for_shader(shader, 'LINE_STRIP', {"pos": coords})
-        #rgb = bpy.context.scene.measureit_default_color
+        #rgb = bpy.context.scene.measureit_arch_default_color
         batch.program_set(shader)
         batch.draw()
         
@@ -1153,11 +1154,11 @@ def format_point(mypoint, pr):
 # noinspection PyUnresolvedReferences,PyUnboundLocalVariable,PyUnusedLocal
 def draw_object(context, myobj, region, rv3d):
     scene = bpy.context.scene
-    rawRGB = scene.measureit_debug_obj_color
+    rawRGB = scene.measureit_arch_debug_obj_color
     #undo blenders Default Gamma Correction
     rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-    fsize = scene.measureit_debug_font
-    precision = scene.measureit_debug_precision
+    fsize = scene.measureit_arch_debug_font
+    precision = scene.measureit_arch_debug_precision
     # --------------------
     # object Loop
     # --------------------
@@ -1165,7 +1166,7 @@ def draw_object(context, myobj, region, rv3d):
     obidxs = list(range(len(bpy.context.scene.objects)))
     for o in obidxs:
         # Display only selected
-        if scene.measureit_debug_select is True:
+        if scene.measureit_arch_debug_select is True:
             if objs[o].select is False:
                 continue
         a_p1 = Vector(get_location(objs[o]))
@@ -1174,9 +1175,9 @@ def draw_object(context, myobj, region, rv3d):
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
         # Text
         txt = ''
-        if scene.measureit_debug_objects is True:
+        if scene.measureit_arch_debug_objects is True:
             txt += str(o)
-        if scene.measureit_debug_object_loc is True:
+        if scene.measureit_arch_debug_object_loc is True:
             txt += format_point(a_p1, precision)
         # converting to screen coordinates
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
@@ -1195,16 +1196,16 @@ def draw_vertices(context, myobj, region, rv3d):
         return
 
     scene = bpy.context.scene
-    rawRGB = scene.measureit_debug_vert_color
+    rawRGB = scene.measureit_arch_debug_vert_color
     #undo blenders Default Gamma Correction
     rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
-    fsize = scene.measureit_debug_font
-    precision = scene.measureit_debug_precision
+    fsize = scene.measureit_arch_debug_font
+    precision = scene.measureit_arch_debug_precision
     # --------------------
     # vertex Loop
     # --------------------
-    if scene.measureit_debug_vert_loc_toggle == '1':
+    if scene.measureit_arch_debug_vert_loc_toggle == '1':
         co_mult = lambda c: c
     else:  # if global, convert local c to global
         co_mult = lambda c: myobj.matrix_world @ c
@@ -1217,7 +1218,7 @@ def draw_vertices(context, myobj, region, rv3d):
 
     for v in obverts:
         # Display only selected
-        if scene.measureit_debug_select is True:
+        if scene.measureit_arch_debug_select is True:
             if v.select is False:
                 continue
         # noinspection PyBroadException
@@ -1230,9 +1231,9 @@ def draw_vertices(context, myobj, region, rv3d):
         txtpoint2d = get_2d_point(region, rv3d, a_p1)
         # Text
         txt = ''
-        if scene.measureit_debug_vertices is True:
+        if scene.measureit_arch_debug_vertices is True:
             txt += str(v.index)
-        if scene.measureit_debug_vert_loc is True:
+        if scene.measureit_arch_debug_vert_loc is True:
             txt += format_point(co_mult(v), precision)
         draw_text(myobj, txtpoint2d, txt, rgb, fsize)
         # except:
@@ -1253,12 +1254,12 @@ def draw_edges(context, myobj, region, rv3d):
         return
 
     scene = bpy.context.scene
-    rawRGB = scene.measureit_debug_edge_color
+    rawRGB = scene.measureit_arch_debug_edge_color
     #undo blenders Default Gamma Correction
     rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
-    fsize = scene.measureit_debug_font
-    precision = scene.measureit_debug_precision
+    fsize = scene.measureit_arch_debug_font
+    precision = scene.measureit_arch_debug_precision
     # --------------------
     # edge Loop
     # 
@@ -1277,7 +1278,7 @@ def draw_edges(context, myobj, region, rv3d):
 
     for e in obedges:
         # Display only selected
-        if scene.measureit_debug_select is True:
+        if scene.measureit_arch_debug_select is True:
             if e.select is False:
                 continue
         a_mp = midf(e, obverts)
@@ -1302,20 +1303,20 @@ def draw_faces(context, myobj, region, rv3d):
         return
 
     scene = bpy.context.scene
-    rawRGB = scene.measureit_debug_face_color
+    rawRGB = scene.measureit_arch_debug_face_color
     #undo blenders Default Gamma Correction
     rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
 
-    rawRGB2 = scene.measureit_debug_norm_color
+    rawRGB2 = scene.measureit_arch_debug_norm_color
     #undo blenders Default Gamma Correction
     rgb2 = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
 
-    fsize = scene.measureit_debug_font
-    ln = scene.measureit_debug_normal_size
-    th = scene.measureit_debug_width
-    precision = scene.measureit_debug_precision
+    fsize = scene.measureit_arch_debug_font
+    ln = scene.measureit_arch_debug_normal_size
+    th = scene.measureit_arch_debug_width
+    precision = scene.measureit_arch_debug_precision
 
     # --------------------
     # face Loop
@@ -1331,7 +1332,7 @@ def draw_faces(context, myobj, region, rv3d):
     for f in myfaces:
         normal = f.normal
         # Display only selected
-        if scene.measureit_debug_select is True:
+        if scene.measureit_arch_debug_select is True:
             if f.select is False:
                 continue
         # noinspection PyBroadException
@@ -1349,10 +1350,10 @@ def draw_faces(context, myobj, region, rv3d):
             txtpoint2d = get_2d_point(region, rv3d, a_p1)
             point2 = get_2d_point(region, rv3d, a_p2)
             # Text
-            if scene.measureit_debug_faces is True:
+            if scene.measureit_arch_debug_faces is True:
                 draw_text(myobj, txtpoint2d, str(f.index), rgb, fsize)
             # Draw Normal
-            if scene.measureit_debug_normals is True:
+            if scene.measureit_arch_debug_normals is True:
                 shader.bind()
                 #shader.uniform_float("thickness", th)
                 bgl.glLineWidth(th)
@@ -1360,7 +1361,7 @@ def draw_faces(context, myobj, region, rv3d):
                 #bgl .glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
                 draw_arrow(txtpoint2d, point2, 10, "99", "1")
 
-                if len(obverts) > 2 and scene.measureit_debug_normal_details is True:
+                if len(obverts) > 2 and scene.measureit_arch_debug_normal_details is True:
                     if myobj.mode == 'EDIT':
                         i1 = f.verts[0].index
                         i2 = f.verts[1].index
@@ -1497,8 +1498,8 @@ def get_mesh_vertices(myobj):
 # --------------------------------------------------------------------
 def get_scale_txt_location(context):
     scene = context.scene
-    pos_x = int(context.region.width * scene.measureit_scale_pos_x / 100)
-    pos_y = int(context.region.height * scene.measureit_scale_pos_y / 100)
+    pos_x = int(context.region.width * scene.measureit_arch_scale_pos_x / 100)
+    pos_y = int(context.region.height * scene.measureit_arch_scale_pos_y / 100)
 
     return pos_x, pos_y
 
@@ -1551,7 +1552,7 @@ def get_arc_data(pointa, pointb, pointc, pointd):
 # -------------------------------------------------------------
 def format_distance(fmt, units, value, factor=1):
     s_code = "\u00b2"  # Superscript two
-    hide_units = bpy.context.scene.measureit_hide_units
+    hide_units = bpy.context.scene.measureit_arch_hide_units
     # ------------------------
     # Units automatic
     # ------------------------
@@ -1635,7 +1636,10 @@ def format_distance(fmt, units, value, factor=1):
             fmt += s_code
         decFeet= value * (3.2808399 ** factor)
         feet = int (floor(decFeet))
-        inches = 12* (decFeet%feet)
+        if feet != 0:
+            inches = 12*(decFeet%feet)
+        else:
+            inches = 12*(decFeet)
         tx_dist = str(feet) + "' " + fmt % inches
     # ------------------------
     # Units inches

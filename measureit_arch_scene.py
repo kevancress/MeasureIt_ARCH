@@ -165,24 +165,24 @@ def add_style_item(box, idx, style):
 
     if style.gladvance is True:
         col = box.column()
-        col.prop(style, 'gltxt', text="Text")
-        col.prop(style, 'gldefault', text="Automatic position")
+        #col.prop(style, 'gltxt', text="Text")
+        #col.prop(style, 'gldefault', text="Automatic position")
 
         col = box.column(align=True)
 
-        col.prop(style, 'glspace', text="Distance")
+        #col.prop(style, 'glspace', text="Distance")
         col.prop(style, 'glwidth', text="Lineweight")
-        if style.gldefault is False:
-            col.prop(style, 'glnormalx', text="X")
-            col.prop(style, 'glnormaly', text="Y")
-            col.prop(style, 'glnormalz', text="Z")
+        #if style.gldefault is False:
+        #    col.prop(style, 'glnormalx', text="X")
+        #    col.prop(style, 'glnormaly', text="Y")
+        #    col.prop(style, 'glnormalz', text="Z")
     
         col = box.column(align=True)
 
         col.prop(style, 'glfont_size', text="Font Size")
         col.prop(style, 'glfont_rotat', text="Rotate")
-        col.prop(style, 'glfontx', text="X")
-        col.prop(style, 'glfonty', text="Y")
+        #col.prop(style, 'glfontx', text="X")
+        #col.prop(style, 'glfonty', text="Y")
         col.prop(style, 'glfont_align', text="Align")
         
         # Arrows

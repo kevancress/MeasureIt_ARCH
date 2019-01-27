@@ -150,7 +150,7 @@ def register():
     
     Scene.measureit_arch_default_style = IntProperty(name="Default Style",
                                                 description="Default Dimension Style",
-                                                default=0,
+                                                default=1,
                                                 min=0,)    
     Scene.measureit_arch_font_size = IntProperty(name="Text Size",
                                             description="Default text size",
