@@ -798,6 +798,73 @@ def draw_line_group(context, myobj, lineGen):
                     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
+
+
+
+def draw_annotations(context, myobj, annotationGen):
+    obverts = get_mesh_vertices(myobj)
+    bgl.glEnable(bgl.GL_MULTISAMPLE)
+    bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    bgl.glEnable(bgl.GL_BLEND)
+
+   
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthMask(False)
+  
+
+    for idx in range(0, annotationGen.num_annotations):
+        annotation = annotationGen.annotations[idx]
+        if annotation.annotationVis is True:
+            bgl.glLineWidth(annotation.annotationLineWeight)
+            rawRGB = annotation.annotationColor
+            #undo blenders Default Gamma Correction
+            rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
+            lineShader.bind()
+            lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            #lineShader.uniform_bool("isOrtho", isOrtho)
+            #shader.uniform_float("thickness", thickness)
+
+           
+            p1 = get_point(obverts[annotation.annotationAnchor], myobj)
+            offset = (1,1,1)
+            p2 = Vector(p1) + Vector(offset)
+
+            if  p1 is not None and p2 is not None:
+
+                coords =[p1,p2]
+
+                batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+                batch3d.program_set(lineShader)
+                batch3d.draw()
+                gpu.shader.unbind()
+            
+            draw_text_3D(context,annotation,myobj)
+
+    bgl.glDisable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthMask(True)
+
+def draw_text_3D(context, annotation,myobj):
+    scene = context.scene
+    obverts = get_mesh_vertices(myobj)
+    p1 = get_point(obverts[annotation.annotationAnchor], myobj)
+    render_scale = scene.render.resolution_percentage / 100
+    width = int(scene.render.resolution_x * render_scale)
+    height = int(scene.render.resolution_y * render_scale)
+
+    view_matrix = Matrix([
+        [2 / width , 0, 0, -1],
+        [0, 2 / height, 0, -1],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]])
+
+    gpu.matrix.reset()
+    gpu.matrix.load_matrix(view_matrix)
+    gpu.matrix.load_projection_matrix(Matrix.Identity(4))
+
+    blf.position(0, width/2, height/2,-100)
+    blf.size(0, 20, 72)
+    blf.draw(0, "Hello World")
 # ------------------------------------------
 # Get polygon area and paint area
 #

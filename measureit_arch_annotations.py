@@ -34,6 +34,7 @@ from bpy.props import (
         StringProperty,
         FloatProperty,
         EnumProperty,
+        PointerProperty
         )
 
 from .measureit_arch_main import *
@@ -74,7 +75,7 @@ class AnnotationProperties(PropertyGroup):
     annotationSettings: BoolProperty(name= "annotationSettings",
                         description= "Show Line Settings",
                         default=False)
-    
+    annotationFont: PointerProperty(type= bpy.types.VectorFont)
 
 # Register
 bpy.utils.register_class(AnnotationProperties)
@@ -216,11 +217,13 @@ def add_annotation_item(layout, idx, annotation):
     op.tag = idx  # saves internal data
     
     if annotation.annotationSettings is True:
-        row = box.row(align=True)
         
         col = box.column()
-        col.prop(annotation, 'annotationWeight', text="Line Weight" )
-
+        col.template_ID(annotation, "annotationFont", open="font.open", unlink="font.unlink")
+        col = box.column()
+        col.prop(annotation, 'annotationLineWeight', text="Line Weight" )
+        
+        
 
 class DeleteAnnotationButton(Operator):
 

@@ -360,7 +360,7 @@ def draw_main(context):
     # Generate all OpenGL calls for measures
     # ---------------------------------------
     for myobj in objlist:
-        if myobj.hide_viewport is False:
+        if myobj.visible_get() is True:
             if 'MeasureGenerator' in myobj:
                 
                 # verify visible layer
@@ -415,10 +415,16 @@ def draw_main_3d (context):
     # Generate all OpenGL calls for measures
     # ---------------------------------------
     for myobj in objlist:
-        if myobj.hide_viewport is False:              
+        if myobj.visible_get() is True:              
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]
                 draw_line_group(context,myobj,lineGen)
+
+    for myobj in objlist:
+        if myobj.visible_get() is True:              
+            if 'AnnotationGenerator' in myobj:
+                annotationGen = myobj.AnnotationGenerator[0]
+                draw_annotations(context,myobj,annotationGen)
 
 # -------------------------------------------------------------
 # Handler for drawing OpenGl
