@@ -20,11 +20,10 @@
 
 # ----------------------------------------------------------
 #
+# Collection of Shaders for the Various Draw Functions.
 # Author: Kevan Cress
 #
 # ----------------------------------------------------------
-
-
 
 
 class Base_Shader_2D ():

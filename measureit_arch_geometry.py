@@ -16,7 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
 
 # ----------------------------------------------------------
 # support routines for OpenGL

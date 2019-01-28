@@ -16,7 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
 
 # ----------------------------------------------------------
 # File: measureit_arch_main.py
@@ -206,12 +205,6 @@ class StyleProperties(PropertyGroup):
                             description="Name of The Dimension Style")
     gltype: IntProperty(name="gltype",
                          description="Measure type (1-Segment, 2-Label, etc..)", default=1)
-    glpointa: IntProperty(name="glpointa",
-                           description="Hidden property for opengl")
-    glpointb: IntProperty(name="glpointb",
-                           description="Hidden property for opengl")
-    glpointc: IntProperty(name="glpointc",
-                           description="Hidden property for opengl")
     glcolor: FloatVectorProperty(name="glcolor",
                                   description="Color for the measure",
                                   default=(0.173, 0.545, 1.0, 1.0),
@@ -283,35 +276,6 @@ class StyleProperties(PropertyGroup):
     glnames: BoolProperty(name="glnames",
                            description="Display text for this measure",
                            default=True)
-    gltot: EnumProperty(items=(('99', "-", "Select a group for sum"),
-                                ('0', "A", ""),
-                                ('1', "B", ""),
-                                ('2', "C", ""),
-                                ('3', "D", ""),
-                                ('4', "E", ""),
-                                ('5', "F", ""),
-                                ('6', "G", ""),
-                                ('7', "H", ""),
-                                ('8', "I", ""),
-                                ('9', "J", ""),
-                                ('10', "K", ""),
-                                ('11', "L", ""),
-                                ('12', "M", ""),
-                                ('13', "N", ""),
-                                ('14', "O", ""),
-                                ('15', "P", ""),
-                                ('16', "Q", ""),
-                                ('17', "R", ""),
-                                ('18', "S", ""),
-                                ('19', "T", ""),
-                                ('20', "U", ""),
-                                ('21', "V", ""),
-                                ('22', "W", ""),
-                                ('23', "X", ""),
-                                ('24', "Y", ""),
-                                ('25', "Z", "")),
-                         name="Sum in Group",
-                         description="Add segment length in selected group")
     glorto: EnumProperty(items=(('99', "None", ""),
                                  ('0', "A", "Point A must use selected point B location"),
                                  ('1', "B", "Point B must use selected point A location")),

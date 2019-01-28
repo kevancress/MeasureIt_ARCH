@@ -44,15 +44,17 @@ import os
 if "bpy" in locals():
     import importlib
     importlib.reload(measureit_arch_main)
-    importlib.reload(measureit_arch_obj_ui)
+    importlib.reload(measureit_arch_lines)
     importlib.reload(measureit_arch_render)
-    importlib.reload(measureit_arch_scene)
+    importlib.reload(measureit_arch_styles)
+    importlib.reload(measureit_arch_dimensions)
     print("measureit_arch: Reloaded multifiles")
 else:
     from . import measureit_arch_main
-    from . import measureit_arch_obj_ui
+    from . import measureit_arch_lines
     from . import measureit_arch_render
-    from . import measureit_arch_scene
+    from . import measureit_arch_styles
+    from . import measureit_arch_dimensions
     print("measureit_arch: Imported multifiles")
 
 import bpy
@@ -83,12 +85,12 @@ auto_load.init()
 
 # Define Panel classes for updating
 panels = (
-        measureit_arch_scene.MeasureitArchDimensionSettingsPanel,
-        measureit_arch_scene.MeasureitArchDimensionStylesPanel,
+        measureit_arch_styles.MeasureitArchDimensionSettingsPanel,
+        measureit_arch_styles.MeasureitArchDimensionStylesPanel,
 
         measureit_arch_main.MeasureitArchMainPanel,
         measureit_arch_render.MeasureitArchRenderPanel,
-        measureit_arch_obj_ui.MeasureitArchObjDimensionsPanel,
+        measureit_arch_dimensions.MeasureitArchDimensionsPanel,
         )
 
 def update_panel(self, context):
@@ -485,7 +487,7 @@ def unregister():
     del Scene.measureit_arch_font_align
 
     # remove OpenGL data
-    measureit_arch_main.RunHintDisplayButton.handle_remove(measureit_arch_main.RunHintDisplayButton, bpy.context)
+    measureit_arch_main.ShowHideViewportButton.handle_remove(measureit_arch_main.ShowHideViewportButton, bpy.context)
     wm = bpy.context.window_manager
     p = 'measureit_arch_run_opengl'
     if p in wm:
