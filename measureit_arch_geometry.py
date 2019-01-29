@@ -41,7 +41,6 @@ from .shaders import *
 
 shader = gpu.types.GPUShader(Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader)
 lineShader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
-silhouetteShader = gpu.types.GPUShader(Silhouette_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
 dashedLineShader = gpu.types.GPUShader(Dashed_Shader_3D.vertex_shader, Dashed_Shader_3D.fragment_shader)
 pointShader = gpu.types.GPUShader(Point_Shader_3D.vertex_shader,Point_Shader_3D.fragment_shader)
 
@@ -716,20 +715,29 @@ def draw_line_group(context, myobj, lineGen):
             rawRGB = lineGroup.lineColor
             #undo blenders Default Gamma Correction
             rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+            offset = (lineGroup.lineDepthOffset/1000)
             drawHidden = lineGroup.lineDrawHidden
-            #isOrtho = False
-            #thickness = lineGroup.lineStyle
 
             if lineGroup.isOutline:
-                silhouetteShader.bind()
-                silhouetteShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                #silhouetteShader.uniform_bool("isOrtho", isOrtho)
-            else:
-                lineShader.bind()
-                lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                #lineShader.uniform_bool("isOrtho", isOrtho)
-            #shader.uniform_float("thickness", thickness)
+                offset = -10*offset
 
+            #gl Settings
+            bgl.glDepthFunc(bgl.GL_LEQUAL) 
+            bgl.glLineWidth(lineGroup.lineWeight)
+            bgl.glPointSize(lineGroup.lineWeight)
+
+            #configure Shaders
+            pointShader.bind()
+            pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            pointShader.uniform_float("size", 1)
+            pointShader.uniform_float("offset", -offset)
+
+            lineShader.bind()
+            lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            lineShader.uniform_float("offset", -offset)
+           
+            
+            #Get line data to be drawn
             coords =[]
             arclengths = []
             for x in range(0,lineGroup.numLines):
@@ -740,62 +748,40 @@ def draw_line_group(context, myobj, lineGen):
                     b_p1 = get_point(obverts[sLine.pointB], myobj)
 
                 if  a_p1 is not None and b_p1 is not None:
-                    bgl.glDepthFunc(bgl.GL_LEQUAL) 
-                    bgl.glLineWidth(lineGroup.lineWeight)
-
                     coords.append(a_p1)
                     arclengths.append(0)
                     
                     coords.append(b_p1)
                     arclengths.append((Vector(a_p1)-Vector(b_p1)).length)
                     
-
-            #Point Pass for Clean Corners
-            
-            pointShader.bind()
-            pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            if lineGroup.isOutline:
-                pointShader.uniform_float("offset", (0, 0, 0.0005, 0))
-            else:
-                pointShader.uniform_float("offset", (0, 0, 0.0, 0))
-            bgl.glPointSize(lineGroup.lineWeight)
-            pointShader.uniform_float("size", 1)
-
+            #Draw Point Pass for Clean Corners
             batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
             batch3d.program_set(pointShader)
             batch3d.draw()
-            gpu.shader.unbind()
             
-
-            if lineGroup.isOutline:
-                batch3d = batch_for_shader(silhouetteShader, 'LINES', {"pos": coords})
-                batch3d.program_set(silhouetteShader)
-                batch3d.draw()
-                gpu.shader.unbind()
-            else:
-                batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-                batch3d.program_set(lineShader)
-                batch3d.draw()
-                gpu.shader.unbind()
-            
-                #Draw Hidden Lines
-                if drawHidden == True:
-                    bgl.glDepthFunc(bgl.GL_GREATER)
-                    bgl.glLineWidth(lineGroup.lineHiddenWeight)
-                    rawRGB = lineGroup.lineHiddenColor
-                    #undo blenders Default Gamma Correction
-                    dashRGB = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-
-
-                    dashedLineShader.bind()
-                    dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
-                    dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
+            # Draw Lines
+            batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+            batch3d.program_set(lineShader)
+            batch3d.draw()
+        
+            #Draw Hidden Lines
+            if drawHidden == True:
+                bgl.glDepthFunc(bgl.GL_GREATER)
+                bgl.glLineWidth(lineGroup.lineHiddenWeight)
                 
-                    #batch3d.draw()
-                    batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
-                    batchHidden.program_set(dashedLineShader)
-                    batchHidden.draw()
-                    gpu.shader.unbind()
+                rawRGB = lineGroup.lineHiddenColor
+                #undo blenders Default Gamma Correction
+                dashRGB = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
+                dashedLineShader.bind()
+                dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
+                dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
+            
+                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
+                batchHidden.program_set(dashedLineShader)
+                batchHidden.draw()
+               
+    gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 

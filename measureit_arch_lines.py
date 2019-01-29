@@ -117,6 +117,12 @@ class LineProperties(PropertyGroup):
     isOutline: BoolProperty(name= "isOutline",
                         description= "Line Group Is For Drawing Outlines",
                         default=False)
+
+    #TODO: This Should be automated based on line thickness, distance from clipping plane etc... but I havent figured it out yet
+    #Left as a tweak until it can be reliably calculated automatically
+    lineDepthOffset: FloatProperty(name= "lineDepthOffset",
+                        description= "Z buffer Offset tweak for clean rendering, TEMP",
+                        default = 0.0)
     #collection of indicies                        
     singleLine: CollectionProperty(type=SingleLineProperties)
 
@@ -281,12 +287,13 @@ def add_line_item(layout, idx, line):
         op.tag = idx
         col = box.column()
         col.prop(line, 'lineWeight', text="Lineweight" )
+        col.prop(line, 'lineDepthOffset', text="Z Offset")
         if line.lineDrawHidden is True:
             col = box.column()
             col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
             col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
             col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
-        
+            
 
 class DeleteLineButton(Operator):
 
