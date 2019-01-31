@@ -832,12 +832,15 @@ def draw_annotations(context, myobj, annotationGen):
     bgl.glDepthMask(True)
 
 def draw_text_3D(context, annotation,p2,myobj):
+    
     width = annotation.annotationWidth
     height = annotation.annotationHeight 
     anchor = annotation.annotationAnchor
+
     asp = width/height
     offy = (0,1*asp,0)
     offx = (1,0,0)
+
     batch = batch_for_shader(
         textShader, 'TRI_FAN',
         {
@@ -846,12 +849,15 @@ def draw_text_3D(context, annotation,p2,myobj):
         },
     )
 
+    annotationGen = myobj.AnnotationGenerator[0]
     numVerts = len(myobj.data.vertices)
-    tex_buffer = bgl.Buffer(bgl.GL_INT,numVerts,myobj['tex_buffer'].to_list())
+
+    tex_buffer = bgl.Buffer(bgl.GL_INT,numVerts,annotationGen['tex_buffer'].to_list())
     dim = width * height * 4
+
     if annotation.text_updated is True:
          
-        buffer = bgl.Buffer(bgl.GL_BYTE, dim, myobj[str(anchor)].to_list())
+        buffer = bgl.Buffer(bgl.GL_BYTE, dim, annotation['texture'].to_list())
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[anchor])
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)

@@ -40,7 +40,6 @@ from bpy.props import (
         EnumProperty,
         PointerProperty
         )
-from .buffer_prop import BufferProperty
 from .measureit_arch_main import *
 import numpy as np
 import math
@@ -65,7 +64,7 @@ def update_text(self, context):
     self.annotationWidth = width
     annotationOffscreen = gpu.types.GPUOffScreen(width,height)
     texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-    print (width*height*4)
+
     with annotationOffscreen.bind():
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
@@ -77,15 +76,16 @@ def update_text(self, context):
         bgl.glReadBuffer(bgl.GL_BACK)
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
         
-        context.object[str(self.annotationAnchor)] = texture_buffer.to_list()
+        self['texture'] = texture_buffer.to_list()
         self.text_updated = True
         annotationOffscreen.free()
-   
-    if not str(self.annotationAnchor) in bpy.data.images:
-        bpy.data.images.new(str(self.annotationAnchor), width, height)
-    image = bpy.data.images[str(self.annotationAnchor)]
-    image.scale(width, height)
-    image.pixels = [v / 255 for v in texture_buffer]
+
+    #generate image datablock for debug
+    #if not str(self.annotationAnchor) in bpy.data.images:
+    #    bpy.data.images.new(str(self.annotationAnchor), width, height)
+    #image = bpy.data.images[str(self.annotationAnchor)]
+    #image.scale(width, height)
+    #image.pixels = [v / 255 for v in texture_buffer]
 class AnnotationProperties(PropertyGroup):
 
     annotationText: StringProperty(name="annotationText",
@@ -190,12 +190,14 @@ class AddAnnotationButton(Operator):
                 if 'AnnotationGenerator' not in mainobject:
                     mainobject.AnnotationGenerator.add()
                 
+                annotationGen = mainobject.AnnotationGenerator[0]
                 numVerts = len(mainobject.data.vertices)  
-                if 'tex_buffer' not in mainobject:
+
+                if 'tex_buffer' not in annotationGen:
                     tex_buffer = bgl.Buffer(bgl.GL_INT, numVerts)
                     bgl.glGenTextures(numVerts, tex_buffer)
-                    mainobject['tex_buffer'] = tex_buffer.to_list()
-                annotationGen = mainobject.AnnotationGenerator[0]
+                    annotationGen['tex_buffer'] = tex_buffer.to_list()
+               
                 annotationGen.num_annotations +=1
                 newAnnotation = annotationGen.annotations.add()
 
