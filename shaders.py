@@ -247,6 +247,34 @@ class Point_Shader_3D ():
         }
     '''
 
+class Text_Shader():
+    vertex_shader = '''
+    uniform mat4 ModelViewProjectionMatrix;
+
+    in vec3 position;
+    in vec2 uv;
+
+    out vec2 uvInterp;
+
+    void main()
+    {
+        uvInterp = uv;
+        gl_Position = ModelViewProjectionMatrix* vec4(position, 1.0);
+    }
+    '''
+
+    fragment_shader = '''
+        uniform sampler2D image;
+
+        in vec2 uvInterp;
+
+        void main()
+        {
+            gl_FragColor = texture(image, uvInterp);
+        }
+    '''
+
+
 class DepthOnlyFrag():
     fragment_shader = ''' 
         void main()

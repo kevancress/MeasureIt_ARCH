@@ -24,6 +24,10 @@
 #
 # ----------------------------------------------------------
 import bpy
+import blf
+import bgl
+import gpu
+
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene
 
 from bpy.props import (
@@ -36,17 +40,58 @@ from bpy.props import (
         EnumProperty,
         PointerProperty
         )
-
+from .buffer_prop import BufferProperty
 from .measureit_arch_main import *
+import numpy as np
+import math
 # ------------------------------------------------------------------
 # Define property group class for annotation data
 # ------------------------------------------------------------------
 
+def update_text(self, context):
+
+    rawRGB = self.annotationColor
+    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+    size = 20
+    font_id=0
+    blf.color(font_id,rgb[0],rgb[1],rgb[2],rgb[3])
+    blf.size(font_id,size,300)
+    blf.position(font_id, 5, 5,0)
+    
+    fwidth, fheight =blf.dimensions(font_id,self.annotationText)
+    width = math.ceil(fwidth)
+    height = math.ceil(fheight)
+    self.annotationHeight = height
+    self.annotationWidth = width
+    annotationOffscreen = gpu.types.GPUOffScreen(width,height)
+    texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+    print (width*height*4)
+    with annotationOffscreen.bind():
+        bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+
+        text = self.annotationText
+        
+        blf.size(font_id,60,300)
+        blf.draw(font_id,text)
+        
+        bgl.glReadBuffer(bgl.GL_BACK)
+        bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
+        
+        context.object[str(self.annotationAnchor)] = texture_buffer.to_list()
+        self.text_updated = True
+        annotationOffscreen.free()
+   
+    if not str(self.annotationAnchor) in bpy.data.images:
+        bpy.data.images.new(str(self.annotationAnchor), width, height)
+    image = bpy.data.images[str(self.annotationAnchor)]
+    image.scale(width, height)
+    image.pixels = [v / 255 for v in texture_buffer]
 class AnnotationProperties(PropertyGroup):
 
     annotationText: StringProperty(name="annotationText",
                         description="Text Associated With Annotation ",
-                        default="")
+                        default="",
+                        update= update_text)
     
     annotationAnchor: IntProperty(name="annotationAnchor",
                         description="Index of Vertex that the annotation is Anchored to")
@@ -57,7 +102,8 @@ class AnnotationProperties(PropertyGroup):
                         min=0.0,
                         max=1,
                         subtype='COLOR',
-                        size=4) 
+                        size=4,
+                        update=update_text) 
 
     annotationLineWeight: IntProperty(name="annotationLineWeight",
                         description="Lineweight",
@@ -75,8 +121,20 @@ class AnnotationProperties(PropertyGroup):
     annotationSettings: BoolProperty(name= "annotationSettings",
                         description= "Show Line Settings",
                         default=False)
+    annotationTexture: IntProperty(name= "annotationTexture",
+                        description= "Int Array Storing the Annotation Texture Buffer")
+
     annotationFont: PointerProperty(type= bpy.types.VectorFont)
 
+    text_updated: BoolProperty(name='text_updated',
+                        description= 'flag when text texture need to be redrawn',
+                        default = False)
+
+    annotationWidth: IntProperty(name='annotationWidth',
+                        description= 'Width of annotation')
+    
+    annotationHeight: IntProperty(name='annotationHeight',
+                        description= 'Height of annotation')
 # Register
 bpy.utils.register_class(AnnotationProperties)
 
@@ -126,24 +184,30 @@ class AddAnnotationButton(Operator):
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
-            scene = context.scene
             mainobject = context.object
             mylist = get_selected_vertex(mainobject)
             if len(mylist) == 1:
                 if 'AnnotationGenerator' not in mainobject:
                     mainobject.AnnotationGenerator.add()
-
+                
+                numVerts = len(mainobject.data.vertices)  
+                if 'tex_buffer' not in mainobject:
+                    tex_buffer = bgl.Buffer(bgl.GL_INT, numVerts)
+                    bgl.glGenTextures(numVerts, tex_buffer)
+                    mainobject['tex_buffer'] = tex_buffer.to_list()
                 annotationGen = mainobject.AnnotationGenerator[0]
-
-                newAnnotation = annotationGen.annotations.add()
                 annotationGen.num_annotations +=1
+                newAnnotation = annotationGen.annotations.add()
 
+                          
+
+                
                 # Set values
                 newAnnotation.annotationText = ("Annotation " + str(annotationGen.num_annotations))
                 newAnnotation.annotationAnchor = mylist[0]
                 newAnnotation.annotationColor = (0,0,0,1)
                 newAnnotation.annotationLineWeight = (2)
-
+                update_text(newAnnotation,context)
                 context.area.tag_redraw()
                 return {'FINISHED'}
             else:
@@ -151,7 +215,7 @@ class AddAnnotationButton(Operator):
                             "MeasureIt-ARCH: Select one vertex for creating measure label")
                 return {'FINISHED'}
         else:
-            self.report({'WARNING'},
+            self.report({'WARNING'},   
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
@@ -258,3 +322,5 @@ class DeleteAnnotationButton(Operator):
                     return {'FINISHED'}
                 
         return {'FINISHED'}
+
+

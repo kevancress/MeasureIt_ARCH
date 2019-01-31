@@ -38,11 +38,13 @@ from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
 from sys import exc_info
 from .shaders import *
+from gpu_extras.presets import draw_circle_2d
 
 shader = gpu.types.GPUShader(Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader)
 lineShader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
 dashedLineShader = gpu.types.GPUShader(Dashed_Shader_3D.vertex_shader, Dashed_Shader_3D.fragment_shader)
 pointShader = gpu.types.GPUShader(Point_Shader_3D.vertex_shader,Point_Shader_3D.fragment_shader)
+textShader = gpu.types.GPUShader(Text_Shader.vertex_shader,Text_Shader.fragment_shader)
 
 # -------------------------------------------------------------
 # Draw segments
@@ -808,8 +810,7 @@ def draw_annotations(context, myobj, annotationGen):
 
             lineShader.bind()
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            #lineShader.uniform_bool("isOrtho", isOrtho)
-            #shader.uniform_float("thickness", thickness)
+
 
            
             p1 = get_point(obverts[annotation.annotationAnchor], myobj)
@@ -825,32 +826,44 @@ def draw_annotations(context, myobj, annotationGen):
                 batch3d.draw()
                 gpu.shader.unbind()
             
-            draw_text_3D(context,annotation,myobj)
+            draw_text_3D(context,annotation,p2,myobj)
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 
-def draw_text_3D(context, annotation,myobj):
-    scene = context.scene
-    obverts = get_mesh_vertices(myobj)
-    p1 = get_point(obverts[annotation.annotationAnchor], myobj)
-    render_scale = scene.render.resolution_percentage / 100
-    width = int(scene.render.resolution_x * render_scale)
-    height = int(scene.render.resolution_y * render_scale)
+def draw_text_3D(context, annotation,p2,myobj):
+    width = annotation.annotationWidth
+    height = annotation.annotationHeight 
+    anchor = annotation.annotationAnchor
+    asp = width/height
+    offy = (0,1*asp,0)
+    offx = (1,0,0)
+    batch = batch_for_shader(
+        textShader, 'TRI_FAN',
+        {
+            "position": (Vector(p2), Vector(p2)+Vector(offy), Vector(p2)+Vector(offy)+Vector(offx), Vector(p2)+Vector(offx)),
+            "uv": ((0, 0), (1, 0), (1, 1), (0, 1)),
+        },
+    )
 
-    view_matrix = Matrix([
-        [2 / width , 0, 0, -1],
-        [0, 2 / height, 0, -1],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]])
-
-    gpu.matrix.reset()
-    gpu.matrix.load_matrix(view_matrix)
-    gpu.matrix.load_projection_matrix(Matrix.Identity(4))
-
-    blf.position(0, width/2, height/2,-100)
-    blf.size(0, 20, 72)
-    blf.draw(0, "Hello World")
+    numVerts = len(myobj.data.vertices)
+    tex_buffer = bgl.Buffer(bgl.GL_INT,numVerts,myobj['tex_buffer'].to_list())
+    dim = width * height * 4
+    if annotation.text_updated is True:
+         
+        buffer = bgl.Buffer(bgl.GL_BYTE, dim, myobj[str(anchor)].to_list())
+        bgl.glActiveTexture(bgl.GL_TEXTURE0)
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[anchor])
+        bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+        annotation.text_updated=False
+    
+    else:
+        bgl.glActiveTexture(bgl.GL_TEXTURE0)
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[anchor])
+    textShader.bind()
+    textShader.uniform_float("image", 0)
+    batch.draw(textShader)
 # ------------------------------------------
 # Get polygon area and paint area
 #

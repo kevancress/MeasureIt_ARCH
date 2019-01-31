@@ -293,7 +293,17 @@ def render_main(self, context, animation=False):
                     #Draw Line Groups
                     op = myobj.LineGenerator[0]
                     draw_line_group(context, myobj, op)
+             
+                if 'AnnotationGenerator' in myobj:
 
+                    #Set 3D Projection Martix
+                    gpu.matrix.reset()
+                    gpu.matrix.load_matrix(view_matrix_3d)
+                    gpu.matrix.load_projection_matrix(projection_matrix)
+
+                    #Draw Line Groups
+                    op = myobj.AnnotationGenerator[0]
+                    draw_annotations(context, myobj, op)                
 
         # -----------------------------
         # Loop to draw all debug
