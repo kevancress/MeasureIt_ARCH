@@ -149,7 +149,6 @@ def register():
         subtype='COLOR',
         size=4)
 
-    
     Scene.measureit_arch_default_style = IntProperty(name="Default Style",
                                                 description="Default Dimension Style",
                                                 default=1,

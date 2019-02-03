@@ -85,12 +85,14 @@ class MeasureitArchRenderPanel(Panel):
 # Defines button for render option
 #
 # -------------------------------------------------------------
+
+
 class RenderSegmentButton(Operator):
     bl_idname = "measureit_arch.rendersegmentbutton"
     bl_label = "Render"
     bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
     bl_category = 'MeasureitArch'
-    tag= IntProperty()
+    tag = IntProperty()
 
     # ------------------------------
     # Execute button action
@@ -257,15 +259,15 @@ def render_main(self, context, animation=False):
     projection_matrix = scene.camera.calc_matrix_camera(context.depsgraph, x=width, y=height)
 
     with offscreen.bind():
-        #Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
+        # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
         bgl.glClearDepth(clipdepth)
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
 
-        #Draw Scene If Necessary
-        if scene.measureit_arch_use_depth_clipping == True:
-            draw_scene(self,context, projection_matrix) 
+        # Draw Scene If Necessary
+        if scene.measureit_arch_use_depth_clipping is True:
+            draw_scene(self, context, projection_matrix) 
         
-        #Clear Color Keep on depth info
+        # Clear Color Keep on depth info
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
         # -----------------------------
@@ -274,34 +276,34 @@ def render_main(self, context, animation=False):
         for myobj in objlist:
             if myobj.visible_get() is True:
                 if 'MeasureGenerator' in myobj:
-                    #Set 2D Projection Matrix
+                    # Set 2D Projection Matrix
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix)
                     gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-                    #Draw Segments
+                    # Draw Segments
                     op = myobj.MeasureGenerator[0]
                     draw_segments(context, myobj, op, None, None)
 
                 if 'LineGenerator' in myobj:
 
-                    #Set 3D Projection Martix
+                    # Set 3D Projection Martix
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix_3d)
                     gpu.matrix.load_projection_matrix(projection_matrix)
 
-                    #Draw Line Groups
+                    # Draw Line Groups
                     op = myobj.LineGenerator[0]
                     draw_line_group(context, myobj, op)
              
                 if 'AnnotationGenerator' in myobj:
 
-                    #Set 3D Projection Martix
+                    # Set 3D Projection Martix
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix_3d)
                     gpu.matrix.load_projection_matrix(projection_matrix)
 
-                    #Draw Line Groups
+                    # Draw Line Groups
                     op = myobj.AnnotationGenerator[0]
                     draw_annotations(context, myobj, op)                
 
@@ -348,7 +350,7 @@ def render_main(self, context, animation=False):
     # Create image
     # -----------------------------
     image_name = "measureit_arch_output"
-    if not image_name in bpy.data.images:
+    if image_name not in bpy.data.images:
         bpy.data.images.new(image_name, width, height)
 
     image = bpy.data.images[image_name]
@@ -372,9 +374,12 @@ def render_main(self, context, animation=False):
     # restore default value
     settings.color_depth = depth
 
+
 # -------------------------------------
 # Save image to file
 # -------------------------------------
+
+
 def save_image(self, filepath, myimage):
     # noinspection PyBroadException
     try:
@@ -406,35 +411,34 @@ def save_image(self, filepath, myimage):
 # Draw Scene Geometry for Depth Buffer
 #--------------------------------------
 
-def draw_scene(self,context,projection_matrix):
+def draw_scene(self, context, projection_matrix):
     
-    #Get List of Mesh Objects
+    # Get List of Mesh Objects
     objs = []
     for obj in context.view_layer.objects:
             if obj.type == 'MESH':
                 objs.append(obj)
 
-    #get 3D view matrix
+    # get 3D view matrix
     view_matrix_3d = context.scene.camera.matrix_world.inverted()
 
-    #Get Vertices and Indices of Objects
+    # Get Vertices and Indices of Objects
     for obj in objs:
         mesh = obj.data
         bm = bmesh.new()
-        bm.from_object(obj,context.depsgraph,deform=True)
+        bm.from_object(obj, context.depsgraph, deform=True)
         mesh.calc_loop_triangles()
         vertices = []
         indices = np.empty((len(mesh.loop_triangles), 3), 'i')
 
         for vert in bm.verts:
-            #Multipy vertex Position by Object Transform Matrix
+            # Multipy vertex Position by Object Transform Matrix
             vertices.append(obj.matrix_world @ vert.co)
 
-        #get Indices
+        # get Indices
         mesh.loop_triangles.foreach_get(
-            "vertices", np.reshape(indices, len(mesh.loop_triangles) * 3))
-        
-      
+            "vertices", np.reshape(indices, len(mesh.loop_triangles) * 3))            
+
         #---------------
         # Draw
         #---------------
@@ -443,7 +447,7 @@ def draw_scene(self,context,projection_matrix):
         bgl.glDepthFunc(bgl.GL_LESS)   
 
         shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-        batch = batch_for_shader(shader, 'TRIS',{"pos": vertices}, indices=indices)
+        batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=indices)
 
         gpu.matrix.reset()
         gpu.matrix.load_matrix(view_matrix_3d)

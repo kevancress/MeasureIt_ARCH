@@ -41,52 +41,148 @@ from bpy.props import (
         PointerProperty
         )
 from .measureit_arch_main import *
-import numpy as np
 import math
+
+
 # ------------------------------------------------------------------
 # Define property group class for annotation data
 # ------------------------------------------------------------------
 
+
 def update_text(self, context):
 
+    #Get Annotation Properties
     rawRGB = self.annotationColor
     rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
     size = 20
-    font_id=0
-    blf.color(font_id,rgb[0],rgb[1],rgb[2],rgb[3])
-    blf.size(font_id,size,300)
-    blf.position(font_id, 5, 5,0)
+    resolution = self.annotationResolution
+
     
-    fwidth, fheight =blf.dimensions(font_id,self.annotationText)
+    #Get Font Id
+    badfonts=[None]
+    if 'Bfont' in bpy.data.fonts:
+        badfonts.append(bpy.data.fonts['Bfont'])
+
+    if self.annotationFont not in badfonts:
+        vecFont = self.annotationFont
+        fontPath = vecFont.filepath
+        font_id= blf.load(fontPath)
+    else:
+        font_id=0
+
+    # Get Text
+    
+    if self.annotationTextSource is not '':
+        text = str(context.object[self.annotationTextSource])
+    else:
+        text = self.annotationText
+
+
+    # Set BLF font Properties
+    blf.color(font_id,rgb[0],rgb[1],rgb[2],rgb[3])
+    blf.size(font_id,size,resolution)
+    
+    
+    #Calculate Optimal Dimensions for Text Texture.
+    fheight = blf.dimensions(font_id,'fp')[1]
+    fwidth = blf.dimensions(font_id,text)[0]
     width = math.ceil(fwidth)
-    height = math.ceil(fheight)
+    height = math.ceil(fheight+4)
+    blf.position(font_id,0,height/4,0)
+    #Save Texture size to Annotation Properties
     self.annotationHeight = height
     self.annotationWidth = width
+
+    # Start Offscreen Draw
     annotationOffscreen = gpu.types.GPUOffScreen(width,height)
     texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-
     with annotationOffscreen.bind():
+        # Clear Past Draw and Set 2D View matrix
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
-
-        text = self.annotationText
         
-        blf.size(font_id,60,300)
+        view_matrix = Matrix([
+        [2 / width, 0, 0, -1],
+        [0, 2 / height, 0, -1],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]])
+        
+        gpu.matrix.reset()
+        gpu.matrix.load_matrix(view_matrix)
+        gpu.matrix.load_projection_matrix(Matrix.Identity(4))
+
+        
         blf.draw(font_id,text)
         
+        # Read Offscreen To Texture Buffer
         bgl.glReadBuffer(bgl.GL_BACK)
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
         
+        # Write Texture Buffer to Annotation ID Property as List
         self['texture'] = texture_buffer.to_list()
         self.text_updated = True
+
         annotationOffscreen.free()
 
-    #generate image datablock for debug
+    #generate image datablock from buffer for debug preview
+    #ONLY USE IF NECESSARY. SERIOUSLY SLOWS PREFORMANCE
     #if not str(self.annotationAnchor) in bpy.data.images:
     #    bpy.data.images.new(str(self.annotationAnchor), width, height)
     #image = bpy.data.images[str(self.annotationAnchor)]
     #image.scale(width, height)
     #image.pixels = [v / 255 for v in texture_buffer]
+
+def update_custom_props(self,context):
+    ignoredProps = ['AnnotationGenerator','MeasureGenerator','LineGenerator','_RNA_UI','cycles','cycles_visibility']
+    annotationGen = context.object.AnnotationGenerator[0]
+    idx = 0 
+    for key in context.object.keys():
+        if key not in ignoredProps:
+            if key not in annotationGen.customProperties:
+                annotationGen.customProperties.add().name = key
+    for prop in annotationGen.customProperties:
+        if prop.name not in context.object.keys():
+            annotationGen.customProperties.remove(idx)
+        idx += 1
+    update_text(self,context)
+
+
+class CustomProperties(PropertyGroup):
+    name: StringProperty(name='Custom Properties')
+
+bpy.utils.register_class(CustomProperties)
+
+
 class AnnotationProperties(PropertyGroup):
+    annotationAlignment:EnumProperty(items=(('L', "Left", ""),
+                                            ('C', "Center", ""),
+                                            ('R', "Right", "")),
+                            name="align Font",
+                            description="Set Font alignment")
+
+    annotationRotation:FloatVectorProperty(name='annotationOffset',
+                            description='Rotation for Annotation',
+                            default= (0.0,0.0,0.0),
+                            subtype= 'EULER')
+
+    annotationOffset: FloatVectorProperty(name='annotationOffset',
+                            description='Offset for Annotation',
+                            default= (1.0,1.0,1.0),
+                            subtype= 'TRANSLATION')
+    
+    annotationTextSource: StringProperty(name='annotationTextSource',
+                            description="Text Source",
+                            update=update_custom_props)
+
+    annotationSize: IntProperty(name='annotationSize',
+                            description="Annotation Size",
+                            default=12)
+
+    annotationResolution: IntProperty(name="Annotation Resolution",
+                            description="Annotation Resolution",
+                            default=150,
+                            min=50,
+                            max=1200,
+                            update=update_text)
 
     annotationText: StringProperty(name="annotationText",
                         description="Text Associated With Annotation ",
@@ -124,7 +220,8 @@ class AnnotationProperties(PropertyGroup):
     annotationTexture: IntProperty(name= "annotationTexture",
                         description= "Int Array Storing the Annotation Texture Buffer")
 
-    annotationFont: PointerProperty(type= bpy.types.VectorFont)
+    annotationFont: PointerProperty(type= bpy.types.VectorFont,
+                        update=update_text)
 
     text_updated: BoolProperty(name='text_updated',
                         description= 'flag when text texture need to be redrawn',
@@ -135,6 +232,8 @@ class AnnotationProperties(PropertyGroup):
     
     annotationHeight: IntProperty(name='annotationHeight',
                         description= 'Height of annotation')
+    
+    
 # Register
 bpy.utils.register_class(AnnotationProperties)
 
@@ -149,11 +248,10 @@ class AnnotationContainer(PropertyGroup):
                                 description='Number total of Annotations')
     # Array of segments
     annotations: CollectionProperty(type=AnnotationProperties)
-
+    customProperties: CollectionProperty(type=CustomProperties)
 
 bpy.utils.register_class(AnnotationContainer)
 Object.AnnotationGenerator = CollectionProperty(type=AnnotationContainer)
-
 
 class AddAnnotationButton(Operator):
     bl_idname = "measureit_arch.addannotationbutton"
@@ -201,16 +299,16 @@ class AddAnnotationButton(Operator):
                 annotationGen.num_annotations +=1
                 newAnnotation = annotationGen.annotations.add()
 
-                          
-
-                
                 # Set values
                 newAnnotation.annotationText = ("Annotation " + str(annotationGen.num_annotations))
                 newAnnotation.annotationAnchor = mylist[0]
                 newAnnotation.annotationColor = (0,0,0,1)
                 newAnnotation.annotationLineWeight = (2)
-                update_text(newAnnotation,context)
                 context.area.tag_redraw()
+                update_text(newAnnotation,context)  
+                update_custom_props(newAnnotation,context)
+
+                
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
@@ -254,7 +352,7 @@ class MeasureitArchAnnotationsPanel(Panel):
                     #row.operator("measureit_arch.expandallsegmentbutton", text="Expand all", icon="ADD")
                     #row.operator("measureit_arch.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
                     for idx in range(0, annotationGen.num_annotations):
-                        add_annotation_item(layout, idx, annotationGen.annotations[idx])
+                        add_annotation_item(layout, idx, annotationGen.annotations[idx],annotationGen)
 
                     #row = layout.row()
                     #row.operator("measureit_arch.deleteallsegmentbutton", text="Delete all", icon="X")
@@ -262,7 +360,7 @@ class MeasureitArchAnnotationsPanel(Panel):
 # -----------------------------------------------------
 # Add annotation options to the panel.
 # -----------------------------------------------------
-def add_annotation_item(layout, idx, annotation):
+def add_annotation_item(layout, idx, annotation, annotationGen):
     if annotation.annotationSettings is True:
         box = layout.box()
         row = box.row(align=True)
@@ -287,10 +385,14 @@ def add_annotation_item(layout, idx, annotation):
         col = box.column()
         col.template_ID(annotation, "annotationFont", open="font.open", unlink="font.unlink")
         col = box.column()
+        col.prop_search(annotation,'annotationTextSource', annotationGen ,'customProperties',text="Text Source")
         col.prop(annotation, 'annotationLineWeight', text="Line Weight" )
+        col.prop(annotation, 'annotationResolution', text="Resolution")
+        col.prop(annotation, 'annotationSize', text="Size")
+        col.prop(annotation, 'annotationOffset', text='Offset')
+        col.prop(annotation, 'annotationRotation', text='Rotation')
+        col.prop(annotation, 'annotationAlignment', text='Alignment')
         
-        
-
 class DeleteAnnotationButton(Operator):
 
     bl_idname = "measureit_arch.deleteannotationbutton"

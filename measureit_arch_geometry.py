@@ -782,7 +782,7 @@ def draw_line_group(context, myobj, lineGen):
                 batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
                 batchHidden.program_set(dashedLineShader)
                 batchHidden.draw()
-               
+                bgl.glDepthFunc(bgl.GL_LESS)
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
@@ -814,7 +814,7 @@ def draw_annotations(context, myobj, annotationGen):
 
            
             p1 = get_point(obverts[annotation.annotationAnchor], myobj)
-            offset = (1,1,1)
+            offset = annotation.annotationOffset
             p2 = Vector(p1) + Vector(offset)
 
             if  p1 is not None and p2 is not None:
@@ -832,44 +832,119 @@ def draw_annotations(context, myobj, annotationGen):
     bgl.glDepthMask(True)
 
 def draw_text_3D(context, annotation,p2,myobj):
-    
+    #get props
+    annotationGen = myobj.AnnotationGenerator[0]
+    numVerts = len(myobj.data.vertices)
     width = annotation.annotationWidth
     height = annotation.annotationHeight 
     anchor = annotation.annotationAnchor
+    size = annotation.annotationSize
 
-    asp = width/height
-    offy = (0,1*asp,0)
-    offx = (1,0,0)
+    #Define annotation Card Geometries
+    uv= [(0,0),(0,1),(1,1),(1,0)]
+    left = [(0,0,0),(0,1,0),(1,1,0),(1,0,0)]
+    right = [(-1,0,0),(-1,1,0),(0,1,0),(0,0,0)]
+    center = [(-0.5,0,0),(-0.5,1,0),(0.5,1,0),(0.5,0,0)]
 
+    #pick approprate card based on alignment
+    if annotation.annotationAlignment == 'L':
+        square = left
+    elif annotation.annotationAlignment == 'R':
+        square = right
+    else:
+        square = center
+
+    #Define Transformation Matricies
+
+    #x Rotation
+    rx = annotation.annotationRotation[0]
+    rotateXMatrix = Matrix([
+        [1,   0,      0,     0],
+        [0,cos(rx) ,sin(rx), 0],
+        [0,-sin(rx),cos(rx), 0],
+        [0,   0,      0,     1]
+    ])
+
+    #y Rotation
+    ry = annotation.annotationRotation[1]
+    rotateYMatrix = Matrix([
+        [cos(ry),0,-sin(ry),0],
+        [  0,    1,   0,    0],
+        [sin(ry),0,cos(ry), 0],
+        [  0,    0,   0,    1]
+    ])
+
+    #z Rotation
+    rz = annotation.annotationRotation[2]
+    rotateZMatrix = Matrix([
+        [cos(rz) ,sin(rz),0,0],
+        [-sin(rz),cos(rz),0,0],
+        [   0    ,   0   ,1,0],
+        [   0    ,   0   ,0,1]
+    ])
+
+    #scale
+    sx = 0.001*width*size
+    sy = 0.001*height*size
+    scaleMatrix = Matrix([
+        [sx,0 ,0,0],
+        [0 ,sy,0,0],
+        [0 ,0 ,1,0],
+        [0 ,0 ,0,1]
+    ])
+
+    #Transform
+    tx = p2[0]
+    ty = p2[1]
+    tz = p2[2]
+    translateMatrix = Matrix([
+        [1,0,0,tx],
+        [0,1,0,ty],
+        [0,0,1,tz],
+        [0,0,0, 1]
+    ])
+
+    # Transform Card By Transformation Matricies (Scale -> XYZ Euler Rotation -> Translate)
+    coords = []
+    for coord in square:
+        coord = scaleMatrix@Vector(coord)
+        coord = rotateXMatrix@Vector(coord)
+        coord = rotateYMatrix@Vector(coord)
+        coord = rotateZMatrix@Vector(coord)
+        coord = translateMatrix@Vector(coord)
+        coords.append(coord)
+
+    # Batch Geometry
     batch = batch_for_shader(
         textShader, 'TRI_FAN',
         {
-            "position": (Vector(p2), Vector(p2)+Vector(offy), Vector(p2)+Vector(offy)+Vector(offx), Vector(p2)+Vector(offx)),
-            "uv": ((0, 0), (1, 0), (1, 1), (0, 1)),
+            "position": coords,
+            "uv": uv,
         },
     )
 
-    annotationGen = myobj.AnnotationGenerator[0]
-    numVerts = len(myobj.data.vertices)
-
+    # Get Buffer of Texture Indices
     tex_buffer = bgl.Buffer(bgl.GL_INT,numVerts,annotationGen['tex_buffer'].to_list())
-    dim = width * height * 4
-
+    
+    # Update Texture If necessary 
     if annotation.text_updated is True:
-         
+        dim = width * height * 4
         buffer = bgl.Buffer(bgl.GL_BYTE, dim, annotation['texture'].to_list())
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[anchor])
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
         annotation.text_updated=False
-    
     else:
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[anchor])
+    
+    # Draw Shader
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
+
+    
 # ------------------------------------------
 # Get polygon area and paint area
 #
