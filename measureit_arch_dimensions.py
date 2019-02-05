@@ -563,7 +563,8 @@ class AddSegmentButton(Operator):
             if len(mylist) >= 2:
                 if 'MeasureGenerator' not in mainobject:
                     mainobject.MeasureGenerator.add()
-
+                if 'StyleGenerator' not in scene:
+                    scene.StyleGenerator.add()
                 mp = mainobject.MeasureGenerator[0]
                 for x in range(0, len(mylist) - 1, 2):
                     # -----------------------
