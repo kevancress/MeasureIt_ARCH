@@ -55,9 +55,88 @@ class MeasureitArchFaces(PropertyGroup):
 # Register
 bpy.utils.register_class(MeasureitArchFaces)
 
+class LinearDimensionProperties(PropertyGroup):
+    dimStyle: IntProperty(name="dimStyle",
+                    description="Dimension Style to use",
+                    min = 0)
+
+    dimPointA: IntProperty(name='dimPointA',
+                    description="Dimension Start Vertex Index")
+
+    dimPointB: IntProperty(name='dimPointB',
+                    description="Dimension End Vertex Index")
+
+    dimColor: FloatVectorProperty(name="dimColor",
+                    description="Color for the Dimension",
+                    default=(0.0,0.0,0.0, 1.0),
+                    min=0,
+                    max=1,
+                    subtype='COLOR',
+                    size=4)
+
+    dimView: BoolProperty(name="dimView",
+                    description="Dimension visible/hidden",
+                    default=True)
+
+    dimOffset: FloatVectorProperty(name='annotationOffset',
+                    description='Offset for Annotation',
+                    default= (1.0,1.0,1.0),
+                    subtype= 'TRANSLATION')
+
+    dimLineWeight: IntProperty(name='dimLineWidth',
+                    min=1,
+                    max=20,
+                    default=1,
+                    description='line width')
+    
+    dimNoUser: BoolProperty(name="dimNoUser",
+                    description="This dimension is free and can be deleted",
+                    default=False)
+
+    dimText: StringProperty(name="dimText",
+                    maxlen=256,
+                    description="Short description (use | for line break)")
+
+    dimSettings: BoolProperty(name="dimSettings",
+                    description="Advanced options as line width or position",
+                    default=False)
+
+    dimFontSize: IntProperty(name="Text Size",
+                    description="Text size",
+                    default=14, min=6, max=150)
+
+    dimFontAlignment: EnumProperty(
+                    items=(('L', "Left align", ""),
+                           ('C', "Center align", ""),
+                           ('R', "Right align", "")),
+                    name="align Font",
+                    description="Set Font alignment")
+
+    dimEndcapA: EnumProperty(
+                    items=(('99', "--", "No arrow"),
+                           ('1', "Line", "The point of the arrow are lines"),
+                           ('2', "Triangle", "The point of the arrow is triangle"),
+                           ('3', "TShape", "The point of the arrow is a T")),
+                    name="A end",
+                    description="Add arrows to point A")
+    
+    dimEndcapB: EnumProperty(
+                    items=(('99', "--", "No arrow"),
+                           ('1', "Line", "The point of the arrow are lines"),
+                           ('2', "Triangle", "The point of the arrow is triangle"),
+                           ('3', "TShape", "The point of the arrow is a T")),
+                    name="B end",
+                    description="Add arrows to point A")                    
+
+    dimEndcapSize: IntProperty(name="dimEndcapSize",
+                    description="Arrow size",
+                    default=15, min=6, max=500)
+
+bpy.utils.register_class(LinearDimensionProperties)
+
 
 # ------------------------------------------------------------------
-# Define property group class for measureit_arch data
+# LEGACY Define property group class for measureit_arch data
 # ------------------------------------------------------------------
 class MeasureitArchProperties(PropertyGroup):
     style: IntProperty(name="style",
@@ -262,7 +341,7 @@ class MeasureContainer(PropertyGroup):
                                 description='Number total of measureit_arch elements')
     # Array of segments
     measureit_arch_segments = CollectionProperty(type=MeasureitArchProperties)
-
+    linearDimensions = CollectionProperty(type=LinearDimensionProperties)
 
 bpy.utils.register_class(MeasureContainer)
 Object.MeasureGenerator = CollectionProperty(type=MeasureContainer)
@@ -294,98 +373,25 @@ class MeasureitArchDimensionsPanel(Panel):
                 # loop
                 # -----------------
                 
-                mp = context.object.MeasureGenerator[0]
-                if mp.measureit_arch_num > 0:
-                    row = layout.row(align = True)
-                    row.operator("measureit_arch.expandallsegmentbutton", text="Expand all", icon="ADD")
-                    row.operator("measureit_arch.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
-                    for idx in range(0, mp.measureit_arch_num):
-                        if mp.measureit_arch_segments[idx].glfree is False:
-                            add_item(layout, idx, mp.measureit_arch_segments[idx])
+                measureGen = context.object.MeasureGenerator[0]
+                row = layout.row(align = True)
+                row.operator("measureit_arch.expandallsegmentbutton", text="Expand all", icon="ADD")
+                row.operator("measureit_arch.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
+                
+                idx = 0
+                for seg in measureGen.measureit_arch_segments:
+                    if seg.glfree is False:
+                        add_item(layout, idx, seg)
+                    idx += 1
+                
+                idx = 0
+                for linDim in measureGen.linearDimensions:
+                    add_linearDimension(layout,idx, linDim)
+                    idx += 1
 
-                    row = layout.row()
-                    row.operator("measureit_arch.deleteallsegmentbutton", text="Delete all", icon="X")
-                # -----------------
-                # Sum loop segments
-                # -----------------
-                if mp.measureit_arch_num > 0:
-                    scale = bpy.context.scene.unit_settings.scale_length
-                    tx = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
-                          "T", "U", "V", "W", "X", "Y", "Z"]
-                    tot = [0.0] * len(tx)
-                    ac = [False] * len(tx)
-                    myobj = context.object
-                    obverts = get_mesh_vertices(myobj)
-                    viewtot = False
-                    for idx in range(0, mp.measureit_arch_num):
-                        ms = mp.measureit_arch_segments[idx]
-                        if (ms.gltype == 1 or ms.gltype == 12
-                            or ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
-                                and ms.glfree is False:  # only segments
-                            if bpy.context.mode == "EDIT_MESH":
-                                bm = bmesh.from_edit_mesh(bpy.context.edit_object.data)
-                                if hasattr(bm.verts, "ensure_lookup_table"):
-                                    bm.verts.ensure_lookup_table()
-                            if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts):
-                                p1 = get_point(obverts[ms.glpointa].co, myobj)
-                                if ms.gltype == 1:
-                                    p2 = get_point(obverts[ms.glpointb].co, myobj)
-                                elif ms.gltype == 12:
-                                    p2 = get_point((0.0,
-                                                    obverts[ms.glpointa].co[1],
-                                                    obverts[ms.glpointa].co[2]), myobj)
-                                elif ms.gltype == 13:
-                                    p2 = get_point((obverts[ms.glpointa].co[0],
-                                                    0.0,
-                                                    obverts[ms.glpointa].co[2]), myobj)
-                                else:
-                                    p2 = get_point((obverts[ms.glpointa].co[0],
-                                                    obverts[ms.glpointa].co[1],
-                                                    0.0), myobj)
-
-                                dist, distloc = distance(p1, p2, ms.glocx, ms.glocy, ms.glocz)
-                                if dist == distloc:
-                                    usedist = dist
-                                else:
-                                    usedist = distloc
-                                usedist *= scale
-                                tot[int(ms.gltot)] += usedist
-                                ac[int(ms.gltot)] = True
-                                viewtot = True
-                    # -----------------
-                    # Print values
-                    # -----------------
-                    if viewtot is True:
-                        pr = scene.measureit_arch_gl_precision
-                        fmt = "%1." + str(pr) + "f"
-                        units = scene.measureit_arch_units
-
-                        box = layout.box()
-                        box.label(text="Totals", icon='SOLO_ON')
-                        final = 0
-                        for idx in range(0, len(tot)):
-                            if ac[idx] is True:
-                                final += tot[idx]
-                                tx_dist = format_distance(fmt, units, tot[idx])
-                                row = box.row(align = True)
-                                row.label(text="Group " + tx[idx] + ":")
-                                row.label(text=" ")
-                                row.label(text=tx_dist)
-
-                        # Grand total
-                        row = box.row(align=True)
-                        row.label(text="")
-                        row.label(text=" ")
-                        row.label(text="-" * 20)
-                        tx_dist = format_distance(fmt, units, final)
-
-                        row = box.row(align=True)
-                        row.label(text="")
-                        row.label(text=" ")
-                        row.label(text=tx_dist)
-                        # delete all
-                        row = box.row()
-                        row.operator("measureit_arch.deleteallsumbutton", text="Delete all", icon="X")
+                row = layout.row()
+                row.operator("measureit_arch.deleteallsegmentbutton", text="Delete all", icon="X")
+                
 
 # -----------------------------------------------------
 # Add segment options to the panel.
@@ -409,7 +415,9 @@ def add_item(layout, idx, segment):
     row.prop(segment, 'style', text="")
     row.prop(segment, 'gltxt', text="")
     op = row.operator("measureit_arch.deletesegmentbutton", text="", icon="X")
-    op.tag = idx  # saves internal data
+    # send index and type to operator
+    op.tag = idx  
+    op.itemType = 'segment'
 
     if segment.gladvance is True:
 
@@ -520,7 +528,44 @@ def add_item(layout, idx, segment):
             if segment.glarc_a != '99' or segment.glarc_b != '99':
                 row.prop(segment, 'glarc_s', text="Size")
 
+def add_linearDimension(layout, idx, linDim):
+    scene = bpy.context.scene
+    if linDim.dimSettings is True:
+        box = layout.box()
+        row = box.row(align=True)
+    else:
+        row = layout.row(align=True)
 
+
+
+    row.prop(linDim, 'dimView', text="", toggle=True, icon='DRIVER_DISTANCE')
+    row.prop(linDim, 'dimSettings', text="", toggle=True, icon="PREFERENCES")
+    row.prop(linDim, 'dimStyle', text="")
+    row.prop(linDim, 'dimText', text="")
+    op = row.operator("measureit_arch.deletesegmentbutton", text="", icon="X")
+    # send index and type to operator
+    op.tag = idx
+    op.itemType = 'linDim'
+
+    # advanced Settings
+    if linDim.dimSettings is True:
+
+        col = box.column(align=True)
+        col.prop(linDim,'dimColor',text='Color')
+        col.prop(linDim,'dimLineWeight',text='Line Weight')
+
+        col = box.column(align=True)
+        col.prop(linDim,'dimOffset',text='Offset')
+
+        col = box.column(align=True)
+        col.prop(linDim,'dimFontSize',text='Font Size')
+        col.prop(linDim,'dimFontAlignment',text='Alignment')
+        col.prop(linDim,'dimColor',text='Color')
+
+        col = box.column(align=True)
+        col.prop(linDim,'dimEndcapA', text='Arrow Start')
+        col.prop(linDim,'dimEndcapB', text='End')
+        col.prop(linDim,'dimEndcapSize', text='Arrow Size')
 # -------------------------------------------------------------
 # Defines button that adds a measure segment
 #
@@ -553,50 +598,45 @@ class AddSegmentButton(Operator):
     # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
-            # Add properties
+            # get selected
+
             scene = context.scene
             mainobject = context.object
             mylist = get_smart_selected(mainobject)
+            
             if len(mylist) < 2:  # if not selected linked vertex
                 mylist = get_selected_vertex(mainobject)
 
             if len(mylist) >= 2:
+                #Check Generators
                 if 'MeasureGenerator' not in mainobject:
                     mainobject.MeasureGenerator.add()
                 if 'StyleGenerator' not in scene:
                     scene.StyleGenerator.add()
-                mp = mainobject.MeasureGenerator[0]
-                for x in range(0, len(mylist) - 1, 2):
-                    # -----------------------
-                    # Only if not exist
-                    # -----------------------
-                    if exist_segment(mp, mylist[x], mylist[x + 1]) is False:
-                        # Create all array elements
-                        for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
-                            mp.measureit_arch_segments.add()
 
+                measureGen = mainobject.MeasureGenerator[0]
+
+                for x in range(0, len(mylist) - 1, 2):
+                    if exist_segment(measureGen, mylist[x], mylist[x + 1]) is False:
+                        newDimension = measureGen.linearDimensions.add()
+                        print ('adding linear dimension')
                         # Set values
-                        ms = mp.measureit_arch_segments[mp.measureit_arch_num]
-                        ms.gltype = 1
-                        ms.style = scene.measureit_arch_default_style
-                        ms.glpointa = mylist[x]
-                        ms.glpointb = mylist[x + 1]
-                        ms.glarrow_a = scene.measureit_arch_glarrow_a
-                        ms.glarrow_b = scene.measureit_arch_glarrow_b
-                        ms.glarrow_s = scene.measureit_arch_glarrow_s
+                        newDimension.style = scene.measureit_arch_default_style
+                        newDimension.dimPointB = mylist[x]
+                        newDimension.dimPointA = mylist[x + 1]
+                        newDimension.dimEndcapA= scene.measureit_arch_glarrow_a
+                        newDimension.dimEndcapB = scene.measureit_arch_glarrow_b
+                        newDimension.dimEndcapSize= scene.measureit_arch_glarrow_s
                         # color
-                        ms.glcolor = scene.measureit_arch_default_color
+                        newDimension.dimColor = scene.measureit_arch_default_color
                         # dist
-                        ms.glspace = scene.measureit_arch_hint_space
+                        newDimension.dimOffset = (1,1,1)
                         # text
-                        ms.gltxt = scene.measureit_arch_gl_txt
-                        ms.glfont_size = scene.measureit_arch_font_size
-                        ms.glfont_align = scene.measureit_arch_font_align
-                        ms.glfont_rotat = scene.measureit_arch_font_rotation
+                        newDimension.dimText = scene.measureit_arch_gl_txt
+                        newDimension.dimFontSize = scene.measureit_arch_font_size
+                        newDimension.dimFontAlignment = scene.measureit_arch_font_align
                         # Sum group
-                        ms.gltot = scene.measureit_arch_sum
-                        # Add index
-                        mp.measureit_arch_num += 1
+                        measureGen.measureit_arch_num += 1
 
                 # redraw
                 context.area.tag_redraw()
@@ -1213,6 +1253,7 @@ class DeleteSegmentButton(Operator):
     bl_description = "Delete a measure"
     bl_category = 'MeasureitArch'
     tag= IntProperty()
+    itemType = StringProperty()
 
     # ------------------------------
     # Execute button action
@@ -1221,12 +1262,22 @@ class DeleteSegmentButton(Operator):
 
         # Add properties
         mainobject = context.object
-        mp = mainobject.MeasureGenerator[0]
-        ms = mp.measureit_arch_segments[self.tag]
-        ms.glfree = True
-        # Delete element
-        mp.measureit_arch_segments.remove(self.tag)
-        mp.measureit_arch_num -= 1
+        measureGen = mainobject.MeasureGenerator[0]
+        if self.itemType == 'segment': 
+            ms = measureGen.measureit_arch_segments[self.tag]
+            ms.glfree = True
+
+            # Delete element
+            measureGen.measureit_arch_segments.remove(self.tag)
+            
+        if self.itemType == 'linDim':
+            linDim = measureGen.linearDimensions[self.tag]
+            linDim.dimNoUser = True
+            
+            # Delete Element
+            measureGen.linearDimensions.remove(self.tag)
+        
+        measureGen.measureit_arch_num -= 1
         # redraw
         for window in bpy.context.window_manager.windows:
             screen = window.screen
@@ -1257,13 +1308,14 @@ class DeleteAllSegmentButton(Operator):
     def execute(self, context):
         # Add properties
         mainobject = context.object
-        mp = mainobject.MeasureGenerator[0]
+        measureGen = mainobject.MeasureGenerator[0]
 
-        while len(mp.measureit_arch_segments) > 0:
-            mp.measureit_arch_segments.remove(0)
-
+        while len(measureGen.measureit_arch_segments) > 0:
+            measureGen.measureit_arch_segments.remove(0)
+        while len(measureGen.linearDimensions) > 0:
+            measureGen.linearDimensions.remove(0)
         # reset size
-        mp.measureit_arch_num = len(mp.measureit_arch_segments)
+        measureGen.measureit_arch_num = 0
         # redraw
 
         for window in bpy.context.window_manager.windows:
@@ -1326,8 +1378,10 @@ class ExpandAllSegmentButton(Operator):
         mainobject = context.object
         mp = mainobject.MeasureGenerator[0]
 
-        for i in mp.measureit_arch_segments:
-            i.gladvance = True
+        for seg in mp.measureit_arch_segments:
+            seg.gladvance = True
+        for linDim in mp.linearDimensions:
+            linDim.dimSettings = True
 
         return {'FINISHED'}
     
@@ -1350,9 +1404,10 @@ class CollapseAllSegmentButton(Operator):
         mainobject = context.object
         mp = mainobject.MeasureGenerator[0]
 
-        for i in mp.measureit_arch_segments:
-            i.gladvance = False
-
+        for seg in mp.measureit_arch_segments:
+            seg.gladvance = False
+        for linDim in mp.linearDimensions:
+            linDim.dimSettings = True
         return {'FINISHED'}
     
 

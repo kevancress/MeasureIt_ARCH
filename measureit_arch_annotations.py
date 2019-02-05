@@ -153,11 +153,19 @@ bpy.utils.register_class(CustomProperties)
 
 
 class AnnotationProperties(PropertyGroup):
-    annotationAlignment:EnumProperty(items=(('L', "Left", ""),
-                                            ('C', "Center", ""),
-                                            ('R', "Right", "")),
+    annotationAlignment:EnumProperty(
+                            items=(('L', "Left", ""),
+                                   ('C', "Center", ""),
+                                   ('R', "Right", "")),
                             name="align Font",
                             description="Set Font alignment")
+
+    annotationPosition:EnumProperty(
+                            items=(('T', "Top", ""),
+                                   ('M', "Mid", ""),
+                                   ('B', "Bottom", "")),
+                            name="align Font",
+                            description="Set Font Position")
 
     annotationRotation:FloatVectorProperty(name='annotationOffset',
                             description='Rotation for Annotation',
@@ -185,53 +193,54 @@ class AnnotationProperties(PropertyGroup):
                             update=update_text)
 
     annotationText: StringProperty(name="annotationText",
-                        description="Text Associated With Annotation ",
-                        default="",
-                        update= update_text)
+                            description="Text Associated With Annotation ",
+                            default="",
+                            update= update_text)
     
     annotationAnchor: IntProperty(name="annotationAnchor",
-                        description="Index of Vertex that the annotation is Anchored to")
+                            description="Index of Vertex that the annotation is Anchored to")
 
     annotationColor: FloatVectorProperty(name="annotationColor",
-                        description="Color for Lines",
-                        default=(0.1, 0.1, 0.1, 1.0),
-                        min=0.0,
-                        max=1,
-                        subtype='COLOR',
-                        size=4,
-                        update=update_text) 
+                            description="Color for Lines",
+                            default=(0.1, 0.1, 0.1, 1.0),
+                            min=0.0,
+                            max=1,
+                            subtype='COLOR',
+                            size=4,
+                            update=update_text) 
 
     annotationLineWeight: IntProperty(name="annotationLineWeight",
-                        description="Lineweight",
-                        min = 1,
-                        max = 10)
+                            description="Lineweight",
+                            min = 1,
+                            max = 10)
 
     annotationVis: BoolProperty(name="annotationVis",
-                        description="Line show/hide",
-                        default=True)
+                            description="Line show/hide",
+                            default=True)
 
     annotationFree: BoolProperty(name="annotationFree",
-                        description="This annotation is free and can be deleted",
-                        default=False)
-    
+                            description="This annotation is free and can be deleted",
+                            default=False)
+        
     annotationSettings: BoolProperty(name= "annotationSettings",
-                        description= "Show Line Settings",
-                        default=False)
+                            description= "Show Line Settings",
+                            default=False)
+
     annotationTexture: IntProperty(name= "annotationTexture",
-                        description= "Int Array Storing the Annotation Texture Buffer")
+                            description= "Int Array Storing the Annotation Texture Buffer")
 
     annotationFont: PointerProperty(type= bpy.types.VectorFont,
-                        update=update_text)
+                            update=update_text)
 
     text_updated: BoolProperty(name='text_updated',
-                        description= 'flag when text texture need to be redrawn',
-                        default = False)
+                            description= 'flag when text texture need to be redrawn',
+                            default = False)
 
     annotationWidth: IntProperty(name='annotationWidth',
-                        description= 'Width of annotation')
-    
+                            description= 'Width of annotation')
+        
     annotationHeight: IntProperty(name='annotationHeight',
-                        description= 'Height of annotation')
+                            description= 'Height of annotation')
     
     
 # Register
@@ -367,13 +376,7 @@ def add_annotation_item(layout, idx, annotation, annotationGen):
     else:
         row = layout.row(align=True)
 
-
-    if annotation.annotationVis is True:
-        icon = "VISIBLE_IPO_ON"
-    else:
-        icon = "VISIBLE_IPO_OFF"
-
-    row.prop(annotation, 'annotationVis', text="", toggle=True, icon=icon)
+    row.prop(annotation, 'annotationVis', text="", toggle=True, icon='FONT_DATA')
     row.prop(annotation, 'annotationSettings', text="",toggle=True, icon='PREFERENCES')
     row.prop(annotation, 'annotationColor', text="" )
     row.prop(annotation, 'annotationText', text="")
@@ -392,7 +395,8 @@ def add_annotation_item(layout, idx, annotation, annotationGen):
         col.prop(annotation, 'annotationOffset', text='Offset')
         col.prop(annotation, 'annotationRotation', text='Rotation')
         col.prop(annotation, 'annotationAlignment', text='Alignment')
-        
+        col.prop(annotation, 'annotationPosition', text='Position')
+
 class DeleteAnnotationButton(Operator):
 
     bl_idname = "measureit_arch.deleteannotationbutton"

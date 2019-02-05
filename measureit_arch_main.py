@@ -37,7 +37,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
-from .measureit_arch_geometry import *
+from .measureit_arch_geometry import draw_annotation, draw_linearDimension, draw_line_group
 from .measureit_arch_render import *
 
 import gpu
@@ -153,17 +153,17 @@ class MeasureitArchMainPanel(Panel):
         box = layout.box()
         box.label(text="Add Measures")
         col = box.column()
-        col.operator("measureit_arch.addsegmentbutton", text="Segment", icon="ALIGN_CENTER")
+        col.operator("measureit_arch.addsegmentbutton", text="Segment", icon="DRIVER_DISTANCE")
         col.prop(scene, "measureit_arch_sum", text="Sum")
 
         # To origin
         row = col.row()
         split = row.split(align=True)
-        op = split.operator("measureit_arch.addsegmentortobutton", text="X", icon="ALIGN_CENTER")
+        op = split.operator("measureit_arch.addsegmentortobutton", text="X", icon="DRIVER_DISTANCE")
         op.tag = 0  # saves internal data
-        op = split.operator("measureit_arch.addsegmentortobutton", text="Y", icon="ALIGN_CENTER")
+        op = split.operator("measureit_arch.addsegmentortobutton", text="Y", icon="DRIVER_DISTANCE")
         op.tag = 1  # saves internal data
-        op = split.operator("measureit_arch.addsegmentortobutton", text="Z", icon="ALIGN_CENTER")
+        op = split.operator("measureit_arch.addsegmentortobutton", text="Z", icon="DRIVER_DISTANCE")
         op.tag = 2  # saves internal data
 
         col = box.column()
@@ -186,7 +186,7 @@ class MeasureitArchMainPanel(Panel):
         box = layout.box()
         box.label(text="Add Lines")
         col = box.column()
-        col.operator("measureit_arch.addlinebutton", text="Line", icon="ALIGN_CENTER")
+        col.operator("measureit_arch.addlinebutton", text="Line", icon="MESH_CUBE")
 
         # ------------------------------
         # Annotation Tools
@@ -370,7 +370,7 @@ def draw_main(context):
                     if objCollections[0].name == collection.collection.name:
                         op = myobj.MeasureGenerator[0]
 
-                        draw_segments(context, myobj, op, region, rv3d)
+                        #draw_segments(context, myobj, op, region, rv3d)
                         break
                 
     # ---------------------------------------
@@ -412,8 +412,15 @@ def draw_main_3d (context):
     # Enable GL drawing
     bgl.glEnable(bgl.GL_BLEND)
     # ---------------------------------------
-    # Generate all OpenGL calls for measures
+    # Generate all OpenGL calls
     # ---------------------------------------
+    for myobj in objlist:
+        if myobj.visible_get() is True:
+            if 'MeasureGenerator' in myobj:
+                measureGen = myobj.MeasureGenerator[0]
+                for linDim in measureGen.linearDimensions:
+                    draw_linearDimension(context, myobj, measureGen)
+
     for myobj in objlist:
         if myobj.visible_get() is True:              
             if 'LineGenerator' in myobj:
@@ -424,7 +431,7 @@ def draw_main_3d (context):
         if myobj.visible_get() is True:              
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
-                draw_annotations(context,myobj,annotationGen)
+                draw_annotation(context,myobj,annotationGen)
 
 # -------------------------------------------------------------
 # Handler for drawing OpenGl
