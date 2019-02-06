@@ -176,6 +176,7 @@ def draw_line_group(context, myobj, lineGen):
 
 def draw_annotation(context, myobj, annotationGen):
     obverts = get_mesh_vertices(myobj)
+
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_LINE_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
@@ -187,6 +188,10 @@ def draw_annotation(context, myobj, annotationGen):
 
     for idx in range(0, annotationGen.num_annotations):
         annotation = annotationGen.annotations[idx]
+        width = annotation.textWidth
+        height = annotation.textHeight 
+        size = annotation.fontSize
+        
         if annotation.visible is True:
             bgl.glLineWidth(annotation.lineWeight)
             rawRGB = annotation.color
@@ -211,127 +216,124 @@ def draw_annotation(context, myobj, annotationGen):
                 batch3d.draw()
                 gpu.shader.unbind()
             
-            draw_text_3D(context,annotation,p2,myobj)
+                    
+            #Define annotation Card Geometries
+            left = [(0.0, 0.0, 0.0),(0.0, 1.0, 0.0),(1.0, 1.0, 0.0),(1.0, 0.0, 0.0)]
+            right = [(-1.0, 0.0, 0.0),(-1.0, 1.0, 0.0),(0.0, 1.0, 0.0),(0.0, 0.0, 0.0)]
+            center = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
+
+            #pick approprate card based on alignment
+            if annotation.textAlignment == 'L':
+                square = left
+            elif annotation.textAlignment == 'R':
+                square = right
+            else:
+                square = center
+
+            
+            if annotation.textPosition == 'M':
+                pOff = (0.0,0.5,0.0)
+            elif annotation.textPosition == 'B':
+                pOff = (0.0,1.0,0.0)
+            else:
+                pOff = (0.0,0.0,0.0)
+            #Define Transformation Matricies
+
+            #x Rotation
+            rx = annotation.annotationRotation[0]
+            rotateXMatrix = Matrix([
+                [1,   0,      0,     0],
+                [0,cos(rx) ,sin(rx), 0],
+                [0,-sin(rx),cos(rx), 0],
+                [0,   0,      0,     1]
+            ])
+
+            #y Rotation
+            ry = annotation.annotationRotation[1]
+            rotateYMatrix = Matrix([
+                [cos(ry),0,-sin(ry),0],
+                [  0,    1,   0,    0],
+                [sin(ry),0,cos(ry), 0],
+                [  0,    0,   0,    1]
+            ])
+
+            #z Rotation
+            rz = annotation.annotationRotation[2]
+            rotateZMatrix = Matrix([
+                [cos(rz) ,sin(rz),0,0],
+                [-sin(rz),cos(rz),0,0],
+                [   0    ,   0   ,1,0],
+                [   0    ,   0   ,0,1]
+            ])
+
+            #scale
+            sx = 0.001*width*size
+            sy = 0.001*height*size
+            scaleMatrix = Matrix([
+                [sx,0 ,0,0],
+                [0 ,sy,0,0],
+                [0 ,0 ,1,0],
+                [0 ,0 ,0,1]
+            ])
+
+            #Transform
+            tx = p2[0]
+            ty = p2[1]
+            tz = p2[2]
+            translateMatrix = Matrix([
+                [1,0,0,tx],
+                [0,1,0,ty],
+                [0,0,1,tz],
+                [0,0,0, 1]
+            ])
+
+            # Transform Card By Transformation Matricies (Scale -> XYZ Euler Rotation -> Translate)
+            coords = []
+            for coord in square:
+                coord= Vector(coord) - Vector(pOff)
+                coord = scaleMatrix@Vector(coord)
+                coord = rotateXMatrix@Vector(coord)
+                coord = rotateYMatrix@Vector(coord)
+                coord = rotateZMatrix@Vector(coord)
+                coord = translateMatrix@Vector(coord)
+                coords.append(coord)
+
+
+            draw_text_3D(context,annotation,myobj,coords)
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 
-def draw_text_3D(context, annotation,p2,myobj):
+def draw_text_3D(context,textobj,myobj,card):
     #get props
-    annotationGen = myobj.AnnotationGenerator[0]
-    numVerts = len(myobj.data.vertices)
-    width = annotation.textWidth
-    height = annotation.textHeight 
-    anchor = annotation.annotationAnchor
-    size = annotation.fontSize
-
-    
-    #Define annotation Card Geometries
+    width = textobj.textWidth
+    height = textobj.textHeight 
     uv= [(0,0),(0,1),(1,1),(1,0)]
-    left = [(0.0, 0.0, 0.0),(0.0, 1.0, 0.0),(1.0, 1.0, 0.0),(1.0, 0.0, 0.0)]
-    right = [(-1.0, 0.0, 0.0),(-1.0, 1.0, 0.0),(0.0, 1.0, 0.0),(0.0, 0.0, 0.0)]
-    center = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
-
-    #pick approprate card based on alignment
-    if annotation.textAlignment == 'L':
-        square = left
-    elif annotation.textAlignment == 'R':
-        square = right
-    else:
-        square = center
-
-    
-    if annotation.textPosition == 'M':
-        pOff = (0.0,0.5,0.0)
-    elif annotation.textPosition == 'B':
-        pOff = (0.0,1.0,0.0)
-    else:
-        pOff = (0.0,0.0,0.0)
-    #Define Transformation Matricies
-
-    #x Rotation
-    rx = annotation.annotationRotation[0]
-    rotateXMatrix = Matrix([
-        [1,   0,      0,     0],
-        [0,cos(rx) ,sin(rx), 0],
-        [0,-sin(rx),cos(rx), 0],
-        [0,   0,      0,     1]
-    ])
-
-    #y Rotation
-    ry = annotation.annotationRotation[1]
-    rotateYMatrix = Matrix([
-        [cos(ry),0,-sin(ry),0],
-        [  0,    1,   0,    0],
-        [sin(ry),0,cos(ry), 0],
-        [  0,    0,   0,    1]
-    ])
-
-    #z Rotation
-    rz = annotation.annotationRotation[2]
-    rotateZMatrix = Matrix([
-        [cos(rz) ,sin(rz),0,0],
-        [-sin(rz),cos(rz),0,0],
-        [   0    ,   0   ,1,0],
-        [   0    ,   0   ,0,1]
-    ])
-
-    #scale
-    sx = 0.001*width*size
-    sy = 0.001*height*size
-    scaleMatrix = Matrix([
-        [sx,0 ,0,0],
-        [0 ,sy,0,0],
-        [0 ,0 ,1,0],
-        [0 ,0 ,0,1]
-    ])
-
-    #Transform
-    tx = p2[0]
-    ty = p2[1]
-    tz = p2[2]
-    translateMatrix = Matrix([
-        [1,0,0,tx],
-        [0,1,0,ty],
-        [0,0,1,tz],
-        [0,0,0, 1]
-    ])
-
-    # Transform Card By Transformation Matricies (Scale -> XYZ Euler Rotation -> Translate)
-    coords = []
-    for coord in square:
-        coord= Vector(coord) - Vector(pOff)
-        coord = scaleMatrix@Vector(coord)
-        coord = rotateXMatrix@Vector(coord)
-        coord = rotateYMatrix@Vector(coord)
-        coord = rotateZMatrix@Vector(coord)
-        coord = translateMatrix@Vector(coord)
-        coords.append(coord)
 
     # Batch Geometry
     batch = batch_for_shader(
         textShader, 'TRI_FAN',
         {
-            "position": coords,
+            "position": card,
             "uv": uv,
         },
     )
 
     # Get Buffer of Texture Indices
-    tex_buffer = bgl.Buffer(bgl.GL_INT,numVerts,annotationGen['tex_buffer'].to_list())
+    tex_buffer = bgl.Buffer(bgl.GL_INT,1,textobj['tex_buffer'].to_list())
     
     # Update Texture If necessary 
-    if annotation.text_updated is True:
+    if textobj.text_updated is True:
         dim = width * height * 4
-        buffer = bgl.Buffer(bgl.GL_BYTE, dim, annotation['texture'].to_list())
+        buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
-        bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[anchor])
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[0])
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-        annotation.text_updated=False
+        textobj.text_updated=False
     else:
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
-        bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[anchor])
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[0])
     
     # Draw Shader
     textShader.bind()

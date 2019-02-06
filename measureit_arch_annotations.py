@@ -48,13 +48,6 @@ from .measureit_arch_main import get_smart_selected, get_selected_vertex
 import math
 
 
-# ------------------------------------------------------------------
-# Define property group class for annotation data
-# ------------------------------------------------------------------
-
-
-
-
 def update_custom_props(self,context):
     ignoredProps = ['AnnotationGenerator','MeasureGenerator','LineGenerator','_RNA_UI','cycles','cycles_visibility']
     annotationGen = context.object.AnnotationGenerator[0]
@@ -149,26 +142,23 @@ class AddAnnotationButton(Operator):
                 if 'AnnotationGenerator' not in mainobject:
                     mainobject.AnnotationGenerator.add()
                 
-                annotationGen = mainobject.AnnotationGenerator[0]
-                numVerts = len(mainobject.data.vertices)  
-
-                if 'tex_buffer' not in annotationGen:
-                    tex_buffer = bgl.Buffer(bgl.GL_INT, numVerts)
-                    bgl.glGenTextures(numVerts, tex_buffer)
-                    annotationGen['tex_buffer'] = tex_buffer.to_list()
-               
+                annotationGen = mainobject.AnnotationGenerator[0] 
                 annotationGen.num_annotations +=1
                 newAnnotation = annotationGen.annotations.add()
 
                 # Set values
                 newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
+                tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
+                bgl.glGenTextures(1, tex_buffer)
+                newAnnotation['tex_buffer'] = tex_buffer.to_list()
+
                 newAnnotation.annotationAnchor = mylist[0]
                 newAnnotation.annotationLineWeight = (2)
                 newAnnotation.color = (0,0,0,1)
                 context.area.tag_redraw()
                 update_text(newAnnotation,context)  
                 update_custom_props(newAnnotation,context)
-
+                
                 
                 return {'FINISHED'}
             else:

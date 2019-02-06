@@ -10,7 +10,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 
 def update_text(self, context):
 
-    #Get Annotation Properties
+    #Get textitem Properties
     rawRGB = self.color
     rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
     size = 20
@@ -30,9 +30,9 @@ def update_text(self, context):
         font_id=0
 
     # Get Text
-    
-    if self.annotationTextSource is not '':
-        text = str(context.object[self.annotationTextSource])
+    if 'annotationTextSource' in self:
+        if self.annotationTextSource is not '':
+            text = str(context.object[self.annotationTextSource])
     else:
         text = self.text
 
@@ -89,7 +89,6 @@ def update_text(self, context):
     #image = bpy.data.images[str(self.annotationAnchor)]
     #image.scale(width, height)
     #image.pixels = [v / 255 for v in texture_buffer]
-
 
 class BaseProp:
     style: IntProperty(name="Style",
@@ -161,9 +160,6 @@ class BaseWithText(BaseProp):
                 min=50,
                 max=1200,
                 update=update_text)
-    
-    textTexture: IntProperty(name= "annotationTexture",
-                description= "Int Array Storing the Texture Buffer")
 
     font: PointerProperty(type= bpy.types.VectorFont,
                 update=update_text)
@@ -177,3 +173,4 @@ class BaseWithText(BaseProp):
         
     textHeight: IntProperty(name='annotationHeight',
                 description= 'Height of annotation')
+    
