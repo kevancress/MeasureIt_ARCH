@@ -43,18 +43,24 @@ import os
 # ----------------------------------------------
 if "bpy" in locals():
     import importlib
-    importlib.reload(measureit_arch_main)
-    importlib.reload(measureit_arch_lines)
-    importlib.reload(measureit_arch_render)
-    importlib.reload(measureit_arch_styles)
-    importlib.reload(measureit_arch_dimensions)
+    #importlib.reload(measureit_arch_geometry)
+    #importlib.reload(measureit_arch_annotations)
+    #importlib.reload(measureit_arch_baseclass)
+    #importlib.reload(measureit_arch_main)
+    #importlib.reload(measureit_arch_lines)
+    #importlib.reload(measureit_arch_render)
+    #importlib.reload(measureit_arch_styles)
+    #importlib.reload(measureit_arch_dimensions)
     print("measureit_arch: Reloaded multifiles")
 else:
-    from . import measureit_arch_main
-    from . import measureit_arch_lines
-    from . import measureit_arch_render
-    from . import measureit_arch_styles
-    from . import measureit_arch_dimensions
+    #from . import measureit_arch_geometry
+    #from . import measureit_arch_annotations
+    #from . import measureit_arch_baseclass
+    #from . import measureit_arch_main
+    #from . import measureit_arch_lines
+    #from . import measureit_arch_render
+    #from . import measureit_arch_styles
+    #from . import measureit_arch_dimensions
     print("measureit_arch: Imported multifiles")
 
 import bpy

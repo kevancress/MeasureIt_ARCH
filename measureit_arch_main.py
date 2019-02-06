@@ -38,10 +38,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
 from .measureit_arch_geometry import draw_annotation, draw_linearDimension, draw_line_group
-from .measureit_arch_render import *
 
-import gpu
-from gpu_extras.batch import batch_for_shader
 
 coords = [(100, 100, 1), (200, 400, 0), (-2, -1, 3), (0, 1, 1)]
 shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
@@ -419,7 +416,7 @@ def draw_main_3d (context):
             if 'MeasureGenerator' in myobj:
                 measureGen = myobj.MeasureGenerator[0]
                 for linDim in measureGen.linearDimensions:
-                    draw_linearDimension(context, myobj, measureGen)
+                    draw_linearDimension(context, myobj, measureGen,linDim)
 
     for myobj in objlist:
         if myobj.visible_get() is True:              

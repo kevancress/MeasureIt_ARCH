@@ -28,7 +28,7 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty
 from .measureit_arch_main import *
-
+from .measureit_arch_baseclass import BaseWithText
 
 
 # ------------------------------------------------------------------
@@ -55,63 +55,18 @@ class MeasureitArchFaces(PropertyGroup):
 # Register
 bpy.utils.register_class(MeasureitArchFaces)
 
-class LinearDimensionProperties(PropertyGroup):
-    dimStyle: IntProperty(name="dimStyle",
-                    description="Dimension Style to use",
-                    min = 0)
-
+class LinearDimensionProperties(BaseWithText,PropertyGroup):
     dimPointA: IntProperty(name='dimPointA',
                     description="Dimension Start Vertex Index")
 
     dimPointB: IntProperty(name='dimPointB',
                     description="Dimension End Vertex Index")
 
-    dimColor: FloatVectorProperty(name="dimColor",
-                    description="Color for the Dimension",
-                    default=(0.0,0.0,0.0, 1.0),
-                    min=0,
-                    max=1,
-                    subtype='COLOR',
-                    size=4)
-
-    dimView: BoolProperty(name="dimView",
-                    description="Dimension visible/hidden",
-                    default=True)
-
     dimOffset: FloatVectorProperty(name='annotationOffset',
                     description='Offset for Annotation',
                     default= (1.0,1.0,1.0),
                     subtype= 'TRANSLATION')
-
-    dimLineWeight: IntProperty(name='dimLineWidth',
-                    min=1,
-                    max=20,
-                    default=1,
-                    description='line width')
     
-    dimNoUser: BoolProperty(name="dimNoUser",
-                    description="This dimension is free and can be deleted",
-                    default=False)
-
-    dimText: StringProperty(name="dimText",
-                    maxlen=256,
-                    description="Short description (use | for line break)")
-
-    dimSettings: BoolProperty(name="dimSettings",
-                    description="Advanced options as line width or position",
-                    default=False)
-
-    dimFontSize: IntProperty(name="Text Size",
-                    description="Text size",
-                    default=14, min=6, max=150)
-
-    dimFontAlignment: EnumProperty(
-                    items=(('L', "Left align", ""),
-                           ('C', "Center align", ""),
-                           ('R', "Right align", "")),
-                    name="align Font",
-                    description="Set Font alignment")
-
     dimEndcapA: EnumProperty(
                     items=(('99', "--", "No arrow"),
                            ('1', "Line", "The point of the arrow are lines"),
@@ -530,7 +485,7 @@ def add_item(layout, idx, segment):
 
 def add_linearDimension(layout, idx, linDim):
     scene = bpy.context.scene
-    if linDim.dimSettings is True:
+    if linDim.settings is True:
         box = layout.box()
         row = box.row(align=True)
     else:
@@ -538,29 +493,29 @@ def add_linearDimension(layout, idx, linDim):
 
 
 
-    row.prop(linDim, 'dimView', text="", toggle=True, icon='DRIVER_DISTANCE')
-    row.prop(linDim, 'dimSettings', text="", toggle=True, icon="PREFERENCES")
-    row.prop(linDim, 'dimStyle', text="")
-    row.prop(linDim, 'dimText', text="")
+    row.prop(linDim, 'visible', text="", toggle=True, icon='DRIVER_DISTANCE')
+    row.prop(linDim, 'settings', text="", toggle=True, icon="PREFERENCES")
+    row.prop(linDim, 'style', text="")
+    row.prop(linDim, 'text', text="")
     op = row.operator("measureit_arch.deletesegmentbutton", text="", icon="X")
     # send index and type to operator
     op.tag = idx
     op.itemType = 'linDim'
 
     # advanced Settings
-    if linDim.dimSettings is True:
+    if linDim.settings is True:
 
         col = box.column(align=True)
-        col.prop(linDim,'dimColor',text='Color')
-        col.prop(linDim,'dimLineWeight',text='Line Weight')
+        col.prop(linDim,'color',text='Color')
+        col.prop(linDim,'lineWeight',text='Line Weight')
 
         col = box.column(align=True)
         col.prop(linDim,'dimOffset',text='Offset')
 
         col = box.column(align=True)
-        col.prop(linDim,'dimFontSize',text='Font Size')
-        col.prop(linDim,'dimFontAlignment',text='Alignment')
-        col.prop(linDim,'dimColor',text='Color')
+        col.prop(linDim,'fontSize',text='Font Size')
+        col.prop(linDim,'textAlignment',text='Alignment')
+        col.prop(linDim,'color',text='Color')
 
         col = box.column(align=True)
         col.prop(linDim,'dimEndcapA', text='Arrow Start')
@@ -628,13 +583,13 @@ class AddSegmentButton(Operator):
                         newDimension.dimEndcapB = scene.measureit_arch_glarrow_b
                         newDimension.dimEndcapSize= scene.measureit_arch_glarrow_s
                         # color
-                        newDimension.dimColor = scene.measureit_arch_default_color
+                        newDimension.color = scene.measureit_arch_default_color
                         # dist
                         newDimension.dimOffset = (1,1,1)
                         # text
-                        newDimension.dimText = scene.measureit_arch_gl_txt
-                        newDimension.dimFontSize = scene.measureit_arch_font_size
-                        newDimension.dimFontAlignment = scene.measureit_arch_font_align
+                        newDimension.text = scene.measureit_arch_gl_txt
+                        newDimension.fontSize = scene.measureit_arch_font_size
+                        newDimension.textAlignment = scene.measureit_arch_font_align
                         # Sum group
                         measureGen.measureit_arch_num += 1
 
@@ -1381,7 +1336,7 @@ class ExpandAllSegmentButton(Operator):
         for seg in mp.measureit_arch_segments:
             seg.gladvance = True
         for linDim in mp.linearDimensions:
-            linDim.dimSettings = True
+            linDim.settings = True
 
         return {'FINISHED'}
     
@@ -1407,7 +1362,7 @@ class CollapseAllSegmentButton(Operator):
         for seg in mp.measureit_arch_segments:
             seg.gladvance = False
         for linDim in mp.linearDimensions:
-            linDim.dimSettings = True
+            linDim.settings = True
         return {'FINISHED'}
     
 

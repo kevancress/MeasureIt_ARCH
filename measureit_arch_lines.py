@@ -41,7 +41,7 @@ from bpy.app.handlers import persistent
 from .measureit_arch_geometry import *
 from .measureit_arch_render import *
 from .measureit_arch_main import get_smart_selected, get_selected_vertex
-
+from .measureit_arch_baseclass import BaseProp
 # ------------------------------------------------------------------
 # Define property group class for individual line Data
 # ------------------------------------------------------------------
@@ -58,42 +58,13 @@ bpy.utils.register_class(SingleLineProperties)
 # Define property group class for line data
 # ------------------------------------------------------------------
 
-class LineProperties(PropertyGroup):
-    lineStyle: IntProperty(name="lineStyle",
-                        description="Dimension Style to use",
-                        min = 0)
-    
-    lineColor: FloatVectorProperty(name="lineColor",
-                        description="Color for Lines",
-                        default=(0.1, 0.1, 0.1, 1.0),
-                        min=0.0,
-                        max=1,
-                        subtype='COLOR',
-                        size=4) 
-
-    lineWeight: IntProperty(name="lineWeight",
-                        description="Lineweight",
-                        min = 1,
-                        max = 10)
-
-    lineVis: BoolProperty(name="lineVis",
-                        description="Line show/hide",
-                        default=True)
-
-    lineFree: BoolProperty(name="lineFree",
-                        description="This line is free and can be deleted",
-                        default=False)
-
+class LineProperties(BaseProp, PropertyGroup):
     numLines: IntProperty(name="numLines",
                         description="Number Of Single Lines")
 
     lineDrawHidden: BoolProperty(name= "lineDrawHidden",
                         description= "Draw Hidden Lines",
                         default= False)
-    
-    lineSettings: BoolProperty(name= "lineSettings",
-                        description= "Show Line Settings",
-                        default=False)
 
     lineHiddenColor: FloatVectorProperty(name="lineHiddenColor",
                         description="Color for Hidden Lines",
@@ -257,28 +228,28 @@ class MeasureitArchLinesPanel(Panel):
 # -----------------------------------------------------
 def add_line_item(layout, idx, line):
     scene = bpy.context.scene
-    if line.lineSettings is True:
+    if line.settings is True:
         box = layout.box()
         row = box.row(align=True)
     else:
         row = layout.row(align=True)
 
 
-    if line.lineVis is True:
+    if line.visible is True:
         icon = "VISIBLE_IPO_ON"
     else:
         icon = "VISIBLE_IPO_OFF"
 
-    row.prop(line, 'lineVis', text="", toggle=True, icon=icon)
-    row.prop(line, 'lineSettings', text="",toggle=True, icon='PREFERENCES')
+    row.prop(line, 'visible', text="", toggle=True, icon=icon)
+    row.prop(line, 'settings', text="",toggle=True, icon='PREFERENCES')
     row.prop(line, 'isOutline', text="", toggle=True, icon='SEQ_CHROMA_SCOPE')
     row.prop(line, 'lineDrawHidden', text="", toggle=True, icon='MOD_WIREFRAME')
-    row.prop(line, 'lineColor', text="" )
+    row.prop(line, 'color', text="" )
     row.prop(line, 'lineWeight', text="")
     op = row.operator("measureit_arch.deletelinebutton", text="", icon="X")
     op.tag = idx  # saves internal data
     
-    if line.lineSettings is True:
+    if line.settings is True:
         row = box.row(align=True)
         
         op = row.operator('measureit_arch.addtolinegroup', text="Add Line", icon='ADD')

@@ -38,12 +38,12 @@ import bpy_extras.object_utils as object_utils
 # noinspection PyUnresolvedReferences
 from bpy_extras import view3d_utils
 from math import ceil
-from .measureit_arch_geometry import *
+
 from gpu_extras.presets import draw_texture_2d
 from bgl import *
 import numpy as np
 import bmesh
-
+from .measureit_arch_geometry import *
 from bpy.props import IntProperty
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 # ------------------------------------------------------------------

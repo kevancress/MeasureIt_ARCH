@@ -54,8 +54,36 @@ textShader = gpu.types.GPUShader(Text_Shader.vertex_shader,Text_Shader.fragment_
 # -------------------------------------------------------------
 # noinspection PyUnresolvedReferences,PyUnboundLocalVariable
 
-def draw_linearDimension(context, myobj, measureGen):
+def draw_linearDimension(context, myobj, measureGen,linDim):
     obverts = get_mesh_vertices(myobj)
+    bgl.glEnable(bgl.GL_MULTISAMPLE)
+    bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    bgl.glEnable(bgl.GL_BLEND)
+
+    scale = bpy.context.scene.unit_settings.scale_length
+    scene = bpy.context.scene
+    units = scene.measureit_arch_units
+
+    rawRGB = linDim.color
+    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
+    p1 = get_point(obverts[linDim.dimPointA], myobj)
+    p2 = get_point(obverts[linDim.dimPointB], myobj)
+
+    distVector = Vector(p1)-Vector(p2)
+    dist = distVector.length
+
+    midpoint3d = interpolate3d(p1, p2, fabs(dist / 2))
+
+    lineShader.bind()
+    lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+    lineShader.uniform_float("offset", (0,0,0))
+    coords = [p1,p2]
+    batch = batch_for_shader( lineShader, 'LINE_STRIP', {"pos": coords})
+    batch.program_set( lineShader)
+    batch.draw()
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthMask(False)
     #print ('drawing measure')
 
 def draw_line_group(context, myobj, lineGen):
@@ -70,8 +98,8 @@ def draw_line_group(context, myobj, lineGen):
 
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
-        if lineGroup.lineVis is True:
-            rawRGB = lineGroup.lineColor
+        if lineGroup.visible is True:
+            rawRGB = lineGroup.color
             #undo blenders Default Gamma Correction
             rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
             offset = (lineGroup.lineDepthOffset/1000)
@@ -159,9 +187,9 @@ def draw_annotation(context, myobj, annotationGen):
 
     for idx in range(0, annotationGen.num_annotations):
         annotation = annotationGen.annotations[idx]
-        if annotation.annotationVis is True:
-            bgl.glLineWidth(annotation.annotationLineWeight)
-            rawRGB = annotation.annotationColor
+        if annotation.visible is True:
+            bgl.glLineWidth(annotation.lineWeight)
+            rawRGB = annotation.color
             #undo blenders Default Gamma Correction
             rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
@@ -192,11 +220,12 @@ def draw_text_3D(context, annotation,p2,myobj):
     #get props
     annotationGen = myobj.AnnotationGenerator[0]
     numVerts = len(myobj.data.vertices)
-    width = annotation.annotationWidth
-    height = annotation.annotationHeight 
+    width = annotation.textWidth
+    height = annotation.textHeight 
     anchor = annotation.annotationAnchor
-    size = annotation.annotationSize
+    size = annotation.fontSize
 
+    
     #Define annotation Card Geometries
     uv= [(0,0),(0,1),(1,1),(1,0)]
     left = [(0.0, 0.0, 0.0),(0.0, 1.0, 0.0),(1.0, 1.0, 0.0),(1.0, 0.0, 0.0)]
@@ -204,17 +233,17 @@ def draw_text_3D(context, annotation,p2,myobj):
     center = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
 
     #pick approprate card based on alignment
-    if annotation.annotationAlignment == 'L':
+    if annotation.textAlignment == 'L':
         square = left
-    elif annotation.annotationAlignment == 'R':
+    elif annotation.textAlignment == 'R':
         square = right
     else:
         square = center
 
     
-    if annotation.annotationPosition == 'M':
+    if annotation.textPosition == 'M':
         pOff = (0.0,0.5,0.0)
-    elif annotation.annotationPosition == 'B':
+    elif annotation.textPosition == 'B':
         pOff = (0.0,1.0,0.0)
     else:
         pOff = (0.0,0.0,0.0)
@@ -1430,10 +1459,6 @@ def draw_segments(context, myobj, op, region, rv3d):
                     
                     shader.bind()
 
-                    # --------------------
-                    # render Size to shader
-                    # --------------------
-                    render = scene.render
                     
                     if ovr is False:
                         bgl.glLineWidth(source.glwidth)
