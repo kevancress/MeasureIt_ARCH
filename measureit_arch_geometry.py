@@ -38,7 +38,7 @@ from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
 from sys import exc_info
 from .shaders import *
-from gpu_extras.presets import draw_circle_2d
+import math
 
 shader = gpu.types.GPUShader(Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader)
 lineShader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
@@ -54,11 +54,100 @@ textShader = gpu.types.GPUShader(Text_Shader.vertex_shader,Text_Shader.fragment_
 # -------------------------------------------------------------
 # noinspection PyUnresolvedReferences,PyUnboundLocalVariable
 
+
+def update_text(self, context):
+    if self.text_updated is True:
+        #Get textitem Properties
+        rawRGB = self.color
+        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        size = 20
+        resolution = self.textResolution
+
+        
+        #Get Font Id
+        badfonts=[None]
+        if 'Bfont' in bpy.data.fonts:
+            badfonts.append(bpy.data.fonts['Bfont'])
+
+        if self.font not in badfonts:
+            vecFont = self.font
+            fontPath = vecFont.filepath
+            font_id= blf.load(fontPath)
+        else:
+            font_id=0
+
+        # Get Text
+        if 'annotationTextSource' in self:
+            if self.annotationTextSource is not '':
+                text = str(context.object[self.annotationTextSource])
+        else:
+            text = self.text
+
+
+        # Set BLF font Properties
+        blf.color(font_id,rgb[0],rgb[1],rgb[2],rgb[3])
+        blf.size(font_id,size,resolution)
+        
+        
+        #Calculate Optimal Dimensions for Text Texture.
+        fheight = blf.dimensions(font_id,'fp')[1]
+        fwidth = blf.dimensions(font_id,text)[0]
+        width = math.ceil(fwidth)
+        height = math.ceil(fheight+4)
+        blf.position(font_id,0,height/4,0)
+        #Save Texture size to Annotation Properties
+        self.textHeight = height
+        self.textWidth = width
+
+        # Start Offscreen Draw
+        textOffscreen = gpu.types.GPUOffScreen(width,height)
+        texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+        with textOffscreen.bind():
+            # Clear Past Draw and Set 2D View matrix
+            bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+            
+            view_matrix = Matrix([
+            [2 / width, 0, 0, -1],
+            [0, 2 / height, 0, -1],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1]])
+            
+            gpu.matrix.reset()
+            gpu.matrix.load_matrix(view_matrix)
+            gpu.matrix.load_projection_matrix(Matrix.Identity(4))
+
+            
+            blf.draw(font_id,text)
+            
+            # Read Offscreen To Texture Buffer
+            bgl.glReadBuffer(bgl.GL_BACK)
+            bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
+            
+            # Write Texture Buffer to ID Property as List
+            self['texture'] = texture_buffer.to_list()
+            textOffscreen.free()
+            self.text_updated = False
+            self.texture_updated = True
+            
+
+        #generate image datablock from buffer for debug preview
+        #ONLY USE IF NECESSARY. SERIOUSLY SLOWS PREFORMANCE
+        #if not str(self.annotationAnchor) in bpy.data.images:
+        #    bpy.data.images.new(str(self.annotationAnchor), width, height)
+        #image = bpy.data.images[str(self.annotationAnchor)]
+        #image.scale(width, height)
+        #image.pixels = [v / 255 for v in texture_buffer]
+
 def draw_linearDimension(context, myobj, measureGen,linDim):
-    obverts = get_mesh_vertices(myobj)
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_LINE_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
+    bgl.glLineWidth(linDim.lineWeight)
+
+    obverts = get_mesh_vertices(myobj)
+    scene = context.scene
+    pr = scene.measureit_arch_gl_precision
+    textFormat = "%1." + str(pr) + "f"
 
     scale = bpy.context.scene.unit_settings.scale_length
     scene = bpy.context.scene
@@ -82,6 +171,73 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
     batch = batch_for_shader( lineShader, 'LINE_STRIP', {"pos": coords})
     batch.program_set( lineShader)
     batch.draw()
+    distanceText = str(format_distance(textFormat,units,dist))
+    if linDim.text != str(distanceText):
+        linDim.text = str(distanceText)
+        linDim.text_updated = True
+    width = linDim.textWidth
+    height = linDim.textHeight 
+    size = linDim.fontSize
+
+
+    #Define annotation Card Geometries
+    left = [(0.0, 0.0, 0.0),(0.0, 1.0, 0.0),(1.0, 1.0, 0.0),(1.0, 0.0, 0.0)]
+    right = [(-1.0, 0.0, 0.0),(-1.0, 1.0, 0.0),(0.0, 1.0, 0.0),(0.0, 0.0, 0.0)]
+    center = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
+
+    #pick approprate card based on alignment
+    if linDim.textAlignment == 'L':
+        square = left
+    elif linDim.textAlignment == 'R':
+        square = right
+    else:
+        square = center
+
+    
+    if linDim.textPosition == 'M':
+        pOff = (0.0,0.5,0.0)
+    elif linDim.textPosition == 'B':
+        pOff = (0.0,1.0,0.0)
+    else:
+        pOff = (0.0,0.0,0.0)
+    #Define Transformation Matricies
+
+
+
+    #scale
+    sx = 0.001*width*size
+    sy = 0.001*height*size
+    scaleMatrix = Matrix([
+        [sx,0 ,0,0],
+        [0 ,sy,0,0],
+        [0 ,0 ,1,0],
+        [0 ,0 ,0,1]
+    ])
+
+    #Transform
+    tx = midpoint3d[0]
+    ty = midpoint3d[1]
+    tz = midpoint3d[2]
+    translateMatrix = Matrix([
+        [1,0,0,tx],
+        [0,1,0,ty],
+        [0,0,1,tz],
+        [0,0,0, 1]
+    ])
+
+    # Transform Card By Transformation Matricies (Scale -> XYZ Euler Rotation -> Translate)
+    coords = []
+    for coord in square:
+        coord= Vector(coord) - Vector(pOff)
+        coord = scaleMatrix@Vector(coord)
+        coord = translateMatrix@Vector(coord)
+        coords.append(coord)
+
+
+    draw_text_3D(context,linDim,myobj,coords)
+
+
+    bgl.glLineWidth(1)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
     #print ('drawing measure')
@@ -323,14 +479,14 @@ def draw_text_3D(context,textobj,myobj,card):
     tex_buffer = bgl.Buffer(bgl.GL_INT,1,textobj['tex_buffer'].to_list())
     
     # Update Texture If necessary 
-    if textobj.text_updated is True:
+    if textobj.texture_updated is True:
         dim = width * height * 4
         buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[0])
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-        textobj.text_updated=False
+        textobj.texture_updated=False
     else:
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[0])

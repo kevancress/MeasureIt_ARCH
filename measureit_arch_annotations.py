@@ -42,7 +42,7 @@ from bpy.props import (
         )
 
 
-from .measureit_arch_baseclass import BaseProp, BaseWithText, update_text
+from .measureit_arch_baseclass import BaseProp, BaseWithText
 from .measureit_arch_main import get_smart_selected, get_selected_vertex
 
 import math
@@ -60,7 +60,6 @@ def update_custom_props(self,context):
         if prop.name not in context.object.keys():
             annotationGen.customProperties.remove(idx)
         idx += 1
-    update_text(self,context)
 
 
 class CustomProperties(PropertyGroup):
@@ -148,6 +147,7 @@ class AddAnnotationButton(Operator):
 
                 # Set values
                 newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
+
                 tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
                 bgl.glGenTextures(1, tex_buffer)
                 newAnnotation['tex_buffer'] = tex_buffer.to_list()
@@ -155,8 +155,7 @@ class AddAnnotationButton(Operator):
                 newAnnotation.annotationAnchor = mylist[0]
                 newAnnotation.annotationLineWeight = (2)
                 newAnnotation.color = (0,0,0,1)
-                context.area.tag_redraw()
-                update_text(newAnnotation,context)  
+                context.area.tag_redraw()  
                 update_custom_props(newAnnotation,context)
                 
                 

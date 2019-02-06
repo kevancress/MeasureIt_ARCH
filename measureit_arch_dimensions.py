@@ -506,8 +506,10 @@ def add_linearDimension(layout, idx, linDim):
     if linDim.settings is True:
 
         col = box.column(align=True)
+        col.template_ID(linDim, "font", open="font.open", unlink="font.unlink")
         col.prop(linDim,'color',text='Color')
         col.prop(linDim,'lineWeight',text='Line Weight')
+        
 
         col = box.column(align=True)
         col.prop(linDim,'dimOffset',text='Offset')
@@ -515,6 +517,7 @@ def add_linearDimension(layout, idx, linDim):
         col = box.column(align=True)
         col.prop(linDim,'fontSize',text='Font Size')
         col.prop(linDim,'textAlignment',text='Alignment')
+        col.prop(linDim,'textResolution',text='Resolution')
         col.prop(linDim,'color',text='Color')
 
         col = box.column(align=True)
@@ -576,6 +579,11 @@ class AddSegmentButton(Operator):
                         newDimension = measureGen.linearDimensions.add()
                         print ('adding linear dimension')
                         # Set values
+
+                        tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
+                        bgl.glGenTextures(1, tex_buffer)
+                        newDimension['tex_buffer'] = tex_buffer.to_list()
+
                         newDimension.style = scene.measureit_arch_default_style
                         newDimension.dimPointB = mylist[x]
                         newDimension.dimPointA = mylist[x + 1]
@@ -589,6 +597,7 @@ class AddSegmentButton(Operator):
                         # text
                         newDimension.text = scene.measureit_arch_gl_txt
                         newDimension.fontSize = scene.measureit_arch_font_size
+                        newDimension.textResolution = 72
                         newDimension.textAlignment = scene.measureit_arch_font_align
                         # Sum group
                         measureGen.measureit_arch_num += 1

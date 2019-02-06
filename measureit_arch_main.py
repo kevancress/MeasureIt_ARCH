@@ -37,7 +37,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
-from .measureit_arch_geometry import draw_annotation, draw_linearDimension, draw_line_group
+from .measureit_arch_geometry import draw_annotation, draw_linearDimension, draw_line_group, update_text
 
 
 coords = [(100, 100, 1), (200, 400, 0), (-2, -1, 3), (0, 1, 1)]
@@ -359,17 +359,16 @@ def draw_main(context):
     for myobj in objlist:
         if myobj.visible_get() is True:
             if 'MeasureGenerator' in myobj:
-                
-                # verify visible layer
-                for collection in visibleCollections:
-                    objCollections = []
-                    objCollections = myobj.users_collection
-                    if objCollections[0].name == collection.collection.name:
-                        op = myobj.MeasureGenerator[0]
-
-                        #draw_segments(context, myobj, op, region, rv3d)
-                        break
-                
+                measureGen = myobj.MeasureGenerator[0]
+                for linDim in measureGen.linearDimensions:
+                    update_text(linDim,context)
+            
+                     
+            if 'AnnotationGenerator' in myobj:
+                annotationGen = myobj.AnnotationGenerator[0]
+                for idx in range(0, annotationGen.num_annotations):
+                    annotation = annotationGen.annotations[idx]
+                    update_text(annotation,context)
     # ---------------------------------------
     # Generate all OpenGL calls for debug
     # ---------------------------------------
@@ -417,15 +416,11 @@ def draw_main_3d (context):
                 measureGen = myobj.MeasureGenerator[0]
                 for linDim in measureGen.linearDimensions:
                     draw_linearDimension(context, myobj, measureGen,linDim)
-
-    for myobj in objlist:
-        if myobj.visible_get() is True:              
+           
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]
                 draw_line_group(context,myobj,lineGen)
-
-    for myobj in objlist:
-        if myobj.visible_get() is True:              
+            
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
                 draw_annotation(context,myobj,annotationGen)
