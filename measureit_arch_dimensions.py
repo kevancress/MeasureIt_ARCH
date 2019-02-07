@@ -26,7 +26,7 @@
 import bpy
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-                      FloatProperty, EnumProperty
+                      FloatProperty, EnumProperty, PointerProperty
 from .measureit_arch_main import *
 from .measureit_arch_baseclass import BaseWithText
 
@@ -62,11 +62,20 @@ class LinearDimensionProperties(BaseWithText,PropertyGroup):
     dimPointB: IntProperty(name='dimPointB',
                     description="Dimension End Vertex Index")
 
-    dimOffset: FloatVectorProperty(name='annotationOffset',
-                    description='Offset for Annotation',
-                    default= (1.0,1.0,1.0),
-                    subtype= 'TRANSLATION')
+    dimOffset: FloatProperty(name='Dimension Offset',
+                    description='Offset for Dimension',
+                    default= (0.1))
     
+    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
+
+    dimViewPlane: EnumProperty(
+                    items=(('99', "--", "None"),
+                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)"),
+                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)"),
+                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)")),
+                    name="B end",
+                    description="Add arrows to point A")   
+
     dimEndcapA: EnumProperty(
                     items=(('99', "--", "No arrow"),
                            ('1', "Line", "The point of the arrow are lines"),
@@ -86,6 +95,11 @@ class LinearDimensionProperties(BaseWithText,PropertyGroup):
     dimEndcapSize: IntProperty(name="dimEndcapSize",
                     description="Arrow size",
                     default=15, min=6, max=500)
+
+    dimRotation:FloatProperty(name='annotationOffset',
+                            description='Rotation for Annotation',
+                            default= 0.0,
+                            subtype='ANGLE')
 
 bpy.utils.register_class(LinearDimensionProperties)
 
@@ -504,9 +518,11 @@ def add_linearDimension(layout, idx, linDim):
 
     # advanced Settings
     if linDim.settings is True:
-
+        
         col = box.column(align=True)
         col.template_ID(linDim, "font", open="font.open", unlink="font.unlink")
+        col.prop(linDim,'dimViewPlane', text='Dimension View Plane')
+        col.prop_search(linDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
         col.prop(linDim,'color',text='Color')
         col.prop(linDim,'lineWeight',text='Line Weight')
         
@@ -516,9 +532,11 @@ def add_linearDimension(layout, idx, linDim):
 
         col = box.column(align=True)
         col.prop(linDim,'fontSize',text='Font Size')
-        col.prop(linDim,'textAlignment',text='Alignment')
         col.prop(linDim,'textResolution',text='Resolution')
-        col.prop(linDim,'color',text='Color')
+        col.prop(linDim,'textAlignment',text='Alignment')
+        col.prop(linDim,'textPosition',text='Alignment')
+
+        col.prop(linDim, 'dimRotation', text='Rotation')
 
         col = box.column(align=True)
         col.prop(linDim,'dimEndcapA', text='Arrow Start')
@@ -593,12 +611,12 @@ class AddSegmentButton(Operator):
                         # color
                         newDimension.color = scene.measureit_arch_default_color
                         # dist
-                        newDimension.dimOffset = (1,1,1)
+                        newDimension.dimOffset = 0.2
                         # text
                         newDimension.text = scene.measureit_arch_gl_txt
-                        newDimension.fontSize = scene.measureit_arch_font_size
+                        newDimension.fontSize = 7
                         newDimension.textResolution = 72
-                        newDimension.textAlignment = scene.measureit_arch_font_align
+                        newDimension.textAlignment = 'C'
                         # Sum group
                         measureGen.measureit_arch_num += 1
 
@@ -1371,7 +1389,7 @@ class CollapseAllSegmentButton(Operator):
         for seg in mp.measureit_arch_segments:
             seg.gladvance = False
         for linDim in mp.linearDimensions:
-            linDim.settings = True
+            linDim.settings = False
         return {'FINISHED'}
     
 

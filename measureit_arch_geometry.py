@@ -40,11 +40,31 @@ from sys import exc_info
 from .shaders import *
 import math
 
-shader = gpu.types.GPUShader(Base_Shader_2D.vertex_shader, Base_Shader_2D.fragment_shader)
-lineShader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, Base_Shader_3D.fragment_shader)
-dashedLineShader = gpu.types.GPUShader(Dashed_Shader_3D.vertex_shader, Dashed_Shader_3D.fragment_shader)
-pointShader = gpu.types.GPUShader(Point_Shader_3D.vertex_shader,Point_Shader_3D.fragment_shader)
-textShader = gpu.types.GPUShader(Text_Shader.vertex_shader,Text_Shader.fragment_shader)
+#define Shaders
+shader = gpu.types.GPUShader(
+    Base_Shader_2D.vertex_shader,
+    Base_Shader_2D.fragment_shader)
+
+lineShader = gpu.types.GPUShader(
+    Base_Shader_3D.vertex_shader,
+    Base_Shader_3D.fragment_shader)
+
+dashedLineShader = gpu.types.GPUShader(
+    Dashed_Shader_3D.vertex_shader,
+    Dashed_Shader_3D.fragment_shader)
+
+pointShader = gpu.types.GPUShader(
+    Point_Shader_3D.vertex_shader,
+    Point_Shader_3D.fragment_shader)
+
+textShader = gpu.types.GPUShader(
+    Text_Shader.vertex_shader,
+    Text_Shader.fragment_shader)
+
+dimensionShader = gpu.types.GPUShader(
+    Base_Shader_3D.vertex_shader,
+    Base_Shader_3D.fragment_shader,
+    geocode = Base_Shader_3D.geometry_shader)
 
 # -------------------------------------------------------------
 # Draw segments
@@ -63,12 +83,10 @@ def update_text(self, context):
         size = 20
         resolution = self.textResolution
 
-        
         #Get Font Id
         badfonts=[None]
         if 'Bfont' in bpy.data.fonts:
             badfonts.append(bpy.data.fonts['Bfont'])
-
         if self.font not in badfonts:
             vecFont = self.font
             fontPath = vecFont.filepath
@@ -83,11 +101,9 @@ def update_text(self, context):
         else:
             text = self.text
 
-
         # Set BLF font Properties
         blf.color(font_id,rgb[0],rgb[1],rgb[2],rgb[3])
         blf.size(font_id,size,resolution)
-        
         
         #Calculate Optimal Dimensions for Text Texture.
         fheight = blf.dimensions(font_id,'fp')[1]
@@ -95,13 +111,15 @@ def update_text(self, context):
         width = math.ceil(fwidth)
         height = math.ceil(fheight+4)
         blf.position(font_id,0,height/4,0)
-        #Save Texture size to Annotation Properties
+
+        #Save Texture size to textobj Properties
         self.textHeight = height
         self.textWidth = width
 
         # Start Offscreen Draw
         textOffscreen = gpu.types.GPUOffScreen(width,height)
         texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+        
         with textOffscreen.bind():
             # Clear Past Draw and Set 2D View matrix
             bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
@@ -116,7 +134,6 @@ def update_text(self, context):
             gpu.matrix.load_matrix(view_matrix)
             gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-            
             blf.draw(font_id,text)
             
             # Read Offscreen To Texture Buffer
@@ -139,109 +156,105 @@ def update_text(self, context):
         #image.pixels = [v / 255 for v in texture_buffer]
 
 def draw_linearDimension(context, myobj, measureGen,linDim):
-    bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_LINE_SMOOTH)
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glLineWidth(linDim.lineWeight)
+    if linDim.dimVisibleInView is None or linDim.dimVisibleInView.name == context.scene.camera.name:
+        # GL Settings
+        bgl.glEnable(bgl.GL_MULTISAMPLE)
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glLineWidth(linDim.lineWeight)
 
-    obverts = get_mesh_vertices(myobj)
-    scene = context.scene
-    pr = scene.measureit_arch_gl_precision
-    textFormat = "%1." + str(pr) + "f"
+        # Obj Properties
+        obverts = get_mesh_vertices(myobj)
+        scene = context.scene
+        pr = scene.measureit_arch_gl_precision
+        textFormat = "%1." + str(pr) + "f"
+        scale = bpy.context.scene.unit_settings.scale_length
+        scene = bpy.context.scene
+        units = scene.measureit_arch_units
+        rawRGB = linDim.color
+        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
-    scale = bpy.context.scene.unit_settings.scale_length
-    scene = bpy.context.scene
-    units = scene.measureit_arch_units
+        # get points positions from indicies
+        p1 = get_point(obverts[linDim.dimPointA], myobj)
+        p2 = get_point(obverts[linDim.dimPointB], myobj)
 
-    rawRGB = linDim.color
-    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        #calculate distance & Midpoint
+        distVector = Vector(p1)-Vector(p2)
+        dist = distVector.length
+        loc = get_location(myobj)
+        midpoint = interpolate3d(p1, p2, fabs(dist / 2))
+        normDistVector = distVector.normalized()
 
-    p1 = get_point(obverts[linDim.dimPointA], myobj)
-    p2 = get_point(obverts[linDim.dimPointB], myobj)
+        # Compute offset vector from face normal and user input
+        rotationMatrix = Matrix.Rotation(linDim.dimRotation,4,normDistVector)
+        offsetVector = Vector(select_normal(myobj,linDim))
+        offsetVector = rotationMatrix@offsetVector
+        offsetVector *= linDim.dimOffset
+        textLoc = offsetVector + Vector(midpoint)
 
-    distVector = Vector(p1)-Vector(p2)
-    dist = distVector.length
+        #calculate xyz Euler Angle of distVector
 
-    midpoint3d = interpolate3d(p1, p2, fabs(dist / 2))
+        if linDim.dimViewPlane == 'XY':
+            j = (0,1,0)
+            quaternionRot = offsetVector.normalized().rotation_difference(Vector(j))
+            textRotation = quaternionRot.to_euler('XYZ')
+            if textRotation[2]< radians(180):
+                textRotation[2]+= radians(180)
+            textRotation =(0,0,textRotation[2])
+        else:
+            textRotation = (0,0,0)
+        
+        #format text and update if necessary
+        distanceText = str(format_distance(textFormat,units,dist))
+        if linDim.text != str(distanceText):
+            linDim.text = str(distanceText)
+            linDim.text_updated = True
 
-    lineShader.bind()
-    lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-    lineShader.uniform_float("offset", (0,0,0))
-    coords = [p1,p2]
-    batch = batch_for_shader( lineShader, 'LINE_STRIP', {"pos": coords})
-    batch.program_set( lineShader)
-    batch.draw()
-    distanceText = str(format_distance(textFormat,units,dist))
-    if linDim.text != str(distanceText):
-        linDim.text = str(distanceText)
-        linDim.text_updated = True
-    width = linDim.textWidth
-    height = linDim.textHeight 
-    size = linDim.fontSize
+        #Generate Card Geometry for Text and Draw
+        textcard = generate_text_card(context,linDim,textRotation,textLoc,offsetVector)
+        draw_text_3D(context,linDim,myobj,textcard)
 
+        #bind shader
+        lineShader.bind()
+        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        lineShader.uniform_float("offset", (0,0,0))
 
-    #Define annotation Card Geometries
-    left = [(0.0, 0.0, 0.0),(0.0, 1.0, 0.0),(1.0, 1.0, 0.0),(1.0, 0.0, 0.0)]
-    right = [(-1.0, 0.0, 0.0),(-1.0, 1.0, 0.0),(0.0, 1.0, 0.0),(0.0, 0.0, 0.0)]
-    center = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
+        #batch & Draw Shader
+        p3 = Vector(p1)+offsetVector
+        p4 = Vector(p2)+offsetVector
+        p5 = Vector(p1)+(offsetVector-(offsetVector.normalized()*0.05))
+        p6 = Vector(p2)+(offsetVector-(offsetVector.normalized()*0.05))
+        coords = [p1,p3,p2,p4,p5,p6]
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        batch.program_set(lineShader)
+        batch.draw()
 
-    #pick approprate card based on alignment
-    if linDim.textAlignment == 'L':
-        square = left
-    elif linDim.textAlignment == 'R':
-        square = right
-    else:
-        square = center
-
+        #Reset openGL Settings
+        bgl.glLineWidth(1)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthMask(False)
     
-    if linDim.textPosition == 'M':
-        pOff = (0.0,0.5,0.0)
-    elif linDim.textPosition == 'B':
-        pOff = (0.0,1.0,0.0)
-    else:
-        pOff = (0.0,0.0,0.0)
-    #Define Transformation Matricies
 
+def select_normal(myobj,linDim):
+    possibleNormals = []
+    for face in myobj.data.polygons:
+        if linDim.dimPointA in face.vertices and linDim.dimPointB in face.vertices:
+            worldNormal = myobj.matrix_local@Vector(face.normal)
+            worldNormal -= myobj.location
+            worldNormal.normalize()
+            possibleNormals.append(worldNormal)
+            #possibleNormals.append(face.normal)
+    bestNormal = (0,0,1)
+    for normal in possibleNormals:
+        if normal[2]<bestNormal[2]:
+            bestNormal=normal
+        else:
+            bestNormal=bestNormal
 
-
-    #scale
-    sx = 0.001*width*size
-    sy = 0.001*height*size
-    scaleMatrix = Matrix([
-        [sx,0 ,0,0],
-        [0 ,sy,0,0],
-        [0 ,0 ,1,0],
-        [0 ,0 ,0,1]
-    ])
-
-    #Transform
-    tx = midpoint3d[0]
-    ty = midpoint3d[1]
-    tz = midpoint3d[2]
-    translateMatrix = Matrix([
-        [1,0,0,tx],
-        [0,1,0,ty],
-        [0,0,1,tz],
-        [0,0,0, 1]
-    ])
-
-    # Transform Card By Transformation Matricies (Scale -> XYZ Euler Rotation -> Translate)
-    coords = []
-    for coord in square:
-        coord= Vector(coord) - Vector(pOff)
-        coord = scaleMatrix@Vector(coord)
-        coord = translateMatrix@Vector(coord)
-        coords.append(coord)
-
-
-    draw_text_3D(context,linDim,myobj,coords)
-
-
-    bgl.glLineWidth(1)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthMask(False)
-    #print ('drawing measure')
-
+    return bestNormal
+            
+        
+        
 def draw_line_group(context, myobj, lineGen):
     obverts = get_mesh_vertices(myobj)
     bgl.glEnable(bgl.GL_MULTISAMPLE)
@@ -336,18 +349,12 @@ def draw_annotation(context, myobj, annotationGen):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_LINE_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
-
-   
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
-  
 
     for idx in range(0, annotationGen.num_annotations):
         annotation = annotationGen.annotations[idx]
-        width = annotation.textWidth
-        height = annotation.textHeight 
-        size = annotation.fontSize
-        
+
         if annotation.visible is True:
             bgl.glLineWidth(annotation.lineWeight)
             rawRGB = annotation.color
@@ -357,14 +364,11 @@ def draw_annotation(context, myobj, annotationGen):
             lineShader.bind()
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
 
-
-           
             p1 = get_point(obverts[annotation.annotationAnchor], myobj)
             offset = annotation.annotationOffset
             p2 = Vector(p1) + Vector(offset)
 
             if  p1 is not None and p2 is not None:
-
                 coords =[p1,p2]
 
                 batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
@@ -372,96 +376,15 @@ def draw_annotation(context, myobj, annotationGen):
                 batch3d.draw()
                 gpu.shader.unbind()
             
-                    
-            #Define annotation Card Geometries
-            left = [(0.0, 0.0, 0.0),(0.0, 1.0, 0.0),(1.0, 1.0, 0.0),(1.0, 0.0, 0.0)]
-            right = [(-1.0, 0.0, 0.0),(-1.0, 1.0, 0.0),(0.0, 1.0, 0.0),(0.0, 0.0, 0.0)]
-            center = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
-
-            #pick approprate card based on alignment
-            if annotation.textAlignment == 'L':
-                square = left
-            elif annotation.textAlignment == 'R':
-                square = right
-            else:
-                square = center
-
-            
-            if annotation.textPosition == 'M':
-                pOff = (0.0,0.5,0.0)
-            elif annotation.textPosition == 'B':
-                pOff = (0.0,1.0,0.0)
-            else:
-                pOff = (0.0,0.0,0.0)
-            #Define Transformation Matricies
-
-            #x Rotation
-            rx = annotation.annotationRotation[0]
-            rotateXMatrix = Matrix([
-                [1,   0,      0,     0],
-                [0,cos(rx) ,sin(rx), 0],
-                [0,-sin(rx),cos(rx), 0],
-                [0,   0,      0,     1]
-            ])
-
-            #y Rotation
-            ry = annotation.annotationRotation[1]
-            rotateYMatrix = Matrix([
-                [cos(ry),0,-sin(ry),0],
-                [  0,    1,   0,    0],
-                [sin(ry),0,cos(ry), 0],
-                [  0,    0,   0,    1]
-            ])
-
-            #z Rotation
-            rz = annotation.annotationRotation[2]
-            rotateZMatrix = Matrix([
-                [cos(rz) ,sin(rz),0,0],
-                [-sin(rz),cos(rz),0,0],
-                [   0    ,   0   ,1,0],
-                [   0    ,   0   ,0,1]
-            ])
-
-            #scale
-            sx = 0.001*width*size
-            sy = 0.001*height*size
-            scaleMatrix = Matrix([
-                [sx,0 ,0,0],
-                [0 ,sy,0,0],
-                [0 ,0 ,1,0],
-                [0 ,0 ,0,1]
-            ])
-
-            #Transform
-            tx = p2[0]
-            ty = p2[1]
-            tz = p2[2]
-            translateMatrix = Matrix([
-                [1,0,0,tx],
-                [0,1,0,ty],
-                [0,0,1,tz],
-                [0,0,0, 1]
-            ])
-
-            # Transform Card By Transformation Matricies (Scale -> XYZ Euler Rotation -> Translate)
-            coords = []
-            for coord in square:
-                coord= Vector(coord) - Vector(pOff)
-                coord = scaleMatrix@Vector(coord)
-                coord = rotateXMatrix@Vector(coord)
-                coord = rotateYMatrix@Vector(coord)
-                coord = rotateZMatrix@Vector(coord)
-                coord = translateMatrix@Vector(coord)
-                coords.append(coord)
-
-
-            draw_text_3D(context,annotation,myobj,coords)
+            textcard = generate_text_card(context,annotation,annotation.annotationRotation,p2)
+            draw_text_3D(context,annotation,myobj,textcard)
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 
 def draw_text_3D(context,textobj,myobj,card):
     #get props
+    bgl.glDepthMask(False)
     width = textobj.textWidth
     height = textobj.textHeight 
     uv= [(0,0),(0,1),(1,1),(1,0)]
@@ -495,6 +418,93 @@ def draw_text_3D(context,textobj,myobj,card):
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
+
+def generate_text_card(context,textobj,rotation,basePoint,offsetVector): 
+    width = textobj.textWidth
+    height = textobj.textHeight 
+    size = textobj.fontSize 
+    #Define annotation Card Geometry
+    square = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
+
+    #pick approprate card based on alignment
+    if textobj.textAlignment == 'L':
+        aOff = (0.5,0.0,0.0)
+    elif textobj.textAlignment == 'R':
+        aOff = (-0.5,0.0,0.0)
+    else:
+        aOff = (0.0,0.0,0.0)
+
+    if textobj.textPosition == 'M':
+        pOff = (0.0,0.5,0.0)
+    elif textobj.textPosition == 'B':
+        pOff = (0.0,1.0,0.0)
+    else:
+        pOff = (0.0,0.0,0.0)
+
+    #Define Transformation Matricies
+
+    #x Rotation
+    rx = rotation[0]
+    rotateXMatrix = Matrix([
+        [1,   0,      0,     0],
+        [0,cos(rx) ,sin(rx), 0],
+        [0,-sin(rx),cos(rx), 0],
+        [0,   0,      0,     1]
+    ])
+
+    #y Rotation
+    ry = rotation[1]
+    rotateYMatrix = Matrix([
+        [cos(ry),0,-sin(ry),0],
+        [  0,    1,   0,    0],
+        [sin(ry),0,cos(ry), 0],
+        [  0,    0,   0,    1]
+    ])
+
+    #z Rotation
+    rz = rotation[2]
+    rotateZMatrix = Matrix([
+        [cos(rz) ,sin(rz),0,0],
+        [-sin(rz),cos(rz),0,0],
+        [   0    ,   0   ,1,0],
+        [   0    ,   0   ,0,1]
+    ])
+
+    #scale
+    sx = 0.001*width*size
+    sy = 0.001*height*size
+    scaleMatrix = Matrix([
+        [sx,0 ,0,0],
+        [0 ,sy,0,0],
+        [0 ,0 ,1,0],
+        [0 ,0 ,0,1]
+    ])
+
+    #Transform
+    tx = basePoint[0]
+    ty = basePoint[1]
+    tz = basePoint[2]
+    translateMatrix = Matrix([
+        [1,0,0,tx],
+        [0,1,0,ty],
+        [0,0,1,tz],
+        [0,0,0, 1]
+    ])
+
+    # Transform Card By Transformation Matricies (Scale -> XYZ Euler Rotation -> Translate)
+    coords = []
+    for coord in square:
+        coord= Vector(coord) - Vector(aOff)
+        coord= Vector(coord) - Vector(pOff)
+        coord = scaleMatrix@Vector(coord)
+        coord = rotateXMatrix@Vector(coord)
+        coord = rotateYMatrix@Vector(coord)
+        coord = rotateZMatrix@Vector(coord)
+        coord = translateMatrix@Vector(coord)
+        coords.append(coord)
+
+    return coords
+
 
 # ------------------------------------------
 # Get polygon area and paint area

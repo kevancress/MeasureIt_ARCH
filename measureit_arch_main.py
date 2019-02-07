@@ -37,7 +37,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
-from .measureit_arch_geometry import draw_annotation, draw_linearDimension, draw_line_group, update_text
+from .measureit_arch_geometry import draw_annotation, draw_linearDimension, draw_line_group, update_text, draw_vertices, draw_object, draw_edges
 
 
 coords = [(100, 100, 1), (200, 400, 0), (-2, -1, 3), (0, 1, 1)]
@@ -415,7 +415,8 @@ def draw_main_3d (context):
             if 'MeasureGenerator' in myobj:
                 measureGen = myobj.MeasureGenerator[0]
                 for linDim in measureGen.linearDimensions:
-                    draw_linearDimension(context, myobj, measureGen,linDim)
+                    if linDim.visible is True:
+                        draw_linearDimension(context, myobj, measureGen,linDim)
            
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]

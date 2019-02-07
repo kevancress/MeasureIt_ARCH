@@ -81,7 +81,8 @@ class BaseWithText(BaseProp):
                 min=50,
                 max=1200)
 
-    font: PointerProperty(type= bpy.types.VectorFont)
+    font: PointerProperty(type= bpy.types.VectorFont,
+                update = update_flag)
 
     text_updated: BoolProperty(name='text_updated',
                 description= 'flag when text need to be redrawn',

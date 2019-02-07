@@ -276,14 +276,9 @@ def render_main(self, context, animation=False):
         for myobj in objlist:
             if myobj.visible_get() is True:
                 if 'MeasureGenerator' in myobj:
-                    # Set 2D Projection Matrix
-                    gpu.matrix.reset()
-                    gpu.matrix.load_matrix(view_matrix)
-                    gpu.matrix.load_projection_matrix(Matrix.Identity(4))
-
-                    # Draw Segments
-                    op = myobj.MeasureGenerator[0]
-                    draw_segments(context, myobj, op, None, None)
+                    measureGen = myobj.MeasureGenerator[0]
+                    for linDim in measureGen.linearDimensions:
+                        draw_linearDimension(context, myobj, measureGen,linDim)
 
                 if 'LineGenerator' in myobj:
 
@@ -305,7 +300,7 @@ def render_main(self, context, animation=False):
 
                     # Draw Line Groups
                     op = myobj.AnnotationGenerator[0]
-                    draw_annotations(context, myobj, op)                
+                    draw_annotation(context, myobj, op)                
 
         # -----------------------------
         # Loop to draw all debug
@@ -447,6 +442,7 @@ def draw_scene(self, context, projection_matrix):
         bgl.glDepthFunc(bgl.GL_LESS)   
 
         shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+        #shader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
         batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=indices)
 
         gpu.matrix.reset()

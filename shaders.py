@@ -137,10 +137,8 @@ class Base_Shader_3D ():
     geometry_shader = '''
         layout(lines) in;
         layout(line_strip, max_vertices = 4) out;
-
-        uniform vec4 color;
+        
         uniform mat4 ModelViewProjectionMatrix;
-        uniform float thickness;
 
         void main()
         {
@@ -274,7 +272,6 @@ class Text_Shader():
         }
     '''
 
-
 class DepthOnlyFrag():
     fragment_shader = ''' 
         void main()
@@ -283,3 +280,23 @@ class DepthOnlyFrag():
             // gl_FragDepth = gl_FragCoord.z;
         }
     '''
+
+class Dimension_Shader ():
+
+    geometry_shader = '''
+        layout(lines) in;
+        layout(line_strip, max_vertices = 4) out;
+
+        uniform mat4 ModelViewProjectionMatrix;
+
+        void main()
+        {
+            gl_Position = gl_in[0].gl_Position;
+            EmitVertex();
+
+            gl_Position = gl_in[1].gl_Position;
+            EmitVertex();
+
+            EndPrimitive();
+        }
+        '''
