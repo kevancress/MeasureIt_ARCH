@@ -142,6 +142,15 @@ def register():
     # Define properties
     
 
+
+    Scene.viewPlane= EnumProperty(
+                    items=(('99', "None", "None",'EMPTY_AXIS',0),
+                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
+                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
+                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
+                    name="View Plane",
+                    description="Add arrows to point A")   
+                
     Scene.measureit_arch_use_depth_clipping = BoolProperty(name="Use Depth Clipping",
                                              description="Lines Behind Objects Won't Be Rendered (Slower)",
                                              default=True)

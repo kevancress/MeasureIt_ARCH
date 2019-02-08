@@ -58,16 +58,16 @@ class BaseWithText(BaseProp):
                 update= update_flag)
 
     textAlignment:EnumProperty(
-                items=(('L', "Left", ""),
-                        ('C', "Center", ""),
-                        ('R', "Right", "")),
+                items=(('L', "Left", "",'ALIGN_LEFT',1),
+                        ('C', "Center", "",'ALIGN_CENTER',2),
+                        ('R', "Right", "",'ALIGN_RIGHT',3)),
                 name="align Font",
                 description="Set Font alignment")
 
     textPosition:EnumProperty(
-                items=(('T', "Top", ""),
-                        ('M', "Mid", ""),
-                        ('B', "Bottom", "")),
+                items=(('T', "Top", "",'ALIGN_TOP',1),
+                        ('M', "Mid", "",'ALIGN_MIDDLE',2),
+                        ('B', "Bottom", "",'ALIGN_BOTTOM',3)),
                 name="align Font",
                 description="Set Font Position")
 
@@ -85,6 +85,9 @@ class BaseWithText(BaseProp):
                 update = update_flag)
 
     text_updated: BoolProperty(name='text_updated',
+                description= 'flag when text need to be redrawn',
+                default = False)
+    textFlipped: BoolProperty(name='textFlipped', 
                 description= 'flag when text need to be redrawn',
                 default = False)
     

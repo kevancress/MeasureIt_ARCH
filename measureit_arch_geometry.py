@@ -32,7 +32,7 @@ from gpu_extras.batch import batch_for_shader
 import blf
 from blf import ROTATION
 from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Euler
 import bmesh
 from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
@@ -184,35 +184,46 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         loc = get_location(myobj)
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
+        absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
 
         # Compute offset vector from face normal and user input
         rotationMatrix = Matrix.Rotation(linDim.dimRotation,4,normDistVector)
-        offsetVector = Vector(select_normal(myobj,linDim))
-        offsetVector = rotationMatrix@offsetVector
-        offsetVector *= linDim.dimOffset
-        textLoc = offsetVector + Vector(midpoint)
-
-        #calculate xyz Euler Angle of distVector
-
-        if linDim.dimViewPlane == 'XY':
-            j = (0,1,0)
-            quaternionRot = offsetVector.normalized().rotation_difference(Vector(j))
-            textRotation = quaternionRot.to_euler('XYZ')
-            if textRotation[2]< radians(180):
-                textRotation[2]+= radians(180)
-            textRotation =(0,0,textRotation[2])
-        else:
-            textRotation = (0,0,0)
+        selectedNormal = Vector(select_normal(myobj,linDim,normDistVector,midpoint))
+        if linDim.dimFlip is True:
+            selectedNormal.negate()
         
+        userOffsetVector = rotationMatrix@selectedNormal
+        offsetDistance = userOffsetVector*linDim.dimOffset
+        textLoc = offsetDistance + Vector(midpoint)
+
+        #i,j,k as card axis
+        i = Vector((1,0,0))
+        j = Vector((0,1,0))
+        k = Vector((0,0,1))
+
+
+        #quaternion = userOffsetVector.to_track_quat('Y','Z')
+        #textRotation=quaternion.to_euler('XYZ')
+        #textRotation=(-textRotation[0],-textRotation[1],-textRotation[2],)
         #format text and update if necessary
         distanceText = str(format_distance(textFormat,units,dist))
         if linDim.text != str(distanceText):
             linDim.text = str(distanceText)
             linDim.text_updated = True
 
-        #Generate Card Geometry for Text and Draw
-        textcard = generate_text_card(context,linDim,textRotation,textLoc,offsetVector)
-        draw_text_3D(context,linDim,myobj,textcard)
+        width = linDim.textWidth
+        height = linDim.textHeight 
+        size = linDim.fontSize 
+        sx = 0.001*width*size
+        sy = 0.002*height*size
+        uv= [(0,0),(0,1),(1,1),(1,0)]
+        uvFlipped= [(0,1),(0,0),(1,0),(1,1)]
+        origin = Vector(textLoc)
+        cardX = normDistVector * sx
+        cardY = userOffsetVector *sy
+        square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
+    
+        draw_text_3D(context,linDim,myobj,square)
 
         #bind shader
         lineShader.bind()
@@ -220,10 +231,10 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         lineShader.uniform_float("offset", (0,0,0))
 
         #batch & Draw Shader
-        p3 = Vector(p1)+offsetVector
-        p4 = Vector(p2)+offsetVector
-        p5 = Vector(p1)+(offsetVector-(offsetVector.normalized()*0.05))
-        p6 = Vector(p2)+(offsetVector-(offsetVector.normalized()*0.05))
+        p3 = Vector(p1)+offsetDistance
+        p4 = Vector(p2)+offsetDistance
+        p5 = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
+        p6 = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
         coords = [p1,p3,p2,p4,p5,p6]
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
         batch.program_set(lineShader)
@@ -235,7 +246,15 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         bgl.glDepthMask(False)
     
 
-def select_normal(myobj,linDim):
+def select_normal(myobj, linDim, normDistVector, midpoint):
+    #Set properties
+    i = Vector((1,0,0)) # X Unit Vector
+    j = Vector((0,1,0)) # Y Unit Vector
+    k = Vector((0,0,1))
+    loc = Vector(get_location(myobj))
+    centerRay = Vector(midpoint) - loc
+
+    #get Adjacent Face normals if possible
     possibleNormals = []
     for face in myobj.data.polygons:
         if linDim.dimPointA in face.vertices and linDim.dimPointB in face.vertices:
@@ -243,17 +262,48 @@ def select_normal(myobj,linDim):
             worldNormal -= myobj.location
             worldNormal.normalize()
             possibleNormals.append(worldNormal)
-            #possibleNormals.append(face.normal)
-    bestNormal = (0,0,1)
-    for normal in possibleNormals:
-        if normal[2]<bestNormal[2]:
-            bestNormal=normal
-        else:
-            bestNormal=bestNormal
-
-    return bestNormal
             
-        
+    bestNormal = Vector((0,0,0))
+
+    #Face Normals Available Test Conditions
+    if len(possibleNormals) > 0:  
+        bestNormal = Vector((1,1,1))
+        if linDim.dimViewPlane == 'XY':
+            for norm in possibleNormals:
+                if abs(norm[2])< abs(bestNormal[2]):
+                    bestNormal=norm
+
+        elif linDim.dimViewPlane == 'YZ':
+            for norm in possibleNormals:
+                if abs(norm[0])< abs(bestNormal[0]):
+                    bestNormal=norm   
+
+        elif linDim.dimViewPlane == 'XZ':
+            for norm in possibleNormals:
+                if abs(norm[1])< abs(bestNormal[1]):
+                    bestNormal=norm
+        else:
+            bestNormal = Vector((0,0,0))
+            for norm in possibleNormals:
+                bestNormal += norm
+    
+    #Face Normals Not Available Test Conditions
+    else:
+        if linDim.dimViewPlane == 'XY':
+            bestNormal = k.cross(normDistVector)
+        elif linDim.dimViewPlane == 'YZ':
+            bestNormal = i.cross(normDistVector)
+        elif linDim.dimViewPlane == 'XZ':
+            bestNormal = j.cross(normDistVector)
+        else:
+            bestNormal = centerRay
+
+        if bestNormal.dot(centerRay)<0:
+            bestNormal.negate()
+
+    #Normalize Result
+    bestNormal.normalize()
+    return bestNormal 
         
 def draw_line_group(context, myobj, lineGen):
     obverts = get_mesh_vertices(myobj)
@@ -387,7 +437,12 @@ def draw_text_3D(context,textobj,myobj,card):
     bgl.glDepthMask(False)
     width = textobj.textWidth
     height = textobj.textHeight 
-    uv= [(0,0),(0,1),(1,1),(1,0)]
+    uvFlipped= [(1,1),(1,0),(0,0),(0,1)]
+    uvNormal= [(0,0),(0,1),(1,1),(1,0)]
+    if textobj.textFlipped is True:
+        uv = uvFlipped
+    else:
+        uv = uvNormal
 
     # Batch Geometry
     batch = batch_for_shader(
@@ -419,7 +474,7 @@ def draw_text_3D(context,textobj,myobj,card):
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
 
-def generate_text_card(context,textobj,rotation,basePoint,offsetVector): 
+def generate_text_card(context,textobj,rotation,basePoint): 
     width = textobj.textWidth
     height = textobj.textHeight 
     size = textobj.fontSize 

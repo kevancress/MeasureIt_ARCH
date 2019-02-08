@@ -150,7 +150,11 @@ class MeasureitArchMainPanel(Panel):
         box = layout.box()
         box.label(text="Add Measures")
         col = box.column()
-        col.operator("measureit_arch.addsegmentbutton", text="Segment", icon="DRIVER_DISTANCE")
+        row = col.row(align=True)
+        split = row.split(factor=0.6,align=True)
+        split.operator("measureit_arch.addsegmentbutton", text="Segment", icon="DRIVER_DISTANCE")
+        split.prop(scene,'measureit_arch_default_style',text='')
+        split.prop(scene,'viewPlane',text='')
         col.prop(scene, "measureit_arch_sum", text="Sum")
 
         # To origin

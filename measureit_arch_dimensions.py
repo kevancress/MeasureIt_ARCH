@@ -68,11 +68,15 @@ class LinearDimensionProperties(BaseWithText,PropertyGroup):
     
     dimVisibleInView: PointerProperty(type= bpy.types.Camera)
 
+    dimFlip: BoolProperty(name='Flip Dimension',
+                    description= 'Flip The Dimension Normal',
+                    default=False)
+
     dimViewPlane: EnumProperty(
-                    items=(('99', "--", "None"),
-                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)"),
-                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)"),
-                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)")),
+                    items=(('99', "None", "None",'EMPTY_AXIS',0),
+                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
+                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
+                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
                     name="B end",
                     description="Add arrows to point A")   
 
@@ -509,8 +513,10 @@ def add_linearDimension(layout, idx, linDim):
 
     row.prop(linDim, 'visible', text="", toggle=True, icon='DRIVER_DISTANCE')
     row.prop(linDim, 'settings', text="", toggle=True, icon="PREFERENCES")
+    row.prop(linDim, 'dimFlip',text='',toggle=True, icon='UV_SYNC_SELECT')
     row.prop(linDim, 'style', text="")
     row.prop(linDim, 'text', text="")
+   
     op = row.operator("measureit_arch.deletesegmentbutton", text="", icon="X")
     # send index and type to operator
     op.tag = idx
@@ -523,6 +529,8 @@ def add_linearDimension(layout, idx, linDim):
         col.template_ID(linDim, "font", open="font.open", unlink="font.unlink")
         col.prop(linDim,'dimViewPlane', text='Dimension View Plane')
         col.prop_search(linDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        
+        
         col.prop(linDim,'color',text='Color')
         col.prop(linDim,'lineWeight',text='Line Weight')
         
@@ -534,7 +542,8 @@ def add_linearDimension(layout, idx, linDim):
         col.prop(linDim,'fontSize',text='Font Size')
         col.prop(linDim,'textResolution',text='Resolution')
         col.prop(linDim,'textAlignment',text='Alignment')
-        col.prop(linDim,'textPosition',text='Alignment')
+        col.prop(linDim,'textPosition',text='Position')
+        col.prop(linDim,'textFlipped',text='Flip Text')
 
         col.prop(linDim, 'dimRotation', text='Rotation')
 
@@ -603,6 +612,8 @@ class AddSegmentButton(Operator):
                         newDimension['tex_buffer'] = tex_buffer.to_list()
 
                         newDimension.style = scene.measureit_arch_default_style
+                        newDimension.dimVisibleInView = scene.camera.data
+                        newDimension.dimViewPlane = scene.viewPlane
                         newDimension.dimPointB = mylist[x]
                         newDimension.dimPointA = mylist[x + 1]
                         newDimension.dimEndcapA= scene.measureit_arch_glarrow_a
