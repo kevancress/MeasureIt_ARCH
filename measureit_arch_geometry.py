@@ -74,31 +74,31 @@ dimensionShader = gpu.types.GPUShader(
 # noinspection PyUnresolvedReferences,PyUnboundLocalVariable
 
 
-def update_text(self, context):
-    if self.text_updated is True:
+def update_text(textobj,props,context):
+    if textobj.text_updated is True or props.text_updated is True:
         #Get textitem Properties
-        rawRGB = self.color
+        rawRGB = props.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         size = 20
-        resolution = self.textResolution
+        resolution = props.textResolution
 
         #Get Font Id
         badfonts=[None]
         if 'Bfont' in bpy.data.fonts:
             badfonts.append(bpy.data.fonts['Bfont'])
-        if self.font not in badfonts:
-            vecFont = self.font
+        if props.font not in badfonts:
+            vecFont = props.font
             fontPath = vecFont.filepath
             font_id= blf.load(fontPath)
         else:
             font_id=0
 
         # Get Text
-        if 'annotationTextSource' in self:
-            if self.annotationTextSource is not '':
-                text = str(context.object[self.annotationTextSource])
+        if 'annotationTextSource' in textobj:
+            if textobj.annotationTextSource is not '':
+                text = str(context.object[textobj.annotationTextSource])
         else:
-            text = self.text
+            text = textobj.text
 
         # Set BLF font Properties
         blf.color(font_id,rgb[0],rgb[1],rgb[2],rgb[3])
@@ -112,8 +112,8 @@ def update_text(self, context):
         blf.position(font_id,0,height/4,0)
 
         #Save Texture size to textobj Properties
-        self.textHeight = height
-        self.textWidth = width
+        textobj.textHeight = height
+        textobj.textWidth = width
 
         # Start Offscreen Draw
         textOffscreen = gpu.types.GPUOffScreen(width,height)
@@ -140,10 +140,10 @@ def update_text(self, context):
             bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
             
             # Write Texture Buffer to ID Property as List
-            self['texture'] = texture_buffer.to_list()
+            textobj['texture'] = texture_buffer.to_list()
             textOffscreen.free()
-            self.text_updated = False
-            self.texture_updated = True
+            textobj.text_updated = False
+            textobj.texture_updated = True
             
 
         #generate image datablock from buffer for debug preview
@@ -155,13 +155,20 @@ def update_text(self, context):
         #image.pixels = [v / 255 for v in texture_buffer]
 
 def draw_linearDimension(context, myobj, measureGen,linDim):
+
+    linDimProps=  linDim
+    if linDim.uses_style:
+        for linDimStyle in context.scene.StyleGenerator[0].linearDimensions:
+            if linDimStyle.name == linDim.style:
+                linDimProps= linDimStyle
+
     if linDim.dimVisibleInView is None or linDim.dimVisibleInView.name == context.scene.camera.name:
         # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glLineWidth(linDim.lineWeight)
+        bgl.glLineWidth(linDimProps.lineWeight)
 
         # Obj Properties
         obverts = get_mesh_vertices(myobj)
@@ -171,7 +178,7 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         scale = bpy.context.scene.unit_settings.scale_length
         scene = bpy.context.scene
         units = scene.measureit_arch_units
-        rawRGB = linDim.color
+        rawRGB = linDimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
         # get points positions from indicies
@@ -213,7 +220,7 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
 
         width = linDim.textWidth
         height = linDim.textHeight 
-        size = linDim.fontSize 
+        size = linDimProps.fontSize 
         sx = 0.001*width*size
         sy = 0.002*height*size
         uv= [(0,0),(0,1),(1,1),(1,0)]
@@ -317,20 +324,29 @@ def draw_line_group(context, myobj, lineGen):
 
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
-        if lineGroup.visible is True:
-            rawRGB = lineGroup.color
+        lineProps= lineGroup
+        if lineGroup.uses_style:
+            for lineStyle in context.scene.StyleGenerator[0].line_groups:
+                if lineStyle.name == lineGroup.style:
+                    lineProps= lineStyle
+            
+        if lineGroup.visible and lineProps.visible:
+           
+
+            rawRGB = lineProps.color
             #undo blenders Default Gamma Correction
             rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-            offset = (lineGroup.lineDepthOffset/1000)
-            drawHidden = lineGroup.lineDrawHidden
+            offset = (lineProps.lineDepthOffset/1000)
+            drawHidden = lineProps.lineDrawHidden
+            lineWeight = lineProps.lineWeight
 
-            if lineGroup.isOutline:
+            if lineProps.isOutline:
                 offset = -10*offset
 
             #gl Settings
             bgl.glDepthFunc(bgl.GL_LEQUAL) 
-            bgl.glLineWidth(lineGroup.lineWeight)
-            bgl.glPointSize(lineGroup.lineWeight)
+            bgl.glLineWidth(lineWeight)
+            bgl.glPointSize(lineWeight)
 
             #configure Shaders
             pointShader.bind()
@@ -373,14 +389,14 @@ def draw_line_group(context, myobj, lineGen):
             #Draw Hidden Lines
             if drawHidden == True:
                 bgl.glDepthFunc(bgl.GL_GREATER)
-                bgl.glLineWidth(lineGroup.lineHiddenWeight)
+                bgl.glLineWidth(lineProps.lineHiddenWeight)
                 
-                rawRGB = lineGroup.lineHiddenColor
+                rawRGB = lineProps.lineHiddenColor
                 #undo blenders Default Gamma Correction
                 dashRGB = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
                 dashedLineShader.bind()
-                dashedLineShader.uniform_float("u_Scale", lineGroup.lineHiddenDashScale)
+                dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
                 dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
             
                 batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
@@ -404,10 +420,15 @@ def draw_annotation(context, myobj, annotationGen):
 
     for idx in range(0, annotationGen.num_annotations):
         annotation = annotationGen.annotations[idx]
+        annotationProps = annotation
+        if annotation.uses_style:
+            for annotationStyle in context.scene.StyleGenerator[0].annotations:
+                if annotationStyle.name == annotation.style:
+                    annotationProps= annotationStyle
 
         if annotation.visible is True:
-            bgl.glLineWidth(annotation.lineWeight)
-            rawRGB = annotation.color
+            bgl.glLineWidth(annotationProps.lineWeight)
+            rawRGB = annotationProps.color
             #undo blenders Default Gamma Correction
             rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
@@ -426,7 +447,7 @@ def draw_annotation(context, myobj, annotationGen):
                 batch3d.draw()
                 gpu.shader.unbind()
             
-            textcard = generate_text_card(context,annotation,annotation.annotationRotation,p2)
+            textcard = generate_text_card(context,annotation,annotationProps,annotation.annotationRotation,p2)
             draw_text_3D(context,annotation,myobj,textcard)
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -476,24 +497,24 @@ def draw_text_3D(context,textobj,myobj,card):
     batch.draw(textShader)
     gpu.shader.unbind()
     
-def generate_text_card(context,textobj,rotation,basePoint): 
+def generate_text_card(context,textobj,textProps,rotation,basePoint): 
     width = textobj.textWidth
     height = textobj.textHeight 
-    size = textobj.fontSize 
+    size = textProps.fontSize 
     #Define annotation Card Geometry
     square = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
 
     #pick approprate card based on alignment
-    if textobj.textAlignment == 'L':
+    if textProps.textAlignment == 'L':
         aOff = (0.5,0.0,0.0)
-    elif textobj.textAlignment == 'R':
+    elif textProps.textAlignment == 'R':
         aOff = (-0.5,0.0,0.0)
     else:
         aOff = (0.0,0.0,0.0)
 
-    if textobj.textPosition == 'M':
+    if textProps.textPosition == 'M':
         pOff = (0.0,0.5,0.0)
-    elif textobj.textPosition == 'B':
+    elif textProps.textPosition == 'B':
         pOff = (0.0,1.0,0.0)
     else:
         pOff = (0.0,0.0,0.0)

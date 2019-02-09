@@ -117,6 +117,7 @@ class AddAnnotationButton(Operator):
     # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
+            scene = context.scene
             # Add properties
             mainobject = context.object
             mylist = get_selected_vertex(mainobject)
@@ -128,6 +129,8 @@ class AddAnnotationButton(Operator):
                 annotationGen.num_annotations +=1
                 newAnnotation = annotationGen.annotations.add()
                 newAnnotation.itemType = 'A'
+                newAnnotation.uses_style = scene.measureit_arch_set_annotation_use_style
+                if newAnnotation.uses_style: newAnnotation.style = scene.measureit_arch_default_annotation_style
                 # Set values
                 newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
 
@@ -203,31 +206,56 @@ class MeasureitArchAnnotationsPanel(Panel):
 # Add annotation options to the panel.
 # -----------------------------------------------------
 def add_annotation_item(layout, idx, annotation):
+    scene = bpy.context.scene
     if annotation.settings is True:
         box = layout.box()
         row = box.row(align=True)
     else:
         row = layout.row(align=True)
+    
+    if 'StyleGenerator' in scene:
+        StyleGen = scene.StyleGenerator[0]
+        hasGen = True
+
+    useStyleIcon = 'UNLINKED'
+    if annotation.uses_style is True:
+        useStyleIcon = 'LINKED'
 
     row.prop(annotation, 'visible', text="", toggle=True, icon='FONT_DATA')
+    if hasGen and annotation.is_style is False: row.prop(annotation, 'uses_style', text="",toggle=True, icon=useStyleIcon)
     row.prop(annotation, 'settings', text="",toggle=True, icon='PREFERENCES')
-    row.prop(annotation, 'color', text="" )
-    row.prop(annotation, 'text', text="")
+    if annotation.uses_style is False: row.prop(annotation, 'color', text="" )
+    else: row.prop_search(annotation,'style', StyleGen,'annotations',text="", icon='COLOR')
+        
+    if annotation.is_style is False:
+         row.prop(annotation, 'text', text="")
+    else:
+        row.prop(annotation, 'name', text="")
+
     op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
     op.tag = idx  # saves internal data
     op.item_type = annotation.itemType
     op.is_style = annotation.is_style
+
+  
     if annotation.settings is True:
         
         col = box.column()
-        col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
-        col = box.column()
-        col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
-        col.prop(annotation, 'lineWeight', text="Line Weight" )
-        col.prop(annotation, 'textResolution', text="Resolution")
-        col.prop(annotation, 'fontSize', text="Size")
-        col.prop(annotation, 'annotationOffset', text='Offset')
-        col.prop(annotation, 'annotationRotation', text='Rotation')
-        col.prop(annotation, 'textAlignment', text='Alignment')
-        col.prop(annotation, 'textPosition', text='Position')
+        if annotation.uses_style is False:
+            col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
+            col = box.column()
+        if annotation.uses_style is False: col.prop(annotation, 'lineWeight', text="Line Weight" )
+        if annotation.is_style is False: col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
+        if annotation.uses_style is False:
+            col = box.column(align=True)
+            col.prop(annotation, 'textResolution', text="Resolution")
+            col.prop(annotation, 'fontSize', text="Size")
+            col.prop(annotation, 'textAlignment', text='Alignment')
+            col.prop(annotation, 'textPosition', text='Position')
+        
+        if annotation.is_style is False:
+            col = box.column()
+            col.prop(annotation, 'annotationOffset', text='Offset')
+            col.prop(annotation, 'annotationRotation', text='Rotation')
+        
 

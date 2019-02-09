@@ -144,12 +144,12 @@ def register():
 
 
     Scene.viewPlane= EnumProperty(
-                    items=(('99', "None", "None",'EMPTY_AXIS',0),
+                    items=(('99', "None", "No View Plane Selected",'EMPTY_AXIS',0),
                            ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
                            ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
                            ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
                     name="View Plane",
-                    description="Add arrows to point A")   
+                    description="View Plane")   
                 
     Scene.measureit_arch_use_depth_clipping = BoolProperty(name="Use Depth Clipping",
                                              description="Lines Behind Objects Won't Be Rendered (Slower)",
@@ -164,10 +164,27 @@ def register():
         subtype='COLOR',
         size=4)
 
-    Scene.measureit_arch_default_style = IntProperty(name="Default Style",
-                                                description="Default Dimension Style",
-                                                default=1,
-                                                min=0,)    
+    Scene.measureit_arch_default_dimension_style = StringProperty(name="Default Style",
+                                            description="Dimension Style to Use")   
+
+    Scene.measureit_arch_default_annotation_style = StringProperty(name="Default Style",
+                                            description="Annotation Style to Use")  
+
+    Scene.measureit_arch_default_line_style = StringProperty(name="Default Style",
+                                            description="Line Style to Use") 
+
+    Scene.measureit_arch_set_annotation_use_style = BoolProperty(name="Set Annotation Style",
+                                            description="Set Annotation Style on Creation",
+                                            default=False)
+
+    Scene.measureit_arch_set_dimension_use_style = BoolProperty(name="Set Dimension Style",
+                                            description="Set Dimension Style on Creation",
+                                            default=False)
+
+    Scene.measureit_arch_set_line_use_style = BoolProperty(name="Set Line Style",
+                                            description="Set Line Style on Creation",
+                                            default=False)                                         
+
     Scene.measureit_arch_font_size = IntProperty(name="Text Size",
                                             description="Default text size",
                                             default=14, min=10, max=150)

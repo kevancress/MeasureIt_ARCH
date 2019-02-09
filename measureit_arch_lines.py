@@ -142,8 +142,10 @@ class AddLineButton(Operator):
 
                 # Set values
                 lGroup.itemType = 'L'
-                lGroup.lineStyle = scene.measureit_arch_default_style
-                lGroup.lineWidth = 2     
+                lGroup.uses_style = scene.measureit_arch_set_line_use_style
+                if lGroup.uses_style: lGroup.style = scene.measureit_arch_default_line_style
+
+                lGroup.lineWeight = 1     
                 lGroup.lineColor = scene.measureit_arch_default_color
                 
                 for x in range (0, len(mylist)-1, 2):
@@ -205,6 +207,7 @@ class MeasureitArchLinesPanel(Panel):
                 clp.state = False
                 clp.is_style = False
                 exp.item_type = 'L'
+                
 
                 idx = 0
                 for line in lineGen.line_groups:
@@ -214,48 +217,63 @@ class MeasureitArchLinesPanel(Panel):
                 col = layout.column()
                 delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
                 delOp.is_style = False
-                delOp.item_type = line.itemType
+                delOp.item_type = 'L'
 
 def add_line_item(layout, idx, line):
     scene = bpy.context.scene
+    if 'StyleGenerator' in scene:
+        StyleGen = scene.StyleGenerator[0]
+        hasGen = True
+
     if line.settings is True:
         box = layout.box()
         row = box.row(align=True)
     else:
         row = layout.row(align=True)
-
-
-    if line.visible is True:
-        icon = "VISIBLE_IPO_ON"
-    else:
-        icon = "VISIBLE_IPO_OFF"
-
-    row.prop(line, 'visible', text="", toggle=True, icon=icon)
+    
+    useStyleIcon = 'UNLINKED'
+    if line.uses_style is True:
+        useStyleIcon = 'LINKED'
+    
+    row.prop(line, 'visible', text="", toggle=True, icon='MESH_CUBE')
+    
+    if hasGen and not line.is_style:
+        row.prop(line, 'uses_style', text="",toggle=True, icon=useStyleIcon)
+    
     row.prop(line, 'settings', text="",toggle=True, icon='PREFERENCES')
-    row.prop(line, 'isOutline', text="", toggle=True, icon='SEQ_CHROMA_SCOPE')
-    row.prop(line, 'lineDrawHidden', text="", toggle=True, icon='MOD_WIREFRAME')
-    row.prop(line, 'color', text="" )
-    row.prop(line, 'lineWeight', text="")
+    if line.uses_style is False:
+        row.prop(line, 'isOutline', text="", toggle=True, icon='SEQ_CHROMA_SCOPE')
+        row.prop(line, 'lineDrawHidden', text="", toggle=True, icon='MOD_WIREFRAME')
+        row.prop(line, 'color', text="" )
+        if line.is_style is False: row.prop(line, 'lineWeight', text="")
+        if line.is_style: row.prop(line, 'name', text="")
+    else:
+        row.prop_search(line,'style', StyleGen,'line_groups',text="", icon='COLOR')
+
     op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
     op.tag = idx  # saves internal data
     op.item_type = line.itemType
     op.is_style = line.is_style
     
     if line.settings is True:
+
         row = box.row(align=True)
-        
-        op = row.operator('measureit_arch.addtolinegroup', text="Add Line", icon='ADD')
-        op.tag = idx
-        op = row.operator('measureit_arch.removefromlinegroup', text="Remove Line", icon='REMOVE')
-        op.tag = idx
-        col = box.column()
-        col.prop(line, 'lineWeight', text="Lineweight" )
-        col.prop(line, 'lineDepthOffset', text="Z Offset")
-        if line.lineDrawHidden is True:
+        if line.is_style is False:
+            op = row.operator('measureit_arch.addtolinegroup', text="Add Line", icon='ADD')
+            op.tag = idx
+            op = row.operator('measureit_arch.removefromlinegroup', text="Remove Line", icon='REMOVE')
+            op.tag = idx
+
+        if line.uses_style is False:
             col = box.column()
-            col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
-            col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
-            col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+            col.prop(line, 'lineWeight', text="Lineweight" )
+            col.prop(line, 'lineDepthOffset', text="Z Offset")
+        
+            if line.lineDrawHidden is True:
+                col = box.column()
+                col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
+                col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
+                col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
             
 class AddToLineGroup(Operator):   
     bl_idname = "measureit_arch.addtolinegroup"

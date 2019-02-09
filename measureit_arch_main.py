@@ -141,7 +141,10 @@ class MeasureitArchMainPanel(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-
+        hasGen = False
+        if 'StyleGenerator' in scene:
+            StyleGen = scene.StyleGenerator[0]
+            hasGen = True
         # ------------------------------
         # Tool Buttons
         # ------------------------------
@@ -149,23 +152,25 @@ class MeasureitArchMainPanel(Panel):
         # Tools
         box = layout.box()
         box.label(text="Add Measures")
-        col = box.column()
+        col = box.column(align=True)
         row = col.row(align=True)
-        split = row.split(factor=0.6,align=True)
-        split.operator("measureit_arch.addsegmentbutton", text="Segment", icon="DRIVER_DISTANCE")
-        split.prop(scene,'measureit_arch_default_style',text='')
-        split.prop(scene,'viewPlane',text='')
-        col.prop(scene, "measureit_arch_sum", text="Sum")
+        row.operator("measureit_arch.adddimensionbutton", text="Dimension", icon="DRIVER_DISTANCE")
+        row.prop(scene, "measureit_arch_set_dimension_use_style", text = "", icon = 'LINKED')
+        useStyle = scene.measureit_arch_set_dimension_use_style
+        if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_dimension_style', StyleGen,'linearDimensions',text="", icon='COLOR')
+        col.prop(scene,'viewPlane',text='')
+        
+        #col.prop(scene, "measureit_arch_sum", text="Sum")
 
         # To origin
-        row = col.row()
-        split = row.split(align=True)
-        op = split.operator("measureit_arch.addsegmentortobutton", text="X", icon="DRIVER_DISTANCE")
-        op.tag = 0  # saves internal data
-        op = split.operator("measureit_arch.addsegmentortobutton", text="Y", icon="DRIVER_DISTANCE")
-        op.tag = 1  # saves internal data
-        op = split.operator("measureit_arch.addsegmentortobutton", text="Z", icon="DRIVER_DISTANCE")
-        op.tag = 2  # saves internal data
+        #row = col.row()
+        #split = row.split(align=True)
+        #op = split.operator("measureit_arch.addsegmentortobutton", text="X", icon="DRIVER_DISTANCE")
+        #op.tag = 0  # saves internal data
+        #op = split.operator("measureit_arch.addsegmentortobutton", text="Y", icon="DRIVER_DISTANCE")
+        #op.tag = 1  # saves internal data
+        #op = split.operator("measureit_arch.addsegmentortobutton", text="Z", icon="DRIVER_DISTANCE")
+        #op.tag = 2  # saves internal data
 
         col = box.column()
         col.operator("measureit_arch.addanglebutton", text="Angle", icon="LINCURVE")
@@ -186,8 +191,12 @@ class MeasureitArchMainPanel(Panel):
     
         box = layout.box()
         box.label(text="Add Lines")
-        col = box.column()
-        col.operator("measureit_arch.addlinebutton", text="Line", icon="MESH_CUBE")
+        col = box.column(align=True)
+        row = col.row(align=True)
+        row.operator("measureit_arch.addlinebutton", text="Line", icon="MESH_CUBE")
+        row.prop(scene, "measureit_arch_set_line_use_style", text = "", icon = 'LINKED')
+        useStyle = scene.measureit_arch_set_line_use_style
+        if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
 
         # ------------------------------
         # Annotation Tools
@@ -196,7 +205,13 @@ class MeasureitArchMainPanel(Panel):
         box.label(text="Add Annotations")
         col = box.column()
         col.operator("measureit_arch.addnotebutton", text="Note", icon="EMPTY_DATA")
-        col.operator("measureit_arch.addannotationbutton", text="Annotation", icon="FONT_DATA")
+        
+        col = box.column(align=True)
+        row = col.row(align=True)
+        row.operator("measureit_arch.addannotationbutton", text="Annotation", icon="FONT_DATA")
+        row.prop(scene, "measureit_arch_set_annotation_use_style", text = "", icon = 'LINKED')
+        useStyle = scene.measureit_arch_set_annotation_use_style
+        if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
         # ------------------------------
         # Debug data
         # ------------------------------
@@ -365,14 +380,27 @@ def draw_main(context):
             if 'MeasureGenerator' in myobj:
                 measureGen = myobj.MeasureGenerator[0]
                 for linDim in measureGen.linearDimensions:
-                    update_text(linDim,context)
-            
+                    
+                    linDimProps = linDim
+                    if linDim.uses_style:
+                        for linDimStyle in context.scene.StyleGenerator[0].linearDimensions:
+                            if linDimStyle.name == linDim.style:
+                                linDimProps= linDimStyle
+
+                    update_text(textobj=linDim,props=linDimProps,context=context)
                      
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
                 for idx in range(0, annotationGen.num_annotations):
                     annotation = annotationGen.annotations[idx]
-                    update_text(annotation,context)
+
+                    annotationProps = annotation
+                    if annotation.uses_style:
+                        for annotationStyle in context.scene.StyleGenerator[0].annotations:
+                            if annotationStyle.name == annotation.style:
+                                annotationProps= annotationStyle
+
+                    update_text(textobj=annotation,props=annotationProps,context=context)
     # ---------------------------------------
     # Generate all OpenGL calls for debug
     # ---------------------------------------

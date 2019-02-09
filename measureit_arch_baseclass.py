@@ -12,50 +12,59 @@ def update_flag(self,context):
     self.text_updated = True
 
 class BaseProp:
-
     name: StringProperty(name="Item Name",
-                description="Item Name",
-                default="")
+            description="Item Name",
+            default="")
 
     is_style: BoolProperty(name= "is Style",
                 description= "This property Group is a Style",
                 default=False)
     
-    itemType: EnumProperty(
-                    items=(('A', "Annotation ", ""),
-                            ('L', "Line Style", ""),
-                            ('D', "Dimension", "")),
-                    name="Style Type",
-                    description="Type of Style to Add")
+    uses_style: BoolProperty(name= "uses Style",
+                description= "This property Group Uses a Style",
+                default=False,
+                update = update_flag)
 
-    style: IntProperty(name="Style",
-                    description="Style to use",
-                    min=0)
+    text_updated: BoolProperty(name='text_updated',
+                description= 'flag when text need to be redrawn',
+                default = False)
+
+    style: StringProperty(name="Item Name",
+            description="Item Name",
+            default="",
+            update = update_flag)
+
+    itemType: EnumProperty(
+                items=(('A', "Annotation ", ""),
+                        ('L', "Line Style", ""),
+                        ('D', "Dimension", "")),
+                name="Style Type",
+                description="Type of Style to Add")
 
     color: FloatVectorProperty(name="dimColor",
-                    description="Color for the Dimension",
-                    default=(0.0,0.0,0.0, 1.0),
-                    min=0,
-                    max=1,
-                    subtype='COLOR',
-                    size=4)
-    
+                description="Color for the Dimension",
+                default=(0.0,0.0,0.0, 1.0),
+                min=0,
+                max=1,
+                subtype='COLOR',
+                size=4)
+
     lineWeight: IntProperty(name="lineWeight",
-                    description="Lineweight",
-                    min = 1,
-                    max = 10)
+                description="Lineweight",
+                min = 1,
+                max = 10)
 
     free: BoolProperty(name="annotationFree",
-                    description="This annotation is free and can be deleted",
-                    default=False)
+                description="This annotation is free and can be deleted",
+                default=False)
     
     settings: BoolProperty(name= "Settings",
-                    description= "Show Settings",
-                    default=False)
+                description= "Show Settings",
+                default=False)
 
     visible: BoolProperty(name="annotationVis",
-                    description="Line show/hide",
-                    default=True)
+                description="Line show/hide",
+                default=True)
 
 class BaseWithText(BaseProp):
 
@@ -100,9 +109,6 @@ class BaseWithText(BaseProp):
     font: PointerProperty(type= bpy.types.VectorFont,
                 update = update_flag)
 
-    text_updated: BoolProperty(name='text_updated',
-                description= 'flag when text need to be redrawn',
-                default = False)
     textFlipped: BoolProperty(name='textFlipped', 
                 description= 'flag when text need to be redrawn',
                 default = False)
@@ -175,7 +181,7 @@ class DeletePropButton(Operator):
 class DeleteAllItemsButton(Operator):
     bl_idname = "measureit_arch.deleteallitemsbutton"
     bl_label = "Delete All Styles?"
-    bl_description = "Delete all Styles (it cannot be undone)"
+    bl_description = "Delete all Styles"
     bl_category = 'MeasureitArch'
     item_type: StringProperty()
     is_style: BoolProperty()

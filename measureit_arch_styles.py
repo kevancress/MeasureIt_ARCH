@@ -46,10 +46,9 @@ class StyleContainer(PropertyGroup):
     
             
     # Array of styles
-    linearDimensions = CollectionProperty(type=LinearDimensionProperties)
-    annotations = CollectionProperty(type=AnnotationProperties)
-    line_groups = CollectionProperty(type=LineProperties)
-
+    linearDimensions: CollectionProperty(type=LinearDimensionProperties)
+    annotations: CollectionProperty(type=AnnotationProperties)
+    line_groups: CollectionProperty(type=LineProperties)
 bpy.utils.register_class(StyleContainer)
 Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
 
@@ -69,10 +68,7 @@ class MeasureitArchDimensionSettingsPanel(Panel):
         layout.use_property_decorate = False
         layout.use_property_split = True
         scene = context.scene
-
-        col = layout.column(align=True)
-        col.prop(scene, "measureit_arch_default_style", text="Active Style")
-
+        
         col = layout.column(align = True)
         col.prop(scene, 'measureit_arch_gl_precision', text="Precision")
         col.prop(scene, 'measureit_arch_units')
@@ -122,7 +118,7 @@ class MeasureitArchDimensionSettingsPanel(Panel):
 
 class MeasureitArchDimensionStylesPanel(Panel):
     bl_idname = "measureit_arch.dim_styles"
-    bl_label = "Dimension Styles"
+    bl_label = "Styles"
     bl_space_type = 'PROPERTIES'
     bl_region_type = "WINDOW"
     bl_context = 'scene'
@@ -167,17 +163,17 @@ class MeasureitArchDimensionStylesPanel(Panel):
             for annoStyle in annotationStyles:
                 add_annotation_item(layout,idx,annoStyle)
                 idx += 1
-            
-            idx = 0
-            for lineStyle in lineStyles:
-                add_line_item(layout,idx,lineStyle)
-                idx += 1
-        
+
             idx = 0
             for linDimStyle in linDimStyles:
                 add_linearDimension_item(layout,idx,linDimStyle)
                 idx += 1
 
+            idx = 0
+            for lineStyle in lineStyles:
+                add_line_item(layout,idx,lineStyle)
+                idx += 1
+            
             col = layout.column()
             delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
             delOp.is_style = True

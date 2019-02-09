@@ -500,21 +500,35 @@ def add_item(layout, idx, segment):
 
 def add_linearDimension_item(layout, idx, linDim):
     scene = bpy.context.scene
+    linDim=linDim
+    if 'StyleGenerator' in scene:
+        StyleGen = scene.StyleGenerator[0]
+        hasGen = True
+
     if linDim.settings is True:
         box = layout.box()
         row = box.row(align=True)
     else:
         row = layout.row(align=True)
 
-
+    useStyleIcon = 'UNLINKED'
+    if linDim.uses_style is True:
+        useStyleIcon = 'LINKED'
 
     row.prop(linDim, 'visible', text="", toggle=True, icon='DRIVER_DISTANCE')
+    
+    if hasGen and not linDim.is_style:
+        row.prop(linDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
+
     row.prop(linDim, 'settings', text="", toggle=True, icon="PREFERENCES")
-    row.prop(linDim, 'dimFlip',text='',toggle=True, icon='UV_SYNC_SELECT')
-    if linDim.is_style is False:
-        row.prop(linDim, 'style', text="")
-    row.prop(linDim, 'name', text="")
-   
+    
+    if linDim.is_style is False: row.prop(linDim, 'dimFlip',text='',toggle=True, icon='UV_SYNC_SELECT')
+    if linDim.uses_style:
+        row.prop_search(linDim,'style', StyleGen,'linearDimensions',text="", icon='COLOR')
+    else:
+        row.prop(linDim,'color',text='')
+        row.prop(linDim, 'name', text="")
+    
     op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
     # send index and type to operator
     op.tag = idx
@@ -523,39 +537,43 @@ def add_linearDimension_item(layout, idx, linDim):
 
     # advanced Settings
     if linDim.settings is True:
+        col = box.column(align=True)
+        if linDim.uses_style is False:
+            col.template_ID(linDim, "font", open="font.open", unlink="font.unlink")
+
+            col = box.column(align=True)
+            col.prop(linDim,'dimViewPlane', text='View Plane')
+            col.prop_search(linDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+            
+            col = box.column(align=True)
+            col.prop(linDim,'lineWeight',text='Line Weight')
         
-        col = box.column(align=True)
-        col.template_ID(linDim, "font", open="font.open", unlink="font.unlink")
-
-        col = box.column(align=True)
-        col.prop(linDim,'dimViewPlane', text='View Plane')
-        col.prop_search(linDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        if linDim.is_style is False:
+            col.prop(linDim,'dimOffset',text='Offset')
+            col.prop(linDim, 'dimRotation', text='Rotation')
         
-        col = box.column(align=True)
-        col.prop(linDim,'color',text='Color')
-        col.prop(linDim,'lineWeight',text='Line Weight')
-        col.prop(linDim,'dimOffset',text='Offset')
-        col.prop(linDim, 'dimRotation', text='Rotation')
-
-        col = box.column(align=True)
-        col.prop(linDim,'fontSize',text='Font Size')
-        col.prop(linDim,'textResolution',text='Resolution')
-        col.prop(linDim,'textAlignment',text='Alignment')
-        col.prop(linDim,'textPosition',text='Position')
-        col.prop(linDim,'textFlipped',text='Flip Text')
+        col = box.column(align=True)   
+        if linDim.uses_style is False:
+            col = box.column(align=True)
+            col.prop(linDim,'fontSize',text='Font Size')
+            col.prop(linDim,'textResolution',text='Resolution')
+            col.prop(linDim,'textAlignment',text='Alignment')
+            col.prop(linDim,'textPosition',text='Position')
+        
+        if linDim.is_style is False: col.prop(linDim,'textFlipped',text='Flip Text')
 
 
-
-        col = box.column(align=True)
-        col.prop(linDim,'dimEndcapA', text='Arrow Start')
-        col.prop(linDim,'dimEndcapB', text='End')
-        col.prop(linDim,'dimEndcapSize', text='Arrow Size')
+        if linDim.uses_style is False:
+            col = box.column(align=True)
+            col.prop(linDim,'dimEndcapA', text='Arrow Start')
+            col.prop(linDim,'dimEndcapB', text='End')
+            col.prop(linDim,'dimEndcapSize', text='Arrow Size')
 # -------------------------------------------------------------
 # Defines button that adds a measure segment
 #
 # -------------------------------------------------------------
-class AddSegmentButton(Operator):
-    bl_idname = "measureit_arch.addsegmentbutton"
+class AddDimensionButton(Operator):
+    bl_idname = "measureit_arch.adddimensionbutton"
     bl_label = "Add"
     bl_description = "(EDITMODE only) Add a new measure segment between 2 vertices (select 2 vertices or more)"
     bl_category = 'MeasureitArch'
@@ -611,7 +629,8 @@ class AddSegmentButton(Operator):
                         bgl.glGenTextures(1, tex_buffer)
                         newDimension['tex_buffer'] = tex_buffer.to_list()
 
-                        newDimension.style = scene.measureit_arch_default_style
+                        newDimension.uses_style = scene.measureit_arch_set_dimension_use_style
+                        if newDimension.uses_style: newDimension.style = scene.measureit_arch_default_dimension_style
                         newDimension.dimVisibleInView = scene.camera.data
                         newDimension.dimViewPlane = scene.viewPlane
                         newDimension.dimPointB = mylist[x]
