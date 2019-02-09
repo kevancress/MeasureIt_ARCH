@@ -35,44 +35,23 @@ from bpy.props import (
         FloatProperty,
         EnumProperty,
         )
+from .measureit_arch_dimensions import LinearDimensionProperties, add_linearDimension_item
+from .measureit_arch_annotations import AnnotationProperties, add_annotation_item
+from .measureit_arch_lines import LineProperties, add_line_item
 
-###################################
-#
-#            PANELS
-#
-###################################
 
-class MeasureitArchDimensionStylesPanel(Panel):
-    bl_idname = "measureit_arch.dim_styles"
-    bl_label = "Dimension Styles"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = "WINDOW"
-    bl_context = 'scene'
-    bl_options = {'DEFAULT_CLOSED'}
+class StyleContainer(PropertyGroup):
+    style_num: IntProperty(name='Number of styles', min=0, max=1000, default=0,
+                                description='Number total of measureit_arch Dimension Styles')
+    
+            
+    # Array of styles
+    linearDimensions = CollectionProperty(type=LinearDimensionProperties)
+    annotations = CollectionProperty(type=AnnotationProperties)
+    line_groups = CollectionProperty(type=LineProperties)
 
-    # ------------------------------
-    # Draw UI
-    # ------------------------------
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-        scene = context.scene
-        
-        #-------------------
-        # Add Styles to Panel
-        #--------------------
-        col = layout.column()
-        col.operator("measureit_arch.adddimstylebutton", text="New Dimension Style", icon="ADD")
-        if 'StyleGenerator' in context.scene:
-            styleGen = context.scene.StyleGenerator[0]
-
-            if styleGen.style_num > 0:
-                for idx in range(0, styleGen.style_num):
-                    add_style_item(layout, idx, styleGen.measureit_arch_styles[idx])
-       
-        col = layout.column()
-        col.operator("measureit_arch.deleteallstylesbutton", text="Delete All Styles", icon="X")
+bpy.utils.register_class(StyleContainer)
+Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
 
 class MeasureitArchDimensionSettingsPanel(Panel):
     bl_idname = "measureit_arch.settings_panel"
@@ -90,8 +69,6 @@ class MeasureitArchDimensionSettingsPanel(Panel):
         layout.use_property_decorate = False
         layout.use_property_split = True
         scene = context.scene
-
-        row = layout.row()
 
         col = layout.column(align=True)
         col.prop(scene, "measureit_arch_default_style", text="Active Style")
@@ -143,236 +120,82 @@ class MeasureitArchDimensionSettingsPanel(Panel):
             if scene.measureit_arch_ovr_font_align == 'L':
                 col.prop(scene, 'measureit_arch_ovr_font_rotation', text="Rotation")
 
-def add_style_item(box, idx, style):
+class MeasureitArchDimensionStylesPanel(Panel):
+    bl_idname = "measureit_arch.dim_styles"
+    bl_label = "Dimension Styles"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = "WINDOW"
+    bl_context = 'scene'
+    bl_options = {'DEFAULT_CLOSED'}
 
-    if style.gladvance is True:
-        box = box.box()
-    row = box.row(align=True)
-    if style.glview is True:
-        icon = "VISIBLE_IPO_ON"
-    else:
-        icon = "VISIBLE_IPO_OFF"
     
-    row.prop(style, 'glview', text="", toggle=True, icon=icon)
-    row.prop(style, 'gladvance', text="", toggle=True, icon="PREFERENCES")
-
-    split = row.split(factor=0.25, align=True)
-    split.prop(style, 'glcolor', text="")
-    split.prop(style, 'styleName', text="")
-    op = row.operator("measureit_arch.deletestylebutton", text="", icon="X")
-    op.tag = idx  # saves internal data
-
-    if style.gladvance is True:
-        col = box.column()
-        #col.prop(style, 'gltxt', text="Text")
-        #col.prop(style, 'gldefault', text="Automatic position")
-
-        col = box.column(align=True)
-
-        #col.prop(style, 'glspace', text="Distance")
-        col.prop(style, 'glwidth', text="Lineweight")
-        #if style.gldefault is False:
-        #    col.prop(style, 'glnormalx', text="X")
-        #    col.prop(style, 'glnormaly', text="Y")
-        #    col.prop(style, 'glnormalz', text="Z")
-    
-        col = box.column(align=True)
-
-        col.prop(style, 'glfont_size', text="Font Size")
-        col.prop(style, 'glfont_rotat', text="Rotate")
-        #col.prop(style, 'glfontx', text="X")
-        #col.prop(style, 'glfonty', text="Y")
-        col.prop(style, 'glfont_align', text="Align")
+    # ------------------------------
+    # Draw UI
+    # ------------------------------
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        scene = context.scene
+        #-------------------
+        # Add Styles to Panel
+        #--------------------
+        col = layout.column()
         
-        # Arrows
         
-        col = box.column(align=True)
+        if 'StyleGenerator' in context.scene:
+            styleGen = scene.StyleGenerator[0]
+            
+            StyleGen = scene.StyleGenerator[0]
+            col.operator("measureit_arch.addstylebutton", text="Add")
+            
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            exp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Expand All", icon="ADD")
+            exp.state = True
+            exp.is_style = True
 
-        col.prop(style, 'glarrow_a', text="Arrow Start ")
-        col.prop(style, 'glarrow_b', text="End ")
-        if style.glarrow_a != '99' or style.glarrow_b != '99':
-            col.prop(style, 'glarrow_s', text="Size")
+            clp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Collapse All", icon="REMOVE")
+            clp.state = False
+            clp.is_style = True
 
+            annotationStyles = StyleGen.annotations
+            lineStyles = StyleGen.line_groups
+            linDimStyles = StyleGen.linearDimensions
+            
+            idx = 0
+            for annoStyle in annotationStyles:
+                add_annotation_item(layout,idx,annoStyle)
+                idx += 1
+            
+            idx = 0
+            for lineStyle in lineStyles:
+                add_line_item(layout,idx,lineStyle)
+                idx += 1
+        
+            idx = 0
+            for linDimStyle in linDimStyles:
+                add_linearDimension_item(layout,idx,linDimStyle)
+                idx += 1
 
-###################################
-#
-#       Style Properties
-#
-###################################
+            col = layout.column()
+            delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
+            delOp.is_style = True
+        else:
+            col.operator("measureit_arch.addstylebutton", text="Use Styles", icon="ADD")
 
-class StyleProperties(PropertyGroup):
-    styleName: StringProperty(name="styleName",
-                            description="Name of The Dimension Style")
-    gltype: IntProperty(name="gltype",
-                         description="Measure type (1-Segment, 2-Label, etc..)", default=1)
-    glcolor: FloatVectorProperty(name="glcolor",
-                                  description="Color for the measure",
-                                  default=(0.173, 0.545, 1.0, 1.0),
-                                  min=0.1,
-                                  max=1,
-                                  subtype='COLOR',
-                                  size=4)
-    glview: BoolProperty(name="glview",
-                          description="Measure visible/hide",
-                          default=True)
-    glspace: FloatProperty(name='glspace', min=-100, max=100, default=0.1,
-                            precision=3,
-                            description='Distance to display measure')
-    glwidth: IntProperty(name='glwidth', min=1, max=20, default=1,
-                          description='line width')
-    glfree: BoolProperty(name="glfree",
-                          description="This measure is free and can be deleted",
-                          default=False)
-    gltxt: StringProperty(name="gltxt", maxlen=256,
-                           description="Short description (use | for line break)")
-    gladvance: BoolProperty(name="gladvance",
-                             description="Advanced options as line width or position",
-                             default=False)
-    gldefault: BoolProperty(name="gldefault",
-                             description="Display measure in position calculated by default",
-                             default=True)
-    glnormalx: FloatProperty(name="glnormalx",
-                              description="Change orientation in X axis",
-                              default=1, min=-1, max=1, precision=2)
-    glnormaly: FloatProperty(name="glnormaly",
-                              description="Change orientation in Y axis",
-                              default=0, min=-1, max=1, precision=2)
-    glnormalz: FloatProperty(name="glnormalz",
-                              description="Change orientation in Z axis",
-                              default=0, min=-1, max=1, precision=2)
-    glfont_size: IntProperty(name="Text Size",
-                              description="Text size",
-                              default=14, min=6, max=150)
-    glfont_align: EnumProperty(items=(('L', "Left align", ""),
-                                       ('C', "Center align", ""),
-                                       ('R', "Right align", "")),
-                                name="align Font",
-                                description="Set Font alignment")
-    glfont_rotat: IntProperty(name='Rotate', min=0, max=360, default=0,
-                                description="Text rotation in degrees")
-    gllink: StringProperty(name="gllink",
-                            description="linked object for linked measures")
-    glocwarning: BoolProperty(name="glocwarning",
-                               description="Display a warning if some axis is not used in distance",
-                               default=True)
-    glocx: BoolProperty(name="glocx",
-                         description="Include changes in X axis for calculating the distance",
-                         default=True)
-    glocy: BoolProperty(name="glocy",
-                         description="Include changes in Y axis for calculating the distance",
-                         default=True)
-    glocz: BoolProperty(name="glocz",
-                         description="Include changes in Z axis for calculating the distance",
-                         default=True)
-    glfontx: IntProperty(name="glfontx",
-                          description="Change font position in X axis",
-                          default=0, min=-3000, max=3000)
-    glfonty: IntProperty(name="glfonty",
-                          description="Change font position in Y axis",
-                          default=0, min=-3000, max=3000)
-    gldist: BoolProperty(name="gldist",
-                          description="Display distance for this measure",
-                          default=True)
-    glnames: BoolProperty(name="glnames",
-                           description="Display text for this measure",
-                           default=True)
-    glorto: EnumProperty(items=(('99', "None", ""),
-                                 ('0', "A", "Point A must use selected point B location"),
-                                 ('1', "B", "Point B must use selected point A location")),
-                          name="Orthogonal",
-                          description="Display point selected as orthogonal (select axis to copy)")
-    glorto_x: BoolProperty(name="ox",
-                            description="Copy X location",
-                            default=False)
-    glorto_y: BoolProperty(name="oy",
-                            description="Copy Y location",
-                            default=False)
-    glorto_z: BoolProperty(name="oz",
-                            description="Copy Z location",
-                            default=False)
-    glarrow_a: EnumProperty(items=(('99', "--", "No arrow"),
-                                    ('1', "Line", "The point of the arrow are lines"),
-                                    ('2', "Triangle", "The point of the arrow is triangle"),
-                                    ('3', "TShape", "The point of the arrow is a T")),
-                             name="A end",
-                             description="Add arrows to point A")
-    glarrow_b: EnumProperty(items=(('99', "--", "No arrow"),
-                                    ('1', "Line", "The point of the arrow are lines"),
-                                    ('2', "Triangle", "The point of the arrow is triangle"),
-                                    ('3', "TShape", "The point of the arrow is a T")),
-                             name="B end",
-                             description="Add arrows to point B")
-    glarrow_s: IntProperty(name="Size",
-                            description="Arrow size",
-                            default=15, min=6, max=500)
-
-    glarc_full: BoolProperty(name="arcfull",
-                              description="Create full circunference",
-                              default=False)
-    glarc_extrad: BoolProperty(name="arcextrad",
-                                description="Adapt radio lengh to arc line",
-                                default=True)
-    glarc_rad: BoolProperty(name="arc rad",
-                             description="Show arc radius",
-                             default=True)
-    glarc_len: BoolProperty(name="arc len",
-                             description="Show arc length",
-                             default=True)
-    glarc_ang: BoolProperty(name="arc ang",
-                             description="Show arc angle",
-                             default=True)
-
-    glarc_a: EnumProperty(items=(('99', "--", "No arrow"),
-                                  ('1', "Line", "The point of the arrow are lines"),
-                                  ('2', "Triangle", "The point of the arrow is triangle"),
-                                  ('3', "TShape", "The point of the arrow is a T")),
-                           name="Ar end",
-                           description="Add arrows to point A")
-    glarc_b: EnumProperty(items=(('99', "--", "No arrow"),
-                                  ('1', "Line", "The point of the arrow are lines"),
-                                  ('2', "Triangle", "The point of the arrow is triangle"),
-                                  ('3', "TShape", "The point of the arrow is a T")),
-                           name="Br end",
-                           description="Add arrows to point B")
-    glarc_s: IntProperty(name="Size",
-                          description="Arrow size",
-                          default=15, min=6, max=500)
-    glarc_txradio: StringProperty(name="txradio",
-                                   description="Text for radius", default="r=")
-    glarc_txlen: StringProperty(name="txlen",
-                                 description="Text for length", default="L=")
-    glarc_txang: StringProperty(name="txang",
-                                 description="Text for angle", default="A=")
-    glcolorarea: FloatVectorProperty(name="glcolorarea",
-                                      description="Color for the measure of area",
-                                      default=(0.1, 0.1, 0.1, 1.0),
-                                      min=0.1,
-                                      max=1,
-                                      subtype='COLOR',
-                                      size=4)
-
-bpy.utils.register_class(StyleProperties)
-
-class StyleContainer(PropertyGroup):
-    style_num = IntProperty(name='Number of styles', min=0, max=1000, default=0,
-                                description='Number total of measureit_arch Dimension Styles')
-    # Array of styles
-    measureit_arch_styles = CollectionProperty(type=StyleProperties)
-
-bpy.utils.register_class(StyleContainer)
-Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
-
-###################################
-#
-#       Style Operators
-#
-###################################
-
-class AddDimStyleButton(Operator):
-    bl_idname = "measureit_arch.adddimstylebutton"
+class AddStyleButton(Operator):
+    bl_idname = "measureit_arch.addstylebutton"
     bl_label = "Add"
-    bl_description = "Create A New Dimension Style"
+    bl_description = "Create A New Style (Select Type Below)"
     bl_category = 'MeasureitArch'
+    
+    styleType: EnumProperty(
+        items=(('A', "Annotation", "Create a new Annotation Style",'FONT_DATA',1),
+                ('L', "Line", "Create a new Line Style",'MESH_CUBE',2),
+                ('D', "Dimension", "Create a new Dimension Style",'DRIVER_DISTANCE',3)),
+        name="Type of Style to Add",
+        description="Type of Style to Add")
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
@@ -382,97 +205,37 @@ class AddDimStyleButton(Operator):
                 if area.type == 'VIEW_3D':
                     # Add properties
                     scene = context.scene
+                    if 'StyleGenerator' not in bpy.context.scene:
+                        
+                        return {'FINISHED'}
 
-                    if 'StyleGenerator' not in scene:
-                        scene.StyleGenerator.add()
-
-                    styleGen = scene.StyleGenerator[0]
-                    styleGen.measureit_arch_styles.add()
-
-                    newStyle = styleGen.measureit_arch_styles[styleGen.style_num]
-
-                    #Style Properties
-                    newStyle.styleName = 'Style ' + str(styleGen.style_num + 1)
-                    newStyle.glcolor = scene.measureit_arch_default_color
+                    StyleGen = scene.StyleGenerator[0]
+                    annotationStyles = StyleGen.annotations
+                    lineStyles = StyleGen.line_groups
+                    linDimStyles = StyleGen.linearDimensions
                     
-                    newStyle.glwidth = scene.measureit_arch_gl_width
-                    newStyle.glarrow_a = scene.measureit_arch_glarrow_a
-                    newStyle.glarrow_b = scene.measureit_arch_glarrow_b
-                    newStyle.glarrow_s = scene.measureit_arch_glarrow_s
-                    # dist
-                    newStyle.glspace = scene.measureit_arch_hint_space
-                    # text
-                    newStyle.gltxt = scene.measureit_arch_gl_txt
-                    newStyle.glfont_size = scene.measureit_arch_font_size
-                    newStyle.glfont_align = scene.measureit_arch_font_align
-                    newStyle.glfont_rotat = scene.measureit_arch_font_rotation
+                    if self.styleType is 'A':
+                        newStyle = annotationStyles.add()
+                        newStyle.itemType = 'A'
+                    elif self.styleType is 'L':
+                        newStyle = lineStyles.add()
+                        newStyle.itemType = 'L'
+                    else:
+                        newStyle = linDimStyles.add()
+                        newStyle.itemType = 'D'
                     
-
-                    styleGen.style_num += 1
-                    context.area.tag_redraw()
-                    return {'FINISHED'}
-        return {'FINISHED'}
-
-class DeleteStyleButton(Operator):
-    bl_idname = "measureit_arch.deletestylebutton"
-    bl_label = "Delete Style"
-    bl_description = "Delete a Style"
-    bl_category = 'MeasureitArch'
-    tag= IntProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        for window in bpy.context.window_manager.windows:
-            screen = window.screen
-
-            for area in screen.areas:
-                if area.type == 'VIEW_3D':
-                    # Add properties
-                    mp = context.scene.StyleGenerator[0]
-                    ms = mp.measureit_arch_styles[self.tag]
-                    ms.glfree = True
-                    # Delete element
-                    mp.measureit_arch_styles.remove(self.tag)
-                    mp.style_num -= 1
-                    # redraw
-                    context.area.tag_redraw()
-                    return {'FINISHED'}
-        return {'FINISHED'}
-
-class DeleteAllStylesButton(Operator):
-    bl_idname = "measureit_arch.deleteallstylesbutton"
-    bl_label = "Delete All Styles?"
-    bl_description = "Delete all Styles (it cannot be undone)"
-    bl_category = 'MeasureitArch'
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        for window in bpy.context.window_manager.windows:
-            screen = window.screen
-
-            for area in screen.areas:
-                if area.type == 'VIEW_3D':
-                    # Add properties
-                    scene =bpy.context.scene
-                    mainobject = context.object
-                    styleGen = scene.StyleGenerator[0]
-
-                    while len(styleGen.measureit_arch_styles) > 0:
-                        styleGen.measureit_arch_styles.remove(0)
-
-                    # reset size
-                    styleGen.style_num = len(styleGen.measureit_arch_styles)
-                    # redraw
+                    newStyle.is_style = True
                     context.area.tag_redraw()
                     return {'FINISHED'}
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
-        return wm.invoke_props_dialog(self)
+        if 'StyleGenerator' in context.scene:
+            return wm.invoke_props_dialog(self)
+        else:
+            context.scene.StyleGenerator.add()
+            return {'FINISHED'}
 
-
+    
+       

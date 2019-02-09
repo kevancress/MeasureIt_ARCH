@@ -63,8 +63,7 @@ textShader = gpu.types.GPUShader(
 
 dimensionShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
-    Base_Shader_3D.fragment_shader,
-    geocode = Base_Shader_3D.geometry_shader)
+    Base_Shader_3D.fragment_shader)
 
 # -------------------------------------------------------------
 # Draw segments
@@ -161,6 +160,7 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glLineWidth(linDim.lineWeight)
 
         # Obj Properties
@@ -226,9 +226,9 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         draw_text_3D(context,linDim,myobj,square)
 
         #bind shader
-        lineShader.bind()
-        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", (0,0,0))
+        dimensionShader.bind()
+        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        dimensionShader.uniform_float("offset", (0,0,0))
 
         #batch & Draw Shader
         p3 = Vector(p1)+offsetDistance
@@ -236,10 +236,10 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         p5 = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
         p6 = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
         coords = [p1,p3,p2,p4,p5,p6]
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-        batch.program_set(lineShader)
+        batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
+        batch.program_set(dimensionShader)
         batch.draw()
-
+        gpu.shader.unbind()
         #Reset openGL Settings
         bgl.glLineWidth(1)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
@@ -337,7 +337,7 @@ def draw_line_group(context, myobj, lineGen):
             pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             pointShader.uniform_float("size", 1)
             pointShader.uniform_float("offset", -offset)
-
+            gpu.shader.unbind()
             lineShader.bind()
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             lineShader.uniform_float("offset", -offset)
@@ -369,7 +369,7 @@ def draw_line_group(context, myobj, lineGen):
             batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
             batch3d.program_set(lineShader)
             batch3d.draw()
-        
+            gpu.shader.unbind()
             #Draw Hidden Lines
             if drawHidden == True:
                 bgl.glDepthFunc(bgl.GL_GREATER)
@@ -387,7 +387,7 @@ def draw_line_group(context, myobj, lineGen):
                 batchHidden.program_set(dashedLineShader)
                 batchHidden.draw()
                 bgl.glDepthFunc(bgl.GL_LESS)
-    
+                gpu.shader.unbind()
     bgl.glLineWidth(1)
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -435,6 +435,7 @@ def draw_annotation(context, myobj, annotationGen):
 def draw_text_3D(context,textobj,myobj,card):
     #get props
     bgl.glDepthMask(False)
+    
     width = textobj.textWidth
     height = textobj.textHeight 
     uvFlipped= [(1,1),(1,0),(0,0),(0,1)]
@@ -473,7 +474,8 @@ def draw_text_3D(context,textobj,myobj,card):
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
-
+    gpu.shader.unbind()
+    
 def generate_text_card(context,textobj,rotation,basePoint): 
     width = textobj.textWidth
     height = textobj.textHeight 

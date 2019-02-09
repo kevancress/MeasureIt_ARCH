@@ -6,12 +6,28 @@ import math
 from mathutils import Matrix
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-                      FloatProperty, EnumProperty, PointerProperty
+                FloatProperty, EnumProperty, PointerProperty
 
 def update_flag(self,context):
     self.text_updated = True
 
 class BaseProp:
+
+    name: StringProperty(name="Item Name",
+                description="Item Name",
+                default="")
+
+    is_style: BoolProperty(name= "is Style",
+                description= "This property Group is a Style",
+                default=False)
+    
+    itemType: EnumProperty(
+                    items=(('A', "Annotation ", ""),
+                            ('L', "Line Style", ""),
+                            ('D', "Dimension", "")),
+                    name="Style Type",
+                    description="Type of Style to Add")
+
     style: IntProperty(name="Style",
                     description="Style to use",
                     min=0)
@@ -100,4 +116,157 @@ class BaseWithText(BaseProp):
         
     textHeight: IntProperty(name='annotationHeight',
                 description= 'Height of annotation')
+    
+class DeletePropButton(Operator):
+
+    bl_idname = "measureit_arch.deletepropbutton"
+    bl_label = "Delete property"
+    bl_description = "Delete a property"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'} 
+    tag= IntProperty()
+    item_type= StringProperty()
+    is_style= BoolProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        # Add properties
+        mainObj = context.object
+        
+        if self.is_style is True:
+            Generator = context.scene.StyleGenerator[0]
+        else:
+            if self.item_type is 'A':
+                Generator = mainObj.AnnotationGenerator[0]
+                Generator.num_annotations -= 1
+            elif self.item_type is 'L':
+                Generator = mainObj.LineGenerator[0]
+                Generator.line_num -= 1
+            elif self.item_type is 'D':
+                Generator = mainObj.MeasureGenerator[0]
+                Generator.measureit_arch_num -= 1
+
+        if self.item_type is 'A':
+            itemGroup = Generator.annotations
+        elif self.item_type is 'L':
+            itemGroup = Generator.line_groups
+        elif self.item_type is 'D':
+            itemGroup = Generator.linearDimensions
+
+        # Delete element
+        itemGroup[self.tag].free = True
+        itemGroup.remove(self.tag)
+        # redraw
+        context.area.tag_redraw()
+
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    area.tag_redraw()
+                    context.area.tag_redraw()
+                    return {'FINISHED'}
+                
+        return {'FINISHED'}
+
+class DeleteAllItemsButton(Operator):
+    bl_idname = "measureit_arch.deleteallitemsbutton"
+    bl_label = "Delete All Styles?"
+    bl_description = "Delete all Styles (it cannot be undone)"
+    bl_category = 'MeasureitArch'
+    item_type: StringProperty()
+    is_style: BoolProperty()
+    # -----------------------
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        # Add properties
+        mainobject = context.object
+        scene = context.scene
+
+        if self.is_style:
+            StyleGen = scene.StyleGenerator[0]
+
+            for linDim in StyleGen.linearDimensions:
+                StyleGen.linearDimensions.remove(0)
+            for line in StyleGen.line_groups:
+                StyleGen.line_groups.remove(0)
+            for annotation in StyleGen.annotations:
+                StyleGen.annotations.remove(0)
+        else:
+            
+            if self.item_type is 'D':
+                for linDim in mainobject.MeasureGenerator[0].linearDimensions:
+                    mainobject.MeasureGenerator[0].linearDimensions.remove(0)
+                    mainobject.MeasureGenerator[0].measureit_arch_num = 0
+            
+            elif self.item_type is 'L':
+                for line in mainobject.LineGenerator[0].line_groups:
+                    mainobject.LineGenerator[0].line_groups.remove(0)
+                    mainobject.LineGenerator[0].line_num = 0
+            
+            elif self.item_type is 'A': 
+                for annotation in mainobject.AnnotationGenerator[0].annotations:
+                    mainobject.AnnotationGenerator[0].annotations.remove(0)
+                    mainobject.AnnotationGenerator[0].num_annotations = 0
+    
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    area.tag_redraw()
+                    context.area.tag_redraw()
+                    return {'FINISHED'} 
+            return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+    
+    def draw(self,context):
+        layout = self.layout
+
+class ExpandCollapseAllPropButton(Operator):
+    bl_idname = "measureit_arch.expandcollapseallpropbutton"
+    bl_label = "Expand or Collapse"
+    bl_description = "Expand or Collapse all measure properties"
+    bl_category = 'MeasureitArch'
+    item_type = StringProperty()
+    is_style = BoolProperty()
+    state = BoolProperty()
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        # Add properties
+        mainobject = context.object
+        scene = context.scene
+
+        if self.is_style:
+            StyleGen = scene.StyleGenerator[0]
+            for linDim in StyleGen.linearDimensions:
+                linDim.settings = self.state
+            for line in StyleGen.line_groups:
+                line.settings = self.state
+            for annotation in StyleGen.annotations:
+                annotation.settings = self.state
+            return {'FINISHED'}
+
+        if self.item_type is 'D':
+            for linDim in mainobject.MeasureGenerator[0].linearDimensions:
+                linDim.settings = self.state
+            return {'FINISHED'}
+        if self.item_type is 'L':
+            for line in mainobject.LineGenerator[0].line_groups:
+                line.settings = self.state
+            return {'FINISHED'}
+        if self.item_type is 'A': 
+            for annotation in mainobject.AnnotationGenerator[0].annotations:
+                annotation.settings = self.state
+            return {'FINISHED'}
+        return {'FINISHED'}
     

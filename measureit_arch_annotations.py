@@ -27,9 +27,7 @@ import bpy
 import blf
 import bgl
 import gpu
-
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene
-
 from bpy.props import (
         CollectionProperty,
         FloatVectorProperty,
@@ -40,35 +38,29 @@ from bpy.props import (
         EnumProperty,
         PointerProperty
         )
-
-
 from .measureit_arch_baseclass import BaseProp, BaseWithText
 from .measureit_arch_main import get_smart_selected, get_selected_vertex
-
 import math
-
 
 def update_custom_props(self,context):
     ignoredProps = ['AnnotationGenerator','MeasureGenerator','LineGenerator','_RNA_UI','cycles','cycles_visibility']
-    annotationGen = context.object.AnnotationGenerator[0]
     idx = 0 
     for key in context.object.keys():
         if key not in ignoredProps:
-            if key not in annotationGen.customProperties:
-                annotationGen.customProperties.add().name = key
-    for prop in annotationGen.customProperties:
+            if key not in self.customProperties:
+                self.customProperties.add().name = key
+    for prop in self.customProperties:
         if prop.name not in context.object.keys():
-            annotationGen.customProperties.remove(idx)
+            self.customProperties.remove(idx)
         idx += 1
-
 
 class CustomProperties(PropertyGroup):
     name: StringProperty(name='Custom Properties')
 
 bpy.utils.register_class(CustomProperties)
 
-
 class AnnotationProperties(BaseWithText,PropertyGroup):
+    customProperties: CollectionProperty(type=CustomProperties)
     annotationRotation:FloatVectorProperty(name='annotationOffset',
                             description='Rotation for Annotation',
                             default= (0.0,0.0,0.0),
@@ -86,22 +78,13 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
     annotationAnchor: IntProperty(name="annotationAnchor",
                             description="Index of Vertex that the annotation is Anchored to")
     
-    
-# Register
 bpy.utils.register_class(AnnotationProperties)
 
-
-
-# ------------------------------------------------------------------
-# Define object class (container of annotations)
-# MeasureitArch
-# ------------------------------------------------------------------
 class AnnotationContainer(PropertyGroup):
     num_annotations: IntProperty(name='Number of Annotations', min=0, max=1000, default=0,
                                 description='Number total of Annotations')
     # Array of segments
     annotations: CollectionProperty(type=AnnotationProperties)
-    customProperties: CollectionProperty(type=CustomProperties)
 
 bpy.utils.register_class(AnnotationContainer)
 Object.AnnotationGenerator = CollectionProperty(type=AnnotationContainer)
@@ -144,7 +127,7 @@ class AddAnnotationButton(Operator):
                 annotationGen = mainobject.AnnotationGenerator[0] 
                 annotationGen.num_annotations +=1
                 newAnnotation = annotationGen.annotations.add()
-
+                newAnnotation.itemType = 'A'
                 # Set values
                 newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
 
@@ -169,7 +152,6 @@ class AddAnnotationButton(Operator):
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
-
 
 class MeasureitArchAnnotationsPanel(Panel):
     bl_idname = "annotations"
@@ -197,20 +179,30 @@ class MeasureitArchAnnotationsPanel(Panel):
                 # -----------------
                 
                 annotationGen = context.object.AnnotationGenerator[0]
-                if annotationGen.num_annotations> 0:
-                    #row = layout.row(align = True)
-                    #row.operator("measureit_arch.expandallsegmentbutton", text="Expand all", icon="ADD")
-                    #row.operator("measureit_arch.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
-                    for idx in range(0, annotationGen.num_annotations):
-                        add_annotation_item(layout, idx, annotationGen.annotations[idx],annotationGen)
+                row = layout.row(align=True)
+                exp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Expand All", icon="ADD")
+                exp.state = True
+                exp.is_style = False
+                exp.item_type = 'A'
 
-                    #row = layout.row()
-                    #row.operator("measureit_arch.deleteallsegmentbutton", text="Delete all", icon="X")
-    
+                clp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Collapse All", icon="REMOVE")
+                clp.state = False
+                clp.is_style = False
+                exp.item_type = 'A'
+
+                idx = 0
+                for annotation in annotationGen.annotations:
+                    add_annotation_item(layout, idx, annotation)
+                    idx += 1
+
+                col = layout.column()
+                delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
+                delOp.is_style = False
+                delOp.item_type = annotation.itemType
 # -----------------------------------------------------
 # Add annotation options to the panel.
 # -----------------------------------------------------
-def add_annotation_item(layout, idx, annotation, annotationGen):
+def add_annotation_item(layout, idx, annotation):
     if annotation.settings is True:
         box = layout.box()
         row = box.row(align=True)
@@ -221,15 +213,16 @@ def add_annotation_item(layout, idx, annotation, annotationGen):
     row.prop(annotation, 'settings', text="",toggle=True, icon='PREFERENCES')
     row.prop(annotation, 'color', text="" )
     row.prop(annotation, 'text', text="")
-    op = row.operator("measureit_arch.deleteannotationbutton", text="", icon="X")
+    op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
     op.tag = idx  # saves internal data
-    
+    op.item_type = annotation.itemType
+    op.is_style = annotation.is_style
     if annotation.settings is True:
         
         col = box.column()
         col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
         col = box.column()
-        col.prop_search(annotation,'annotationTextSource', annotationGen ,'customProperties',text="Text Source")
+        col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
         col.prop(annotation, 'lineWeight', text="Line Weight" )
         col.prop(annotation, 'textResolution', text="Resolution")
         col.prop(annotation, 'fontSize', text="Size")
@@ -237,39 +230,4 @@ def add_annotation_item(layout, idx, annotation, annotationGen):
         col.prop(annotation, 'annotationRotation', text='Rotation')
         col.prop(annotation, 'textAlignment', text='Alignment')
         col.prop(annotation, 'textPosition', text='Position')
-
-class DeleteAnnotationButton(Operator):
-
-    bl_idname = "measureit_arch.deleteannotationbutton"
-    bl_label = "Delete Line"
-    bl_description = "Delete an Annotation"
-    bl_category = 'MeasureitArch'
-    tag= IntProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        # Add properties
-        mainObj = context.object
-        annotationGen = mainObj.AnnotationGenerator[0]
-        annotation = annotationGen.annotations[self.tag]
-        annotation.lineFree = True
-        # Delete element
-        annotationGen.annotations.remove(self.tag)
-        annotationGen.num_annotations -= 1
-        # redraw
-        context.area.tag_redraw()
-
-        for window in bpy.context.window_manager.windows:
-            screen = window.screen
-
-            for area in screen.areas:
-                if area.type == 'VIEW_3D':
-                    area.tag_redraw()
-                    context.area.tag_redraw()
-                    return {'FINISHED'}
-                
-        return {'FINISHED'}
-
 

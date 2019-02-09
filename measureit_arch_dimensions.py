@@ -30,7 +30,6 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 from .measureit_arch_main import *
 from .measureit_arch_baseclass import BaseWithText
 
-
 # ------------------------------------------------------------------
 # Define property group class for measureit_arch faces index
 # ------------------------------------------------------------------
@@ -38,10 +37,7 @@ class MeasureitArchIndex(PropertyGroup):
     glidx = IntProperty(name="index",
                         description="vertex index")
 
-
-# Register
 bpy.utils.register_class(MeasureitArchIndex)
-
 
 # ------------------------------------------------------------------
 # Define property group class for measureit_arch faces
@@ -52,7 +48,6 @@ class MeasureitArchFaces(PropertyGroup):
     # Array of index
     measureit_arch_index: CollectionProperty(type=MeasureitArchIndex)
 
-# Register
 bpy.utils.register_class(MeasureitArchFaces)
 
 class LinearDimensionProperties(BaseWithText,PropertyGroup):
@@ -106,7 +101,6 @@ class LinearDimensionProperties(BaseWithText,PropertyGroup):
                             subtype='ANGLE')
 
 bpy.utils.register_class(LinearDimensionProperties)
-
 
 # ------------------------------------------------------------------
 # LEGACY Define property group class for measureit_arch data
@@ -304,7 +298,6 @@ class MeasureitArchProperties(PropertyGroup):
 # Register
 bpy.utils.register_class(MeasureitArchProperties)
 
-
 # ------------------------------------------------------------------
 # Define object class (container of segments)
 # MeasureitArch
@@ -319,10 +312,9 @@ class MeasureContainer(PropertyGroup):
 bpy.utils.register_class(MeasureContainer)
 Object.MeasureGenerator = CollectionProperty(type=MeasureContainer)
 
-
 class MeasureitArchDimensionsPanel(Panel):
     bl_idname = "obj_dimensions"
-    bl_label = "Object Dimensions"
+    bl_label = "Dimensions"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "object"
@@ -348,8 +340,15 @@ class MeasureitArchDimensionsPanel(Panel):
                 
                 measureGen = context.object.MeasureGenerator[0]
                 row = layout.row(align = True)
-                row.operator("measureit_arch.expandallsegmentbutton", text="Expand all", icon="ADD")
-                row.operator("measureit_arch.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
+                exp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Expand All", icon="ADD")
+                exp.state = True
+                exp.is_style = False
+                exp.item_type = 'D'
+
+                clp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Collapse All", icon="REMOVE")
+                clp.state = False
+                clp.is_style = False
+                exp.item_type = 'D'
                 
                 idx = 0
                 for seg in measureGen.measureit_arch_segments:
@@ -359,16 +358,14 @@ class MeasureitArchDimensionsPanel(Panel):
                 
                 idx = 0
                 for linDim in measureGen.linearDimensions:
-                    add_linearDimension(layout,idx, linDim)
+                    add_linearDimension_item(layout,idx, linDim)
                     idx += 1
 
-                row = layout.row()
-                row.operator("measureit_arch.deleteallsegmentbutton", text="Delete all", icon="X")
+                col = layout.column()
+                delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Dimensions", icon="X")
+                delOp.is_style = False
+                delOp.item_type = linDim.itemType
                 
-
-# -----------------------------------------------------
-# Add segment options to the panel.
-# -----------------------------------------------------
 def add_item(layout, idx, segment):
     scene = bpy.context.scene
     if segment.gladvance is True:
@@ -501,7 +498,7 @@ def add_item(layout, idx, segment):
             if segment.glarc_a != '99' or segment.glarc_b != '99':
                 row.prop(segment, 'glarc_s', text="Size")
 
-def add_linearDimension(layout, idx, linDim):
+def add_linearDimension_item(layout, idx, linDim):
     scene = bpy.context.scene
     if linDim.settings is True:
         box = layout.box()
@@ -514,29 +511,31 @@ def add_linearDimension(layout, idx, linDim):
     row.prop(linDim, 'visible', text="", toggle=True, icon='DRIVER_DISTANCE')
     row.prop(linDim, 'settings', text="", toggle=True, icon="PREFERENCES")
     row.prop(linDim, 'dimFlip',text='',toggle=True, icon='UV_SYNC_SELECT')
-    row.prop(linDim, 'style', text="")
-    row.prop(linDim, 'text', text="")
+    if linDim.is_style is False:
+        row.prop(linDim, 'style', text="")
+    row.prop(linDim, 'name', text="")
    
-    op = row.operator("measureit_arch.deletesegmentbutton", text="", icon="X")
+    op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
     # send index and type to operator
     op.tag = idx
-    op.itemType = 'linDim'
+    op.item_type = linDim.itemType
+    op.is_style = linDim.is_style
 
     # advanced Settings
     if linDim.settings is True:
         
         col = box.column(align=True)
         col.template_ID(linDim, "font", open="font.open", unlink="font.unlink")
-        col.prop(linDim,'dimViewPlane', text='Dimension View Plane')
-        col.prop_search(linDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
-        
-        
-        col.prop(linDim,'color',text='Color')
-        col.prop(linDim,'lineWeight',text='Line Weight')
-        
 
         col = box.column(align=True)
+        col.prop(linDim,'dimViewPlane', text='View Plane')
+        col.prop_search(linDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        
+        col = box.column(align=True)
+        col.prop(linDim,'color',text='Color')
+        col.prop(linDim,'lineWeight',text='Line Weight')
         col.prop(linDim,'dimOffset',text='Offset')
+        col.prop(linDim, 'dimRotation', text='Rotation')
 
         col = box.column(align=True)
         col.prop(linDim,'fontSize',text='Font Size')
@@ -545,7 +544,7 @@ def add_linearDimension(layout, idx, linDim):
         col.prop(linDim,'textPosition',text='Position')
         col.prop(linDim,'textFlipped',text='Flip Text')
 
-        col.prop(linDim, 'dimRotation', text='Rotation')
+
 
         col = box.column(align=True)
         col.prop(linDim,'dimEndcapA', text='Arrow Start')
@@ -604,7 +603,8 @@ class AddSegmentButton(Operator):
                 for x in range(0, len(mylist) - 1, 2):
                     if exist_segment(measureGen, mylist[x], mylist[x + 1]) is False:
                         newDimension = measureGen.linearDimensions.add()
-                        print ('adding linear dimension')
+                        newDimension.itemType = 'D'
+                        
                         # Set values
 
                         tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
@@ -1237,96 +1237,6 @@ class AddOriginButton(Operator):
 
 
 # -------------------------------------------------------------
-# Defines button that deletes a measure segment
-#
-# -------------------------------------------------------------
-class DeleteSegmentButton(Operator):
-    bl_idname = "measureit_arch.deletesegmentbutton"
-    bl_label = "Delete"
-    bl_description = "Delete a measure"
-    bl_category = 'MeasureitArch'
-    tag= IntProperty()
-    itemType = StringProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-
-        # Add properties
-        mainobject = context.object
-        measureGen = mainobject.MeasureGenerator[0]
-        if self.itemType == 'segment': 
-            ms = measureGen.measureit_arch_segments[self.tag]
-            ms.glfree = True
-
-            # Delete element
-            measureGen.measureit_arch_segments.remove(self.tag)
-            
-        if self.itemType == 'linDim':
-            linDim = measureGen.linearDimensions[self.tag]
-            linDim.dimNoUser = True
-            
-            # Delete Element
-            measureGen.linearDimensions.remove(self.tag)
-        
-        measureGen.measureit_arch_num -= 1
-        # redraw
-        for window in bpy.context.window_manager.windows:
-            screen = window.screen
-
-            for area in screen.areas:
-                if area.type == 'VIEW_3D':
-                    area.tag_redraw()
-                    context.area.tag_redraw()
-                    return {'FINISHED'}
-                
-        return {'FINISHED'}
-
-
-
-# -------------------------------------------------------------
-# Defines button that deletes all measure segments
-#
-# -------------------------------------------------------------
-class DeleteAllSegmentButton(Operator):
-    bl_idname = "measureit_arch.deleteallsegmentbutton"
-    bl_label = "Delete All Segments?"
-    bl_description = "Delete all measures (it cannot be undone)"
-    bl_category = 'MeasureitArch'
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        # Add properties
-        mainobject = context.object
-        measureGen = mainobject.MeasureGenerator[0]
-
-        while len(measureGen.measureit_arch_segments) > 0:
-            measureGen.measureit_arch_segments.remove(0)
-        while len(measureGen.linearDimensions) > 0:
-            measureGen.linearDimensions.remove(0)
-        # reset size
-        measureGen.measureit_arch_num = 0
-        # redraw
-
-        for window in bpy.context.window_manager.windows:
-            screen = window.screen
-
-            for area in screen.areas:
-                if area.type == 'VIEW_3D':
-                    area.tag_redraw()
-                    context.area.tag_redraw()
-                    return {'FINISHED'} 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
-
-# -------------------------------------------------------------
 # Defines button that deletes all measure segment sums
 #
 # -------------------------------------------------------------
@@ -1351,58 +1261,6 @@ class DeleteAllSumButton(Operator):
 
             return {'FINISHED'}
 
-
-# -------------------------------------------------------------
-# Defines button that expands all measure segments
-#
-# -------------------------------------------------------------
-class ExpandAllSegmentButton(Operator):
-    bl_idname = "measureit_arch.expandallsegmentbutton"
-    bl_label = "Expand"
-    bl_description = "Expand all measure properties"
-    bl_category = 'MeasureitArch'
-    tag= IntProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        # Add properties
-        mainobject = context.object
-        mp = mainobject.MeasureGenerator[0]
-
-        for seg in mp.measureit_arch_segments:
-            seg.gladvance = True
-        for linDim in mp.linearDimensions:
-            linDim.settings = True
-
-        return {'FINISHED'}
-    
-# -------------------------------------------------------------
-# Defines button that collapses all measure segments
-#
-# -------------------------------------------------------------
-class CollapseAllSegmentButton(Operator):
-    bl_idname = "measureit_arch.collapseallsegmentbutton"
-    bl_label = "Collapse"
-    bl_description = "Collapses all measure properties"
-    bl_category = 'MeasureitArch'
-    tag= IntProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        # Add properties
-        mainobject = context.object
-        mp = mainobject.MeasureGenerator[0]
-
-        for seg in mp.measureit_arch_segments:
-            seg.gladvance = False
-        for linDim in mp.linearDimensions:
-            linDim.settings = False
-        return {'FINISHED'}
-    
 
 # -------------------------------------------------------------
 # Defines a new note

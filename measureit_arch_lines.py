@@ -25,26 +25,20 @@
 # ----------------------------------------------------------
 
 import bpy
-
 import bmesh
-from bmesh import from_edit_mesh
-
 import bgl
 import gpu
+from bmesh import from_edit_mesh
 from gpu_extras.batch import batch_for_shader
-
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
-# noinspection PyUnresolvedReferences
 from .measureit_arch_geometry import *
 from .measureit_arch_render import *
 from .measureit_arch_main import get_smart_selected, get_selected_vertex
 from .measureit_arch_baseclass import BaseProp
-# ------------------------------------------------------------------
-# Define property group class for individual line Data
-# ------------------------------------------------------------------
+
 class SingleLineProperties(PropertyGroup):
     pointA: IntProperty(name = "pointA",
                         description = "first vertex index of the line")
@@ -53,10 +47,6 @@ class SingleLineProperties(PropertyGroup):
                         description = "Second vertex index of the line")
 
 bpy.utils.register_class(SingleLineProperties)
-
-# ------------------------------------------------------------------
-# Define property group class for line data
-# ------------------------------------------------------------------
 
 class LineProperties(BaseProp, PropertyGroup):
     numLines: IntProperty(name="numLines",
@@ -97,25 +87,16 @@ class LineProperties(BaseProp, PropertyGroup):
     #collection of indicies                        
     singleLine: CollectionProperty(type=SingleLineProperties)
 
-# Register
 bpy.utils.register_class(LineProperties)
 
-
-
-# ------------------------------------------------------------------
-# Define object class (container of lines)
-# MeasureitArch
-# ------------------------------------------------------------------
 class LineContainer(PropertyGroup):
     line_num: IntProperty(name='Number of Line Groups', min=0, max=1000, default=0,
                                 description='Number total of line groups')
     # Array of segments
     line_groups: CollectionProperty(type=LineProperties)
 
-
 bpy.utils.register_class(LineContainer)
 Object.LineGenerator = CollectionProperty(type=LineContainer)
-
 
 class AddLineButton(Operator):
     bl_idname = "measureit_arch.addlinebutton"
@@ -160,6 +141,7 @@ class AddLineButton(Operator):
                 lGroup = lineGen.line_groups.add()
 
                 # Set values
+                lGroup.itemType = 'L'
                 lGroup.lineStyle = scene.measureit_arch_default_style
                 lGroup.lineWidth = 2     
                 lGroup.lineColor = scene.measureit_arch_default_color
@@ -186,10 +168,9 @@ class AddLineButton(Operator):
 
         return {'CANCELLED'}
 
-
 class MeasureitArchLinesPanel(Panel):
     bl_idname = "obj_lines"
-    bl_label = "Object Lines"
+    bl_label = "Lines"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "object"
@@ -212,20 +193,29 @@ class MeasureitArchLinesPanel(Panel):
                 # loop
                 # -----------------
                 
-                mp = context.object.LineGenerator[0]
-                if mp.line_num > 0:
-                    row = layout.row(align = True)
-                    #row.operator("measureit_arch.expandallsegmentbutton", text="Expand all", icon="ADD")
-                    #row.operator("measureit_arch.collapseallsegmentbutton", text="Collapse all", icon="REMOVE")
-                    for idx in range(0, mp.line_num):
-                        add_line_item(layout, idx, mp.line_groups[idx])
+                lineGen = context.object.LineGenerator[0]
+                row = layout.row(align = True)
+                
+                exp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Expand All", icon="ADD")
+                exp.state = True
+                exp.is_style = False
+                exp.item_type = 'L'
 
-                    row = layout.row()
-                    #row.operator("measureit_arch.deleteallsegmentbutton", text="Delete all", icon="X")
-    
-# -----------------------------------------------------
-# Add line options to the panel.
-# -----------------------------------------------------
+                clp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Collapse All", icon="REMOVE")
+                clp.state = False
+                clp.is_style = False
+                exp.item_type = 'L'
+
+                idx = 0
+                for line in lineGen.line_groups:
+                    add_line_item(layout, idx, line)
+                    idx += 1
+
+                col = layout.column()
+                delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
+                delOp.is_style = False
+                delOp.item_type = line.itemType
+
 def add_line_item(layout, idx, line):
     scene = bpy.context.scene
     if line.settings is True:
@@ -246,8 +236,10 @@ def add_line_item(layout, idx, line):
     row.prop(line, 'lineDrawHidden', text="", toggle=True, icon='MOD_WIREFRAME')
     row.prop(line, 'color', text="" )
     row.prop(line, 'lineWeight', text="")
-    op = row.operator("measureit_arch.deletelinebutton", text="", icon="X")
+    op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
     op.tag = idx  # saves internal data
+    op.item_type = line.itemType
+    op.is_style = line.is_style
     
     if line.settings is True:
         row = box.row(align=True)
@@ -265,41 +257,6 @@ def add_line_item(layout, idx, line):
             col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
             col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
             
-
-class DeleteLineButton(Operator):
-
-    bl_idname = "measureit_arch.deletelinebutton"
-    bl_label = "Delete Line"
-    bl_description = "Delete a Line"
-    bl_category = 'MeasureitArch'
-    tag= IntProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        # Add properties
-        mainObj = context.object
-        mp = mainObj.LineGenerator[0]
-        ms = mp.line_groups[self.tag]
-        ms.lineFree = True
-        # Delete element
-        mp.line_groups.remove(self.tag)
-        mp.line_num -= 1
-        # redraw
-        context.area.tag_redraw()
-        
-        for window in bpy.context.window_manager.windows:
-            screen = window.screen
-
-            for area in screen.areas:
-                if area.type == 'VIEW_3D':
-                    area.tag_redraw()
-                    context.area.tag_redraw()
-                    return {'FINISHED'}
-                
-        return {'FINISHED'}
-
 class AddToLineGroup(Operator):   
     bl_idname = "measureit_arch.addtolinegroup"
     bl_label = "Add Selection to Line Group"
