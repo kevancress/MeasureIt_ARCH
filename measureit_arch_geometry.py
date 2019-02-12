@@ -116,34 +116,35 @@ def update_text(textobj,props,context):
         textobj.textWidth = width
 
         # Start Offscreen Draw
-        textOffscreen = gpu.types.GPUOffScreen(width,height)
-        texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-        
-        with textOffscreen.bind():
-            # Clear Past Draw and Set 2D View matrix
-            bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+        if width != 0 and height != 0:
+            textOffscreen = gpu.types.GPUOffScreen(width,height)
+            texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
             
-            view_matrix = Matrix([
-            [2 / width, 0, 0, -1],
-            [0, 2 / height, 0, -1],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1]])
-            
-            gpu.matrix.reset()
-            gpu.matrix.load_matrix(view_matrix)
-            gpu.matrix.load_projection_matrix(Matrix.Identity(4))
+            with textOffscreen.bind():
+                # Clear Past Draw and Set 2D View matrix
+                bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+                
+                view_matrix = Matrix([
+                [2 / width, 0, 0, -1],
+                [0, 2 / height, 0, -1],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]])
+                
+                gpu.matrix.reset()
+                gpu.matrix.load_matrix(view_matrix)
+                gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-            blf.draw(font_id,text)
-            
-            # Read Offscreen To Texture Buffer
-            bgl.glReadBuffer(bgl.GL_BACK)
-            bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
-            
-            # Write Texture Buffer to ID Property as List
-            textobj['texture'] = texture_buffer.to_list()
-            textOffscreen.free()
-            textobj.text_updated = False
-            textobj.texture_updated = True
+                blf.draw(font_id,text)
+                
+                # Read Offscreen To Texture Buffer
+                bgl.glReadBuffer(bgl.GL_BACK)
+                bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
+                
+                # Write Texture Buffer to ID Property as List
+                textobj['texture'] = texture_buffer.to_list()
+                textOffscreen.free()
+                textobj.text_updated = False
+                textobj.texture_updated = True
             
 
         #generate image datablock from buffer for debug preview
@@ -162,7 +163,7 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
             if linDimStyle.name == linDim.style:
                 linDimProps= linDimStyle
 
-    if linDim.dimVisibleInView is None or linDim.dimVisibleInView.name == context.scene.camera.name:
+    if linDim.dimVisibleInView is None or linDim.dimVisibleInView.name == context.scene.camera.data.name:
         # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_LINE_SMOOTH)

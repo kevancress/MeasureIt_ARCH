@@ -213,6 +213,7 @@ def add_annotation_item(layout, idx, annotation):
     else:
         row = layout.row(align=True)
     
+    hasGen = False
     if 'StyleGenerator' in scene:
         StyleGen = scene.StyleGenerator[0]
         hasGen = True

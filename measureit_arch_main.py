@@ -444,12 +444,6 @@ def draw_main_3d (context):
     # ---------------------------------------
     for myobj in objlist:
         if myobj.visible_get() is True:
-            if 'MeasureGenerator' in myobj:
-                measureGen = myobj.MeasureGenerator[0]
-                for linDim in measureGen.linearDimensions:
-                    if linDim.visible is True:
-                        draw_linearDimension(context, myobj, measureGen,linDim)
-           
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]
                 draw_line_group(context,myobj,lineGen)
@@ -458,6 +452,11 @@ def draw_main_3d (context):
                 annotationGen = myobj.AnnotationGenerator[0]
                 draw_annotation(context,myobj,annotationGen)
 
+            if 'MeasureGenerator' in myobj:
+                measureGen = myobj.MeasureGenerator[0]
+                for linDim in measureGen.linearDimensions:
+                    if linDim.visible is True:
+                        draw_linearDimension(context, myobj, measureGen,linDim)
 # -------------------------------------------------------------
 # Handler for drawing OpenGl
 # -------------------------------------------------------------

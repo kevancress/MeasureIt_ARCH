@@ -47,7 +47,8 @@ class BaseProp:
                 min=0,
                 max=1,
                 subtype='COLOR',
-                size=4)
+                size=4,
+                update= update_flag)
 
     lineWeight: IntProperty(name="lineWeight",
                 description="Lineweight",
@@ -66,17 +67,7 @@ class BaseProp:
                 description="Line show/hide",
                 default=True)
 
-class BaseWithText(BaseProp):
-
-    color: FloatVectorProperty(name="dimColor",
-                description="Color for the Dimension",
-                default=(0.0,0.0,0.0, 1.0),
-                min=0,
-                max=1,
-                subtype='COLOR',
-                size=4,
-                update= update_flag)
-    
+class BaseWithText(BaseProp):  
     text: StringProperty(name="annotationText",
                 description="Text Associated With Annotation ",
                 default="",

@@ -221,6 +221,7 @@ class MeasureitArchLinesPanel(Panel):
 
 def add_line_item(layout, idx, line):
     scene = bpy.context.scene
+    hasGen = False
     if 'StyleGenerator' in scene:
         StyleGen = scene.StyleGenerator[0]
         hasGen = True

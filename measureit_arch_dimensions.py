@@ -501,6 +501,7 @@ def add_item(layout, idx, segment):
 def add_linearDimension_item(layout, idx, linDim):
     scene = bpy.context.scene
     linDim=linDim
+    hasGen = False
     if 'StyleGenerator' in scene:
         StyleGen = scene.StyleGenerator[0]
         hasGen = True
