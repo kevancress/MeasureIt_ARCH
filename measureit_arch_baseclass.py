@@ -100,8 +100,11 @@ class BaseWithText(BaseProp):
     font: PointerProperty(type= bpy.types.VectorFont,
                 update = update_flag)
 
-    textFlipped: BoolProperty(name='textFlipped', 
-                description= 'flag when text need to be redrawn',
+    textFlippedX: BoolProperty(name='textFlippedX', 
+                description= 'Flip Text X',
+                default = False)
+    textFlippedY: BoolProperty(name='textFlippedY', 
+                description= 'Flip Text Y',
                 default = False)
     
     texture_updated: BoolProperty(name='text_updated',

@@ -460,19 +460,40 @@ def draw_text_3D(context,textobj,myobj,card):
     
     width = textobj.textWidth
     height = textobj.textHeight 
-    uvFlipped= [(1,1),(1,0),(0,0),(0,1)]
-    uvNormal= [(0,0),(0,1),(1,1),(1,0)]
-    if textobj.textFlipped is True:
-        uv = uvFlipped
-    else:
-        uv = uvNormal
+    uvFlippedDiagonal= [(1,1),(1,0),(0,0),(0,1)]
+    normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
+    flipMatrixX = Matrix([
+        [-1,0],
+        [ 0,1]   
+    ])
+
+    flipMatrixY = Matrix([
+        [1, 0],
+        [0,-1]   
+    ])
+
+    if textobj.textFlippedX is True or textobj.textFlippedY is True:
+        flippedUVs = []
+        for uv in normalizedDeviceUVs:
+            if textobj.textFlippedX is True:
+                uv = flipMatrixX@Vector(uv)
+            if textobj.textFlippedY is True:
+                uv = flipMatrixY@Vector(uv)
+            flippedUVs.append(uv)
+        normalizedDeviceUVs = flippedUVs
+        
+    uvs = []
+    for normUV in normalizedDeviceUVs:
+        uv = (Vector(normUV) + Vector((1,1)))*0.5
+        uvs.append(uv)
+
 
     # Batch Geometry
     batch = batch_for_shader(
         textShader, 'TRI_FAN',
         {
             "position": card,
-            "uv": uv,
+            "uv": uvs,
         },
     )
 

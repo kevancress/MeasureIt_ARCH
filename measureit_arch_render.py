@@ -108,6 +108,55 @@ class RenderSegmentButton(Operator):
         if scene.camera is None:
             self.report({'ERROR'}, camera_msg)
             return {'FINISHED'}
+        # -----------------------------
+        # Use default render
+        # -----------------------------
+        if scene.measureit_arch_render_type == "1":
+            # noinspection PyBroadException
+            try:
+                result = bpy.data.images['Render Result']
+                bpy.ops.render.render()
+            except:
+                bpy.ops.render.render()
+            print("MeasureIt-ARCH: Using current render image on buffer")
+            if render_main(self, context) is True:
+                self.report({'INFO'}, msg)
+
+        # -----------------------------
+        # OpenGL image
+        # -----------------------------
+        if scene.measureit_arch_render_type == "2":
+            self.set_camera_view()
+            self.set_only_render(True)
+
+            print("MeasureIt-ARCH: Rendering opengl image")
+            bpy.ops.render.opengl()
+            if render_main(self, context) is True:
+                self.report({'INFO'}, msg)
+
+            self.set_only_render(False)
+
+        # -----------------------------
+        # OpenGL Animation
+        # -----------------------------
+        if scene.measureit_arch_render_type == "3":
+            oldframe = scene.frame_current
+            self.set_camera_view()
+            self.set_only_render(True)
+            flag = False
+            # loop frames
+            for frm in range(scene.frame_start, scene.frame_end + 1):
+                scene.frame_set(frm)
+                print("MeasureIt-ARCH: Rendering opengl frame %04d" % frm)
+                bpy.ops.render.opengl()
+                flag = render_main(self, context, True)
+                if flag is False:
+                    break
+
+            self.set_only_render(False)
+            scene.frame_current = oldframe
+            if flag is True:
+                self.report({'INFO'}, msg)
 
         # -----------------------------
         # Image

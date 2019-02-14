@@ -561,7 +561,9 @@ def add_linearDimension_item(layout, idx, linDim):
             col.prop(linDim,'textAlignment',text='Alignment')
             col.prop(linDim,'textPosition',text='Position')
         
-        if linDim.is_style is False: col.prop(linDim,'textFlipped',text='Flip Text')
+        if linDim.is_style is False:
+            col.prop(linDim,'textFlippedX',text='Flip Text X')
+            col.prop(linDim,'textFlippedY',text='Flip Text Y')
 
 
         if linDim.uses_style is False:

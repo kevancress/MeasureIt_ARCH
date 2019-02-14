@@ -282,7 +282,9 @@ def register():
                                           description="Save an image with measures over"
                                                       " render image",
                                           default=False)
-    Scene.measureit_arch_render_type = EnumProperty(items=(
+    Scene.measureit_arch_render_type = EnumProperty(items=(('1', "*Current", "Use current render"),
+                                                      ('2', "OpenGL", ""),
+                                                      ('3', "Animation OpenGL", ""),
                                                       ('4', "Image", ""),
                                                       ('5', "Animation", "")),
                                                name="Render type",

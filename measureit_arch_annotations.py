@@ -42,6 +42,10 @@ from .measureit_arch_baseclass import BaseProp, BaseWithText
 from .measureit_arch_main import get_smart_selected, get_selected_vertex
 import math
 
+def annotation_update_flag(self,context):
+    self.text_updated = True
+    update_custom_props(self,context)
+
 def update_custom_props(self,context):
     ignoredProps = ['AnnotationGenerator','MeasureGenerator','LineGenerator','_RNA_UI','cycles','cycles_visibility']
     idx = 0 
@@ -73,7 +77,7 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
     
     annotationTextSource: StringProperty(name='annotationTextSource',
                             description="Text Source",
-                            update=update_custom_props)
+                            update=annotation_update_flag)
 
     annotationAnchor: IntProperty(name="annotationAnchor",
                             description="Index of Vertex that the annotation is Anchored to")
@@ -253,10 +257,13 @@ def add_annotation_item(layout, idx, annotation):
             col.prop(annotation, 'fontSize', text="Size")
             col.prop(annotation, 'textAlignment', text='Alignment')
             col.prop(annotation, 'textPosition', text='Position')
+ 
         
         if annotation.is_style is False:
             col = box.column()
             col.prop(annotation, 'annotationOffset', text='Offset')
             col.prop(annotation, 'annotationRotation', text='Rotation')
+            col.prop(annotation,'textFlippedX',text='Flip Text X')
+            col.prop(annotation,'textFlippedY',text='Flip Text Y')
         
 
