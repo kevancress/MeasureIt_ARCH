@@ -181,11 +181,16 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         units = scene.measureit_arch_units
         rawRGB = linDimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-
+        capA = linDim.dimEndcapA
+        capB = linDim.dimEndcapB
+        capSize = linDim.dimEndcapSize
+        offset = linDim.dimOffset
+        geoOffset = linDim.dimLeaderOffset
+    
         # get points positions from indicies
         p1 = get_point(obverts[linDim.dimPointA], myobj)
         p2 = get_point(obverts[linDim.dimPointB], myobj)
-
+        
         #calculate distance & Midpoint
         distVector = Vector(p1)-Vector(p2)
         dist = distVector.length
@@ -201,7 +206,8 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
             selectedNormal.negate()
         
         userOffsetVector = rotationMatrix@selectedNormal
-        offsetDistance = userOffsetVector*linDim.dimOffset
+        offsetDistance = userOffsetVector*offset
+        geoOffsetDistance = userOffsetVector*geoOffset
         textLoc = offsetDistance + Vector(midpoint)
 
         #i,j,k as card axis
@@ -238,16 +244,21 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         dimensionShader.uniform_float("offset", (0,0,0))
 
-        #batch & Draw Shader
-        p3 = Vector(p1)+offsetDistance
-        p4 = Vector(p2)+offsetDistance
-        p5 = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
-        p6 = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
-        coords = [p1,p3,p2,p4,p5,p6]
+        # Define Lines
+        leadStartA = Vector(p1) + geoOffsetDistance
+        leadEndA = Vector(p1) + offsetDistance
+        leadStartB = Vector(p2) + geoOffsetDistance
+        leadEndB = Vector(p2)+offsetDistance
+        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
+        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
+
+        # batch & Draw Shader
+        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
         batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
         batch.program_set(dimensionShader)
         batch.draw()
         gpu.shader.unbind()
+        
         #Reset openGL Settings
         bgl.glLineWidth(1)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
@@ -1225,11 +1236,14 @@ def get_mesh_vertices(myobj):
                 obverts.append(vert.co)
         else:
             bm = bmesh.new()
+            #bm = bmesh.from_mesh(myobj.data)
             bm.from_object(myobj,bpy.context.depsgraph,deform=True)
-            verts = bm.verts
+            verts= bm.verts
+            #verts.index_update()
+            #verts = myobj.data.vertices
             for vert in verts:
                 obverts.append(vert.co)
-
+       #bm.free()
         return obverts
     except AttributeError:
         return None

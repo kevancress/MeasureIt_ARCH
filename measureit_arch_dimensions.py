@@ -59,7 +59,13 @@ class LinearDimensionProperties(BaseWithText,PropertyGroup):
 
     dimOffset: FloatProperty(name='Dimension Offset',
                     description='Offset for Dimension',
-                    default= (0.1))
+                    default= (0.5),
+                    subtype='DISTANCE')
+
+    dimLeaderOffset: FloatProperty(name='Dimension Offset',
+                    description='Offset for Dimension',
+                    default= (0.05),
+                    subtype='DISTANCE')
     
     dimVisibleInView: PointerProperty(type= bpy.types.Camera)
 
@@ -550,7 +556,8 @@ def add_linearDimension_item(layout, idx, linDim):
             col.prop(linDim,'lineWeight',text='Line Weight')
         
         if linDim.is_style is False:
-            col.prop(linDim,'dimOffset',text='Offset')
+            col.prop(linDim,'dimOffset',text='Distance')
+            col.prop(linDim,'dimLeaderOffset',text='Offset')
             col.prop(linDim, 'dimRotation', text='Rotation')
         
         col = box.column(align=True)   
@@ -644,7 +651,8 @@ class AddDimensionButton(Operator):
                         # color
                         newDimension.color = scene.measureit_arch_default_color
                         # dist
-                        newDimension.dimOffset = 0.2
+                        newDimension.dimOffset = 0.3
+                        newDimension.dimLeaderOffset = 0.05
                         # text
                         newDimension.text = scene.measureit_arch_gl_txt
                         newDimension.fontSize = 7

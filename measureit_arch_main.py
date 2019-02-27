@@ -196,6 +196,10 @@ class MeasureitArchMainPanel(Panel):
         row.operator("measureit_arch.addlinebutton", text="Line", icon="MESH_CUBE")
         row.prop(scene, "measureit_arch_set_line_use_style", text = "", icon = 'LINKED')
         useStyle = scene.measureit_arch_set_line_use_style
+        
+        row = col.row(align=True)
+        op = row.operator("measureit_arch.addlinebyproperty", text="Line by Prop", icon="MESH_CUBE")
+        op.calledFromGroup = False
         if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
 
         # ------------------------------

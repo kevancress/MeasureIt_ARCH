@@ -336,6 +336,37 @@ class AddToLineGroup(Operator):
                                 context.area.tag_redraw()
                         return {'FINISHED'}
 
+class AddLineByProperty(Operator):   
+    bl_idname = "measureit_arch.addlinebyproperty"
+    bl_label = "Add Lines By Property"
+    bl_description = "Add Lines by Selected Property"
+    bl_category = 'MeasureitArch'
+    tag= IntProperty()
+    calledFromGroup= BoolProperty(default=False)
+
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+         for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    # get selected
+                    mainobject = context.object
+                    if self.calledFromGroup:
+                        print ('adding line by property, called from line group')
+                    else:
+                        print ('adding line by property')
+                    
+                    
+                    return {'FINISHED'}
+
+    def draw(self,context):
+        layout = self.layout
+
 class RemoveFromLineGroup(Operator):   
     bl_idname = "measureit_arch.removefromlinegroup"
     bl_label = "Remove Selection from Line Group"
