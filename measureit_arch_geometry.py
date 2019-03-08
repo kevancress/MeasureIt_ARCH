@@ -1241,11 +1241,14 @@ def get_mesh_vertices(myobj):
                 obverts.append(vert.co)
         else:
             bm = bmesh.new()
-            bm.from_mesh(myobj.data)
-            #bm.from_object(myobj,bpy.context.depsgraph,deform=True)
-            verts= bm.verts
-            #verts.index_update()
-            #verts = myobj.data.vertices
+            #bm.from_mesh(myobj.data)
+            if not myobj.modifiers:
+                verts = myobj.data.vertices
+            else:
+                bm.from_object(myobj,bpy.context.depsgraph,deform=True)
+                verts= bm.verts
+                #verts.index_update()
+            
             for vert in verts:
                 obverts.append(vert.co)
        #bm.free()
