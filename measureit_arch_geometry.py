@@ -345,8 +345,14 @@ def draw_line_group(context, myobj, lineGen):
            
 
             rawRGB = lineProps.color
+            if bpy.context.mode == 'EDIT_MESH':
+                alpha=0.3
+            else:
+                alpha = rawRGB[3]
+
             #undo blenders Default Gamma Correction
-            rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+            rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),alpha)
+            
             offset = (lineProps.lineDepthOffset/1000)
             drawHidden = lineProps.lineDrawHidden
             lineWeight = lineProps.lineWeight
@@ -1075,7 +1081,7 @@ def draw_faces(context, myobj, region, rv3d):
     # face Loop
     # --------------------
     if myobj.mode == 'EDIT':
-        bm = from_edit_mesh(myobj.data)
+        bm = bmesh.from_edit_mesh(myobj.data)
         obverts = bm.verts
         myfaces = bm.faces
     else:
@@ -1235,8 +1241,8 @@ def get_mesh_vertices(myobj):
                 obverts.append(vert.co)
         else:
             bm = bmesh.new()
-            #bm = bmesh.from_mesh(myobj.data)
-            bm.from_object(myobj,bpy.context.depsgraph,deform=True)
+            bm.from_mesh(myobj.data)
+            #bm.from_object(myobj,bpy.context.depsgraph,deform=True)
             verts= bm.verts
             #verts.index_update()
             #verts = myobj.data.vertices
