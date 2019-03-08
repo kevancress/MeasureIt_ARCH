@@ -264,7 +264,6 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
     
-
 def select_normal(myobj, linDim, normDistVector, midpoint):
     #Set properties
     i = Vector((1,0,0)) # X Unit Vector

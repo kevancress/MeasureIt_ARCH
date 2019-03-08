@@ -253,7 +253,7 @@ def add_line_item(layout, idx, line):
 
     op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
     op.tag = idx  # saves internal data
-    op.item_type = line.itemType
+    op.item_type = 'L'
     op.is_style = line.is_style
     
     if line.settings is True:
@@ -355,13 +355,44 @@ class AddLineByProperty(Operator):
             for area in screen.areas:
                 if area.type == 'VIEW_3D':
                     # get selected
-                    mainobject = context.object
-                    if self.calledFromGroup:
-                        print ('adding line by property, called from line group')
-                    else:
-                        print ('adding line by property')
-                    
-                    
+                    selObjects = context.view_layer.objects.selected
+                    for obj in selObjects:
+                        if 'LineGenerator' not in obj:
+                            obj.LineGenerator.add()
+
+                        lineGen = obj.LineGenerator[0]
+                        lGroup = lineGen.line_groups.add()
+                        angle = obj.data.auto_smooth_angle
+                        edgesToAdd = []
+
+                        for edge in obj.data.edges:
+                            pointA = edge.vertices[0]
+                            pointB = edge.vertices[1]
+                            adjacentNormals =[]
+                            for face in obj.data.polygons:
+                                if pointA in face.vertices and pointB in face.vertices:
+                                    faceNormal = Vector(face.normal)
+                                    faceNormal.normalize()
+                                    adjacentNormals.append(faceNormal)
+                            if len(adjacentNormals) == 2:
+                                dotProd = adjacentNormals[0].dot(adjacentNormals[1])
+                                if dotProd >= 0 and dotProd <= 1:
+                                    creaseAngle = math.acos(dotProd)
+                                    if creaseAngle > angle:
+                                        edgesToAdd.append(edge)
+                                else:
+                                    edgesToAdd.append(edge)
+                            else:
+                                edgesToAdd.append(edge)
+                        
+                        for edge in edgesToAdd:
+                            sLine = lGroup.singleLine.add()
+                            sLine.pointA = edge.vertices[0]
+                            sLine.pointB = edge.vertices[1]
+                            lGroup.numLines +=1
+
+                        lineGen.line_num += 1
+
                     return {'FINISHED'}
 
     def draw(self,context):

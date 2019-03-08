@@ -205,7 +205,7 @@ class MeasureitArchAnnotationsPanel(Panel):
                 col = layout.column()
                 delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
                 delOp.is_style = False
-                delOp.item_type = annotation.itemType
+                delOp.item_type = 'A'
 # -----------------------------------------------------
 # Add annotation options to the panel.
 # -----------------------------------------------------

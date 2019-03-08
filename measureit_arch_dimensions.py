@@ -370,7 +370,7 @@ class MeasureitArchDimensionsPanel(Panel):
                 col = layout.column()
                 delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Dimensions", icon="X")
                 delOp.is_style = False
-                delOp.item_type = linDim.itemType
+                delOp.item_type = 'D'
                 
 def add_item(layout, idx, segment):
     scene = bpy.context.scene
