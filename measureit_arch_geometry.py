@@ -227,9 +227,10 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
 
         width = linDim.textWidth
         height = linDim.textHeight 
+        resolution = linDim.textResolution
         size = linDimProps.fontSize 
-        sx = 0.001*width*size
-        sy = 0.002*height*size
+        sx = (width/resolution)*0.1*size
+        sy = (height/resolution)*0.1*size
         uv= [(0,0),(0,1),(1,1),(1,0)]
         uvFlipped= [(0,1),(0,0),(1,0),(1,1)]
         origin = Vector(textLoc)
@@ -537,15 +538,16 @@ def draw_text_3D(context,textobj,myobj,card):
     
 def generate_text_card(context,textobj,textProps,rotation,basePoint): 
     width = textobj.textWidth
-    height = textobj.textHeight 
-    size = textProps.fontSize 
+    height = textobj.textHeight
+    resolution = textobj.textResolution
+    size = textProps.fontSize
     #Define annotation Card Geometry
     square = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
 
     #pick approprate card based on alignment
-    if textProps.textAlignment == 'L':
+    if textProps.textAlignment == 'R':
         aOff = (0.5,0.0,0.0)
-    elif textProps.textAlignment == 'R':
+    elif textProps.textAlignment == 'L':
         aOff = (-0.5,0.0,0.0)
     else:
         aOff = (0.0,0.0,0.0)
@@ -587,8 +589,8 @@ def generate_text_card(context,textobj,textProps,rotation,basePoint):
     ])
 
     #scale
-    sx = 0.001*width*size
-    sy = 0.001*height*size
+    sx = (width/resolution)*0.1*size
+    sy = (height/resolution)*0.1*size
     scaleMatrix = Matrix([
         [sx,0 ,0,0],
         [0 ,sy,0,0],

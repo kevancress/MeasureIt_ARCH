@@ -95,7 +95,8 @@ class BaseWithText(BaseProp):
                 description="Annotation Resolution",
                 default=150,
                 min=50,
-                max=1200)
+                max=1200,
+                update = update_flag)
 
     font: PointerProperty(type= bpy.types.VectorFont,
                 update = update_flag)

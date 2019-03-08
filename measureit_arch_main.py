@@ -178,10 +178,10 @@ class MeasureitArchMainPanel(Panel):
         
         col = box.column()
         col.operator("measureit_arch.addlinkbutton", text="Link", icon="PIVOT_MEDIAN")
-        col.operator("measureit_arch.addoriginbutton", text="Origin", icon="PIVOT_CURSOR")
+        #col.operator("measureit_arch.addoriginbutton", text="Origin", icon="PIVOT_CURSOR")
 
-        col = box.column()
-        col.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
+        #col = box.column()
+        #col.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
         
         
         
@@ -207,73 +207,75 @@ class MeasureitArchMainPanel(Panel):
         # ------------------------------
         box = layout.box()
         box.label(text="Add Annotations")
-        col = box.column()
-        col.operator("measureit_arch.addnotebutton", text="Note", icon="EMPTY_DATA")
         
         col = box.column(align=True)
+        col.operator("measureit_arch.addnotebutton", text="Note", icon="EMPTY_DATA")
         row = col.row(align=True)
         row.operator("measureit_arch.addannotationbutton", text="Annotation", icon="FONT_DATA")
         row.prop(scene, "measureit_arch_set_annotation_use_style", text = "", icon = 'LINKED')
         useStyle = scene.measureit_arch_set_annotation_use_style
+        
         if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
         # ------------------------------
         # Debug data
         # ------------------------------
-        box = layout.box()
-        row = box.row(align=False)
-        if scene.measureit_arch_debug is False:
-            row.prop(scene, "measureit_arch_debug", icon="TRIA_RIGHT",
-                     text="Mesh Debug", emboss=False)
-        else:
-            row.prop(scene, "measureit_arch_debug", icon="TRIA_DOWN",
-                     text="Mesh Debug", emboss=False)
-
-            row = box.row()
-            split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_arch_debug_obj_color', text="")
-            split.prop(scene, "measureit_arch_debug_objects", icon="OBJECT_DATA")
-            split.prop(scene, "measureit_arch_debug_object_loc", icon="EMPTY_DATA")
-
-            row = box.row()
-            split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_arch_debug_vert_color', text="")
-            split.prop(scene, "measureit_arch_debug_vertices", icon="VERTEXSEL")
-            split.prop(scene, "measureit_arch_debug_vert_loc", icon="EMPTY_DATA")
-            if scene.measureit_arch_debug_vert_loc is True:
-                split.prop(scene, 'measureit_arch_debug_vert_loc_toggle', text="")
-
-            row = box.row()
-            split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_arch_debug_edge_color', text="")
-            split = split.split(factor=0.5, align=True)
-            split.prop(scene, "measureit_arch_debug_edges", icon="EDGESEL")
-
-            row = box.row()
-            split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_arch_debug_face_color', text="")
-            split = split.split(factor=0.5, align=True)
-            split.prop(scene, "measureit_arch_debug_faces", icon="FACESEL")
-
-            row = box.row()
-            split = row.split(factor=0.10, align=True)
-            split.prop(scene, 'measureit_arch_debug_norm_color', text="")
-            if scene.measureit_arch_debug_normals is False:
-                split = split.split(factor=0.50, align=True)
-                split.prop(scene, "measureit_arch_debug_normals", icon="DRIVER_TRANSFORM")
+        debug = False
+        if debug:
+            box = layout.box()
+            row = box.row(align=False)
+            if scene.measureit_arch_debug is False:
+                row.prop(scene, "measureit_arch_debug", icon="TRIA_RIGHT",
+                        text="Mesh Debug", emboss=False)
             else:
-                split = split.split(factor=0.5, align=True)
-                split.prop(scene, "measureit_arch_debug_normals", icon="DRIVER_TRANSFORM")
-                split.prop(scene, "measureit_arch_debug_normal_size")
+                row.prop(scene, "measureit_arch_debug", icon="TRIA_DOWN",
+                        text="Mesh Debug", emboss=False)
+
                 row = box.row()
                 split = row.split(factor=0.10, align=True)
-                split.separator()
-                split.prop(scene, "measureit_arch_debug_normal_details")
-                split.prop(scene, 'measureit_arch_debug_width', text="Thickness")
+                split.prop(scene, 'measureit_arch_debug_obj_color', text="")
+                split.prop(scene, "measureit_arch_debug_objects", icon="OBJECT_DATA")
+                split.prop(scene, "measureit_arch_debug_object_loc", icon="EMPTY_DATA")
 
-            row = box.row(align=True)
-            row.prop(scene, "measureit_arch_debug_select", icon="GHOST_ENABLED")
-            row.prop(scene, 'measureit_arch_debug_font', text="Font")
-            row.prop(scene, 'measureit_arch_debug_precision', text="Precision")
+                row = box.row()
+                split = row.split(factor=0.10, align=True)
+                split.prop(scene, 'measureit_arch_debug_vert_color', text="")
+                split.prop(scene, "measureit_arch_debug_vertices", icon="VERTEXSEL")
+                split.prop(scene, "measureit_arch_debug_vert_loc", icon="EMPTY_DATA")
+                if scene.measureit_arch_debug_vert_loc is True:
+                    split.prop(scene, 'measureit_arch_debug_vert_loc_toggle', text="")
+
+                row = box.row()
+                split = row.split(factor=0.10, align=True)
+                split.prop(scene, 'measureit_arch_debug_edge_color', text="")
+                split = split.split(factor=0.5, align=True)
+                split.prop(scene, "measureit_arch_debug_edges", icon="EDGESEL")
+
+                row = box.row()
+                split = row.split(factor=0.10, align=True)
+                split.prop(scene, 'measureit_arch_debug_face_color', text="")
+                split = split.split(factor=0.5, align=True)
+                split.prop(scene, "measureit_arch_debug_faces", icon="FACESEL")
+
+                row = box.row()
+                split = row.split(factor=0.10, align=True)
+                split.prop(scene, 'measureit_arch_debug_norm_color', text="")
+                if scene.measureit_arch_debug_normals is False:
+                    split = split.split(factor=0.50, align=True)
+                    split.prop(scene, "measureit_arch_debug_normals", icon="DRIVER_TRANSFORM")
+                else:
+                    split = split.split(factor=0.5, align=True)
+                    split.prop(scene, "measureit_arch_debug_normals", icon="DRIVER_TRANSFORM")
+                    split.prop(scene, "measureit_arch_debug_normal_size")
+                    row = box.row()
+                    split = row.split(factor=0.10, align=True)
+                    split.separator()
+                    split.prop(scene, "measureit_arch_debug_normal_details")
+                    split.prop(scene, 'measureit_arch_debug_width', text="Thickness")
+
+                row = box.row(align=True)
+                row.prop(scene, "measureit_arch_debug_select", icon="GHOST_ENABLED")
+                row.prop(scene, 'measureit_arch_debug_font', text="Font")
+                row.prop(scene, 'measureit_arch_debug_precision', text="Precision")
 
 
 
