@@ -146,7 +146,7 @@ class DeletePropButton(Operator):
                 Generator = mainObj.LineGenerator[0]
                 Generator.line_num -= 1
             elif self.item_type is 'D':
-                Generator = mainObj.MeasureGenerator[0]
+                Generator = mainObj.DimensionGenerator[0]
                 Generator.measureit_arch_num -= 1
 
         if self.item_type is 'A':
@@ -201,9 +201,9 @@ class DeleteAllItemsButton(Operator):
         else:
             
             if self.item_type is 'D':
-                for alignedDim in mainobject.MeasureGenerator[0].alignedDimensions:
-                    mainobject.MeasureGenerator[0].alignedDimensions.remove(0)
-                    mainobject.MeasureGenerator[0].measureit_arch_num = 0
+                for alignedDim in mainobject.DimensionGenerator[0].alignedDimensions:
+                    mainobject.DimensionGenerator[0].alignedDimensions.remove(0)
+                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
             
             elif self.item_type is 'L':
                 for line in mainobject.LineGenerator[0].line_groups:
@@ -258,7 +258,7 @@ class ExpandCollapseAllPropButton(Operator):
             return {'FINISHED'}
 
         if self.item_type is 'D':
-            for alignedDim in mainobject.MeasureGenerator[0].alignedDimensions:
+            for alignedDim in mainobject.DimensionGenerator[0].alignedDimensions:
                 alignedDim.settings = self.state
             return {'FINISHED'}
         if self.item_type is 'L':

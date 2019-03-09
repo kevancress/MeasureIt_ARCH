@@ -316,7 +316,7 @@ class MeasureContainer(PropertyGroup):
     alignedDimensions = CollectionProperty(type=AlignedDimensionProperties)
 
 bpy.utils.register_class(MeasureContainer)
-Object.MeasureGenerator = CollectionProperty(type=MeasureContainer)
+Object.DimensionGenerator = CollectionProperty(type=MeasureContainer)
 
 class MeasureitArchDimensionsPanel(Panel):
     bl_idname = "obj_dimensions"
@@ -327,7 +327,7 @@ class MeasureitArchDimensionsPanel(Panel):
     
     @classmethod
     def poll(cls, context):
-        if 'MeasureGenerator' in bpy.context.object:
+        if 'DimensionGenerator' in bpy.context.object:
             return True
         else:
             return False
@@ -336,7 +336,7 @@ class MeasureitArchDimensionsPanel(Panel):
     def draw(self, context):
          scene = context.scene
          if context.object is not None:
-            if 'MeasureGenerator' in context.object:
+            if 'DimensionGenerator' in context.object:
                 layout = self.layout
                 layout.use_property_split = True
                 layout.use_property_decorate = False
@@ -344,7 +344,7 @@ class MeasureitArchDimensionsPanel(Panel):
                 # loop
                 # -----------------
                 
-                measureGen = context.object.MeasureGenerator[0]
+                measureGen = context.object.DimensionGenerator[0]
                 row = layout.row(align = True)
                 exp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Expand All", icon="ADD")
                 exp.state = True
@@ -621,12 +621,12 @@ class AddAlignedDimensionButton(Operator):
 
             if len(mylist) >= 2:
                 #Check Generators
-                if 'MeasureGenerator' not in mainobject:
-                    mainobject.MeasureGenerator.add()
+                if 'DimensionGenerator' not in mainobject:
+                    mainobject.DimensionGenerator.add()
                 if 'StyleGenerator' not in scene:
                     scene.StyleGenerator.add()
 
-                measureGen = mainobject.MeasureGenerator[0]
+                measureGen = mainobject.DimensionGenerator[0]
 
                 for x in range(0, len(mylist) - 1, 2):
                     if exist_segment(measureGen, mylist[x], mylist[x + 1]) is False:
@@ -715,10 +715,10 @@ class AddAreaButton(Operator):
             mainobject = context.object
             mylist = get_selected_faces(mainobject)
             if len(mylist) >= 1:
-                if 'MeasureGenerator' not in mainobject:
-                    mainobject.MeasureGenerator.add()
+                if 'DimensionGenerator' not in mainobject:
+                    mainobject.DimensionGenerator.add()
 
-                mp = mainobject.MeasureGenerator[0]
+                mp = mainobject.DimensionGenerator[0]
                 mp.measureit_arch_segments.add()
                 ms = mp.measureit_arch_segments[mp.measureit_arch_num]
                 ms.gltype = 20
@@ -808,10 +808,10 @@ class AddSegmentOrtoButton(Operator):
                 mylist = get_selected_vertex(mainobject)
 
             if len(mylist) >= 1:
-                if 'MeasureGenerator' not in mainobject:
-                    mainobject.MeasureGenerator.add()
+                if 'DimensionGenerator' not in mainobject:
+                    mainobject.DimensionGenerator.add()
 
-                mp = mainobject.MeasureGenerator[0]
+                mp = mainobject.DimensionGenerator[0]
                 for x in range(0, len(mylist)):
                     # -----------------------
                     # Only if not exist
@@ -894,10 +894,10 @@ class AddAngleButton(Operator):
             mainobject = context.object
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:
-                if 'MeasureGenerator' not in mainobject:
-                    mainobject.MeasureGenerator.add()
+                if 'DimensionGenerator' not in mainobject:
+                    mainobject.DimensionGenerator.add()
 
-                mp = mainobject.MeasureGenerator[0]
+                mp = mainobject.DimensionGenerator[0]
                 # -----------------------
                 # Only if not exist
                 # -----------------------
@@ -976,10 +976,10 @@ class AddArcButton(Operator):
             mainobject = context.object
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:
-                if 'MeasureGenerator' not in mainobject:
-                    mainobject.MeasureGenerator.add()
+                if 'DimensionGenerator' not in mainobject:
+                    mainobject.DimensionGenerator.add()
 
-                mp = mainobject.MeasureGenerator[0]
+                mp = mainobject.DimensionGenerator[0]
                 # -----------------------
                 # Only if not exist
                 # -----------------------
@@ -1090,10 +1090,10 @@ class AddLinkButton(Operator):
             # Add properties
             # -------------------------------
             flag = False
-            if 'MeasureGenerator' not in mainobject:
-                mainobject.MeasureGenerator.add()
+            if 'DimensionGenerator' not in mainobject:
+                mainobject.DimensionGenerator.add()
 
-            MeasureGen = mainobject.MeasureGenerator[0]
+            MeasureGen = mainobject.DimensionGenerator[0]
 
             # if exist_segment(MeasureGen, mylist[0], mylist[0], 3) is False:
             #     flag = True
@@ -1182,10 +1182,10 @@ class AddOriginButton(Operator):
             scene = context.scene
             mainobject = context.object
             mylist = get_selected_vertex(mainobject)
-            if 'MeasureGenerator' not in mainobject:
-                mainobject.MeasureGenerator.add()
+            if 'DimensionGenerator' not in mainobject:
+                mainobject.DimensionGenerator.add()
 
-            mp = mainobject.MeasureGenerator[0]
+            mp = mainobject.DimensionGenerator[0]
             # Create all array elements
             for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
                 mp.measureit_arch_segments.add()
@@ -1262,8 +1262,8 @@ class DeleteAllSumButton(Operator):
     # noinspection PyMethodMayBeStatic
     def execute(self, context):
         if context.object is not None:
-            if 'MeasureGenerator' in context.object:
-                mp = context.object.MeasureGenerator[0]
+            if 'DimensionGenerator' in context.object:
+                mp = context.object.DimensionGenerator[0]
                 for idx in range(0, mp.measureit_arch_num):
                     ms = mp.measureit_arch_segments[idx]
                     ms.gltot = '99'
@@ -1306,10 +1306,10 @@ class AddNoteButton(Operator):
             # Add properties
             scene = context.scene
             mainobject = myempty
-            if 'MeasureGenerator' not in mainobject:
-                mainobject.MeasureGenerator.add()
+            if 'DimensionGenerator' not in mainobject:
+                mainobject.DimensionGenerator.add()
 
-            mp = mainobject.MeasureGenerator[0]
+            mp = mainobject.DimensionGenerator[0]
             # Create all array elements
             for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
                 mp.measureit_arch_segments.add()

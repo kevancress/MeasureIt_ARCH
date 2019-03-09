@@ -715,7 +715,7 @@ def get_group_sum(myobj, tag):
         tx = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
               "T", "U", "V", "W", "X", "Y", "Z"]
         g = tag[2:3]
-        mp = myobj.MeasureGenerator[0]
+        mp = myobj.DimensionGenerator[0]
         flag = False
         # -----------------
         # Sum loop segments

@@ -275,10 +275,10 @@ def render_main(self, context, animation=False):
         # -----------------------------
         for myobj in objlist:
             if myobj.visible_get() is True:
-                if 'MeasureGenerator' in myobj:
-                    measureGen = myobj.MeasureGenerator[0]
+                if 'DimensionGenerator' in myobj:
+                    measureGen = myobj.DimensionGenerator[0]
                     for linDim in measureGen.linearDimensions:
-                        draw_linearDimension(context, myobj, measureGen,linDim)
+                        draw_alignedDimension(context, myobj, measureGen,linDim)
 
                 if 'LineGenerator' in myobj:
 

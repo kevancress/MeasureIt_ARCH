@@ -67,8 +67,8 @@ def save_handler(dummy):
         print("MeasureIt-ARCH: Cleaning data")
         objlist = bpy.context.scene.objects
         for myobj in objlist:
-            if 'MeasureGenerator' in myobj:
-                mp = myobj.MeasureGenerator[0]
+            if 'DimensionGenerator' in myobj:
+                mp = myobj.DimensionGenerator[0]
                 x = 0
                 for ms in mp.measureit_arch_segments:
                     ms.name = "segment_" + str(x)
@@ -156,7 +156,7 @@ class MeasureitArchMainPanel(Panel):
         col = box.column(align=True)
         col.operator("measureit_arch.addaligneddimensionbutton", text="Aligned", icon="DRIVER_DISTANCE")
         col.operator("measureit_arch.addanglebutton", text="Angle", icon="LINCURVE")
-        col.operator("measureit_arch.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
+        #col.operator("measureit_arch.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
         col.operator("measureit_arch.addlinkbutton", text="Link", icon="PIVOT_MEDIAN")
         #col = box.column()
         #col.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
@@ -360,8 +360,8 @@ def draw_main(context):
     # ---------------------------------------
     for myobj in objlist:
         if myobj.visible_get() is True:
-            if 'MeasureGenerator' in myobj:
-                measureGen = myobj.MeasureGenerator[0]
+            if 'DimensionGenerator' in myobj:
+                measureGen = myobj.DimensionGenerator[0]
                 for linDim in measureGen.alignedDimensions:
                     
                     linDimProps = linDim
@@ -435,8 +435,8 @@ def draw_main_3d (context):
                 annotationGen = myobj.AnnotationGenerator[0]
                 draw_annotation(context,myobj,annotationGen)
 
-            if 'MeasureGenerator' in myobj:
-                measureGen = myobj.MeasureGenerator[0]
+            if 'DimensionGenerator' in myobj:
+                measureGen = myobj.DimensionGenerator[0]
                 for linDim in measureGen.alignedDimensions:
                     if linDim.visible is True:
                         draw_alignedDimension(context, myobj, measureGen,linDim)

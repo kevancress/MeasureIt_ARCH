@@ -139,9 +139,7 @@ class MeasureitArchDimensionStylesPanel(Panel):
         col = layout.column()
         
         
-        if 'StyleGenerator' in context.scene:
-            styleGen = scene.StyleGenerator[0]
-            
+        if 'StyleGenerator' in context.scene:          
             StyleGen = scene.StyleGenerator[0]
             col.operator("measureit_arch.addstylebutton", text="Add")
             
