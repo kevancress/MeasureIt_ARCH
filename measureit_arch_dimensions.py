@@ -639,8 +639,11 @@ class AddAlignedDimensionButton(Operator):
                         bgl.glGenTextures(1, tex_buffer)
                         newDimension['tex_buffer'] = tex_buffer.to_list()
 
-                        newDimension.uses_style = scene.measureit_arch_set_dimension_use_style
-                        if newDimension.uses_style: newDimension.style = scene.measureit_arch_default_dimension_style
+                        newDimension.style = scene.measureit_arch_default_dimension_style
+                        if scene.measureit_arch_default_dimension_style is not '':
+                            newDimension.uses_style = True
+                        else:
+                            newDimension.uses_style = False
                         newDimension.dimVisibleInView = scene.camera.data
                         newDimension.dimViewPlane = scene.viewPlane
                         newDimension.dimPointB = mylist[x]

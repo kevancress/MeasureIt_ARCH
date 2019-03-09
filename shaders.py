@@ -61,44 +61,42 @@ class Base_Shader_2D ():
         uniform float renderSize;
         uniform vec4 color;
         uniform mat4 ModelViewProjectionMatrix;
+        uniform vec2 Viewport;
         uniform float thickness;
 
+        float aspect = Viewport.x/Viewport.y;
         
 
         // scale thickness from meaningful user input to usable value
-        float offset = thickness*(0.003);
 
         void main() {
-            //get line endpoint screen positions as vec2
-            vec2 p0 = vec2(gl_in[0].gl_Position.xy / gl_in[0].gl_Position.w ) * Viewport;
-            vec2 p1 = vec2(gl_in[1].gl_Position.xy / gl_in[0].gl_Position.w ) * Viewport;
-
             //calculate line normal
-            vec2 line = p1-p0;
-            vec2 lineNrml = normalize(line);
-            vec2 norm = normalize(vec2(-line[1],line[0]));
+
+            vec4 p1 =  gl_in[0].gl_Position;
+            vec4 p2 =  gl_in[1].gl_Position;
+
+            vec2 ssp1 = vec2(p1.xy / p1.w);
+            vec2 ssp2 = vec2(p2.xy / p2.w);
+
+            float width = 0.00118 * thickness ;
+
+            vec2 dir = normalize(ssp2 - ssp1);
+            vec2 normal = vec2(-dir[1], dir[0]);
             
             // get offset factor from normal and user input thicknes
-            vec4 normFac = vec4(offset*norm[0], offset*norm[1], 0.0, 0.0);
+            vec2 offset = vec2(normal * width);
+            offset.x /= aspect;
 
-            vec4 tanFac = vec4(offset*lineNrml[0], offset*lineNrml[1],0.0,0.0);
+            vec4 coords[4];
+            coords[0] = vec4((ssp1 + offset),(p1.z/p1.w),1.0);
+            coords[1] = vec4((ssp1 - offset),(p1.z/p1.w),1.0);
+            coords[2] = vec4((ssp2 + offset),(p2.z/p2.w),1.0);
+            coords[3] = vec4((ssp2 - offset),(p2.z/p2.w),1.0);
 
-
-            gl_Position = gl_in[0].gl_Position-normFac;
-            EmitVertex();
-
-            gl_Position = gl_in[1].gl_Position-normFac;
-            EmitVertex();
-
-            gl_Position = gl_in[0].gl_Position-normFac;
-            EmitVertex();
-
-            gl_Position = gl_in[1].gl_Position+normFac;
-            EmitVertex();
-
-            gl_Position = gl_in[0].gl_Position+normFac;
-            EmitVertex();
-
+            for (int i = 0; i < 4; ++i) {
+                gl_Position = coords[i];
+                EmitVertex();
+            }
             EndPrimitive();
         }  
     '''

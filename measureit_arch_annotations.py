@@ -133,8 +133,13 @@ class AddAnnotationButton(Operator):
                 annotationGen.num_annotations +=1
                 newAnnotation = annotationGen.annotations.add()
                 newAnnotation.itemType = 'A'
-                newAnnotation.uses_style = scene.measureit_arch_set_annotation_use_style
-                if newAnnotation.uses_style: newAnnotation.style = scene.measureit_arch_default_annotation_style
+
+                newAnnotation.style = scene.measureit_arch_default_annotation_style
+                if scene.measureit_arch_default_annotation_style is not '':
+                    newAnnotation.uses_style = True
+                else:
+                    newAnnotation.uses_style = False
+                
                 # Set values
                 newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
 

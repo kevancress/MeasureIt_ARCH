@@ -147,9 +147,11 @@ class AddLineButton(Operator):
 
                 # Set values
                 lGroup.itemType = 'L'
-                lGroup.uses_style = scene.measureit_arch_set_line_use_style
-                if lGroup.uses_style: lGroup.style = scene.measureit_arch_default_line_style
-
+                lGroup.style = scene.measureit_arch_default_line_style
+                if scene.measureit_arch_default_line_style is not '':
+                    lGroup.uses_style = True
+                else:
+                    lGroup.uses_style = False
                 lGroup.lineWeight = 1     
                 lGroup.lineColor = scene.measureit_arch_default_color
                 
@@ -272,17 +274,20 @@ def add_line_item(layout, idx, line):
 
         if line.uses_style is False:
             col = box.column()
-            if line.useLineTexture is False:
-                op = col.operator('measureit_arch.uselinetexture')
-                op.tag = idx
-                op.is_style = line.is_style
+            ########################################
+            ###### TODO Line Texture Implimentatioon 
+            #########################################
+            #if line.useLineTexture is False:
+            #    op = col.operator('measureit_arch.uselinetexture')
+            #    op.tag = idx
+            #    op.is_style = line.is_style
+            #if line.useLineTexture is True:
+            #    col.template_ID(line, "lineTexture", new="texture.new")
+            #    if line.lineTexture is not 'none':
+            #        texture=line.lineTexture
+            #        curvemap = texture.node_tree.nodes['Time']
+            #        col.template_curve_mapping(curvemap,'curve')
 
-            if line.useLineTexture is True:
-                col.template_ID(line, "lineTexture", new="texture.new")
-                if line.lineTexture is not 'none':
-                    texture=line.lineTexture
-                    curvemap = texture.node_tree.nodes['Time']
-                    col.template_curve_mapping(curvemap,'curve')
             col.prop(line, 'lineWeight', text="Lineweight" )
             col.prop(line, 'lineDepthOffset', text="Z Offset")
         
@@ -367,7 +372,7 @@ class AddLineByProperty(Operator):
     def execute(self, context):
          for window in bpy.context.window_manager.windows:
             screen = window.screen
-
+            scene = context.scene
             for area in screen.areas:
                 if area.type == 'VIEW_3D':
                     # get selected
@@ -378,6 +383,17 @@ class AddLineByProperty(Operator):
 
                         lineGen = obj.LineGenerator[0]
                         lGroup = lineGen.line_groups.add()
+                        
+                        # Set values
+                        lGroup.itemType = 'L'
+                        lGroup.style = scene.measureit_arch_default_line_style
+                        if scene.measureit_arch_default_line_style is not '':
+                            lGroup.uses_style = True
+                        else:
+                            lGroup.uses_style = False
+                        lGroup.lineWeight = 1     
+                        lGroup.lineColor = scene.measureit_arch_default_color
+
                         angle = obj.data.auto_smooth_angle
                         edgesToAdd = []
 

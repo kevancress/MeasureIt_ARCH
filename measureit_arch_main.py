@@ -151,56 +151,35 @@ class MeasureitArchMainPanel(Panel):
 
         # Tools
         box = layout.box()
-        box.label(text="Add Measures")
+        box.label(text="Add Dimensions")
+
         col = box.column(align=True)
-        row = col.row(align=True)
-        row.operator("measureit_arch.addaligneddimensionbutton", text="Aligned Dimension", icon="DRIVER_DISTANCE")
-        row.prop(scene, "measureit_arch_set_dimension_use_style", text = "", icon = 'LINKED')
-        useStyle = scene.measureit_arch_set_dimension_use_style
-        if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_dimension_style', StyleGen,'alignedDimensions',text="", icon='COLOR')
-        col.prop(scene,'viewPlane',text='')
-        
-        #col.prop(scene, "measureit_arch_sum", text="Sum")
-
-        # To origin
-        #row = col.row()
-        #split = row.split(align=True)
-        #op = split.operator("measureit_arch.addsegmentortobutton", text="X", icon="DRIVER_DISTANCE")
-        #op.tag = 0  # saves internal data
-        #op = split.operator("measureit_arch.addsegmentortobutton", text="Y", icon="DRIVER_DISTANCE")
-        #op.tag = 1  # saves internal data
-        #op = split.operator("measureit_arch.addsegmentortobutton", text="Z", icon="DRIVER_DISTANCE")
-        #op.tag = 2  # saves internal data
-
-        col = box.column()
+        col.operator("measureit_arch.addaligneddimensionbutton", text="Aligned", icon="DRIVER_DISTANCE")
         col.operator("measureit_arch.addanglebutton", text="Angle", icon="LINCURVE")
         col.operator("measureit_arch.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-        
-        col = box.column()
         col.operator("measureit_arch.addlinkbutton", text="Link", icon="PIVOT_MEDIAN")
-        #col.operator("measureit_arch.addoriginbutton", text="Origin", icon="PIVOT_CURSOR")
-
         #col = box.column()
         #col.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
-        
-        
-        
+
+        col = box.column(align=True)
+        col.prop_search(scene,'measureit_arch_default_dimension_style', StyleGen,'alignedDimensions',text="", icon='COLOR')
+        col.prop(scene,'viewPlane',text='')
+
+
         # ------------------------------
         # Linework Tools
         # ------------------------------
     
         box = layout.box()
         box.label(text="Add Lines")
+
         col = box.column(align=True)
-        row = col.row(align=True)
-        row.operator("measureit_arch.addlinebutton", text="Line", icon="MESH_CUBE")
-        row.prop(scene, "measureit_arch_set_line_use_style", text = "", icon = 'LINKED')
-        useStyle = scene.measureit_arch_set_line_use_style
-        
-        row = col.row(align=True)
-        op = row.operator("measureit_arch.addlinebyproperty", text="Line by Prop", icon="MESH_CUBE")
+        col.operator("measureit_arch.addlinebutton", text="Line", icon="MESH_CUBE")
+        op = col.operator("measureit_arch.addlinebyproperty", text="Line by Prop", icon="MESH_CUBE")
         op.calledFromGroup = False
-        if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
+
+        col = box.column(align=True)
+        col.prop_search(scene,'measureit_arch_default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
 
         # ------------------------------
         # Annotation Tools
@@ -210,12 +189,10 @@ class MeasureitArchMainPanel(Panel):
         
         col = box.column(align=True)
         col.operator("measureit_arch.addnotebutton", text="Note", icon="EMPTY_DATA")
-        row = col.row(align=True)
-        row.operator("measureit_arch.addannotationbutton", text="Annotation", icon="FONT_DATA")
-        row.prop(scene, "measureit_arch_set_annotation_use_style", text = "", icon = 'LINKED')
-        useStyle = scene.measureit_arch_set_annotation_use_style
-        
-        if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
+        col.operator("measureit_arch.addannotationbutton", text="Annotation", icon="FONT_DATA")
+
+        col = box.column(align=True)
+        col.prop_search(scene,'measureit_arch_default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
         # ------------------------------
         # Debug data
         # ------------------------------

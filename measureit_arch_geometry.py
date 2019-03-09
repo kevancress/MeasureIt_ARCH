@@ -157,11 +157,11 @@ def update_text(textobj,props,context):
 
 def draw_alignedDimension(context, myobj, measureGen,alignedDim):
 
-    alignedDimProps=  alignedDim
+    alignedDimProps = alignedDim
     if alignedDim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
             if alignedDimStyle.name == alignedDim.style:
-                alignedDimProps= alignedDimStyle
+                alignedDimProps = alignedDimStyle
 
     if alignedDim.dimVisibleInView is None or alignedDim.dimVisibleInView.name == context.scene.camera.data.name:
         # GL Settings
@@ -333,7 +333,7 @@ def draw_line_group(context, myobj, lineGen):
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
   
-
+    viewport = [context.window.width,context.window.height]
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
         lineProps= lineGroup
@@ -373,6 +373,7 @@ def draw_line_group(context, myobj, lineGen):
             pointShader.uniform_float("offset", -offset)
             gpu.shader.unbind()
             lineShader.bind()
+            #lineShader.uniform_float("Viewport",viewport)
             #lineShader.uniform_float("thickness",lineWeight)
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             lineShader.uniform_float("offset", -offset)
