@@ -285,7 +285,7 @@ def select_normal(myobj, alignedDim, normDistVector, midpoint):
     bestNormal = Vector((0,0,0))
 
     #Face Normals Available Test Conditions
-    if len(possibleNormals) > 0:  
+    if len(possibleNormals) > 1:  
         bestNormal = Vector((1,1,1))
         if alignedDim.dimViewPlane == 'XY':
             for norm in possibleNormals:
