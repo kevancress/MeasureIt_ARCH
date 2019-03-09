@@ -37,7 +37,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
-from .measureit_arch_geometry import draw_annotation, draw_linearDimension, draw_line_group, update_text, draw_vertices, draw_object, draw_edges
+from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, update_text, draw_vertices, draw_object, draw_edges
 
 
 coords = [(100, 100, 1), (200, 400, 0), (-2, -1, 3), (0, 1, 1)]
@@ -154,10 +154,10 @@ class MeasureitArchMainPanel(Panel):
         box.label(text="Add Measures")
         col = box.column(align=True)
         row = col.row(align=True)
-        row.operator("measureit_arch.adddimensionbutton", text="Dimension", icon="DRIVER_DISTANCE")
+        row.operator("measureit_arch.addaligneddimensionbutton", text="Aligned Dimension", icon="DRIVER_DISTANCE")
         row.prop(scene, "measureit_arch_set_dimension_use_style", text = "", icon = 'LINKED')
         useStyle = scene.measureit_arch_set_dimension_use_style
-        if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_dimension_style', StyleGen,'linearDimensions',text="", icon='COLOR')
+        if hasGen and useStyle: col.prop_search(scene,'measureit_arch_default_dimension_style', StyleGen,'alignedDimensions',text="", icon='COLOR')
         col.prop(scene,'viewPlane',text='')
         
         #col.prop(scene, "measureit_arch_sum", text="Sum")
@@ -385,11 +385,11 @@ def draw_main(context):
         if myobj.visible_get() is True:
             if 'MeasureGenerator' in myobj:
                 measureGen = myobj.MeasureGenerator[0]
-                for linDim in measureGen.linearDimensions:
+                for linDim in measureGen.alignedDimensions:
                     
                     linDimProps = linDim
                     if linDim.uses_style:
-                        for linDimStyle in context.scene.StyleGenerator[0].linearDimensions:
+                        for linDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
                             if linDimStyle.name == linDim.style:
                                 linDimProps= linDimStyle
 
@@ -460,9 +460,9 @@ def draw_main_3d (context):
 
             if 'MeasureGenerator' in myobj:
                 measureGen = myobj.MeasureGenerator[0]
-                for linDim in measureGen.linearDimensions:
+                for linDim in measureGen.alignedDimensions:
                     if linDim.visible is True:
-                        draw_linearDimension(context, myobj, measureGen,linDim)
+                        draw_alignedDimension(context, myobj, measureGen,linDim)
 # -------------------------------------------------------------
 # Handler for drawing OpenGl
 # -------------------------------------------------------------

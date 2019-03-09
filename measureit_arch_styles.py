@@ -35,7 +35,7 @@ from bpy.props import (
         FloatProperty,
         EnumProperty,
         )
-from .measureit_arch_dimensions import LinearDimensionProperties, add_linearDimension_item
+from .measureit_arch_dimensions import AlignedDimensionProperties, add_alignedDimension_item
 from .measureit_arch_annotations import AnnotationProperties, add_annotation_item
 from .measureit_arch_lines import LineProperties, add_line_item
 
@@ -46,7 +46,7 @@ class StyleContainer(PropertyGroup):
     
             
     # Array of styles
-    linearDimensions: CollectionProperty(type=LinearDimensionProperties)
+    alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
     annotations: CollectionProperty(type=AnnotationProperties)
     line_groups: CollectionProperty(type=LineProperties)
 bpy.utils.register_class(StyleContainer)
@@ -157,7 +157,7 @@ class MeasureitArchDimensionStylesPanel(Panel):
 
             annotationStyles = StyleGen.annotations
             lineStyles = StyleGen.line_groups
-            linDimStyles = StyleGen.linearDimensions
+            linDimStyles = StyleGen.alignedDimensions
             
             idx = 0
             for annoStyle in annotationStyles:
@@ -166,7 +166,7 @@ class MeasureitArchDimensionStylesPanel(Panel):
 
             idx = 0
             for linDimStyle in linDimStyles:
-                add_linearDimension_item(layout,idx,linDimStyle)
+                add_alignedDimension_item(layout,idx,linDimStyle)
                 idx += 1
 
             idx = 0
@@ -208,7 +208,7 @@ class AddStyleButton(Operator):
                     StyleGen = scene.StyleGenerator[0]
                     annotationStyles = StyleGen.annotations
                     lineStyles = StyleGen.line_groups
-                    linDimStyles = StyleGen.linearDimensions
+                    linDimStyles = StyleGen.alignedDimensions
                     
                     if self.styleType is 'A':
                         newStyle = annotationStyles.add()

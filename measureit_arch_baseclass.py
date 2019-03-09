@@ -154,7 +154,7 @@ class DeletePropButton(Operator):
         elif self.item_type is 'L':
             itemGroup = Generator.line_groups
         elif self.item_type is 'D':
-            itemGroup = Generator.linearDimensions
+            itemGroup = Generator.alignedDimensions
 
         # Delete element
         itemGroup[self.tag].free = True
@@ -192,8 +192,8 @@ class DeleteAllItemsButton(Operator):
         if self.is_style:
             StyleGen = scene.StyleGenerator[0]
 
-            for linDim in StyleGen.linearDimensions:
-                StyleGen.linearDimensions.remove(0)
+            for alignedDim in StyleGen.alignedDimensions:
+                StyleGen.alignedDimensions.remove(0)
             for line in StyleGen.line_groups:
                 StyleGen.line_groups.remove(0)
             for annotation in StyleGen.annotations:
@@ -201,8 +201,8 @@ class DeleteAllItemsButton(Operator):
         else:
             
             if self.item_type is 'D':
-                for linDim in mainobject.MeasureGenerator[0].linearDimensions:
-                    mainobject.MeasureGenerator[0].linearDimensions.remove(0)
+                for alignedDim in mainobject.MeasureGenerator[0].alignedDimensions:
+                    mainobject.MeasureGenerator[0].alignedDimensions.remove(0)
                     mainobject.MeasureGenerator[0].measureit_arch_num = 0
             
             elif self.item_type is 'L':
@@ -249,8 +249,8 @@ class ExpandCollapseAllPropButton(Operator):
 
         if self.is_style:
             StyleGen = scene.StyleGenerator[0]
-            for linDim in StyleGen.linearDimensions:
-                linDim.settings = self.state
+            for alignedDim in StyleGen.alignedDimensions:
+                alignedDim.settings = self.state
             for line in StyleGen.line_groups:
                 line.settings = self.state
             for annotation in StyleGen.annotations:
@@ -258,8 +258,8 @@ class ExpandCollapseAllPropButton(Operator):
             return {'FINISHED'}
 
         if self.item_type is 'D':
-            for linDim in mainobject.MeasureGenerator[0].linearDimensions:
-                linDim.settings = self.state
+            for alignedDim in mainobject.MeasureGenerator[0].alignedDimensions:
+                alignedDim.settings = self.state
             return {'FINISHED'}
         if self.item_type is 'L':
             for line in mainobject.LineGenerator[0].line_groups:

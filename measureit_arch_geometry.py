@@ -155,21 +155,21 @@ def update_text(textobj,props,context):
         #image.scale(width, height)
         #image.pixels = [v / 255 for v in texture_buffer]
 
-def draw_linearDimension(context, myobj, measureGen,linDim):
+def draw_alignedDimension(context, myobj, measureGen,alignedDim):
 
-    linDimProps=  linDim
-    if linDim.uses_style:
-        for linDimStyle in context.scene.StyleGenerator[0].linearDimensions:
-            if linDimStyle.name == linDim.style:
-                linDimProps= linDimStyle
+    alignedDimProps=  alignedDim
+    if alignedDim.uses_style:
+        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+            if alignedDimStyle.name == alignedDim.style:
+                alignedDimProps= alignedDimStyle
 
-    if linDim.dimVisibleInView is None or linDim.dimVisibleInView.name == context.scene.camera.data.name:
+    if alignedDim.dimVisibleInView is None or alignedDim.dimVisibleInView.name == context.scene.camera.data.name:
         # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glLineWidth(linDimProps.lineWeight)
+        bgl.glLineWidth(alignedDimProps.lineWeight)
 
         # Obj Properties
         obverts = get_mesh_vertices(myobj)
@@ -179,17 +179,17 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         scale = bpy.context.scene.unit_settings.scale_length
         scene = bpy.context.scene
         units = scene.measureit_arch_units
-        rawRGB = linDimProps.color
+        rawRGB = alignedDimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-        capA = linDim.dimEndcapA
-        capB = linDim.dimEndcapB
-        capSize = linDim.dimEndcapSize
-        offset = linDim.dimOffset
-        geoOffset = linDim.dimLeaderOffset
+        capA = alignedDim.dimEndcapA
+        capB = alignedDim.dimEndcapB
+        capSize = alignedDim.dimEndcapSize
+        offset = alignedDim.dimOffset
+        geoOffset = alignedDim.dimLeaderOffset
     
         # get points positions from indicies
-        p1 = get_point(obverts[linDim.dimPointA], myobj)
-        p2 = get_point(obverts[linDim.dimPointB], myobj)
+        p1 = get_point(obverts[alignedDim.dimPointA], myobj)
+        p2 = get_point(obverts[alignedDim.dimPointB], myobj)
         
         #calculate distance & Midpoint
         distVector = Vector(p1)-Vector(p2)
@@ -200,9 +200,9 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
 
         # Compute offset vector from face normal and user input
-        rotationMatrix = Matrix.Rotation(linDim.dimRotation,4,normDistVector)
-        selectedNormal = Vector(select_normal(myobj,linDim,normDistVector,midpoint))
-        if linDim.dimFlip is True:
+        rotationMatrix = Matrix.Rotation(alignedDim.dimRotation,4,normDistVector)
+        selectedNormal = Vector(select_normal(myobj,alignedDim,normDistVector,midpoint))
+        if alignedDim.dimFlip is True:
             selectedNormal.negate()
         
         userOffsetVector = rotationMatrix@selectedNormal
@@ -221,16 +221,16 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         #textRotation=(-textRotation[0],-textRotation[1],-textRotation[2],)
         #format text and update if necessary
         distanceText = str(format_distance(textFormat,units,dist))
-        if linDim.text != str(distanceText):
-            linDim.text = str(distanceText)
-            linDim.text_updated = True
+        if alignedDim.text != str(distanceText):
+            alignedDim.text = str(distanceText)
+            alignedDim.text_updated = True
 
-        width = linDim.textWidth
-        height = linDim.textHeight 
-        resolution = linDim.textResolution
-        size = linDimProps.fontSize 
+        width = alignedDim.textWidth
+        height = alignedDim.textHeight 
+        resolution = alignedDim.textResolution
+        size = alignedDimProps.fontSize 
         sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.1*size
+        sy = (height/resolution)*0.15*size
         uv= [(0,0),(0,1),(1,1),(1,0)]
         uvFlipped= [(0,1),(0,0),(1,0),(1,1)]
         origin = Vector(textLoc)
@@ -238,7 +238,7 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         cardY = userOffsetVector *sy
         square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
     
-        draw_text_3D(context,linDim,myobj,square)
+        draw_text_3D(context,alignedDim,myobj,square)
 
         #bind shader
         dimensionShader.bind()
@@ -265,7 +265,7 @@ def draw_linearDimension(context, myobj, measureGen,linDim):
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
     
-def select_normal(myobj, linDim, normDistVector, midpoint):
+def select_normal(myobj, alignedDim, normDistVector, midpoint):
     #Set properties
     i = Vector((1,0,0)) # X Unit Vector
     j = Vector((0,1,0)) # Y Unit Vector
@@ -276,7 +276,7 @@ def select_normal(myobj, linDim, normDistVector, midpoint):
     #get Adjacent Face normals if possible
     possibleNormals = []
     for face in myobj.data.polygons:
-        if linDim.dimPointA in face.vertices and linDim.dimPointB in face.vertices:
+        if alignedDim.dimPointA in face.vertices and alignedDim.dimPointB in face.vertices:
             worldNormal = myobj.matrix_local@Vector(face.normal)
             worldNormal -= myobj.location
             worldNormal.normalize()
@@ -287,17 +287,17 @@ def select_normal(myobj, linDim, normDistVector, midpoint):
     #Face Normals Available Test Conditions
     if len(possibleNormals) > 0:  
         bestNormal = Vector((1,1,1))
-        if linDim.dimViewPlane == 'XY':
+        if alignedDim.dimViewPlane == 'XY':
             for norm in possibleNormals:
                 if abs(norm[2])< abs(bestNormal[2]):
                     bestNormal=norm
 
-        elif linDim.dimViewPlane == 'YZ':
+        elif alignedDim.dimViewPlane == 'YZ':
             for norm in possibleNormals:
                 if abs(norm[0])< abs(bestNormal[0]):
                     bestNormal=norm   
 
-        elif linDim.dimViewPlane == 'XZ':
+        elif alignedDim.dimViewPlane == 'XZ':
             for norm in possibleNormals:
                 if abs(norm[1])< abs(bestNormal[1]):
                     bestNormal=norm
@@ -308,11 +308,11 @@ def select_normal(myobj, linDim, normDistVector, midpoint):
     
     #Face Normals Not Available Test Conditions
     else:
-        if linDim.dimViewPlane == 'XY':
+        if alignedDim.dimViewPlane == 'XY':
             bestNormal = k.cross(normDistVector)
-        elif linDim.dimViewPlane == 'YZ':
+        elif alignedDim.dimViewPlane == 'YZ':
             bestNormal = i.cross(normDistVector)
-        elif linDim.dimViewPlane == 'XZ':
+        elif alignedDim.dimViewPlane == 'XZ':
             bestNormal = j.cross(normDistVector)
         else:
             bestNormal = centerRay

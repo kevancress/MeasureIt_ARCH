@@ -50,7 +50,7 @@ class MeasureitArchFaces(PropertyGroup):
 
 bpy.utils.register_class(MeasureitArchFaces)
 
-class LinearDimensionProperties(BaseWithText,PropertyGroup):
+class AlignedDimensionProperties(BaseWithText,PropertyGroup):
     dimPointA: IntProperty(name='dimPointA',
                     description="Dimension Start Vertex Index")
 
@@ -106,7 +106,7 @@ class LinearDimensionProperties(BaseWithText,PropertyGroup):
                             default= 0.0,
                             subtype='ANGLE')
 
-bpy.utils.register_class(LinearDimensionProperties)
+bpy.utils.register_class(AlignedDimensionProperties)
 
 # ------------------------------------------------------------------
 # LEGACY Define property group class for measureit_arch data
@@ -313,7 +313,7 @@ class MeasureContainer(PropertyGroup):
                                 description='Number total of measureit_arch elements')
     # Array of segments
     measureit_arch_segments = CollectionProperty(type=MeasureitArchProperties)
-    linearDimensions = CollectionProperty(type=LinearDimensionProperties)
+    alignedDimensions = CollectionProperty(type=AlignedDimensionProperties)
 
 bpy.utils.register_class(MeasureContainer)
 Object.MeasureGenerator = CollectionProperty(type=MeasureContainer)
@@ -363,8 +363,8 @@ class MeasureitArchDimensionsPanel(Panel):
                     idx += 1
                 
                 idx = 0
-                for linDim in measureGen.linearDimensions:
-                    add_linearDimension_item(layout,idx, linDim)
+                for alignedDim in measureGen.alignedDimensions:
+                    add_alignedDimension_item(layout,idx, alignedDim)
                     idx += 1
 
                 col = layout.column()
@@ -504,88 +504,88 @@ def add_item(layout, idx, segment):
             if segment.glarc_a != '99' or segment.glarc_b != '99':
                 row.prop(segment, 'glarc_s', text="Size")
 
-def add_linearDimension_item(layout, idx, linDim):
+def add_alignedDimension_item(layout, idx, alignedDim):
     scene = bpy.context.scene
-    linDim=linDim
+    alignedDim=alignedDim
     hasGen = False
     if 'StyleGenerator' in scene:
         StyleGen = scene.StyleGenerator[0]
         hasGen = True
 
-    if linDim.settings is True:
+    if alignedDim.settings is True:
         box = layout.box()
         row = box.row(align=True)
     else:
         row = layout.row(align=True)
 
     useStyleIcon = 'UNLINKED'
-    if linDim.uses_style is True:
+    if alignedDim.uses_style is True:
         useStyleIcon = 'LINKED'
 
-    row.prop(linDim, 'visible', text="", toggle=True, icon='DRIVER_DISTANCE')
+    row.prop(alignedDim, 'visible', text="", toggle=True, icon='DRIVER_DISTANCE')
     
-    if hasGen and not linDim.is_style:
-        row.prop(linDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
+    if hasGen and not alignedDim.is_style:
+        row.prop(alignedDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
 
-    row.prop(linDim, 'settings', text="", toggle=True, icon="PREFERENCES")
+    row.prop(alignedDim, 'settings', text="", toggle=True, icon="PREFERENCES")
     
-    if linDim.is_style is False: row.prop(linDim, 'dimFlip',text='',toggle=True, icon='UV_SYNC_SELECT')
-    if linDim.uses_style:
-        row.prop_search(linDim,'style', StyleGen,'linearDimensions',text="", icon='COLOR')
+    if alignedDim.is_style is False: row.prop(alignedDim, 'dimFlip',text='',toggle=True, icon='UV_SYNC_SELECT')
+    if alignedDim.uses_style:
+        row.prop_search(alignedDim,'style', StyleGen,'alignedDimensions',text="", icon='COLOR')
     else:
-        row.prop(linDim,'color',text='')
-        row.prop(linDim, 'name', text="")
+        row.prop(alignedDim,'color',text='')
+        row.prop(alignedDim, 'name', text="")
     
     op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
     # send index and type to operator
     op.tag = idx
-    op.item_type = linDim.itemType
-    op.is_style = linDim.is_style
+    op.item_type = alignedDim.itemType
+    op.is_style = alignedDim.is_style
 
     # advanced Settings
-    if linDim.settings is True:
+    if alignedDim.settings is True:
         col = box.column(align=True)
-        if linDim.uses_style is False:
-            col.template_ID(linDim, "font", open="font.open", unlink="font.unlink")
+        if alignedDim.uses_style is False:
+            col.template_ID(alignedDim, "font", open="font.open", unlink="font.unlink")
 
             col = box.column(align=True)
-            col.prop(linDim,'dimViewPlane', text='View Plane')
-            col.prop_search(linDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+            col.prop(alignedDim,'dimViewPlane', text='View Plane')
+            col.prop_search(alignedDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
             
             col = box.column(align=True)
-            col.prop(linDim,'lineWeight',text='Line Weight')
+            col.prop(alignedDim,'lineWeight',text='Line Weight')
         
-        if linDim.is_style is False:
-            col.prop(linDim,'dimOffset',text='Distance')
-            col.prop(linDim,'dimLeaderOffset',text='Offset')
-            col.prop(linDim, 'dimRotation', text='Rotation')
+        if alignedDim.is_style is False:
+            col.prop(alignedDim,'dimOffset',text='Distance')
+            col.prop(alignedDim,'dimLeaderOffset',text='Offset')
+            col.prop(alignedDim, 'dimRotation', text='Rotation')
         
         col = box.column(align=True)   
-        if linDim.uses_style is False:
+        if alignedDim.uses_style is False:
             col = box.column(align=True)
-            col.prop(linDim,'fontSize',text='Font Size')
-            col.prop(linDim,'textResolution',text='Resolution')
-            col.prop(linDim,'textAlignment',text='Alignment')
-            col.prop(linDim,'textPosition',text='Position')
+            col.prop(alignedDim,'fontSize',text='Font Size')
+            col.prop(alignedDim,'textResolution',text='Resolution')
+            col.prop(alignedDim,'textAlignment',text='Alignment')
+            col.prop(alignedDim,'textPosition',text='Position')
         
-        if linDim.is_style is False:
-            col.prop(linDim,'textFlippedX',text='Flip Text X')
-            col.prop(linDim,'textFlippedY',text='Flip Text Y')
+        if alignedDim.is_style is False:
+            col.prop(alignedDim,'textFlippedX',text='Flip Text X')
+            col.prop(alignedDim,'textFlippedY',text='Flip Text Y')
 
 
-        if linDim.uses_style is False:
+        if alignedDim.uses_style is False:
             col = box.column(align=True)
-            col.prop(linDim,'dimEndcapA', text='Arrow Start')
-            col.prop(linDim,'dimEndcapB', text='End')
-            col.prop(linDim,'dimEndcapSize', text='Arrow Size')
+            col.prop(alignedDim,'dimEndcapA', text='Arrow Start')
+            col.prop(alignedDim,'dimEndcapB', text='End')
+            col.prop(alignedDim,'dimEndcapSize', text='Arrow Size')
 # -------------------------------------------------------------
 # Defines button that adds a measure segment
 #
 # -------------------------------------------------------------
-class AddDimensionButton(Operator):
-    bl_idname = "measureit_arch.adddimensionbutton"
+class AddAlignedDimensionButton(Operator):
+    bl_idname = "measureit_arch.addaligneddimensionbutton"
     bl_label = "Add"
-    bl_description = "(EDITMODE only) Add a new measure segment between 2 vertices (select 2 vertices or more)"
+    bl_description = "(EDITMODE only) Add Aligned Dimension"
     bl_category = 'MeasureitArch'
 
     # ------------------------------
@@ -630,7 +630,7 @@ class AddDimensionButton(Operator):
 
                 for x in range(0, len(mylist) - 1, 2):
                     if exist_segment(measureGen, mylist[x], mylist[x + 1]) is False:
-                        newDimension = measureGen.linearDimensions.add()
+                        newDimension = measureGen.alignedDimensions.add()
                         newDimension.itemType = 'D'
                         
                         # Set values
