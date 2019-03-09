@@ -373,6 +373,7 @@ def draw_line_group(context, myobj, lineGen):
             pointShader.uniform_float("offset", -offset)
             gpu.shader.unbind()
             lineShader.bind()
+            #lineShader.uniform_float("thickness",lineWeight)
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             lineShader.uniform_float("offset", -offset)
            

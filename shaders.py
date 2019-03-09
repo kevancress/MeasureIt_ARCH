@@ -66,12 +66,12 @@ class Base_Shader_2D ():
         
 
         // scale thickness from meaningful user input to usable value
-        float offset = thickness*(0.001);
+        float offset = thickness*(0.003);
 
         void main() {
             //get line endpoint screen positions as vec2
-            vec2 p0 = vec2(gl_in[0].gl_Position[0], gl_in[0].gl_Position[1]);
-            vec2 p1 = vec2(gl_in[1].gl_Position[0], gl_in[1].gl_Position[1]);
+            vec2 p0 = vec2(gl_in[0].gl_Position.xy / gl_in[0].gl_Position.w ) * Viewport;
+            vec2 p1 = vec2(gl_in[1].gl_Position.xy / gl_in[0].gl_Position.w ) * Viewport;
 
             //calculate line normal
             vec2 line = p1-p0;
@@ -83,13 +83,8 @@ class Base_Shader_2D ():
 
             vec4 tanFac = vec4(offset*lineNrml[0], offset*lineNrml[1],0.0,0.0);
 
-            gl_Position = gl_in[0].gl_Position-tanFac;
-            EmitVertex();
 
             gl_Position = gl_in[0].gl_Position-normFac;
-            EmitVertex();
-            
-            gl_Position = gl_in[1].gl_Position+tanFac;
             EmitVertex();
 
             gl_Position = gl_in[1].gl_Position-normFac;
@@ -98,21 +93,12 @@ class Base_Shader_2D ():
             gl_Position = gl_in[0].gl_Position-normFac;
             EmitVertex();
 
-            gl_Position = gl_in[1].gl_Position+tanFac;
-            EmitVertex();
-
             gl_Position = gl_in[1].gl_Position+normFac;
             EmitVertex();
 
             gl_Position = gl_in[0].gl_Position+normFac;
             EmitVertex();
 
-            gl_Position = gl_in[0].gl_Position-tanFac;
-            EmitVertex();
-
-            gl_Position = gl_in[1].gl_Position+tanFac;
-            EmitVertex();
-            
             EndPrimitive();
         }  
     '''
@@ -139,7 +125,7 @@ class Base_Shader_3D ():
         layout(line_strip, max_vertices = 4) out;
         
         uniform mat4 ModelViewProjectionMatrix;
-
+        uniform float thickness;
         void main()
         {
             gl_Position = gl_in[0].gl_Position;

@@ -32,7 +32,7 @@ from bmesh import from_edit_mesh
 from gpu_extras.batch import batch_for_shader
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-                      FloatProperty, EnumProperty
+                      FloatProperty, EnumProperty, PointerProperty
 from bpy.app.handlers import persistent
 from .measureit_arch_geometry import *
 from .measureit_arch_render import *
@@ -78,7 +78,12 @@ class LineProperties(BaseProp, PropertyGroup):
     isOutline: BoolProperty(name= "isOutline",
                         description= "Line Group Is For Drawing Outlines",
                         default=False)
+    
+    lineTexture: PointerProperty(type= bpy.types.Texture)
 
+    useLineTexture: BoolProperty(name="useLineTexture",
+                        description='Use Line Texture',
+                        default = False)
     #TODO: This Should be automated based on line thickness, distance from clipping plane etc... but I havent figured it out yet
     #Left as a tweak until it can be reliably calculated automatically
     lineDepthOffset: FloatProperty(name= "lineDepthOffset",
@@ -267,6 +272,17 @@ def add_line_item(layout, idx, line):
 
         if line.uses_style is False:
             col = box.column()
+            if line.useLineTexture is False:
+                op = col.operator('measureit_arch.uselinetexture')
+                op.tag = idx
+                op.is_style = line.is_style
+
+            if line.useLineTexture is True:
+                col.template_ID(line, "lineTexture", new="texture.new")
+                if line.lineTexture is not 'none':
+                    texture=line.lineTexture
+                    curvemap = texture.node_tree.nodes['Time']
+                    col.template_curve_mapping(curvemap,'curve')
             col.prop(line, 'lineWeight', text="Lineweight" )
             col.prop(line, 'lineDepthOffset', text="Z Offset")
         
@@ -457,6 +473,37 @@ class RemoveFromLineGroup(Operator):
                         # redraw
                         context.area.tag_redraw()
                         return {'FINISHED'}
+
+class UseLineTexture(Operator):
+    bl_idname = "measureit_arch.uselinetexture"
+    bl_label = "Create a Line Texture to Use"
+    bl_description = "Create a Line Texture to Use"
+    bl_category = 'MeasureitArch'
+    tag = IntProperty()
+    is_style= BoolProperty()
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        mainObj = context.object
+
+        if self.is_style is True:
+            Generator = context.scene.StyleGenerator[0]
+        else:
+            Generator = mainObj.LineGenerator[0]
+        line = Generator.line_groups[self.tag]
+
+        if 'Line Texture' not in bpy.data.textures:
+            texture = bpy.data.textures.new("Line Texture", type='NONE')
+            texture.use_nodes = True
+            nodes = texture.node_tree.nodes
+            nodes.clear()
+            node = nodes.new('TextureNodeCurveTime')
+            node.location = (100,100)
+        line.useLineTexture = True
+
+        return {'FINISHED'}
+
 
 def sLineExists(sLine,a,b):
     if (sLine.pointA == a and sLine.pointB == b):

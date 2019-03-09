@@ -1090,76 +1090,52 @@ class AddLinkButton(Operator):
             if 'MeasureGenerator' not in mainobject:
                 mainobject.MeasureGenerator.add()
 
-            mp = mainobject.MeasureGenerator[0]
+            MeasureGen = mainobject.MeasureGenerator[0]
 
-            # if exist_segment(mp, mylist[0], mylist[0], 3) is False:
+            # if exist_segment(MeasureGen, mylist[0], mylist[0], 3) is False:
             #     flag = True
             # Create all array elements
-            for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
-                mp.measureit_arch_segments.add()
+            for cont in range(len(MeasureGen.measureit_arch_segments) - 1, MeasureGen.measureit_arch_num):
+                linkedDim = MeasureGen.alignedDimensions.add()
 
-            # Set values
-            ms = mp.measureit_arch_segments[mp.measureit_arch_num]
             # -----------------------
             # Vertex to Vertex
             # -----------------------
             if len(myobjvertex) == 1 and len(mylinkvertex) == 1:
-                ms.gltype = 3
-                ms.glpointa = myobjvertex[0]
-                ms.glpointb = mylinkvertex[0]
+                linkedDim.dimPointa = myobjvertex[0]
+                linkedDim.dimPointb = mylinkvertex[0]
                 flag = True
             # -----------------------
             # Vertex to Object
             # -----------------------
             if len(myobjvertex) == 1 and len(mylinkvertex) == 0:
-                ms.gltype = 4
-                ms.glpointa = myobjvertex[0]
-                ms.glpointb = 0
+                linkedDim.dimPointa = myobjvertex[0]
+                linkedDim.dimPointb = 0
                 flag = True
             # -----------------------
             # Object to Vertex
             # -----------------------
             if len(myobjvertex) == 0 and len(mylinkvertex) == 1:
-                ms.gltype = 5
-                ms.glpointa = 0
-                ms.glpointb = mylinkvertex[0]
+
+                linkedDim.dimPointa = 0
+                linkedDim.dimPointb = mylinkvertex[0]
                 flag = True
             # -----------------------
             # Object to Object
             # -----------------------
             if len(myobjvertex) == 0 and len(mylinkvertex) == 0:
-                ms.gltype = 8
-                ms.glpointa = 0
-                ms.glpointb = 0  # Equal
+                linkedDim.dimPointa = 0
+                linkedDim.dimPointb = 0  # Equal
                 flag = True
 
             # ------------------
             # only if created
-            # ------------------
-            if flag is True:
-                ms.glarrow_a = scene.measureit_arch_glarrow_a
-                ms.glarrow_b = scene.measureit_arch_glarrow_b
-                ms.glarrow_s = scene.measureit_arch_glarrow_s
-                # color
-                ms.glcolor = scene.measureit_arch_default_color
-                # dist
-                ms.glspace = scene.measureit_arch_hint_space
-                # text
-                ms.gltxt = scene.measureit_arch_gl_txt
-                ms.glfont_size = scene.measureit_arch_font_size
-                ms.glfont_align = scene.measureit_arch_font_align
-                ms.glfont_rotat = scene.measureit_arch_font_rotation
-                # link
-                ms.gllink = linkobject
-                # Add index
-                mp.measureit_arch_num += 1
+            tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
+            bgl.glGenTextures(1, tex_buffer)
+            linkedDim['tex_buffer'] = tex_buffer.to_list()
 
-                # -----------------------
-                # Only if not exist
-                # -----------------------
-                # redraw
-                context.area.tag_redraw()
-                return {'FINISHED'}
+            context.area.tag_redraw()
+            return {'FINISHED'}
         else:
             self.report({'WARNING'},
                         "View3D not found, cannot run operator")
