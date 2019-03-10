@@ -143,7 +143,7 @@ class DeletePropButton(Operator):
             elif self.item_type == 'L':
                 Generator = mainObj.LineGenerator[0]
                 Generator.line_num -= 1
-            elif self.item_type == 'D-ALIGNED' or self.item_type == 'D-ANGLE':
+            elif 'D-' in self.item_type:
                 Generator = mainObj.DimensionGenerator[0]
                 Generator.measureit_arch_num -= 1
 
@@ -155,6 +155,8 @@ class DeletePropButton(Operator):
             itemGroup = Generator.alignedDimensions
         elif self.item_type == 'D-ANGLE':
             itemGroup = Generator.angleDimensions
+        elif self.item_type == 'D-LINKED':
+            itemGroup = Generator.linkedDimensions
         # Delete element
         itemGroup[self.tag].free = True
         itemGroup.remove(self.tag)
@@ -205,6 +207,9 @@ class DeleteAllItemsButton(Operator):
                     mainobject.DimensionGenerator[0].measureit_arch_num = 0
                 for angleDim in mainobject.DimensionGenerator[0].angleDimensions:
                     mainobject.DimensionGenerator[0].angleDimensions.remove(0)
+                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
+                for linkedDim in mainobject.DimensionGenerator[0].linkedDimensions:
+                    mainobject.DimensionGenerator[0].linkedDimensions.remove(0)
                     mainobject.DimensionGenerator[0].measureit_arch_num = 0
             
             elif self.item_type is 'L':

@@ -126,6 +126,47 @@ class AngleDimensionProperties(BaseWithText,PropertyGroup):
                     subtype='DISTANCE')
 
 bpy.utils.register_class(AngleDimensionProperties)
+
+class LinkDimensionProperties(BaseWithText,PropertyGroup):
+    dimPointA: IntProperty(name='dimPointA',
+                    description="Dim Start Vertex Index")
+    
+    dimObjectA: PointerProperty(type=Object)
+
+    dimPointB: IntProperty(name='dimPointB',
+                    description="Dim End Vertex Index")
+    
+    dimObjectB: PointerProperty(type=Object)
+    
+    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
+
+    dimOffset: FloatProperty(name='Dimension Offset',
+                    description='Offset for Dimension',
+                    default= (0.5),
+                    subtype='DISTANCE')
+
+    dimLeaderOffset: FloatProperty(name='Dimension Offset',
+                    description='Offset for Dimension',
+                    default= (0.05),
+                    subtype='DISTANCE')
+
+    dimViewPlane: EnumProperty(
+                    items=(('99', "None", "None",'EMPTY_AXIS',0),
+                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
+                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
+                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
+                    name="B end",
+                    description="Add arrows to point A")   
+
+    dimRotation:FloatProperty(name='annotationOffset',
+                            description='Rotation for Annotation',
+                            default= 0.0,
+                            subtype='ANGLE')
+    
+    dimFlip: BoolProperty(name='Flip Dimension',
+                    description= 'Flip The Dimension Normal',
+                    default=False)
+bpy.utils.register_class(LinkDimensionProperties)
 # ------------------------------------------------------------------
 # LEGACY Define property group class for measureit_arch data
 # ------------------------------------------------------------------
@@ -333,6 +374,7 @@ class DimensionContainer(PropertyGroup):
     measureit_arch_segments = CollectionProperty(type=MeasureitArchProperties)
     alignedDimensions = CollectionProperty(type=AlignedDimensionProperties)
     angleDimensions = CollectionProperty(type=AngleDimensionProperties)
+    linkedDimensions = CollectionProperty(type=LinkDimensionProperties)
 
 bpy.utils.register_class(DimensionContainer)
 Object.DimensionGenerator = CollectionProperty(type=DimensionContainer)
@@ -390,6 +432,12 @@ class MeasureitArchDimensionsPanel(Panel):
                 for angleDim in DimGen.angleDimensions:
                     add_angleDimension_item(layout,idx, angleDim)
                     idx += 1
+                
+                idx = 0
+                for linkedDim in DimGen.linkedDimensions:
+                    add_linkedDimension_item(layout,idx, linkedDim)
+                    idx += 1
+                
 
                 col = layout.column()
                 delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Dimensions", icon="X")
@@ -969,12 +1017,12 @@ def add_angleDimension_item(layout, idx, angleDim):
     else:
         row = layout.row(align=True)
     
-    useStyleIcon = 'UNLINKED'
-    if angleDim.uses_style is True:
-        useStyleIcon = 'LINKED'
+    #useStyleIcon = 'UNLINKED'
+    #if angleDim.uses_style is True:
+    #    useStyleIcon = 'LINKED'
 
     row.prop(angleDim, 'visible', text="", toggle=True, icon="DRIVER_ROTATIONAL_DIFFERENCE")
-    row.prop(angleDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
+    #row.prop(angleDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
 
     row.prop(angleDim, 'settings', text="", toggle=True, icon="PREFERENCES")
     
@@ -992,7 +1040,7 @@ def add_angleDimension_item(layout, idx, angleDim):
 
         col = box.column(align=True)
         col.prop_search(angleDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
-            
+        
         col = box.column(align=True)
         col.prop(angleDim,'lineWeight',text='Line Weight')
         col.prop(angleDim,'dimRadius',text='Radius')
@@ -1097,7 +1145,7 @@ class AddArcButton(Operator):
 class AddLinkButton(Operator):
     bl_idname = "measureit_arch.addlinkbutton"
     bl_label = "Add"
-    bl_description = "(OBJECT mode only) Add a new measure between objects (select 2 " \
+    bl_description = "(OBJECT mode only) Add a new dimension between objects (select 2 " \
                      "objects and optionally 1 or 2 vertices)"
     bl_category = 'MeasureitArch'
 
@@ -1135,22 +1183,21 @@ class AddLinkButton(Operator):
                 return {'FINISHED'}
             # Locate other object
             linkobject = None
-            for o in context.selected_objects:
-                if o.name != mainobject.name:
-                    linkobject = o.name
+            for obj in context.selected_objects:
+                if obj.name != mainobject.name:
+                    linkobject = obj
             # Verify destination vertex
-            lkobj = bpy.data.objects[linkobject]
-            mylinkvertex = get_selected_vertex(lkobj)
-            if len(mylinkvertex) > 1:
+            mylinkvertex = get_selected_vertex(linkobject)
+            if len(mylinkvertex) != 1:
                 self.report({'ERROR'},
                             "MeasureIt-ARCH: The destination object has more than one vertex selected. "
-                            "Select only 1 or none")
+                            "Select only 1")
                 return {'FINISHED'}
             # Verify origin vertex
             myobjvertex = get_selected_vertex(mainobject)
-            if len(mylinkvertex) > 1:
+            if len(mylinkvertex) != 1:
                 self.report({'ERROR'},
-                            "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1 or none")
+                            "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1")
                 return {'FINISHED'}
 
             # -------------------------------
@@ -1160,46 +1207,17 @@ class AddLinkButton(Operator):
             if 'DimensionGenerator' not in mainobject:
                 mainobject.DimensionGenerator.add()
 
-            MeasureGen = mainobject.DimensionGenerator[0]
+            DimGen = mainobject.DimensionGenerator[0]
 
-            # if exist_segment(MeasureGen, mylist[0], mylist[0], 3) is False:
-            #     flag = True
             # Create all array elements
-            for cont in range(len(MeasureGen.measureit_arch_segments) - 1, MeasureGen.measureit_arch_num):
-                linkedDim = MeasureGen.alignedDimensions.add()
+            linkedDim = DimGen.linkedDimensions.add()
 
-            # -----------------------
-            # Vertex to Vertex
-            # -----------------------
-            if len(myobjvertex) == 1 and len(mylinkvertex) == 1:
-                linkedDim.dimPointa = myobjvertex[0]
-                linkedDim.dimPointb = mylinkvertex[0]
-                flag = True
-            # -----------------------
-            # Vertex to Object
-            # -----------------------
-            if len(myobjvertex) == 1 and len(mylinkvertex) == 0:
-                linkedDim.dimPointa = myobjvertex[0]
-                linkedDim.dimPointb = 0
-                flag = True
-            # -----------------------
-            # Object to Vertex
-            # -----------------------
-            if len(myobjvertex) == 0 and len(mylinkvertex) == 1:
+            linkedDim.dimObjectA = mainobject
+            linkedDim.dimPointA = myobjvertex[0]
+            linkedDim.dimObjectB = linkobject
+            linkedDim.dimPointB = mylinkvertex[0]
+            linkedDim.itemType = 'D-LINKED'
 
-                linkedDim.dimPointa = 0
-                linkedDim.dimPointb = mylinkvertex[0]
-                flag = True
-            # -----------------------
-            # Object to Object
-            # -----------------------
-            if len(myobjvertex) == 0 and len(mylinkvertex) == 0:
-                linkedDim.dimPointa = 0
-                linkedDim.dimPointb = 0  # Equal
-                flag = True
-
-            # ------------------
-            # only if created
             tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenTextures(1, tex_buffer)
             linkedDim['tex_buffer'] = tex_buffer.to_list()
@@ -1212,7 +1230,54 @@ class AddLinkButton(Operator):
 
         return {'CANCELLED'}
 
+def add_linkedDimension_item(layout, idx, linkedDim):
+    scene = bpy.context.scene
 
+    if linkedDim.settings is True:
+        box = layout.box()
+        row = box.row(align=True)
+    else:
+        row = layout.row(align=True)
+
+    
+    #useStyleIcon = 'UNLINKED'
+    #if angleDim.uses_style is True:
+    #    useStyleIcon = 'LINKED'
+
+    row.prop(linkedDim, 'visible', text="", toggle=True, icon="CENTER_ONLY")
+    #row.prop(angleDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
+
+    row.prop(linkedDim, 'settings', text="", toggle=True, icon="PREFERENCES")
+    
+    row.prop(linkedDim,'color',text='')
+    row.prop(linkedDim, 'name', text="")
+
+    op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
+    op.tag = idx
+    op.item_type = linkedDim.itemType
+    op.is_style = linkedDim.is_style
+    if linkedDim.settings is True:
+        col = box.column(align=True)
+        col.template_ID(linkedDim, "font", open="font.open", unlink="font.unlink")
+
+        col = box.column(align=True)
+        col.prop_search(linkedDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop(linkedDim,'dimViewPlane', text='View Plane')
+        col = box.column(align=True)
+        col.prop(linkedDim,'lineWeight',text='Line Weight')
+
+        col.prop(linkedDim,'dimOffset',text='Distance')
+        col.prop(linkedDim,'dimLeaderOffset',text='Offset')
+        col.prop(linkedDim, 'dimRotation', text='Rotation')
+
+        col = box.column(align=True)
+        col.prop(linkedDim,'fontSize',text='Font Size')
+        col.prop(linkedDim,'textResolution',text='Resolution')
+        col.prop(linkedDim,'textAlignment',text='Alignment')
+        col.prop(linkedDim,'textPosition',text='Position')
+
+        col.prop(linkedDim,'textFlippedX',text='Flip Text X')
+        col.prop(linkedDim,'textFlippedY',text='Flip Text Y')
 # -------------------------------------------------------------
 # Defines button that adds an origin segment
 #

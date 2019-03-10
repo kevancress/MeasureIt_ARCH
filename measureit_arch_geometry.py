@@ -155,21 +155,21 @@ def update_text(textobj,props,context):
         #image.scale(width, height)
         #image.pixels = [v / 255 for v in texture_buffer]
 
-def draw_alignedDimension(context, myobj, measureGen,alignedDim):
+def draw_alignedDimension(context, myobj, measureGen,dim):
 
-    alignedDimProps = alignedDim
-    if alignedDim.uses_style:
+    dimProps = dim
+    if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
-            if alignedDimStyle.name == alignedDim.style:
-                alignedDimProps = alignedDimStyle
+            if alignedDimStyle.name == dim.style:
+                dimProps = alignedDimStyle
 
-    if alignedDim.dimVisibleInView is None or alignedDim.dimVisibleInView.name == context.scene.camera.data.name:
+    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
         # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glLineWidth(alignedDimProps.lineWeight)
+        bgl.glLineWidth(dimProps.lineWeight)
 
         # Obj Properties
         obverts = get_mesh_vertices(myobj)
@@ -178,17 +178,17 @@ def draw_alignedDimension(context, myobj, measureGen,alignedDim):
         textFormat = "%1." + str(pr) + "f"
         scale = bpy.context.scene.unit_settings.scale_length
         units = scene.measureit_arch_units
-        rawRGB = alignedDimProps.color
+        rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-        capA = alignedDim.dimEndcapA
-        capB = alignedDim.dimEndcapB
-        capSize = alignedDim.dimEndcapSize
-        offset = alignedDim.dimOffset
-        geoOffset = alignedDim.dimLeaderOffset
+        capA = dim.dimEndcapA
+        capB = dim.dimEndcapB
+        capSize = dim.dimEndcapSize
+        offset = dim.dimOffset
+        geoOffset = dim.dimLeaderOffset
     
         # get points positions from indicies
-        p1 = get_point(obverts[alignedDim.dimPointA], myobj)
-        p2 = get_point(obverts[alignedDim.dimPointB], myobj)
+        p1 = get_point(obverts[dim.dimPointA], myobj)
+        p2 = get_point(obverts[dim.dimPointB], myobj)
         
         #calculate distance & Midpoint
         distVector = Vector(p1)-Vector(p2)
@@ -198,9 +198,9 @@ def draw_alignedDimension(context, myobj, measureGen,alignedDim):
         absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
 
         # Compute offset vector from face normal and user input
-        rotationMatrix = Matrix.Rotation(alignedDim.dimRotation,4,normDistVector)
-        selectedNormal = Vector(select_normal(myobj,alignedDim,normDistVector,midpoint))
-        if alignedDim.dimFlip is True:
+        rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)
+        selectedNormal = Vector(select_normal(myobj,dim,normDistVector,midpoint))
+        if dim.dimFlip is True:
             selectedNormal.negate()
         
         userOffsetVector = rotationMatrix@selectedNormal
@@ -219,14 +219,14 @@ def draw_alignedDimension(context, myobj, measureGen,alignedDim):
         #textRotation=(-textRotation[0],-textRotation[1],-textRotation[2],)
         #format text and update if necessary
         distanceText = str(format_distance(textFormat,units,dist))
-        if alignedDim.text != str(distanceText):
-            alignedDim.text = str(distanceText)
-            alignedDim.text_updated = True
+        if dim.text != str(distanceText):
+            dim.text = str(distanceText)
+            dim.text_updated = True
 
-        width = alignedDim.textWidth
-        height = alignedDim.textHeight 
-        resolution = alignedDim.textResolution
-        size = alignedDimProps.fontSize 
+        width = dim.textWidth
+        height = dim.textHeight 
+        resolution = dim.textResolution
+        size = dimProps.fontSize 
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.15*size
         origin = Vector(textLoc)
@@ -234,7 +234,7 @@ def draw_alignedDimension(context, myobj, measureGen,alignedDim):
         cardY = userOffsetVector *sy
         square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
     
-        draw_text_3D(context,alignedDim,myobj,square)
+        draw_text_3D(context,dim,myobj,square)
 
         #bind shader
         dimensionShader.bind()
@@ -261,14 +261,120 @@ def draw_alignedDimension(context, myobj, measureGen,alignedDim):
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
 
-def draw_angleDimension(context, myobj, DimGen, angleDim):
-    angleDimProps = angleDim
-    if angleDim.uses_style:
+def draw_linkedDimension(context, myobj, measureGen,dim):
+
+    dimProps = dim
+    if dim.uses_style:
+        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+            if alignedDimStyle.name == dim.style:
+                dimProps = alignedDimStyle
+
+    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+        # GL Settings
+        bgl.glEnable(bgl.GL_MULTISAMPLE)
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glLineWidth(dimProps.lineWeight)
+
+        # Obj Properties
+        obverts = get_mesh_vertices(myobj)
+        scene = context.scene
+        pr = scene.measureit_arch_gl_precision
+        textFormat = "%1." + str(pr) + "f"
+        scale = bpy.context.scene.unit_settings.scale_length
+        units = scene.measureit_arch_units
+        rawRGB = dimProps.color
+        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        #capA = dim.dimEndcapA
+        #capB = dim.dimEndcapB
+        #capSize = dim.dimEndcapSize
+        offset = dim.dimOffset
+        geoOffset = dim.dimLeaderOffset
+    
+        # get points positions from indicies
+        p1 = get_point(obverts[dim.dimPointA], dim.dimObjectA)
+        p2 = get_point(obverts[dim.dimPointB], dim.dimObjectB)
+        
+        #calculate distance & Midpoint
+        distVector = Vector(p1)-Vector(p2)
+        dist = distVector.length
+        midpoint = interpolate3d(p1, p2, fabs(dist / 2))
+        normDistVector = distVector.normalized()
+        absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
+
+        # Compute offset vector from face normal and user input
+        rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)
+        selectedNormal = Vector(select_normal(myobj,dim,normDistVector,midpoint))
+        if dim.dimFlip is True:
+            selectedNormal.negate()
+        
+        userOffsetVector = rotationMatrix@selectedNormal
+        offsetDistance = userOffsetVector*offset
+        geoOffsetDistance = userOffsetVector*geoOffset
+        textLoc = offsetDistance + Vector(midpoint)
+
+        #i,j,k as card axis
+        i = Vector((1,0,0))
+        j = Vector((0,1,0))
+        k = Vector((0,0,1))
+
+
+        #quaternion = userOffsetVector.to_track_quat('Y','Z')
+        #textRotation=quaternion.to_euler('XYZ')
+        #textRotation=(-textRotation[0],-textRotation[1],-textRotation[2],)
+        #format text and update if necessary
+        distanceText = str(format_distance(textFormat,units,dist))
+        if dim.text != str(distanceText):
+            dim.text = str(distanceText)
+            dim.text_updated = True
+
+        width = dim.textWidth
+        height = dim.textHeight 
+        resolution = dim.textResolution
+        size = dimProps.fontSize 
+        sx = (width/resolution)*0.1*size
+        sy = (height/resolution)*0.15*size
+        origin = Vector(textLoc)
+        cardX = normDistVector * sx
+        cardY = userOffsetVector *sy
+        square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
+    
+        draw_text_3D(context,dim,myobj,square)
+
+        #bind shader
+        dimensionShader.bind()
+        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        dimensionShader.uniform_float("offset", (0,0,0))
+
+        # Define Lines
+        leadStartA = Vector(p1) + geoOffsetDistance
+        leadEndA = Vector(p1) + offsetDistance
+        leadStartB = Vector(p2) + geoOffsetDistance
+        leadEndB = Vector(p2)+offsetDistance
+        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
+        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
+
+        # batch & Draw Shader
+        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
+        batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
+        batch.program_set(dimensionShader)
+        batch.draw()
+        gpu.shader.unbind()
+        
+        #Reset openGL Settings
+        bgl.glLineWidth(1)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthMask(False)
+
+def draw_angleDimension(context, myobj, DimGen, dim):
+    angleDimProps = dim
+    if dim.uses_style:
         for angleDimStyle in context.scene.StyleGenerator[0].angleDimensions:
-            if angleDimStyle.name == angleDim.style:
+            if angleDimStyle.name == dim.style:
                 angleDimProps = angleDimStyle
     
-    if angleDim.dimVisibleInView is None or angleDim.dimVisibleInView.name == context.scene.camera.data.name:
+    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
          # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
@@ -284,12 +390,12 @@ def draw_angleDimension(context, myobj, DimGen, angleDim):
         obverts = get_mesh_vertices(myobj)
         rawRGB = angleDimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-        radius = angleDim.dimRadius
+        radius = dim.dimRadius
         offset = 0.001
 
-        p1 = Vector(get_point(obverts[angleDim.dimPointA], myobj))
-        p2 = Vector(get_point(obverts[angleDim.dimPointB], myobj))
-        p3 = Vector(get_point(obverts[angleDim.dimPointC], myobj))
+        p1 = Vector(get_point(obverts[dim.dimPointA], myobj))
+        p2 = Vector(get_point(obverts[dim.dimPointB], myobj))
+        p3 = Vector(get_point(obverts[dim.dimPointC], myobj))
 
         #calc normal to plane defined by points
         vecA = (p1-p2)
@@ -331,16 +437,16 @@ def draw_angleDimension(context, myobj, DimGen, angleDim):
         if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
             angleText += a_code
         # Update if Necessary
-        if angleDim.text != str(angleText):
-            angleDim.text = str(angleText)
-            angleDim.text_updated = True
+        if dim.text != str(angleText):
+            dim.text = str(angleText)
+            dim.text_updated = True
         
         #make text card
         vecX = vecB-vecA
-        width = angleDim.textWidth
-        height = angleDim.textHeight 
-        resolution = angleDim.textResolution
-        size = angleDim.fontSize 
+        width = dim.textWidth
+        height = dim.textHeight 
+        resolution = dim.textResolution
+        size = dim.fontSize 
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.2*size
         origin = Vector(midPoint)
@@ -348,7 +454,7 @@ def draw_angleDimension(context, myobj, DimGen, angleDim):
         cardY = midVec * 0.25 *sy
         square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
     
-        draw_text_3D(context,angleDim,myobj,square)
+        draw_text_3D(context,dim,myobj,square)
 
 
 
@@ -391,7 +497,7 @@ def draw_angleDimension(context, myobj, DimGen, angleDim):
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
 
-def select_normal(myobj, alignedDim, normDistVector, midpoint):
+def select_normal(myobj, dim, normDistVector, midpoint):
     #Set properties
     i = Vector((1,0,0)) # X Unit Vector
     j = Vector((0,1,0)) # Y Unit Vector
@@ -402,7 +508,7 @@ def select_normal(myobj, alignedDim, normDistVector, midpoint):
     #get Adjacent Face normals if possible
     possibleNormals = []
     for face in myobj.data.polygons:
-        if alignedDim.dimPointA in face.vertices and alignedDim.dimPointB in face.vertices:
+        if dim.dimPointA in face.vertices and dim.dimPointB in face.vertices:
             worldNormal = myobj.matrix_local@Vector(face.normal)
             worldNormal -= myobj.location
             worldNormal.normalize()
@@ -413,17 +519,17 @@ def select_normal(myobj, alignedDim, normDistVector, midpoint):
     #Face Normals Available Test Conditions
     if len(possibleNormals) > 1:  
         bestNormal = Vector((1,1,1))
-        if alignedDim.dimViewPlane == 'XY':
+        if dim.dimViewPlane == 'XY':
             for norm in possibleNormals:
                 if abs(norm[2])< abs(bestNormal[2]):
                     bestNormal=norm
 
-        elif alignedDim.dimViewPlane == 'YZ':
+        elif dim.dimViewPlane == 'YZ':
             for norm in possibleNormals:
                 if abs(norm[0])< abs(bestNormal[0]):
                     bestNormal=norm   
 
-        elif alignedDim.dimViewPlane == 'XZ':
+        elif dim.dimViewPlane == 'XZ':
             for norm in possibleNormals:
                 if abs(norm[1])< abs(bestNormal[1]):
                     bestNormal=norm
@@ -434,11 +540,11 @@ def select_normal(myobj, alignedDim, normDistVector, midpoint):
     
     #Face Normals Not Available Test Conditions
     else:
-        if alignedDim.dimViewPlane == 'XY':
+        if dim.dimViewPlane == 'XY':
             bestNormal = k.cross(normDistVector)
-        elif alignedDim.dimViewPlane == 'YZ':
+        elif dim.dimViewPlane == 'YZ':
             bestNormal = i.cross(normDistVector)
-        elif alignedDim.dimViewPlane == 'XZ':
+        elif dim.dimViewPlane == 'XZ':
             bestNormal = j.cross(normDistVector)
         else:
             bestNormal = centerRay
