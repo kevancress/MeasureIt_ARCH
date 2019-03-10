@@ -108,6 +108,24 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
 
 bpy.utils.register_class(AlignedDimensionProperties)
 
+class AngleDimensionProperties(BaseWithText,PropertyGroup):
+    dimPointA: IntProperty(name='dimPointA',
+                    description="Angle Start Vertex Index")
+
+    dimPointB: IntProperty(name='dimPointB',
+                    description="Angle Middle Vertex Index")
+    
+    dimPointC: IntProperty(name='dimPointC',
+                    description="Angle End Vertex Index")
+
+    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
+
+    dimRadius: FloatProperty(name='Dimension Radius',
+                    description='Radius Dimension',
+                    default= (0.05),
+                    subtype='DISTANCE')
+
+bpy.utils.register_class(AngleDimensionProperties)
 # ------------------------------------------------------------------
 # LEGACY Define property group class for measureit_arch data
 # ------------------------------------------------------------------
@@ -308,15 +326,16 @@ bpy.utils.register_class(MeasureitArchProperties)
 # Define object class (container of segments)
 # MeasureitArch
 # ------------------------------------------------------------------
-class MeasureContainer(PropertyGroup):
+class DimensionContainer(PropertyGroup):
     measureit_arch_num = IntProperty(name='Number of measures', min=0, max=1000, default=0,
                                 description='Number total of measureit_arch elements')
     # Array of segments
     measureit_arch_segments = CollectionProperty(type=MeasureitArchProperties)
     alignedDimensions = CollectionProperty(type=AlignedDimensionProperties)
+    angleDimensions = CollectionProperty(type=AngleDimensionProperties)
 
-bpy.utils.register_class(MeasureContainer)
-Object.DimensionGenerator = CollectionProperty(type=MeasureContainer)
+bpy.utils.register_class(DimensionContainer)
+Object.DimensionGenerator = CollectionProperty(type=DimensionContainer)
 
 class MeasureitArchDimensionsPanel(Panel):
     bl_idname = "obj_dimensions"
@@ -344,7 +363,7 @@ class MeasureitArchDimensionsPanel(Panel):
                 # loop
                 # -----------------
                 
-                measureGen = context.object.DimensionGenerator[0]
+                DimGen = context.object.DimensionGenerator[0]
                 row = layout.row(align = True)
                 exp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Expand All", icon="ADD")
                 exp.state = True
@@ -357,14 +376,19 @@ class MeasureitArchDimensionsPanel(Panel):
                 exp.item_type = 'D'
                 
                 idx = 0
-                for seg in measureGen.measureit_arch_segments:
+                for seg in DimGen.measureit_arch_segments:
                     if seg.glfree is False:
                         add_item(layout, idx, seg)
                     idx += 1
                 
                 idx = 0
-                for alignedDim in measureGen.alignedDimensions:
+                for alignedDim in DimGen.alignedDimensions:
                     add_alignedDimension_item(layout,idx, alignedDim)
+                    idx += 1
+                
+                idx = 0
+                for angleDim in DimGen.angleDimensions:
+                    add_angleDimension_item(layout,idx, angleDim)
                     idx += 1
 
                 col = layout.column()
@@ -626,12 +650,12 @@ class AddAlignedDimensionButton(Operator):
                 if 'StyleGenerator' not in scene:
                     scene.StyleGenerator.add()
 
-                measureGen = mainobject.DimensionGenerator[0]
+                DimGen = mainobject.DimensionGenerator[0]
 
                 for x in range(0, len(mylist) - 1, 2):
-                    if exist_segment(measureGen, mylist[x], mylist[x + 1]) is False:
-                        newDimension = measureGen.alignedDimensions.add()
-                        newDimension.itemType = 'D'
+                    if exist_segment(DimGen, mylist[x], mylist[x + 1]) is False:
+                        newDimension = DimGen.alignedDimensions.add()
+                        newDimension.itemType = 'D-ALIGNED'
                         
                         # Set values
 
@@ -659,10 +683,10 @@ class AddAlignedDimensionButton(Operator):
                         # text
                         newDimension.text = scene.measureit_arch_gl_txt
                         newDimension.fontSize = 7
-                        newDimension.textResolution = 72
+                        newDimension.textResolution = 150
                         newDimension.textAlignment = 'C'
                         # Sum group
-                        measureGen.measureit_arch_num += 1
+                        DimGen.measureit_arch_num += 1
 
                 # redraw
                 context.area.tag_redraw()
@@ -894,37 +918,36 @@ class AddAngleButton(Operator):
             mainobject = context.object
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:
+                #Check Generators
                 if 'DimensionGenerator' not in mainobject:
                     mainobject.DimensionGenerator.add()
+                if 'StyleGenerator' not in scene:
+                    scene.StyleGenerator.add()
+                
+                DimGen = mainobject.DimensionGenerator[0]
 
-                mp = mainobject.DimensionGenerator[0]
-                # -----------------------
-                # Only if not exist
-                # -----------------------
-                if exist_segment(mp, mylist[0], mylist[1], 9, mylist[2]) is False:
-                    # Create all array elements
-                    for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
-                        mp.measureit_arch_segments.add()
+                newDimension = DimGen.angleDimensions.add()
+                newDimension.itemType = 'D-ANGLE'
 
-                    # Set values
-                    ms = mp.measureit_arch_segments[mp.measureit_arch_num]
-                    ms.gltype = 9
-                    ms.glpointa = mylist[0]
-                    ms.glpointb = mylist[1]
-                    ms.glpointc = mylist[2]
-                    # color
-                    ms.glcolor = scene.measureit_arch_default_color
-                    # dist
-                    ms.glspace = scene.measureit_arch_hint_space
-                    # text
-                    ms.gltxt = scene.measureit_arch_gl_txt
-                    ms.glfont_size = scene.measureit_arch_font_size
-                    ms.glfont_align = scene.measureit_arch_font_align
-                    ms.glfont_rotat = scene.measureit_arch_font_rotation
-                    # Add index
-                    mp.measureit_arch_num += 1
+        
+                tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
+                bgl.glGenTextures(1, tex_buffer)
+                newDimension['tex_buffer'] = tex_buffer.to_list()
 
-                # redraw
+                newDimension.dimVisibleInView = scene.camera.data
+
+                newDimension.dimPointA = mylist[0]
+                newDimension.dimPointB = mylist[1]
+                newDimension.dimPointC = mylist[2]
+                newDimension.dimRadius = 0.25
+                newDimension.lineWeight = 1
+                newDimension.color = scene.measureit_arch_default_color
+                
+                # text
+                newDimension.text = scene.measureit_arch_gl_txt
+                newDimension.fontSize = 7
+                newDimension.textResolution = 72
+                newDimension.textAlignment = 'C'
                 context.area.tag_redraw()
                 return {'FINISHED'}
             else:
@@ -937,7 +960,51 @@ class AddAngleButton(Operator):
 
         return {'CANCELLED'}
 
+def add_angleDimension_item(layout, idx, angleDim):
+    scene = bpy.context.scene
 
+    if angleDim.settings is True:
+        box = layout.box()
+        row = box.row(align=True)
+    else:
+        row = layout.row(align=True)
+    
+    useStyleIcon = 'UNLINKED'
+    if angleDim.uses_style is True:
+        useStyleIcon = 'LINKED'
+
+    row.prop(angleDim, 'visible', text="", toggle=True, icon="DRIVER_ROTATIONAL_DIFFERENCE")
+    row.prop(angleDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
+
+    row.prop(angleDim, 'settings', text="", toggle=True, icon="PREFERENCES")
+    
+    row.prop(angleDim,'color',text='')
+    row.prop(angleDim, 'name', text="")
+
+    op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
+    op.tag = idx
+    op.item_type = angleDim.itemType
+    op.is_style = angleDim.is_style
+
+    if angleDim.settings is True:
+        col = box.column(align=True)
+        col.template_ID(angleDim, "font", open="font.open", unlink="font.unlink")
+
+        col = box.column(align=True)
+        col.prop_search(angleDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+            
+        col = box.column(align=True)
+        col.prop(angleDim,'lineWeight',text='Line Weight')
+        col.prop(angleDim,'dimRadius',text='Radius')
+
+        col = box.column(align=True)
+        col.prop(angleDim,'fontSize',text='Font Size')
+        col.prop(angleDim,'textResolution',text='Resolution')
+        col.prop(angleDim,'textAlignment',text='Alignment')
+        col.prop(angleDim,'textPosition',text='Position')
+
+        col.prop(angleDim,'textFlippedX',text='Flip Text X')
+        col.prop(angleDim,'textFlippedY',text='Flip Text Y')
 # -------------------------------------------------------------
 # Defines button that adds an arc measure
 #

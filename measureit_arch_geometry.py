@@ -148,10 +148,10 @@ def update_text(textobj,props,context):
             
 
         #generate image datablock from buffer for debug preview
-        #ONLY USE IF NECESSARY. SERIOUSLY SLOWS PREFORMANCE
-        #if not str(self.annotationAnchor) in bpy.data.images:
-        #    bpy.data.images.new(str(self.annotationAnchor), width, height)
-        #image = bpy.data.images[str(self.annotationAnchor)]
+        #ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
+        #if not str('test') in bpy.data.images:
+        #    bpy.data.images.new(str('test'), width, height)
+        #image = bpy.data.images[str('test')]
         #image.scale(width, height)
         #image.pixels = [v / 255 for v in texture_buffer]
 
@@ -177,7 +177,6 @@ def draw_alignedDimension(context, myobj, measureGen,alignedDim):
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
         scale = bpy.context.scene.unit_settings.scale_length
-        scene = bpy.context.scene
         units = scene.measureit_arch_units
         rawRGB = alignedDimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
@@ -194,7 +193,6 @@ def draw_alignedDimension(context, myobj, measureGen,alignedDim):
         #calculate distance & Midpoint
         distVector = Vector(p1)-Vector(p2)
         dist = distVector.length
-        loc = get_location(myobj)
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
         absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
@@ -231,8 +229,6 @@ def draw_alignedDimension(context, myobj, measureGen,alignedDim):
         size = alignedDimProps.fontSize 
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.15*size
-        uv= [(0,0),(0,1),(1,1),(1,0)]
-        uvFlipped= [(0,1),(0,0),(1,0),(1,1)]
         origin = Vector(textLoc)
         cardX = normDistVector * sx
         cardY = userOffsetVector *sy
@@ -264,7 +260,137 @@ def draw_alignedDimension(context, myobj, measureGen,alignedDim):
         bgl.glLineWidth(1)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
+
+def draw_angleDimension(context, myobj, DimGen, angleDim):
+    angleDimProps = angleDim
+    if angleDim.uses_style:
+        for angleDimStyle in context.scene.StyleGenerator[0].angleDimensions:
+            if angleDimStyle.name == angleDim.style:
+                angleDimProps = angleDimStyle
     
+    if angleDim.dimVisibleInView is None or angleDim.dimVisibleInView.name == context.scene.camera.data.name:
+         # GL Settings
+        bgl.glEnable(bgl.GL_MULTISAMPLE)
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glLineWidth(angleDimProps.lineWeight)
+        bgl.glPointSize(angleDimProps.lineWeight)
+
+        scene = context.scene
+        pr = scene.measureit_arch_gl_precision
+        a_code = "\u00b0"  # degree
+        fmt = "%1." + str(pr) + "f"
+        obverts = get_mesh_vertices(myobj)
+        rawRGB = angleDimProps.color
+        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        radius = angleDim.dimRadius
+        offset = 0.001
+
+        p1 = Vector(get_point(obverts[angleDim.dimPointA], myobj))
+        p2 = Vector(get_point(obverts[angleDim.dimPointB], myobj))
+        p3 = Vector(get_point(obverts[angleDim.dimPointC], myobj))
+
+        #calc normal to plane defined by points
+        vecA = (p1-p2)
+        vecA.normalize()
+        vecB = (p3-p2)
+        vecB.normalize()
+        norm = vecA.cross(vecB)
+
+        #endpoints
+        endpointA = (vecA*radius)+p2
+        endpointB = (vecB*radius)+p2
+
+        #making it a circle
+        #(Quick and dirty circle, technically the verts arent,
+        # evenly spaced but you barely notice)
+        distVector = vecA-vecB
+        dist = distVector.length
+        numCircleVerts = math.ceil(radius/.4)+12
+        verts = []
+        for idx in range (numCircleVerts+1):
+            segDist = fabs(dist /(numCircleVerts+1))
+            currentDist = segDist * idx
+            point = Vector(interpolate3d(vecA, vecB, currentDist))
+            point.normalize()
+            verts.append(point)
+
+        #get Midpoint for Text Placement
+        midVec = Vector(interpolate3d(vecA, vecB, (dist/2)))
+        midVec.normalize()
+        midPoint = (midVec*radius) + p2
+        
+        #calculate angle
+        angle = vecA.angle(vecB)
+        if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
+            angle = degrees(angle)
+        # format text
+        angleText = " " + fmt % angle
+        # Add degree symbol
+        if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
+            angleText += a_code
+        # Update if Necessary
+        if angleDim.text != str(angleText):
+            angleDim.text = str(angleText)
+            angleDim.text_updated = True
+        
+        #make text card
+        vecX = vecB-vecA
+        width = angleDim.textWidth
+        height = angleDim.textHeight 
+        resolution = angleDim.textResolution
+        size = angleDim.fontSize 
+        sx = (width/resolution)*0.1*size
+        sy = (height/resolution)*0.2*size
+        origin = Vector(midPoint)
+        cardX = vecX * 0.25 * sx
+        cardY = midVec * 0.25 *sy
+        square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
+    
+        draw_text_3D(context,angleDim,myobj,square)
+
+
+
+        #configure shaders
+        pointShader.bind()
+        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        pointShader.uniform_float("size", 1)
+        pointShader.uniform_float("offset", -offset)
+        gpu.shader.unbind()
+        dimensionShader.bind()
+        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        dimensionShader.uniform_float("offset", -offset)
+
+        # Draw Point Pass for Clean Corners
+        # I'm being lazy here, should do a proper lineadjacency
+        # with miters and do this in one pass
+        pointCoords = []
+        pointCoords.append(endpointA)
+        for vert in verts:
+            pointCoords.append((vert*radius)+p2)
+        pointCoords.append(endpointB)
+        batch3d = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
+        batch3d.program_set(pointShader)
+        batch3d.draw()
+
+        # batch & Draw Shader
+        coords = []
+        coords.append(endpointA)
+        for vert in verts:
+            coords.append((vert*radius)+p2)
+            coords.append((vert*radius)+p2)
+        coords.append(endpointB)
+        batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
+        batch.program_set(dimensionShader)
+        batch.draw()
+        gpu.shader.unbind()
+
+        #Reset openGL Settings
+        bgl.glLineWidth(1)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthMask(False)
+
 def select_normal(myobj, alignedDim, normDistVector, midpoint):
     #Set properties
     i = Vector((1,0,0)) # X Unit Vector
@@ -511,7 +637,7 @@ def draw_text_3D(context,textobj,myobj,card):
     batch = batch_for_shader(
         textShader, 'TRI_FAN',
         {
-            "position": card,
+            "pos": card,
             "uv": uvs,
         },
     )

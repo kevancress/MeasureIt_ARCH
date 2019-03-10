@@ -34,12 +34,9 @@ class BaseProp:
             default="",
             update = update_flag)
 
-    itemType: EnumProperty(
-                items=(('A', "Annotation ", ""),
-                        ('L', "Line Style", ""),
-                        ('D', "Dimension", "")),
-                name="Style Type",
-                description="Type of Style to Add")
+    itemType: StringProperty(name="Item Type",
+            description= 'flag for common operators',
+            default = '')
 
     color: FloatVectorProperty(name="dimColor",
                 description="Color for the Dimension",
@@ -117,7 +114,8 @@ class BaseWithText(BaseProp):
         
     textHeight: IntProperty(name='annotationHeight',
                 description= 'Height of annotation')
-    
+
+
 class DeletePropButton(Operator):
 
     bl_idname = "measureit_arch.deletepropbutton"
@@ -139,23 +137,24 @@ class DeletePropButton(Operator):
         if self.is_style is True:
             Generator = context.scene.StyleGenerator[0]
         else:
-            if self.item_type is 'A':
+            if self.item_type == 'A':
                 Generator = mainObj.AnnotationGenerator[0]
                 Generator.num_annotations -= 1
-            elif self.item_type is 'L':
+            elif self.item_type == 'L':
                 Generator = mainObj.LineGenerator[0]
                 Generator.line_num -= 1
-            elif self.item_type is 'D':
+            elif self.item_type == 'D-ALIGNED' or self.item_type == 'D-ANGLE':
                 Generator = mainObj.DimensionGenerator[0]
                 Generator.measureit_arch_num -= 1
 
-        if self.item_type is 'A':
+        if self.item_type == 'A':
             itemGroup = Generator.annotations
-        elif self.item_type is 'L':
+        elif self.item_type == 'L':
             itemGroup = Generator.line_groups
-        elif self.item_type is 'D':
+        elif self.item_type == 'D-ALIGNED':
             itemGroup = Generator.alignedDimensions
-
+        elif self.item_type == 'D-ANGLE':
+            itemGroup = Generator.angleDimensions
         # Delete element
         itemGroup[self.tag].free = True
         itemGroup.remove(self.tag)
@@ -175,7 +174,7 @@ class DeletePropButton(Operator):
 
 class DeleteAllItemsButton(Operator):
     bl_idname = "measureit_arch.deleteallitemsbutton"
-    bl_label = "Delete All Styles?"
+    bl_label = "Delete All Items?"
     bl_description = "Delete all Styles"
     bl_category = 'MeasureitArch'
     item_type: StringProperty()
@@ -203,6 +202,9 @@ class DeleteAllItemsButton(Operator):
             if self.item_type is 'D':
                 for alignedDim in mainobject.DimensionGenerator[0].alignedDimensions:
                     mainobject.DimensionGenerator[0].alignedDimensions.remove(0)
+                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
+                for angleDim in mainobject.DimensionGenerator[0].angleDimensions:
+                    mainobject.DimensionGenerator[0].angleDimensions.remove(0)
                     mainobject.DimensionGenerator[0].measureit_arch_num = 0
             
             elif self.item_type is 'L':
@@ -260,6 +262,8 @@ class ExpandCollapseAllPropButton(Operator):
         if self.item_type is 'D':
             for alignedDim in mainobject.DimensionGenerator[0].alignedDimensions:
                 alignedDim.settings = self.state
+            for angleDim in mainobject.DimensionGenerator[0].angleDimensions:
+                angleDim.settings = self.state
             return {'FINISHED'}
         if self.item_type is 'L':
             for line in mainobject.LineGenerator[0].line_groups:
