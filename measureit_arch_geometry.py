@@ -188,8 +188,15 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         geoOffset = dim.dimLeaderOffset
     
         # get points positions from indicies
-        p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA)
-        p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
+        if dim.dimPointA == 9999999:
+            p1 = dim.dimObjectA.location
+        else:
+            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA)
+        
+        if dim.dimPointB == 9999999:
+            p2 = dim.dimObjectB.location
+        else:
+            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
         
         #calculate distance & Midpoint
         distVector = Vector(p1)-Vector(p2)
@@ -401,38 +408,39 @@ def select_normal(myobj, dim, normDistVector, midpoint):
     loc = Vector(get_location(myobj))
     centerRay = Vector(midpoint) - loc
 
-    #get Adjacent Face normals if possible
-    possibleNormals = []
-    for face in myobj.data.polygons:
-        if dim.dimPointA in face.vertices and dim.dimPointB in face.vertices:
-            worldNormal = myobj.matrix_local@Vector(face.normal)
-            worldNormal -= myobj.location
-            worldNormal.normalize()
-            possibleNormals.append(worldNormal)
-            
-    bestNormal = Vector((0,0,0))
+    if myobj.type == 'MESH':
+        #get Adjacent Face normals if possible
+        possibleNormals = []
+        for face in myobj.data.polygons:
+            if dim.dimPointA in face.vertices and dim.dimPointB in face.vertices:
+                worldNormal = myobj.matrix_local@Vector(face.normal)
+                worldNormal -= myobj.location
+                worldNormal.normalize()
+                possibleNormals.append(worldNormal)
+                
+        bestNormal = Vector((0,0,0))
 
-    #Face Normals Available Test Conditions
-    if len(possibleNormals) > 1:  
-        bestNormal = Vector((1,1,1))
-        if dim.dimViewPlane == 'XY':
-            for norm in possibleNormals:
-                if abs(norm[2])< abs(bestNormal[2]):
-                    bestNormal=norm
+        #Face Normals Available Test Conditions
+        if len(possibleNormals) > 1:  
+            bestNormal = Vector((1,1,1))
+            if dim.dimViewPlane == 'XY':
+                for norm in possibleNormals:
+                    if abs(norm[2])< abs(bestNormal[2]):
+                        bestNormal=norm
 
-        elif dim.dimViewPlane == 'YZ':
-            for norm in possibleNormals:
-                if abs(norm[0])< abs(bestNormal[0]):
-                    bestNormal=norm   
+            elif dim.dimViewPlane == 'YZ':
+                for norm in possibleNormals:
+                    if abs(norm[0])< abs(bestNormal[0]):
+                        bestNormal=norm   
 
-        elif dim.dimViewPlane == 'XZ':
-            for norm in possibleNormals:
-                if abs(norm[1])< abs(bestNormal[1]):
-                    bestNormal=norm
-        else:
-            bestNormal = Vector((0,0,0))
-            for norm in possibleNormals:
-                bestNormal += norm
+            elif dim.dimViewPlane == 'XZ':
+                for norm in possibleNormals:
+                    if abs(norm[1])< abs(bestNormal[1]):
+                        bestNormal=norm
+            else:
+                bestNormal = Vector((0,0,0))
+                for norm in possibleNormals:
+                    bestNormal += norm
     
     #Face Normals Not Available Test Conditions
     else:

@@ -688,16 +688,22 @@ class AddAlignedDimensionButton(Operator):
                  # Verify destination vertex
                 mylinkvertex = get_selected_vertex(linkobject)
                 if len(mylinkvertex) != 1:
-                    self.report({'ERROR'},
-                                "MeasureIt-ARCH: The destination object has more than one vertex selected. "
-                                "Select only 1")
-                    return {'FINISHED'}
+                    if len(mylinkvertex) == 0:
+                        mylinkvertex.append(9999999)
+                    else:
+                        self.report({'ERROR'},
+                                    "MeasureIt-ARCH: The destination object has more than one vertex selected. "
+                                    "Select only 1")
+                        return {'FINISHED'}
                 # Verify origin vertex
                 myobjvertex = get_selected_vertex(mainobject)
-                if len(mylinkvertex) != 1:
-                    self.report({'ERROR'},
-                                "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1")
-                    return {'FINISHED'}
+                if len(myobjvertex) != 1:
+                    if len(myobjvertex) == 0:
+                        myobjvertex.append(9999999)
+                    else:
+                        self.report({'ERROR'},
+                                    "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1")
+                        return {'FINISHED'}
 
                 # -------------------------------
                 # Add properties
