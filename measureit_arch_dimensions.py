@@ -54,8 +54,12 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
     dimPointA: IntProperty(name='dimPointA',
                     description="Dimension Start Vertex Index")
 
+    dimObjectA: PointerProperty(type=Object)
+
     dimPointB: IntProperty(name='dimPointB',
                     description="Dimension End Vertex Index")
+
+    dimObjectB: PointerProperty(type=Object)
 
     dimOffset: FloatProperty(name='Dimension Offset',
                     description='Offset for Dimension',
@@ -127,46 +131,6 @@ class AngleDimensionProperties(BaseWithText,PropertyGroup):
 
 bpy.utils.register_class(AngleDimensionProperties)
 
-class LinkDimensionProperties(BaseWithText,PropertyGroup):
-    dimPointA: IntProperty(name='dimPointA',
-                    description="Dim Start Vertex Index")
-    
-    dimObjectA: PointerProperty(type=Object)
-
-    dimPointB: IntProperty(name='dimPointB',
-                    description="Dim End Vertex Index")
-    
-    dimObjectB: PointerProperty(type=Object)
-    
-    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
-
-    dimOffset: FloatProperty(name='Dimension Offset',
-                    description='Offset for Dimension',
-                    default= (0.5),
-                    subtype='DISTANCE')
-
-    dimLeaderOffset: FloatProperty(name='Dimension Offset',
-                    description='Offset for Dimension',
-                    default= (0.05),
-                    subtype='DISTANCE')
-
-    dimViewPlane: EnumProperty(
-                    items=(('99', "None", "None",'EMPTY_AXIS',0),
-                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
-                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
-                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
-                    name="B end",
-                    description="Add arrows to point A")   
-
-    dimRotation:FloatProperty(name='annotationOffset',
-                            description='Rotation for Annotation',
-                            default= 0.0,
-                            subtype='ANGLE')
-    
-    dimFlip: BoolProperty(name='Flip Dimension',
-                    description= 'Flip The Dimension Normal',
-                    default=False)
-bpy.utils.register_class(LinkDimensionProperties)
 # ------------------------------------------------------------------
 # LEGACY Define property group class for measureit_arch data
 # ------------------------------------------------------------------
@@ -374,7 +338,6 @@ class DimensionContainer(PropertyGroup):
     measureit_arch_segments = CollectionProperty(type=MeasureitArchProperties)
     alignedDimensions = CollectionProperty(type=AlignedDimensionProperties)
     angleDimensions = CollectionProperty(type=AngleDimensionProperties)
-    linkedDimensions = CollectionProperty(type=LinkDimensionProperties)
 
 bpy.utils.register_class(DimensionContainer)
 Object.DimensionGenerator = CollectionProperty(type=DimensionContainer)
@@ -431,11 +394,6 @@ class MeasureitArchDimensionsPanel(Panel):
                 idx = 0
                 for angleDim in DimGen.angleDimensions:
                     add_angleDimension_item(layout,idx, angleDim)
-                    idx += 1
-                
-                idx = 0
-                for linkedDim in DimGen.linkedDimensions:
-                    add_linkedDimension_item(layout,idx, linkedDim)
                     idx += 1
                 
 
@@ -669,11 +627,8 @@ class AddAlignedDimensionButton(Operator):
         if o is None:
             return False
         else:
-            if o.type == "MESH":
-                if bpy.context.mode == 'EDIT_MESH':
-                    return True
-                else:
-                    return False
+            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
+                return True
             else:
                 return False
 
@@ -683,71 +638,125 @@ class AddAlignedDimensionButton(Operator):
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # get selected
-
             scene = context.scene
-            mainobject = context.object
-            mylist = get_smart_selected(mainobject)
             
-            if len(mylist) < 2:  # if not selected linked vertex
-                mylist = get_selected_vertex(mainobject)
+            newDimensions = []
 
-            if len(mylist) >= 2:
-                #Check Generators
+            # Edit Context
+            if bpy.context.mode == 'EDIT_MESH':
+                for mainobject in context.objects_in_mode:
+                    mylist = get_smart_selected(mainobject)
+                    if len(mylist) < 2:  # if not selected linked vertex
+                        mylist = get_selected_vertex(mainobject)
+                    if len(mylist) >= 2:
+                        #Check Generators
+                        if 'DimensionGenerator' not in mainobject:
+                            mainobject.DimensionGenerator.add()
+                        if 'StyleGenerator' not in scene:
+                            scene.StyleGenerator.add()
+
+                        DimGen = mainobject.DimensionGenerator[0]
+
+                        for x in range(0, len(mylist) - 1, 2):
+                            if exist_segment(DimGen, mylist[x], mylist[x + 1]) is False:
+                                newDimension = DimGen.alignedDimensions.add()
+                                newDimension.dimObjectA = mainobject
+                                newDimension.dimObjectB = mainobject
+                                newDimension.dimPointB = mylist[x]
+                                newDimension.dimPointA = mylist[x + 1]
+                                newDimensions.append(newDimension)
+                        # redraw
+                        context.area.tag_redraw()
+                    else:
+                        self.report({'ERROR'},
+                                    "MeasureIt-ARCH: Select at least two vertices for creating measure segment.")
+            
+            # Object Context
+            elif bpy.context.mode == 'OBJECT':
+                mainobject = context.object
+                if len(context.selected_objects) != 2:
+                    self.report({'ERROR'},
+                            "MeasureIt-ARCH: Select two objects only, and optionally 1 vertex or 2 vertices "
+                            "(one of each object)")
+                    return {'FINISHED'}
+                
+                linkobject = None
+                for obj in context.selected_objects:
+                    if obj.name != mainobject.name:
+                        linkobject = obj
+
+                 # Verify destination vertex
+                mylinkvertex = get_selected_vertex(linkobject)
+                if len(mylinkvertex) != 1:
+                    self.report({'ERROR'},
+                                "MeasureIt-ARCH: The destination object has more than one vertex selected. "
+                                "Select only 1")
+                    return {'FINISHED'}
+                # Verify origin vertex
+                myobjvertex = get_selected_vertex(mainobject)
+                if len(mylinkvertex) != 1:
+                    self.report({'ERROR'},
+                                "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1")
+                    return {'FINISHED'}
+
+                # -------------------------------
+                # Add properties
+                # -------------------------------
+                flag = False
                 if 'DimensionGenerator' not in mainobject:
                     mainobject.DimensionGenerator.add()
-                if 'StyleGenerator' not in scene:
-                    scene.StyleGenerator.add()
 
                 DimGen = mainobject.DimensionGenerator[0]
 
-                for x in range(0, len(mylist) - 1, 2):
-                    if exist_segment(DimGen, mylist[x], mylist[x + 1]) is False:
-                        newDimension = DimGen.alignedDimensions.add()
-                        newDimension.itemType = 'D-ALIGNED'
-                        
-                        # Set values
+                # Create all array elements
+                newDimension = DimGen.alignedDimensions.add()
 
-                        tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
-                        bgl.glGenTextures(1, tex_buffer)
-                        newDimension['tex_buffer'] = tex_buffer.to_list()
+                newDimension.dimObjectA = mainobject
+                newDimension.dimPointA = myobjvertex[0]
+                newDimension.dimObjectB = linkobject
+                newDimension.dimPointB = mylinkvertex[0]
 
-                        newDimension.style = scene.measureit_arch_default_dimension_style
-                        if scene.measureit_arch_default_dimension_style is not '':
-                            newDimension.uses_style = True
-                        else:
-                            newDimension.uses_style = False
-                        newDimension.dimVisibleInView = scene.camera.data
-                        newDimension.dimViewPlane = scene.viewPlane
-                        newDimension.dimPointB = mylist[x]
-                        newDimension.dimPointA = mylist[x + 1]
-                        newDimension.dimEndcapA= scene.measureit_arch_glarrow_a
-                        newDimension.dimEndcapB = scene.measureit_arch_glarrow_b
-                        newDimension.dimEndcapSize= scene.measureit_arch_glarrow_s
-                        # color
-                        newDimension.color = scene.measureit_arch_default_color
-                        # dist
-                        newDimension.dimOffset = 0.3
-                        newDimension.dimLeaderOffset = 0.05
-                        # text
-                        newDimension.text = scene.measureit_arch_gl_txt
-                        newDimension.fontSize = 7
-                        newDimension.textResolution = 150
-                        newDimension.textAlignment = 'C'
-                        # Sum group
-                        DimGen.measureit_arch_num += 1
-
-                # redraw
+                newDimensions.append(newDimension)
                 context.area.tag_redraw()
-                return {'FINISHED'}
-            else:
-                self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select at least two vertices for creating measure segment.")
-                return {'FINISHED'}
+
+            # Set Common Values
+            for newDimension in newDimensions:
+                newDimension.itemType = 'D-ALIGNED'
+                
+                tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
+                bgl.glGenTextures(1, tex_buffer)
+                newDimension['tex_buffer'] = tex_buffer.to_list()
+
+                newDimension.style = scene.measureit_arch_default_dimension_style
+                if scene.measureit_arch_default_dimension_style is not '':
+                    newDimension.uses_style = True
+                else:
+                    newDimension.uses_style = False
+                
+                newDimension.dimVisibleInView = scene.camera.data
+                newDimension.dimViewPlane = scene.viewPlane
+
+                newDimension.dimEndcapA= scene.measureit_arch_glarrow_a
+                newDimension.dimEndcapB = scene.measureit_arch_glarrow_b
+                newDimension.dimEndcapSize= scene.measureit_arch_glarrow_s
+                # color
+                newDimension.color = scene.measureit_arch_default_color
+                # dist
+                newDimension.dimOffset = 0.3
+                newDimension.dimLeaderOffset = 0.05
+                # text
+                newDimension.text = scene.measureit_arch_gl_txt
+                newDimension.fontSize = 7
+                newDimension.textResolution = 150
+                newDimension.textAlignment = 'C'
+                # Sum group
+                DimGen.measureit_arch_num += 1 
+            return{'FINISHED'}
         else:
             self.report({'WARNING'},
                         "View3D not found, cannot run operator")
 
-        return {'CANCELLED'}
+            return {'CANCELLED'}
 
 
 # -------------------------------------------------------------
@@ -876,6 +885,7 @@ class AddSegmentOrtoButton(Operator):
             scene = context.scene
             mainobject = context.object
             mylist = get_smart_selected(mainobject)
+
             if len(mylist) < 1:  # if not selected linked vertex
                 mylist = get_selected_vertex(mainobject)
 
@@ -1139,146 +1149,6 @@ class AddArcButton(Operator):
 
 
 # -------------------------------------------------------------
-# Defines button that adds a link
-#
-# -------------------------------------------------------------
-class AddLinkButton(Operator):
-    bl_idname = "measureit_arch.addlinkbutton"
-    bl_label = "Add"
-    bl_description = "(OBJECT mode only) Add a new dimension between objects (select 2 " \
-                     "objects and optionally 1 or 2 vertices)"
-    bl_category = 'MeasureitArch'
-
-    # ------------------------------
-    # Poll
-    # ------------------------------
-    @classmethod
-    def poll(cls, context):
-        o = context.object
-        if o is None:
-            return False
-        else:
-            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LAMP":
-                if bpy.context.mode == 'OBJECT':
-                    return True
-                else:
-                    return False
-            else:
-                return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            scene = context.scene
-            mainobject = context.object
-            # -------------------------------
-            # Verify number of objects
-            # -------------------------------
-            if len(context.selected_objects) != 2:
-                self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select two objects only, and optionally 1 vertex or 2 vertices "
-                            "(one of each object)")
-                return {'FINISHED'}
-            # Locate other object
-            linkobject = None
-            for obj in context.selected_objects:
-                if obj.name != mainobject.name:
-                    linkobject = obj
-            # Verify destination vertex
-            mylinkvertex = get_selected_vertex(linkobject)
-            if len(mylinkvertex) != 1:
-                self.report({'ERROR'},
-                            "MeasureIt-ARCH: The destination object has more than one vertex selected. "
-                            "Select only 1")
-                return {'FINISHED'}
-            # Verify origin vertex
-            myobjvertex = get_selected_vertex(mainobject)
-            if len(mylinkvertex) != 1:
-                self.report({'ERROR'},
-                            "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1")
-                return {'FINISHED'}
-
-            # -------------------------------
-            # Add properties
-            # -------------------------------
-            flag = False
-            if 'DimensionGenerator' not in mainobject:
-                mainobject.DimensionGenerator.add()
-
-            DimGen = mainobject.DimensionGenerator[0]
-
-            # Create all array elements
-            linkedDim = DimGen.linkedDimensions.add()
-
-            linkedDim.dimObjectA = mainobject
-            linkedDim.dimPointA = myobjvertex[0]
-            linkedDim.dimObjectB = linkobject
-            linkedDim.dimPointB = mylinkvertex[0]
-            linkedDim.itemType = 'D-LINKED'
-
-            tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
-            bgl.glGenTextures(1, tex_buffer)
-            linkedDim['tex_buffer'] = tex_buffer.to_list()
-
-            context.area.tag_redraw()
-            return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
-        return {'CANCELLED'}
-
-def add_linkedDimension_item(layout, idx, linkedDim):
-    scene = bpy.context.scene
-
-    if linkedDim.settings is True:
-        box = layout.box()
-        row = box.row(align=True)
-    else:
-        row = layout.row(align=True)
-
-    
-    #useStyleIcon = 'UNLINKED'
-    #if angleDim.uses_style is True:
-    #    useStyleIcon = 'LINKED'
-
-    row.prop(linkedDim, 'visible', text="", toggle=True, icon="CENTER_ONLY")
-    #row.prop(angleDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
-
-    row.prop(linkedDim, 'settings', text="", toggle=True, icon="PREFERENCES")
-    
-    row.prop(linkedDim,'color',text='')
-    row.prop(linkedDim, 'name', text="")
-
-    op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
-    op.tag = idx
-    op.item_type = linkedDim.itemType
-    op.is_style = linkedDim.is_style
-    if linkedDim.settings is True:
-        col = box.column(align=True)
-        col.template_ID(linkedDim, "font", open="font.open", unlink="font.unlink")
-
-        col = box.column(align=True)
-        col.prop_search(linkedDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
-        col.prop(linkedDim,'dimViewPlane', text='View Plane')
-        col = box.column(align=True)
-        col.prop(linkedDim,'lineWeight',text='Line Weight')
-
-        col.prop(linkedDim,'dimOffset',text='Distance')
-        col.prop(linkedDim,'dimLeaderOffset',text='Offset')
-        col.prop(linkedDim, 'dimRotation', text='Rotation')
-
-        col = box.column(align=True)
-        col.prop(linkedDim,'fontSize',text='Font Size')
-        col.prop(linkedDim,'textResolution',text='Resolution')
-        col.prop(linkedDim,'textAlignment',text='Alignment')
-        col.prop(linkedDim,'textPosition',text='Position')
-
-        col.prop(linkedDim,'textFlippedX',text='Flip Text X')
-        col.prop(linkedDim,'textFlippedY',text='Flip Text Y')
-# -------------------------------------------------------------
 # Defines button that adds an origin segment
 #
 # -------------------------------------------------------------
@@ -1471,4 +1341,3 @@ class AddNoteButton(Operator):
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
-

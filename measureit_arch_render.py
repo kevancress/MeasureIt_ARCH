@@ -277,11 +277,10 @@ def render_main(self, context, animation=False):
             if myobj.visible_get() is True:
                 if 'DimensionGenerator' in myobj:
                     measureGen = myobj.DimensionGenerator[0]
-                    for linDim in measureGen.linearDimensions:
+                    for linDim in measureGen.alignedDimensions:
                         draw_alignedDimension(context, myobj, measureGen,linDim)
 
                 if 'LineGenerator' in myobj:
-
                     # Set 3D Projection Martix
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix_3d)
@@ -292,7 +291,6 @@ def render_main(self, context, animation=False):
                     draw_line_group(context, myobj, op)
              
                 if 'AnnotationGenerator' in myobj:
-
                     # Set 3D Projection Martix
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix_3d)

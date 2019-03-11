@@ -8,7 +8,7 @@
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+#  GNU General Public License for more details.a
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
@@ -172,7 +172,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         bgl.glLineWidth(dimProps.lineWeight)
 
         # Obj Properties
-        obverts = get_mesh_vertices(myobj)
+        obvertA = get_mesh_vertices(dim.dimObjectA)
+        obvertB = get_mesh_vertices(dim.dimObjectB)
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
@@ -187,8 +188,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         geoOffset = dim.dimLeaderOffset
     
         # get points positions from indicies
-        p1 = get_point(obverts[dim.dimPointA], myobj)
-        p2 = get_point(obverts[dim.dimPointB], myobj)
+        p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA)
+        p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
         
         #calculate distance & Midpoint
         distVector = Vector(p1)-Vector(p2)
@@ -261,111 +262,6 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
 
-def draw_linkedDimension(context, myobj, measureGen,dim):
-
-    dimProps = dim
-    if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
-            if alignedDimStyle.name == dim.style:
-                dimProps = alignedDimStyle
-
-    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
-        # GL Settings
-        bgl.glEnable(bgl.GL_MULTISAMPLE)
-        bgl.glEnable(bgl.GL_LINE_SMOOTH)
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glLineWidth(dimProps.lineWeight)
-
-        # Obj Properties
-        obverts = get_mesh_vertices(myobj)
-        scene = context.scene
-        pr = scene.measureit_arch_gl_precision
-        textFormat = "%1." + str(pr) + "f"
-        scale = bpy.context.scene.unit_settings.scale_length
-        units = scene.measureit_arch_units
-        rawRGB = dimProps.color
-        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-        #capA = dim.dimEndcapA
-        #capB = dim.dimEndcapB
-        #capSize = dim.dimEndcapSize
-        offset = dim.dimOffset
-        geoOffset = dim.dimLeaderOffset
-    
-        # get points positions from indicies
-        p1 = get_point(obverts[dim.dimPointA], dim.dimObjectA)
-        p2 = get_point(obverts[dim.dimPointB], dim.dimObjectB)
-        
-        #calculate distance & Midpoint
-        distVector = Vector(p1)-Vector(p2)
-        dist = distVector.length
-        midpoint = interpolate3d(p1, p2, fabs(dist / 2))
-        normDistVector = distVector.normalized()
-        absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
-
-        # Compute offset vector from face normal and user input
-        rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)
-        selectedNormal = Vector(select_normal(myobj,dim,normDistVector,midpoint))
-        if dim.dimFlip is True:
-            selectedNormal.negate()
-        
-        userOffsetVector = rotationMatrix@selectedNormal
-        offsetDistance = userOffsetVector*offset
-        geoOffsetDistance = userOffsetVector*geoOffset
-        textLoc = offsetDistance + Vector(midpoint)
-
-        #i,j,k as card axis
-        i = Vector((1,0,0))
-        j = Vector((0,1,0))
-        k = Vector((0,0,1))
-
-
-        #quaternion = userOffsetVector.to_track_quat('Y','Z')
-        #textRotation=quaternion.to_euler('XYZ')
-        #textRotation=(-textRotation[0],-textRotation[1],-textRotation[2],)
-        #format text and update if necessary
-        distanceText = str(format_distance(textFormat,units,dist))
-        if dim.text != str(distanceText):
-            dim.text = str(distanceText)
-            dim.text_updated = True
-
-        width = dim.textWidth
-        height = dim.textHeight 
-        resolution = dim.textResolution
-        size = dimProps.fontSize 
-        sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.15*size
-        origin = Vector(textLoc)
-        cardX = normDistVector * sx
-        cardY = userOffsetVector *sy
-        square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
-    
-        draw_text_3D(context,dim,myobj,square)
-
-        #bind shader
-        dimensionShader.bind()
-        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        dimensionShader.uniform_float("offset", (0,0,0))
-
-        # Define Lines
-        leadStartA = Vector(p1) + geoOffsetDistance
-        leadEndA = Vector(p1) + offsetDistance
-        leadStartB = Vector(p2) + geoOffsetDistance
-        leadEndB = Vector(p2)+offsetDistance
-        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
-        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
-
-        # batch & Draw Shader
-        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
-        batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
-        batch.program_set(dimensionShader)
-        batch.draw()
-        gpu.shader.unbind()
-        
-        #Reset openGL Settings
-        bgl.glLineWidth(1)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(False)
 
 def draw_angleDimension(context, myobj, DimGen, dim):
     angleDimProps = dim
