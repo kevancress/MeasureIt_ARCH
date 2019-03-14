@@ -400,20 +400,19 @@ class AddLineByProperty(Operator):
                         for edge in obj.data.edges:
                             pointA = edge.vertices[0]
                             pointB = edge.vertices[1]
-                            adjacentNormals =[]
+                            adjacentFaces =[]
                             for face in obj.data.polygons:
                                 if pointA in face.vertices and pointB in face.vertices:
-                                    faceNormal = Vector(face.normal)
-                                    faceNormal.normalize()
-                                    adjacentNormals.append(faceNormal)
-                            if len(adjacentNormals) == 2:
-                                dotProd = adjacentNormals[0].dot(adjacentNormals[1])
-                                if dotProd >= 0 and dotProd <= 1:
+                                    adjacentFaces.append(face)
+                            if len(adjacentFaces) == 2:
+                                normalA = Vector(adjacentFaces[0].normal)
+                                normalB = Vector(adjacentFaces[1].normal)
+                                dotProd = (normalA.dot(normalB))
+                                #print (str(adjacentFaces[0].index) + ' dot(' + str(adjacentFaces[1].index) + ') = ' + str(dotProd))
+                                if dotProd >= -1 and dotProd <= 1:
                                     creaseAngle = math.acos(dotProd)
                                     if creaseAngle > angle:
                                         edgesToAdd.append(edge)
-                                else:
-                                    edgesToAdd.append(edge)
                             else:
                                 edgesToAdd.append(edge)
                         

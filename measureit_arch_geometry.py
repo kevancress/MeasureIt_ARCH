@@ -198,6 +198,13 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         else:
             p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
         
+        #check x axis alignment for text
+        if p2[0] > p1[0]:
+            switchTemp = p1
+            p1 = p2
+            p2 = switchTemp
+
+
         #calculate distance & Midpoint
         distVector = Vector(p1)-Vector(p2)
         dist = distVector.length
@@ -230,7 +237,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         if dim.text != str(distanceText):
             dim.text = str(distanceText)
             dim.text_updated = True
-
+        
         width = dim.textWidth
         height = dim.textHeight 
         resolution = dim.textResolution
@@ -406,9 +413,11 @@ def select_normal(myobj, dim, normDistVector, midpoint):
     j = Vector((0,1,0)) # Y Unit Vector
     k = Vector((0,0,1))
     loc = Vector(get_location(myobj))
-    centerRay = Vector(midpoint) - loc
+    centerRay = Vector((-1,1,1))
 
     if myobj.type == 'MESH':
+        vertA = myobj.data.vertices[dim.dimPointA]
+        directionRay = vertA.normal + loc 
         #get Adjacent Face normals if possible
         possibleNormals = []
         for face in myobj.data.polygons:
@@ -418,7 +427,7 @@ def select_normal(myobj, dim, normDistVector, midpoint):
                 worldNormal.normalize()
                 possibleNormals.append(worldNormal)
                 
-        bestNormal = Vector((0,0,0))
+        bestNormal = directionRay
 
         #Face Normals Available Test Conditions
         if len(possibleNormals) > 1:  
@@ -441,8 +450,24 @@ def select_normal(myobj, dim, normDistVector, midpoint):
                 bestNormal = Vector((0,0,0))
                 for norm in possibleNormals:
                     bestNormal += norm
+            
+        #Face Normals Not Available 
+        else:
+            if dim.dimViewPlane == 'XY':
+                bestNormal = k.cross(normDistVector)
+            elif dim.dimViewPlane == 'YZ':
+                bestNormal = i.cross(normDistVector)
+            elif dim.dimViewPlane == 'XZ':
+                bestNormal = j.cross(normDistVector)
+            else:
+                bestNormal = directionRay
+
+            if bestNormal.dot(directionRay)<0:
+                bestNormal.negate()
     
-    #Face Normals Not Available Test Conditions
+    
+    
+    #not mesh obj
     else:
         if dim.dimViewPlane == 'XY':
             bestNormal = k.cross(normDistVector)
