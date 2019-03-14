@@ -189,7 +189,6 @@ class MeasureitArchMainPanel(Panel):
         box.label(text="Add Annotations")
         
         col = box.column(align=True)
-        col.operator("measureit_arch.addnotebutton", text="Note", icon="EMPTY_DATA")
         col.operator("measureit_arch.addannotationbutton", text="Annotation", icon="FONT_DATA")
 
         col = box.column(align=True)

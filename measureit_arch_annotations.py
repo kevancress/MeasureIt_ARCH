@@ -79,6 +79,8 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
                             description="Text Source",
                             update=annotation_update_flag)
 
+    annotationAnchorObject: PointerProperty(type=Object)
+
     annotationAnchor: IntProperty(name="annotationAnchor",
                             description="Index of Vertex that the annotation is Anchored to")
     
@@ -108,11 +110,8 @@ class AddAnnotationButton(Operator):
         if o is None:
             return False
         else:
-            if o.type == "MESH":
-                if bpy.context.mode == 'EDIT_MESH':
-                    return True
-                else:
-                    return False
+            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
+                return True
             else:
                 return False
 
@@ -124,41 +123,49 @@ class AddAnnotationButton(Operator):
             scene = context.scene
             # Add properties
             mainobject = context.object
-            mylist = get_selected_vertex(mainobject)
-            if len(mylist) == 1:
-                if 'AnnotationGenerator' not in mainobject:
-                    mainobject.AnnotationGenerator.add()
-                
-                annotationGen = mainobject.AnnotationGenerator[0] 
+            if 'AnnotationGenerator' not in mainobject:
+                mainobject.AnnotationGenerator.add()
+
+            annotationGen = mainobject.AnnotationGenerator[0] 
+
+            if mainobject.type=='MESH':
+                mylist = get_selected_vertex(mainobject)
+                if len(mylist) == 1:
+                    annotationGen.num_annotations +=1
+                    newAnnotation = annotationGen.annotations.add()
+                    newAnnotation.annotationAnchor = mylist[0]
+                    
+                    context.area.tag_redraw()  
+                    update_custom_props(newAnnotation,context)
+                else:
+                    self.report({'ERROR'},
+                                "MeasureIt-ARCH: Select one vertex for creating measure label")
+                    return {'FINISHED'}
+            else:
                 annotationGen.num_annotations +=1
                 newAnnotation = annotationGen.annotations.add()
-                newAnnotation.itemType = 'A'
-
-                newAnnotation.style = scene.measureit_arch_default_annotation_style
-                if scene.measureit_arch_default_annotation_style is not '':
-                    newAnnotation.uses_style = True
-                else:
-                    newAnnotation.uses_style = False
-                
-                # Set values
-                newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
-
-                tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
-                bgl.glGenTextures(1, tex_buffer)
-                newAnnotation['tex_buffer'] = tex_buffer.to_list()
-
-                newAnnotation.annotationAnchor = mylist[0]
-                newAnnotation.annotationLineWeight = (2)
-                newAnnotation.color = (0,0,0,1)
+                newAnnotation.annotationAnchor = 9999999 
                 context.area.tag_redraw()  
                 update_custom_props(newAnnotation,context)
-                
-                
-                return {'FINISHED'}
+            
+            newAnnotation.itemType = 'A'
+            newAnnotation.annotationAnchorObject = mainobject
+            newAnnotation.style = scene.measureit_arch_default_annotation_style
+            
+            if scene.measureit_arch_default_annotation_style is not '':
+                newAnnotation.uses_style = True
             else:
-                self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select one vertex for creating measure label")
-                return {'FINISHED'}
+                newAnnotation.uses_style = False
+
+            newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
+
+            tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
+            bgl.glGenTextures(1, tex_buffer)
+            newAnnotation['tex_buffer'] = tex_buffer.to_list()
+
+            newAnnotation.annotationLineWeight = (2)
+            newAnnotation.color = (0,0,0,1)
+            return {'FINISHED'}
         else:
             self.report({'WARNING'},   
                         "View3D not found, cannot run operator")

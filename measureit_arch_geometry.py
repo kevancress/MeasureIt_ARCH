@@ -615,8 +615,10 @@ def draw_annotation(context, myobj, annotationGen):
 
             lineShader.bind()
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-
-            p1 = get_point(obverts[annotation.annotationAnchor], myobj)
+            if annotation.annotationAnchorObject.type == 'MESH':
+                p1 = get_point(obverts[annotation.annotationAnchor], myobj)
+            else:
+                p1 = annotation.annotationAnchorObject.location
             offset = annotation.annotationOffset
             p2 = Vector(p1) + Vector(offset)
 
