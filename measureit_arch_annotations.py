@@ -98,7 +98,7 @@ Object.AnnotationGenerator = CollectionProperty(type=AnnotationContainer)
 class AddAnnotationButton(Operator):
     bl_idname = "measureit_arch.addannotationbutton"
     bl_label = "Add"
-    bl_description = "(EDITMODE only) Add a new measure label (select 1 vertex)"
+    bl_description = "Add a new Annotation (For Mesh Objects Select 1 Vertex)"
     bl_category = 'MeasureitArch'
 
     # ------------------------------

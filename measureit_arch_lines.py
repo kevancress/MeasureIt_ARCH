@@ -360,7 +360,7 @@ class AddToLineGroup(Operator):
 class AddLineByProperty(Operator):   
     bl_idname = "measureit_arch.addlinebyproperty"
     bl_label = "Add Lines By Crease"
-    bl_description = "Add Lines to Edges sharper than the specified angle"
+    bl_description = "Add Lines to Edges sharper than the specified angle (uses Autosmooth Angle)"
     bl_category = 'MeasureitArch'
     tag= IntProperty()
     calledFromGroup= BoolProperty(default=False)
@@ -425,9 +425,21 @@ class AddLineByProperty(Operator):
                         lineGen.line_num += 1
 
                     return {'FINISHED'}
-
+    
+    def invoke(self, context, event):
+        wm = context.window_manager
+        if not context.object.data.use_auto_smooth:
+            context.object.data.use_auto_smooth = True
+            bpy.ops.object.shade_smooth()
+            return wm.invoke_props_dialog(self)
+        else:
+            return self.execute(context)
+    
     def draw(self,context):
+        mesh = context.object.data
         layout = self.layout
+        col = layout.column()
+        col.prop(mesh,'auto_smooth_angle', text= 'Set Crease Angle')
 
 class RemoveFromLineGroup(Operator):   
     bl_idname = "measureit_arch.removefromlinegroup"

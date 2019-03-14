@@ -175,7 +175,7 @@ class DeletePropButton(Operator):
 class DeleteAllItemsButton(Operator):
     bl_idname = "measureit_arch.deleteallitemsbutton"
     bl_label = "Delete All Items?"
-    bl_description = "Delete all Styles"
+    bl_description = "Delete all Items"
     bl_category = 'MeasureitArch'
     item_type: StringProperty()
     is_style: BoolProperty()

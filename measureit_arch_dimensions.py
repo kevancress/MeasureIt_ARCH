@@ -615,7 +615,7 @@ def add_alignedDimension_item(layout, idx, alignedDim):
 class AddAlignedDimensionButton(Operator):
     bl_idname = "measureit_arch.addaligneddimensionbutton"
     bl_label = "Add"
-    bl_description = "(EDITMODE only) Add Aligned Dimension"
+    bl_description = "Add Aligned Dimension (Dimension Properties can be edited in the Object Properties)"
     bl_category = 'MeasureitArch'
 
     # ------------------------------
@@ -999,7 +999,7 @@ class AddAngleButton(Operator):
                 newDimension['tex_buffer'] = tex_buffer.to_list()
 
                 newDimension.dimVisibleInView = scene.camera.data
-                
+
                 newDimension.style = scene.measureit_arch_default_dimension_style
                 if scene.measureit_arch_default_dimension_style is not '':
                     newDimension.uses_style = True

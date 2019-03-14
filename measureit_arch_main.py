@@ -88,49 +88,12 @@ def save_handler(dummy):
 bpy.app.handlers.load_post.append(load_handler)
 bpy.app.handlers.save_pre.append(save_handler)
 
-
-# ------------------------------------------------------------------
-# Define UI class
-# show/Hide Dimensions
-# ------------------------------------------------------------------
-class MeasureitArchShowHidePanel(Panel):
-    bl_idname = "measureit_arch.showhidepanel"
-    bl_label = "Show/Hide MeasureIt"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'MeasureIt-ARCH'
-
-    # -----------------------------------------------------
-    # Draw (create UI interface)
-    # -----------------------------------------------------
-    # noinspection PyUnusedLocal
-    def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-
-        box = layout.box()
-        # ------------------------------
-        # Display Buttons
-        # ------------------------------
-        row = box.row(align=True)
-        
-        if context.window_manager.measureit_arch_run_opengl is False:
-            icon = 'PLAY'
-            txt = 'Show'
-        else:
-            icon = "PAUSE"
-            txt = 'Hide'
-
-        row.operator("measureit_arch.runopenglbutton", text=txt, icon=icon ,)
-        row.prop(scene, "measureit_arch_gl_ghost", text="", icon='GHOST_ENABLED')
-
-
 # ------------------------------------------------------------------
 # Define panel class for main functions.
 # ------------------------------------------------------------------
 class MeasureitArchMainPanel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
-    bl_label = "Add Drawing Element"
+    bl_label = "MeasureIt ARCH"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
     bl_category = 'MeasureIt-ARCH'
@@ -145,10 +108,31 @@ class MeasureitArchMainPanel(Panel):
         if 'StyleGenerator' in scene:
             StyleGen = scene.StyleGenerator[0]
             hasGen = True
+
+       
+        # ------------------------------
+        # Display Buttons
+        # ------------------------------
+       
+        box = layout.box()
+        box.label(text="Show/Hide Measure-It")
+        row = box.row(align=True)
+        
+        if context.window_manager.measureit_arch_run_opengl is False:
+            icon = 'PLAY'
+            txt = 'Show'
+        else:
+            icon = "PAUSE"
+            txt = 'Hide'
+
+        row.operator("measureit_arch.runopenglbutton", text=txt, icon=icon ,)
+        row.prop(scene, "measureit_arch_gl_ghost", text="", icon='GHOST_ENABLED')
+
+
         # ------------------------------
         # Tool Buttons
         # ------------------------------
-
+        layout.label(text="Tools")
         # Tools
         box = layout.box()
         box.label(text="Add Dimensions")
