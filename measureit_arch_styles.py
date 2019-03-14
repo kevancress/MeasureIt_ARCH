@@ -155,7 +155,8 @@ class MeasureitArchDimensionStylesPanel(Panel):
 
             annotationStyles = StyleGen.annotations
             lineStyles = StyleGen.line_groups
-            linDimStyles = StyleGen.alignedDimensions
+            alignedDimStyles = StyleGen.alignedDimensions
+            
             
             idx = 0
             for annoStyle in annotationStyles:
@@ -163,8 +164,8 @@ class MeasureitArchDimensionStylesPanel(Panel):
                 idx += 1
 
             idx = 0
-            for linDimStyle in linDimStyles:
-                add_alignedDimension_item(layout,idx,linDimStyle)
+            for alignedDimStyle in alignedDimStyles:
+                add_alignedDimension_item(layout,idx,alignedDimStyle)
                 idx += 1
 
             idx = 0
@@ -206,7 +207,7 @@ class AddStyleButton(Operator):
                     StyleGen = scene.StyleGenerator[0]
                     annotationStyles = StyleGen.annotations
                     lineStyles = StyleGen.line_groups
-                    linDimStyles = StyleGen.alignedDimensions
+                    alignedDimStyles = StyleGen.alignedDimensions
                     
                     if self.styleType is 'A':
                         newStyle = annotationStyles.add()
@@ -215,7 +216,7 @@ class AddStyleButton(Operator):
                         newStyle = lineStyles.add()
                         newStyle.itemType = 'L'
                     else:
-                        newStyle = linDimStyles.add()
+                        newStyle = alignedDimStyles.add()
                         newStyle.itemType = 'D'
                     
                     newStyle.is_style = True

@@ -359,8 +359,8 @@ class AddToLineGroup(Operator):
 
 class AddLineByProperty(Operator):   
     bl_idname = "measureit_arch.addlinebyproperty"
-    bl_label = "Add Lines By Property"
-    bl_description = "Add Lines by Selected Property"
+    bl_label = "Add Lines By Crease"
+    bl_description = "Add Lines to Edges sharper than the specified angle"
     bl_category = 'MeasureitArch'
     tag= IntProperty()
     calledFromGroup= BoolProperty(default=False)

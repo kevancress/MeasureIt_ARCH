@@ -1026,6 +1026,11 @@ class AddAngleButton(Operator):
 
 def add_angleDimension_item(layout, idx, angleDim):
     scene = bpy.context.scene
+    angleDim=angleDim
+    hasGen = False
+    if 'StyleGenerator' in scene:
+        StyleGen = scene.StyleGenerator[0]
+        hasGen = True
 
     if angleDim.settings is True:
         box = layout.box()
@@ -1033,17 +1038,24 @@ def add_angleDimension_item(layout, idx, angleDim):
     else:
         row = layout.row(align=True)
     
-    #useStyleIcon = 'UNLINKED'
-    #if angleDim.uses_style is True:
-    #    useStyleIcon = 'LINKED'
+    useStyleIcon = 'UNLINKED'
+    if angleDim.uses_style is True:
+        useStyleIcon = 'LINKED'
 
     row.prop(angleDim, 'visible', text="", toggle=True, icon="DRIVER_ROTATIONAL_DIFFERENCE")
     #row.prop(angleDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
 
+    if hasGen:
+        row.prop(angleDim, 'uses_style', text="",toggle=True, icon=useStyleIcon)
+
+
     row.prop(angleDim, 'settings', text="", toggle=True, icon="PREFERENCES")
-    
-    row.prop(angleDim,'color',text='')
-    row.prop(angleDim, 'name', text="")
+
+    if angleDim.uses_style:
+        row.prop_search(angleDim,'style', StyleGen,'alignedDimensions',text="", icon='COLOR')
+    else:
+        row.prop(angleDim,'color',text='')
+        row.prop(angleDim, 'name', text="")
 
     op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
     op.tag = idx
@@ -1052,20 +1064,22 @@ def add_angleDimension_item(layout, idx, angleDim):
 
     if angleDim.settings is True:
         col = box.column(align=True)
-        col.template_ID(angleDim, "font", open="font.open", unlink="font.unlink")
+        if not angleDim.uses_style:
+            col.template_ID(angleDim, "font", open="font.open", unlink="font.unlink")
 
-        col = box.column(align=True)
-        col.prop_search(angleDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
-        
-        col = box.column(align=True)
-        col.prop(angleDim,'lineWeight',text='Line Weight')
+            col = box.column(align=True)
+            col.prop_search(angleDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+            
+            col = box.column(align=True)
+            col.prop(angleDim,'lineWeight',text='Line Weight')
         col.prop(angleDim,'dimRadius',text='Radius')
-
-        col = box.column(align=True)
-        col.prop(angleDim,'fontSize',text='Font Size')
-        col.prop(angleDim,'textResolution',text='Resolution')
-        col.prop(angleDim,'textAlignment',text='Alignment')
-        col.prop(angleDim,'textPosition',text='Position')
+        
+        if not angleDim.uses_style:
+            col = box.column(align=True)
+            col.prop(angleDim,'fontSize',text='Font Size')
+            col.prop(angleDim,'textResolution',text='Resolution')
+            col.prop(angleDim,'textAlignment',text='Alignment')
+            col.prop(angleDim,'textPosition',text='Position')
 
         col.prop(angleDim,'textFlippedX',text='Flip Text X')
         col.prop(angleDim,'textFlippedY',text='Flip Text Y')

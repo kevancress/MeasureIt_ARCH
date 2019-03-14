@@ -174,7 +174,7 @@ class MeasureitArchMainPanel(Panel):
 
         col = box.column(align=True)
         col.operator("measureit_arch.addlinebutton", text="Line", icon="MESH_CUBE")
-        op = col.operator("measureit_arch.addlinebyproperty", text="Line by Prop", icon="MESH_CUBE")
+        op = col.operator("measureit_arch.addlinebyproperty", text="Line by Crease", icon="MESH_CUBE")
         op.calledFromGroup = False
 
         col = box.column(align=True)
@@ -372,7 +372,12 @@ def draw_main(context):
                     update_text(textobj=alignedDim,props=alignedDimProps,context=context)
                 
                 for angleDim in DimGen.angleDimensions: 
-                    update_text(textobj=angleDim,props=angleDim,context=context)
+                    dimProps = angleDim
+                    if angleDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+                            if dimStyle.name == angleDim.style:
+                                dimProps= dimStyle
+                    update_text(textobj=angleDim,props=dimProps,context=context)
             
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]

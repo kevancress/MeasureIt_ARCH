@@ -240,7 +240,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         
         width = dim.textWidth
         height = dim.textHeight 
-        resolution = dim.textResolution
+        resolution = dimProps.textResolution
         size = dimProps.fontSize 
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.15*size
@@ -278,11 +278,11 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
 
 
 def draw_angleDimension(context, myobj, DimGen, dim):
-    angleDimProps = dim
+    dimProps = dim
     if dim.uses_style:
-        for angleDimStyle in context.scene.StyleGenerator[0].angleDimensions:
-            if angleDimStyle.name == dim.style:
-                angleDimProps = angleDimStyle
+        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+            if alignedDimStyle.name == dim.style:
+                dimProps = alignedDimStyle
     
     if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
          # GL Settings
@@ -290,15 +290,15 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glLineWidth(angleDimProps.lineWeight)
-        bgl.glPointSize(angleDimProps.lineWeight)
+        bgl.glLineWidth(dimProps.lineWeight)
+        bgl.glPointSize(dimProps.lineWeight)
 
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         a_code = "\u00b0"  # degree
         fmt = "%1." + str(pr) + "f"
         obverts = get_mesh_vertices(myobj)
-        rawRGB = angleDimProps.color
+        rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         radius = dim.dimRadius
         offset = 0.001
@@ -355,8 +355,8 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         vecX = vecB-vecA
         width = dim.textWidth
         height = dim.textHeight 
-        resolution = dim.textResolution
-        size = dim.fontSize 
+        resolution = dimProps.textResolution
+        size = dimProps.fontSize 
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.2*size
         origin = Vector(midPoint)

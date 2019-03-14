@@ -27,7 +27,7 @@
 # ----------------------------------------------
 bl_info = {
     "name": "MeasureIt-ARCH",
-    "author": "Antonio Vazquez (antonioya)",
+    "author": "Kevan Cress, Antonio Vazquez (antonioya)",
     "location": "View3D > Tools Panel /Properties panel",
     "version": (1, 7, 0),
     "blender": (2, 80, 0),      
