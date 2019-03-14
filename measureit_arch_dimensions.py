@@ -999,6 +999,12 @@ class AddAngleButton(Operator):
                 newDimension['tex_buffer'] = tex_buffer.to_list()
 
                 newDimension.dimVisibleInView = scene.camera.data
+                
+                newDimension.style = scene.measureit_arch_default_dimension_style
+                if scene.measureit_arch_default_dimension_style is not '':
+                    newDimension.uses_style = True
+                else:
+                    newDimension.uses_style = False
 
                 newDimension.dimPointA = mylist[0]
                 newDimension.dimPointB = mylist[1]

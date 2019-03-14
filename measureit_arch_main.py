@@ -161,7 +161,8 @@ class MeasureitArchMainPanel(Panel):
         #col.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
 
         col = box.column(align=True)
-        col.prop_search(scene,'measureit_arch_default_dimension_style', StyleGen,'alignedDimensions',text="", icon='COLOR')
+        if hasGen:
+            col.prop_search(scene,'measureit_arch_default_dimension_style', StyleGen,'alignedDimensions',text="", icon='COLOR')
         col.prop(scene,'viewPlane',text='')
 
 
@@ -178,7 +179,8 @@ class MeasureitArchMainPanel(Panel):
         op.calledFromGroup = False
 
         col = box.column(align=True)
-        col.prop_search(scene,'measureit_arch_default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
+        if hasGen:
+            col.prop_search(scene,'measureit_arch_default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
 
         # ------------------------------
         # Annotation Tools
@@ -191,11 +193,12 @@ class MeasureitArchMainPanel(Panel):
         col.operator("measureit_arch.addannotationbutton", text="Annotation", icon="FONT_DATA")
 
         col = box.column(align=True)
-        col.prop_search(scene,'measureit_arch_default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
+        if hasGen:
+            col.prop_search(scene,'measureit_arch_default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
         # ------------------------------
         # Debug data
         # ------------------------------
-        debug = True
+        debug = False
         if debug:
             box = layout.box()
             row = box.row(align=False)

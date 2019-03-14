@@ -279,6 +279,8 @@ def render_main(self, context, animation=False):
                     measureGen = myobj.DimensionGenerator[0]
                     for linDim in measureGen.alignedDimensions:
                         draw_alignedDimension(context, myobj, measureGen,linDim)
+                    for dim in measureGen.angleDimensions:
+                        draw_angleDimension(context, myobj, measureGen,dim)
 
                 if 'LineGenerator' in myobj:
                     # Set 3D Projection Martix
