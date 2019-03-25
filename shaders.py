@@ -50,7 +50,6 @@ class Base_Shader_2D ():
             fragColor = color;
 
         }
-
     '''
 
     geometry_shader = '''
@@ -172,11 +171,12 @@ class Dashed_Shader_3D ():
         uniform vec4 finalColor;
         
         in float v_ArcLength;
-        
+        out vec4 fragColor;
+
         void main()
         {
             if (step(sin(v_ArcLength * u_Scale), 0.5) == 1) discard;
-            gl_FragColor = finalColor;
+            fragColor = finalColor;
         }
     '''
 
@@ -253,9 +253,11 @@ class Text_Shader():
 
         in vec2 uvInterp;
 
+        out vec4 fragColor;
+
         void main()
         {
-            gl_FragColor = texture(image, uvInterp);
+            fragColor = texture(image, uvInterp);
         }
     '''
 
