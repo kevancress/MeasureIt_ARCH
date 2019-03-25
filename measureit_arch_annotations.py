@@ -98,7 +98,7 @@ Object.AnnotationGenerator = CollectionProperty(type=AnnotationContainer)
 class AddAnnotationButton(Operator):
     bl_idname = "measureit_arch.addannotationbutton"
     bl_label = "Add"
-    bl_description = "Add a new Annotation (For Mesh Objects Select 1 Vertex)"
+    bl_description = "Add a new Annotation (For Mesh Objects Select 1 Vertex in Edit Mode)"
     bl_category = 'MeasureitArch'
 
     # ------------------------------
@@ -110,7 +110,9 @@ class AddAnnotationButton(Operator):
         if o is None:
             return False
         else:
-            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
+            if o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
+                return True
+            elif o.type == "MESH" and  bpy.context.mode == 'EDIT_MESH':
                 return True
             else:
                 return False
