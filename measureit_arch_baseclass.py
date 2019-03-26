@@ -49,8 +49,7 @@ class BaseProp:
 
     lineWeight: IntProperty(name="lineWeight",
                 description="Lineweight",
-                min = 1,
-                max = 10)
+                min = 1)
 
     free: BoolProperty(name="annotationFree",
                 description="This annotation is free and can be deleted",

@@ -55,18 +55,12 @@ class Base_Shader_2D ():
     geometry_shader = '''
         layout(lines) in;
         layout(triangle_strip, max_vertices = 10) out;
-        out vec4 fColor;
 
-        uniform float renderSize;
-        uniform vec4 color;
         uniform mat4 ModelViewProjectionMatrix;
         uniform vec2 Viewport;
         uniform float thickness;
 
         float aspect = Viewport.x/Viewport.y;
-        
-
-        // scale thickness from meaningful user input to usable value
 
         void main() {
             //calculate line normal
@@ -149,33 +143,82 @@ class Base_Shader_3D ():
 class Dashed_Shader_3D ():
 
     vertex_shader = '''
-    uniform mat4 ModelViewProjectionMatrix;
+        uniform mat4 ModelViewProjectionMatrix;
 
-    in vec3 pos;
-    in float arcLength;    
-    
-    out float v_ArcLength;
+        in vec3 pos;
+        in float arcLength;    
+        
+        out float v_ArcLength;
 
-    vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0f);
-    vec4 offset = vec4(0,0,0,0);
+        vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0f);
+        vec4 offset = vec4(0,0,0,0);
 
-    void main()
-    {
-        v_ArcLength = arcLength;
-        gl_Position = project + offset;
-    }
+        void main()
+        {
+            v_ArcLength = arcLength;
+            gl_Position = project + offset;
+        }
+    '''
+    geometry_shader = '''
+        layout(lines) in;
+        layout(triangle_strip, max_vertices = 10) out;
+        in float v_ArcLength[];
+        out float g_ArcLength;
+
+        uniform vec2 Viewport;
+        uniform float thickness;
+
+        float aspect = Viewport.x/Viewport.y;
+        
+        void main() {
+            //calculate line normal
+
+            vec4 p1 =  gl_in[0].gl_Position;
+            vec4 p2 =  gl_in[1].gl_Position;
+
+            vec2 ssp1 = vec2(p1.xy / p1.w);
+            vec2 ssp2 = vec2(p2.xy / p2.w);
+
+            float width = 0.00118 * thickness;
+
+            vec2 dir = normalize(ssp2 - ssp1);
+            vec2 normal = vec2(-dir[1], dir[0]);
+            
+            // get offset factor from normal and user input thicknes
+            vec2 offset = vec2(normal * width);
+            offset.x /= aspect;
+
+            vec4 coords[4];
+            coords[0] = vec4((ssp1 + offset),(p1.z/p1.w),1.0);
+            coords[1] = vec4((ssp1 - offset),(p1.z/p1.w),1.0);
+            coords[2] = vec4((ssp2 + offset),(p2.z/p2.w),1.0);
+            coords[3] = vec4((ssp2 - offset),(p2.z/p2.w),1.0);
+
+            float arcLengths[4];
+            arcLengths[0] = v_ArcLength[0];
+            arcLengths[1] = v_ArcLength[0];
+            arcLengths[2] = v_ArcLength[1];
+            arcLengths[3] = v_ArcLength[1];
+
+            for (int i = 0; i < 4; ++i) {
+                gl_Position = coords[i];
+                g_ArcLength = arcLengths[i];
+                EmitVertex();
+            }
+            EndPrimitive();
+        }  
     '''
 
     fragment_shader = '''
         uniform float u_Scale;
         uniform vec4 finalColor;
         
-        in float v_ArcLength;
+        in float g_ArcLength;
         out vec4 fragColor;
 
         void main()
         {
-            if (step(sin(v_ArcLength * u_Scale), 0.5) == 1) discard;
+            if (step(sin(g_ArcLength * u_Scale), 0.5) == 1) discard;
             fragColor = finalColor;
         }
     '''

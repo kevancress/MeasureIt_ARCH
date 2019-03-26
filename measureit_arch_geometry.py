@@ -47,11 +47,13 @@ shader = gpu.types.GPUShader(
 
 lineShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
-    Base_Shader_3D.fragment_shader)
+    Base_Shader_3D.fragment_shader,
+    geocode=Base_Shader_2D.geometry_shader)
 
 dashedLineShader = gpu.types.GPUShader(
     Dashed_Shader_3D.vertex_shader,
-    Dashed_Shader_3D.fragment_shader)
+    Dashed_Shader_3D.fragment_shader,
+    geocode=Dashed_Shader_3D.geometry_shader)
 
 pointShader = gpu.types.GPUShader(
     Point_Shader_3D.vertex_shader,
@@ -63,7 +65,8 @@ textShader = gpu.types.GPUShader(
 
 dimensionShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
-    Base_Shader_3D.fragment_shader)
+    Base_Shader_3D.fragment_shader,
+    geocode=Base_Shader_2D.geometry_shader)
 
 # -------------------------------------------------------------
 # Draw segments
@@ -169,7 +172,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glLineWidth(dimProps.lineWeight)
+        lineWeight = dimProps.lineWeight
+        viewport = [context.window.width,context.window.height]
 
         # Obj Properties
         obvertA = get_mesh_vertices(dim.dimObjectA)
@@ -253,6 +257,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
 
         #bind shader
         dimensionShader.bind()
+        dimensionShader.uniform_float("Viewport",viewport)
+        dimensionShader.uniform_float("thickness",lineWeight)
         dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         dimensionShader.uniform_float("offset", (0,0,0))
 
@@ -290,7 +296,8 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glLineWidth(dimProps.lineWeight)
+        lineWeight = dimProps.lineWeight
+        viewport = [context.window.width,context.window.height]
         bgl.glPointSize(dimProps.lineWeight)
 
         scene = context.scene
@@ -374,7 +381,10 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         pointShader.uniform_float("size", 1)
         pointShader.uniform_float("offset", -offset)
         gpu.shader.unbind()
+
         dimensionShader.bind()
+        dimensionShader.uniform_float("Viewport",viewport)
+        dimensionShader.uniform_float("thickness",lineWeight)
         dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         dimensionShader.uniform_float("offset", -offset)
 
@@ -495,6 +505,7 @@ def draw_line_group(context, myobj, lineGen):
     bgl.glDepthMask(False)
   
     viewport = [context.window.width,context.window.height]
+
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
         lineProps= lineGroup
@@ -533,9 +544,10 @@ def draw_line_group(context, myobj, lineGen):
             pointShader.uniform_float("size", 1)
             pointShader.uniform_float("offset", -offset)
             gpu.shader.unbind()
+
             lineShader.bind()
-            #lineShader.uniform_float("Viewport",viewport)
-            #lineShader.uniform_float("thickness",lineWeight)
+            lineShader.uniform_float("Viewport",viewport)
+            lineShader.uniform_float("thickness",lineWeight)
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             lineShader.uniform_float("offset", -offset)
            
@@ -561,16 +573,10 @@ def draw_line_group(context, myobj, lineGen):
             batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
             batch3d.program_set(pointShader)
             batch3d.draw()
-            
-            # Draw Lines
-            batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-            batch3d.program_set(lineShader)
-            batch3d.draw()
-            gpu.shader.unbind()
-            #Draw Hidden Lines
+
             if drawHidden == True:
                 bgl.glDepthFunc(bgl.GL_GREATER)
-                bgl.glLineWidth(lineProps.lineHiddenWeight)
+                hiddenLineWeight = lineProps.lineHiddenWeight
                 
                 rawRGB = lineProps.lineHiddenColor
                 #undo blenders Default Gamma Correction
@@ -578,6 +584,8 @@ def draw_line_group(context, myobj, lineGen):
 
                 dashedLineShader.bind()
                 dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
+                dashedLineShader.uniform_float("Viewport",viewport)
+                dashedLineShader.uniform_float("thickness",hiddenLineWeight)
                 dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
             
                 batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
@@ -585,6 +593,14 @@ def draw_line_group(context, myobj, lineGen):
                 batchHidden.draw()
                 bgl.glDepthFunc(bgl.GL_LESS)
                 gpu.shader.unbind()
+            
+            # Draw Lines
+            batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+            batch3d.program_set(lineShader)
+            batch3d.draw()
+            gpu.shader.unbind()
+            #Draw Hidden Lines
+            
     bgl.glLineWidth(1)
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -1282,7 +1298,7 @@ def draw_faces(context, myobj, region, rv3d):
             if scene.measureit_arch_debug_normals is True:
                 shader.bind()
                 #shader.uniform_float("thickness", th)
-                bgl.glLineWidth(th)
+                bgl.GPU_line_width(th)
                 shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 #bgl .glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
                 draw_arrow(txtpoint2d, point2, 10, "99", "1")

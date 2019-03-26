@@ -67,8 +67,7 @@ class LineProperties(BaseProp, PropertyGroup):
     lineHiddenWeight: IntProperty(name="lineHiddenWeight",
                         description="Hidden Line Lineweight",
                         default= 1,
-                        min = 0,
-                        max = 10)
+                        min = 0)
     
     lineHiddenDashScale: IntProperty(name="lineHiddenDashScale",
                         description="Hidden Line Dash Scale",
