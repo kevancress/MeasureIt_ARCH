@@ -1298,7 +1298,6 @@ def draw_faces(context, myobj, region, rv3d):
             if scene.measureit_arch_debug_normals is True:
                 shader.bind()
                 #shader.uniform_float("thickness", th)
-                bgl.GPU_line_width(th)
                 shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 #bgl .glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
                 draw_arrow(txtpoint2d, point2, 10, "99", "1")

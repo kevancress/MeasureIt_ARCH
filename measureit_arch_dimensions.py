@@ -739,6 +739,7 @@ class AddAlignedDimensionButton(Operator):
                 else:
                     newDimension.uses_style = False
                 
+                newDimension.lineWeight = 1
                 newDimension.dimVisibleInView = scene.camera.data
                 newDimension.dimViewPlane = scene.viewPlane
 
