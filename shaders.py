@@ -52,6 +52,25 @@ class Base_Shader_2D ():
         }
     '''
 
+
+class Base_Shader_3D ():
+
+    vertex_shader = '''
+
+        uniform mat4 ModelViewProjectionMatrix;
+        uniform float offset;
+        in vec3 pos;
+        
+        vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
+        vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
+
+        void main()
+        {
+            gl_Position = project + vecOffset;
+        }
+
+        '''
+
     geometry_shader = '''
         layout(lines) in;
         layout(triangle_strip, max_vertices = 10) out;
@@ -93,41 +112,6 @@ class Base_Shader_2D ():
             EndPrimitive();
         }  
     '''
-
-class Base_Shader_3D ():
-
-    vertex_shader = '''
-
-        uniform mat4 ModelViewProjectionMatrix;
-        uniform float offset;
-        in vec3 pos;
-        
-        vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
-        vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
-
-        void main()
-        {
-            gl_Position = project + vecOffset;
-        }
-
-        '''
-    geometry_shader = '''
-        layout(lines) in;
-        layout(line_strip, max_vertices = 4) out;
-        
-        uniform mat4 ModelViewProjectionMatrix;
-        uniform float thickness;
-        void main()
-        {
-            gl_Position = gl_in[0].gl_Position;
-            EmitVertex();
-
-            gl_Position = gl_in[1].gl_Position;
-            EmitVertex();
-
-            EndPrimitive();
-        }
-        '''
 
     fragment_shader = '''
         uniform vec4 finalColor;
@@ -313,14 +297,14 @@ class DepthOnlyFrag():
         }
     '''
 
-class Dimension_Shader ():
+class Pass_Through_Geo():
 
     geometry_shader = '''
         layout(lines) in;
         layout(line_strip, max_vertices = 4) out;
-
+        
         uniform mat4 ModelViewProjectionMatrix;
-
+        uniform float thickness;
         void main()
         {
             gl_Position = gl_in[0].gl_Position;

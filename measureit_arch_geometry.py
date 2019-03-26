@@ -48,7 +48,7 @@ shader = gpu.types.GPUShader(
 lineShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
     Base_Shader_3D.fragment_shader,
-    geocode=Base_Shader_2D.geometry_shader)
+    geocode=Base_Shader_3D.geometry_shader)
 
 dashedLineShader = gpu.types.GPUShader(
     Dashed_Shader_3D.vertex_shader,
@@ -66,7 +66,7 @@ textShader = gpu.types.GPUShader(
 dimensionShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
     Base_Shader_3D.fragment_shader,
-    geocode=Base_Shader_2D.geometry_shader)
+    geocode=Base_Shader_3D.geometry_shader)
 
 # -------------------------------------------------------------
 # Draw segments
@@ -169,7 +169,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
     if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
         # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
-        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         lineWeight = dimProps.lineWeight
@@ -293,7 +293,7 @@ def draw_angleDimension(context, myobj, DimGen, dim):
     if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
          # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
-        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         lineWeight = dimProps.lineWeight
@@ -498,7 +498,7 @@ def select_normal(myobj, dim, normDistVector, midpoint):
 def draw_line_group(context, myobj, lineGen):
     obverts = get_mesh_vertices(myobj)
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
 
     bgl.glEnable(bgl.GL_DEPTH_TEST)
@@ -610,10 +610,13 @@ def draw_annotation(context, myobj, annotationGen):
     obverts = get_mesh_vertices(myobj)
 
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
+
+    viewport = [context.window.width,context.window.height]
+    
 
     for idx in range(0, annotationGen.num_annotations):
         annotation = annotationGen.annotations[idx]
@@ -624,12 +627,14 @@ def draw_annotation(context, myobj, annotationGen):
                     annotationProps= annotationStyle
 
         if annotation.visible is True:
-            bgl.glLineWidth(annotationProps.lineWeight)
+            lineWeight = annotationProps.lineWeight
             rawRGB = annotationProps.color
             #undo blenders Default Gamma Correction
             rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
             lineShader.bind()
+            lineShader.uniform_float("Viewport",viewport)
+            lineShader.uniform_float("thickness",lineWeight)
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             if annotation.annotationAnchorObject.type == 'MESH':
                 p1 = get_point(obverts[annotation.annotationAnchor], myobj)
