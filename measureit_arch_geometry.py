@@ -700,28 +700,30 @@ def draw_text_3D(context,textobj,myobj,card):
         },
     )
 
-    # Get Buffer of Texture Indices
-    tex_buffer = bgl.Buffer(bgl.GL_INT,1,textobj['tex_buffer'].to_list())
+
     
-    # Update Texture If necessary 
-    if textobj.texture_updated is True:
-        dim = width * height * 4
-        buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
-        bgl.glActiveTexture(bgl.GL_TEXTURE0)
-        bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[0])
-        bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-        textobj.texture_updated=False
-    else:
-        bgl.glActiveTexture(bgl.GL_TEXTURE0)
-        bgl.glBindTexture(bgl.GL_TEXTURE_2D, tex_buffer[0])
+
+    dim = width * height * 4
+    buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
+    texBuf = bgl.Buffer(bgl.GL_INT, 1)
+    bgl.glGenTextures(1, texBuf)
+    bgl.glActiveTexture(bgl.GL_TEXTURE0)
+    bgl.glBindTexture(bgl.GL_TEXTURE_2D, texBuf.to_list()[0])
+
+
+    bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)
+    bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+    textobj.texture_updated=False
+
     
     # Draw Shader
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
     gpu.shader.unbind()
-    
+
+
+
 def generate_text_card(context,textobj,textProps,rotation,basePoint): 
     width = textobj.textWidth
     height = textobj.textHeight
