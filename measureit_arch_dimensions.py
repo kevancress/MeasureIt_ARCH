@@ -729,10 +729,6 @@ class AddAlignedDimensionButton(Operator):
             for newDimension in newDimensions:
                 newDimension.itemType = 'D-ALIGNED'
                 
-                tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
-                bgl.glGenTextures(1, tex_buffer)
-                newDimension['tex_buffer'] = tex_buffer.to_list()
-
                 newDimension.style = scene.measureit_arch_default_dimension_style
                 if scene.measureit_arch_default_dimension_style is not '':
                     newDimension.uses_style = True
@@ -993,11 +989,6 @@ class AddAngleButton(Operator):
 
                 newDimension = DimGen.angleDimensions.add()
                 newDimension.itemType = 'D-ANGLE'
-
-        
-                tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
-                bgl.glGenTextures(1, tex_buffer)
-                newDimension['tex_buffer'] = tex_buffer.to_list()
 
                 newDimension.dimVisibleInView = scene.camera.data
 

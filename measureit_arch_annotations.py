@@ -161,11 +161,7 @@ class AddAnnotationButton(Operator):
 
             newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
 
-            tex_buffer = bgl.Buffer(bgl.GL_INT, 1)
-            bgl.glGenTextures(1, tex_buffer)
-            newAnnotation['tex_buffer'] = tex_buffer.to_list()
-
-            newAnnotation.annotationLineWeight = (2)
+            newAnnotation.lineWeight = 1
             newAnnotation.color = (0,0,0,1)
             return {'FINISHED'}
         else:
