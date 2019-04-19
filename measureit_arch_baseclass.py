@@ -114,6 +114,22 @@ class BaseWithText(BaseProp):
     textHeight: IntProperty(name='annotationHeight',
                 description= 'Height of annotation')
 
+    #ensure endcap related properties have some value for shared methods
+    endcapSize: IntProperty(name="dimEndcapSize",
+                description="End Cap size",
+                default=15, min=6, max=500)
+
+    endcapA: EnumProperty(
+                    items=(('99', "--", "No arrow"),
+                           ('1', "Line", "The point of the arrow are lines")),
+                    name="A end",
+                    description="Add arrows to point A")
+
+    endcapB: EnumProperty(
+                    items=(('99', "--", "No arrow"),
+                           ('1', "Line", "The point of the arrow are lines")),
+                    name="B end",
+                    description="Add arrows to point A")        
 
 class DeletePropButton(Operator):
 

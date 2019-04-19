@@ -185,9 +185,13 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         units = scene.measureit_arch_units
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-        capA = dim.dimEndcapA
-        capB = dim.dimEndcapB
-        capSize = dim.dimEndcapSize
+        
+        capA = dim.endcapA
+        capB = dim.endcapB
+        capSize = dim.endcapSize
+
+        
+
         offset = dim.dimOffset
         geoOffset = dim.dimLeaderOffset
     
@@ -270,8 +274,17 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
         dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
 
-        # batch & Draw Shader
+      
+        #Collect coords and endcaps
         coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
+        ACoords = generate_end_caps(context,dim,capA,dimLineStart,userOffsetVector,textLoc)
+        for coord in ACoords:
+            coords.append(coord)
+        BCoords = generate_end_caps(context,dim,capB,dimLineEnd,userOffsetVector,textLoc)
+        for coord in BCoords:
+            coords.append(coord)
+
+        # batch & Draw Shader   
         batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
         batch.program_set(dimensionShader)
         batch.draw()
@@ -281,7 +294,6 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         bgl.glLineWidth(1)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
-
 
 def draw_angleDimension(context, myobj, DimGen, dim):
     dimProps = dim
@@ -414,7 +426,8 @@ def draw_angleDimension(context, myobj, DimGen, dim):
 
         #Reset openGL Settings
         bgl.glLineWidth(1)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDisable(bgl.GL_DEPTH_TEST)
+        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(False)
 
 def select_normal(myobj, dim, normDistVector, midpoint):
@@ -474,8 +487,6 @@ def select_normal(myobj, dim, normDistVector, midpoint):
 
             if bestNormal.dot(directionRay)<0:
                 bestNormal.negate()
-    
-    
     
     #not mesh obj
     else:
@@ -575,6 +586,7 @@ def draw_line_group(context, myobj, lineGen):
             batch3d.draw()
 
             if drawHidden == True:
+                # Invert The Depth test for hidden lines
                 bgl.glDepthFunc(bgl.GL_GREATER)
                 hiddenLineWeight = lineProps.lineHiddenWeight
                 
@@ -604,6 +616,7 @@ def draw_line_group(context, myobj, lineGen):
     bgl.glLineWidth(1)
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
+    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
     bgl.glDepthMask(True)
 
 def draw_annotation(context, myobj, annotationGen):
@@ -655,6 +668,7 @@ def draw_annotation(context, myobj, annotationGen):
             draw_text_3D(context,annotation,myobj,textcard)
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
+    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
     bgl.glDepthMask(True)
 
 def draw_text_3D(context,textobj,myobj,card):
@@ -722,7 +736,25 @@ def draw_text_3D(context,textobj,myobj,card):
     batch.draw(textShader)
     gpu.shader.unbind()
 
+def generate_end_caps(context,item,capType,pos,userOffsetVector,midpoint):
+    capCoords = []
+    size = item.endcapSize/100
+    normDistVector = Vector(pos-Vector(midpoint))
+    normDistVector.normalize()
+    if capType == 99:
+        pass
+    elif capType == '1':
+        
+        p1 = (pos - (normDistVector + userOffsetVector)*size)
+        p2 = (pos)
+        p3 = (pos - (normDistVector - userOffsetVector)*size)
 
+        capCoords.append(p1)
+        capCoords.append(p2)
+        capCoords.append(p3)
+        capCoords.append(p2)
+
+    return capCoords
 
 def generate_text_card(context,textobj,textProps,rotation,basePoint): 
     width = textobj.textWidth

@@ -85,25 +85,25 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
                     name="B end",
                     description="Add arrows to point A")   
 
-    dimEndcapA: EnumProperty(
+    endcapSize: IntProperty(name="dimEndcapSize",
+                    description="End Cap size",
+                    default=15, min=6, max=500)
+
+    endcapA: EnumProperty(
                     items=(('99', "--", "No arrow"),
                            ('1', "Line", "The point of the arrow are lines"),
                            ('2', "Triangle", "The point of the arrow is triangle"),
                            ('3', "TShape", "The point of the arrow is a T")),
                     name="A end",
                     description="Add arrows to point A")
-    
-    dimEndcapB: EnumProperty(
+
+    endcapB: EnumProperty(
                     items=(('99', "--", "No arrow"),
                            ('1', "Line", "The point of the arrow are lines"),
                            ('2', "Triangle", "The point of the arrow is triangle"),
                            ('3', "TShape", "The point of the arrow is a T")),
                     name="B end",
-                    description="Add arrows to point A")                    
-
-    dimEndcapSize: IntProperty(name="dimEndcapSize",
-                    description="Arrow size",
-                    default=15, min=6, max=500)
+                    description="Add arrows to point A")     
 
     dimRotation:FloatProperty(name='annotationOffset',
                             description='Rotation for Annotation',
@@ -605,9 +605,9 @@ def add_alignedDimension_item(layout, idx, alignedDim):
 
         if alignedDim.uses_style is False:
             col = box.column(align=True)
-            col.prop(alignedDim,'dimEndcapA', text='Arrow Start')
-            col.prop(alignedDim,'dimEndcapB', text='End')
-            col.prop(alignedDim,'dimEndcapSize', text='Arrow Size')
+            col.prop(alignedDim,'endcapA', text='Arrow Start')
+            col.prop(alignedDim,'endcapB', text='End')
+            col.prop(alignedDim,'endcapSize', text='Arrow Size')
 # -------------------------------------------------------------
 # Defines button that adds a measure segment
 #
@@ -739,9 +739,9 @@ class AddAlignedDimensionButton(Operator):
                 newDimension.dimVisibleInView = scene.camera.data
                 newDimension.dimViewPlane = scene.viewPlane
 
-                newDimension.dimEndcapA= scene.measureit_arch_glarrow_a
-                newDimension.dimEndcapB = scene.measureit_arch_glarrow_b
-                newDimension.dimEndcapSize= scene.measureit_arch_glarrow_s
+                newDimension.endcapA= scene.measureit_arch_glarrow_a
+                newDimension.endcapB = scene.measureit_arch_glarrow_b
+                newDimension.endcapSize= scene.measureit_arch_glarrow_s
                 # color
                 newDimension.color = scene.measureit_arch_default_color
                 # dist

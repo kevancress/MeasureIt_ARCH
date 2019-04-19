@@ -149,9 +149,9 @@ class RenderSegmentButton(Operator):
                 scene.frame_set(frm)
                 print("MeasureIt-ARCH: Rendering opengl frame %04d" % frm)
                 bpy.ops.render.opengl()
-                flag = render_main(self, context, True)
-                if flag is False:
-                    break
+                #flag = render_main(self, context, True)
+                #if flag is False:
+                #    break
 
             self.set_only_render(False)
             scene.frame_current = oldframe
@@ -176,15 +176,15 @@ class RenderSegmentButton(Operator):
             # loop frames
             for frm in range(scene.frame_start, scene.frame_end + 1):
                 scene.frame_set(frm)
-                print("MeasureIt-ARCH: Rendering frame %04d" % frm)
-                bpy.ops.render.render()
-                flag = render_main(self, context, True)
-                if flag is False:
-                    break
+                print("MeasureIt-ARCH: Rendering frame: " + str(frm))
+                #bpy.ops.render.render()
+                render_main(self, context, True)
+                #if flag is False:
+                #   break
 
-            scene.frame_current = oldframe
-            if flag is True:
-                self.report({'INFO'}, msg)
+            #scene.frame_current = oldframe
+            #if flag is True:
+            #    self.report({'INFO'}, msg)
 
         return {'FINISHED'}
 
@@ -356,14 +356,8 @@ def render_main(self, context, animation=False):
     if image is not None and (scene.measureit_arch_render is True or animation is True):
         ren_path = bpy.context.scene.render.filepath
         filename = "mit_frame"
-        if len(ren_path) > 0:
-            if ren_path.endswith(path.sep):
-                initpath = path.realpath(ren_path) + path.sep
-            else:
-                (initpath, filename) = path.split(ren_path)
-
         ftxt = "%04d" % scene.frame_current
-        outpath = path.realpath(path.join(initpath, filename + ftxt + ".png"))
+        outpath = (ren_path + filename + ftxt + ".png")
         save_image(self, outpath, image)
 
     # restore default value

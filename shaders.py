@@ -116,7 +116,6 @@ class Base_Shader_3D ():
     fragment_shader = '''
         uniform vec4 finalColor;
         out vec4 fragColor;
-        in vec4 fColor;
 
         void main()
         {

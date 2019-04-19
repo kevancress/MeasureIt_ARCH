@@ -84,6 +84,17 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
     annotationAnchor: IntProperty(name="annotationAnchor",
                             description="Index of Vertex that the annotation is Anchored to")
     
+    endcapSize: IntProperty(name="dimEndcapSize",
+                description="End Cap size",
+                default=15, min=6, max=500)
+
+    endcapA: EnumProperty(
+                    items=(('99', "--", "No arrow"),
+                           ('1', "Line", "The point of the arrow are lines")),
+                    name="A end",
+                    description="Add arrows to point A")  
+
+
 bpy.utils.register_class(AnnotationProperties)
 
 class AnnotationContainer(PropertyGroup):
