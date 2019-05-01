@@ -68,6 +68,7 @@ dimensionShader = gpu.types.GPUShader(
     Base_Shader_3D.fragment_shader,
     geocode=Base_Shader_3D.geometry_shader)
 
+fontSizeMult = 6
 # -------------------------------------------------------------
 # Draw segments
 #
@@ -249,7 +250,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         width = dim.textWidth
         height = dim.textHeight 
         resolution = dimProps.textResolution
-        size = dimProps.fontSize 
+        size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.15*size
         origin = Vector(textLoc)
@@ -271,8 +272,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         leadEndA = Vector(p1) + offsetDistance
         leadStartB = Vector(p2) + geoOffsetDistance
         leadEndB = Vector(p2)+offsetDistance
-        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
-        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
+        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.01))
+        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.01))
 
       
         #Collect coords and endcaps
@@ -408,9 +409,9 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         for vert in verts:
             pointCoords.append((vert*radius)+p2)
         pointCoords.append(endpointB)
-        batch3d = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
-        batch3d.program_set(pointShader)
-        batch3d.draw()
+        #batch3d = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
+        #batch3d.program_set(pointShader)
+        #batch3d.draw()
 
         # batch & Draw Shader
         coords = []
@@ -760,7 +761,7 @@ def generate_text_card(context,textobj,textProps,rotation,basePoint):
     width = textobj.textWidth
     height = textobj.textHeight
     resolution = textobj.textResolution
-    size = textProps.fontSize
+    size = textProps.fontSize/fontSizeMult
     #Define annotation Card Geometry
     square = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
 
