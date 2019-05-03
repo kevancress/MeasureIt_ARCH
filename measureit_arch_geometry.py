@@ -527,17 +527,29 @@ def draw_line_group(context, myobj, lineGen):
                     lineProps= lineStyle
             
         if lineGroup.visible and lineProps.visible:
-           
-
-            rawRGB = lineProps.color
+            
+            rawRGB = lineProps.color           
             if bpy.context.mode == 'EDIT_MESH':
                 alpha=0.3
             else:
                 alpha = rawRGB[3]
 
             #undo blenders Default Gamma Correction
-            rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),alpha)
-            
+            rgb = [pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),alpha]
+
+            #overide with theme color on selection
+            if myobj.select_get() and bpy.context.mode != 'EDIT_MESH':
+                rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
+                rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
+                rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
+                rgb[3] = alpha
+
+                if myobj.data.name == context.view_layer.objects.active.data.name:
+                    rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
+                    rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
+                    rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
+                    rgb[3] = alpha
+
             offset = (lineProps.lineDepthOffset/1000)
             drawHidden = lineProps.lineDrawHidden
             lineWeight = lineProps.lineWeight
