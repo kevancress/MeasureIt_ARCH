@@ -187,9 +187,9 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         
-        capA = dim.endcapA
-        capB = dim.endcapB
-        capSize = dim.endcapSize
+        capA = dimProps.endcapA
+        capB = dimProps.endcapB
+        capSize = dimProps.endcapSize
 
         
 
@@ -278,10 +278,10 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
       
         #Collect coords and endcaps
         coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
-        ACoords = generate_end_caps(context,dim,capA,dimLineStart,userOffsetVector,textLoc)
+        ACoords = generate_end_caps(context,dim,capA,capSize,dimLineStart,userOffsetVector,textLoc)
         for coord in ACoords:
             coords.append(coord)
-        BCoords = generate_end_caps(context,dim,capB,dimLineEnd,userOffsetVector,textLoc)
+        BCoords = generate_end_caps(context,dim,capB,capSize,dimLineEnd,userOffsetVector,textLoc)
         for coord in BCoords:
             coords.append(coord)
 
@@ -537,8 +537,8 @@ def draw_line_group(context, myobj, lineGen):
             #undo blenders Default Gamma Correction
             rgb = [pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),alpha]
 
-            #overide with theme color on selection
-            if myobj.select_get() and bpy.context.mode != 'EDIT_MESH':
+            #overide line color with theme selection colors when selected
+            if myobj.select_get() and bpy.context.mode != 'EDIT_MESH' and context.scene.measureit_arch_gl_ghost:
                 rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
                 rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
                 rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
@@ -550,6 +550,7 @@ def draw_line_group(context, myobj, lineGen):
                     rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
                     rgb[3] = alpha
 
+            #set other line properties
             offset = (lineProps.lineDepthOffset/1000)
             drawHidden = lineProps.lineDrawHidden
             lineWeight = lineProps.lineWeight
@@ -749,9 +750,9 @@ def draw_text_3D(context,textobj,myobj,card):
     batch.draw(textShader)
     gpu.shader.unbind()
 
-def generate_end_caps(context,item,capType,pos,userOffsetVector,midpoint):
+def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint):
     capCoords = []
-    size = item.endcapSize/100
+    size = capSize/100
     normDistVector = Vector(pos-Vector(midpoint))
     normDistVector.normalize()
     if capType == 99:
