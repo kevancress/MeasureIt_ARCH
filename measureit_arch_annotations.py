@@ -174,6 +174,7 @@ class AddAnnotationButton(Operator):
 
             newAnnotation.lineWeight = 1
             newAnnotation.color = (0,0,0,1)
+            newAnnotation.fontSize = 24
             return {'FINISHED'}
         else:
             self.report({'WARNING'},   

@@ -580,8 +580,10 @@ def add_alignedDimension_item(layout, idx, alignedDim):
 
             col = box.column(align=True)
             col.prop(alignedDim,'dimViewPlane', text='View Plane')
-            col.prop_search(alignedDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
-            
+
+        col.prop_search(alignedDim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+
+        if alignedDim.uses_style is False:   
             col = box.column(align=True)
             col.prop(alignedDim,'lineWeight',text='Line Weight')
         
@@ -736,7 +738,8 @@ class AddAlignedDimensionButton(Operator):
                     newDimension.uses_style = False
                 
                 newDimension.lineWeight = 1
-                newDimension.dimVisibleInView = scene.camera.data
+                if 'camera' in scene:
+                    newDimension.dimVisibleInView = scene.camera.data
                 newDimension.dimViewPlane = scene.viewPlane
 
                 newDimension.endcapA= scene.measureit_arch_glarrow_a
@@ -749,7 +752,7 @@ class AddAlignedDimensionButton(Operator):
                 newDimension.dimLeaderOffset = 0.05
                 # text
                 newDimension.text = scene.measureit_arch_gl_txt
-                newDimension.fontSize = 7
+                newDimension.fontSize = 24
                 newDimension.textResolution = 150
                 newDimension.textAlignment = 'C'
                 # Sum group
