@@ -88,6 +88,20 @@ def save_handler(dummy):
 bpy.app.handlers.load_post.append(load_handler)
 bpy.app.handlers.save_pre.append(save_handler)
 
+
+#class MeasureIt_nav_button(Panel):
+#    bl_space_type = 'PROPERTIES'
+#    bl_region_type = 'NAVIGATION_BAR'
+#    bl_label = "Navigation Bar"
+#   bl_options = {'HIDE_HEADER'}
+#
+#    def draw(self, context):
+#        layout = self.layout
+#        layout.scale_x = 1.4
+#        layout.scale_y = 1.4
+#        layout.operator("measureit_arch.addaligneddimensionbutton", text="Aligned", icon="DRIVER_DISTANCE")
+       
+
 # ------------------------------------------------------------------
 # Define panel class for main functions.
 # ------------------------------------------------------------------

@@ -50,11 +50,17 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 # Define panel class for render functions.
 # ------------------------------------------------------------------
 class MeasureitArchRenderPanel(Panel):
-    bl_idname = "measureit_arch_render_panel"
-    bl_label = "MeasureIt-ARCH Render"
     bl_space_type = 'PROPERTIES'
-    bl_region_type = "WINDOW"
-    bl_context = "render"
+    bl_region_type = 'WINDOW'
+    bl_context = "output"
+    bl_options = {'HIDE_HEADER'}
+    bl_label = "MeasureIt-ARCH Render"
+
+    #bl_idname = "measureit_arch_render_panel"
+    #bl_label = "MeasureIt-ARCH Render"
+    #bl_space_type = 'PROPERTIES'
+    #bl_region_type = "WINDOW"
+    #bl_context = "render"
 
     # ------------------------------
     # Draw UI
@@ -67,9 +73,11 @@ class MeasureitArchRenderPanel(Panel):
 
         # Render settings
         col = layout.column()
-
-
-        col.operator("measureit_arch.rendersegmentbutton", icon='RENDER_STILL')
+        col.label(text="MeasureIt-ARCH Render")
+        col = layout.column()
+        col.scale_y = 2 
+        col.operator("measureit_arch.rendersegmentbutton", icon='RENDER_STILL', text= "MeasureIt-ARCH Render")
+        col = layout.column()
         col.prop(scene, "measureit_arch_render_type")
 
         col.prop(scene, "measureit_arch_render", text="Save render image")

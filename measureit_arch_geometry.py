@@ -290,7 +290,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         batch.program_set(dimensionShader)
         batch.draw()
         gpu.shader.unbind()
-        
+
         #Reset openGL Settings
         bgl.glLineWidth(1)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
