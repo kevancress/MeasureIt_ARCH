@@ -44,6 +44,8 @@ class StyleContainer(PropertyGroup):
     style_num: IntProperty(name='Number of styles', min=0, max=1000, default=0,
                                 description='Number total of measureit_arch Dimension Styles')
     
+    active_style_index: IntProperty(name='Active Style Index', min=0, max=1000, default=0,
+                                description='Index of the current Style')
             
     # Array of styles
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
