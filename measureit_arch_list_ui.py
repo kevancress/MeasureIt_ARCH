@@ -43,17 +43,37 @@ class M_ARCH_UL_styles_list(bpy.types.UIList):
         gen = data
         # draw_item must handle the three layout types... Usually 'DEFAULT' and 'COMPACT' can share the same code.
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.use_property_decorate = False
             # You should always start your row layout by a label (icon + text), or a non-embossed text field,
             # this will also make the row easily selectable in the list! The later also enables ctrl-click rename.
             # We use icon_value of label, as our given icon is an integer value, not an enum ID.
             # Note "data" names should never be translated!
             row = layout.row(align=True)
-            row.prop(item, "name", text="", emboss=False, icon_value=287)
+            subrow = row.row()
+            subrow.prop(item, "name", text="",emboss=False,icon='MESH_CUBE')
             if item.visible:
                 visIcon = 'HIDE_OFF'
             else:
                 visIcon = 'HIDE_ON'
-            row.prop(item, "visible", text="", emboss=False, icon = visIcon)
+
+            if item.isOutline:
+                outIcon = 'SEQ_CHROMA_SCOPE'
+            else:
+                outIcon = 'VOLUME'
+
+            if item.lineDrawHidden:
+                hiddenIcon = 'MOD_WIREFRAME'
+            else:
+                hiddenIcon = 'MESH_CUBE'
+            subrow = row.row()
+            subrow.scale_x = 0.4
+            subrow.prop(item, 'color',emboss=True, text="")
+            subrow = row.row(align=True)
+            subrow.prop(item, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
+            subrow.prop(item, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
+            subrow.prop(item, "visible", text="", icon = visIcon)
+            
+            
 
         # 'GRID' layout type should be as compact as possible (typically a single icon!).
         elif self.layout_type in {'GRID'}:
@@ -70,7 +90,8 @@ class UIStylesList(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-
+        layout.use_property_split = True
+        #layout.use_property_decorate = False
         
         obj = context.object
         if 'StyleGenerator' in context.scene:     
@@ -81,7 +102,7 @@ class UIStylesList(bpy.types.Panel):
             # The first one is the identifier of the registered UIList to use (if you want only the default list,
             # with no custom draw code, use "UI_UL_list").\
             row = layout.row()
-            row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "line_groups", StyleGen, "active_style_index")
+            row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "line_groups", StyleGen, "active_style_index",rows=2, type='DEFAULT')
 
             col = row.column(align=True)
             col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
@@ -91,6 +112,10 @@ class UIStylesList(bpy.types.Panel):
             op.is_style = True
 
             col = layout.column()
+            activeLineStyle = StyleGen.line_groups[StyleGen.active_style_index]
+            col.prop(activeLineStyle, 'color', text="Color")
+            col.prop(activeLineStyle, 'lineWeight', text="Lineweight" )
+            col.prop(activeLineStyle, 'lineDepthOffset', text="Z Offset")
             delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
             delOp.is_style = True
             # The second one can usually be left as an empty string.
