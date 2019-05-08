@@ -148,69 +148,6 @@ class MeasureitArchDimensionSettingsPanel(Panel):
             if scene.measureit_arch_ovr_font_align == 'L':
                 col.prop(scene, 'measureit_arch_ovr_font_rotation', text="Rotation")
 
-class MeasureitArchDimensionStylesPanel(Panel):
-    bl_idname = "measureit_arch.dim_styles"
-    bl_label = "Styles"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = "WINDOW"
-    bl_context = 'scene'
-    bl_options = {'DEFAULT_CLOSED'}
-
-    
-    # ------------------------------
-    # Draw UI
-    # ------------------------------
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-        scene = context.scene
-        #-------------------
-        # Add Styles to Panel
-        #--------------------
-        col = layout.column()
-        
-        
-        if 'StyleGenerator' in context.scene:          
-            StyleGen = scene.StyleGenerator[0]
-            col.operator("measureit_arch.addstylebutton", text="Add")
-            
-            col = layout.column(align=True)
-            row = col.row(align=True)
-            exp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Expand All", icon="ADD")
-            exp.state = True
-            exp.is_style = True
-
-            clp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Collapse All", icon="REMOVE")
-            clp.state = False
-            clp.is_style = True
-
-            annotationStyles = StyleGen.annotations
-            lineStyles = StyleGen.line_groups
-            alignedDimStyles = StyleGen.alignedDimensions
-            
-            
-            idx = 0
-            for annoStyle in annotationStyles:
-                add_annotation_item(layout,idx,annoStyle)
-                idx += 1
-
-            idx = 0
-            for alignedDimStyle in alignedDimStyles:
-                add_alignedDimension_item(layout,idx,alignedDimStyle)
-                idx += 1
-
-            idx = 0
-            for lineStyle in lineStyles:
-                add_line_item(layout,idx,lineStyle)
-                idx += 1
-            
-            col = layout.column()
-            delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
-            delOp.is_style = True
-        else:
-            col.operator("measureit_arch.addstylebutton", text="Use Styles", icon="ADD")
-
 class AddStyleButton(Operator):
     bl_idname = "measureit_arch.addstylebutton"
     bl_label = "Add"
