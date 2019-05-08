@@ -351,6 +351,7 @@ def draw_line_style_row(line,layout):
     subrow = row.row()
     subrow.scale_x = 0.5
     subrow.prop(line, 'color',emboss=True, text="")
+    subrow.separator()
     subrow = row.row(align=True)
     subrow.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
     subrow.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
@@ -358,7 +359,7 @@ def draw_line_style_row(line,layout):
 
 def draw_line_style_settings(line,layout):
     col = layout.column(align=True)
-    col.label(text= line.name + ' Settings')
+    col.label(text= line.name + ' Settings:')
     col.prop(line, 'color', text="Color")
     col.prop(line, 'lineWeight', text="Lineweight" )
     col.prop(line, 'lineDepthOffset', text="Z Offset")
@@ -389,7 +390,7 @@ def draw_annotation_style_row(annotation,layout):
 
 def draw_annotation_style_settings(annotation,layout):
     col = layout.column()
-    col.label(text=annotation.name  + ' Settings')
+    col.label(text=annotation.name  + ' Settings:')
 
     split = layout.split(factor=0.485)
     col = split.column()
@@ -428,7 +429,7 @@ def draw_dimension_style_row(dim,layout):
 def draw_dim_style_settings(dim,layout):
 
     col = layout.column()
-    col.label(text=dim.name  + ' Settings')
+    col.label(text=dim.name  + ' Settings:')
     
     split = layout.split(factor=0.485)
     col = split.column()

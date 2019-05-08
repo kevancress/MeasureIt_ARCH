@@ -27,7 +27,7 @@ import bpy
 import blf
 import bgl
 import gpu
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList
 from bpy.props import (
         CollectionProperty,
         FloatVectorProperty,
@@ -100,6 +100,7 @@ bpy.utils.register_class(AnnotationProperties)
 class AnnotationContainer(PropertyGroup):
     num_annotations: IntProperty(name='Number of Annotations', min=0, max=1000, default=0,
                                 description='Number total of Annotations')
+    active_annotation_index: IntProperty(name='Active Annotation Index')
     # Array of segments
     annotations: CollectionProperty(type=AnnotationProperties)
 
@@ -182,7 +183,125 @@ class AddAnnotationButton(Operator):
 
         return {'CANCELLED'}
 
-class MeasureitArchAnnotationsPanel(Panel):
+
+class M_ARCH_UL_annotations_list(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
+        scene = bpy.context.scene
+        hasGen = False
+        if 'StyleGenerator' in scene:
+            StyleGen = scene.StyleGenerator[0]
+            hasGen = True
+        
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            annotation = item
+            layout.use_property_decorate = False
+            row = layout.row(align=True)
+            subrow = row.row()
+            subrow.prop(annotation, "text", text="",emboss=False,icon='FONT_DATA')
+            
+            if annotation.visible: visIcon = 'HIDE_OFF'
+            else: visIcon = 'HIDE_ON'
+
+            if annotation.uses_style: styleIcon = 'LINKED'
+            else: styleIcon = 'UNLINKED'
+            
+            subrow = row.row(align=True)
+            if not annotation.uses_style:
+                subrow = row.row()
+                subrow.scale_x = 0.6
+                subrow.prop(annotation, 'color', text="" )
+            else:
+                row.prop_search(annotation,'style', StyleGen,'annotations',text="", icon='COLOR')
+                row.separator()
+
+            if hasGen:
+                row = row.row(align=True)
+                row.prop(annotation, 'uses_style', text="",toggle=True, icon=styleIcon,emboss=False)
+            
+            row.prop(annotation, "visible", text="", icon = visIcon)
+
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon='MESH_CUBE')
+
+class OBJECT_PT_UIAnnotations(Panel):
+    """Creates a Panel in the Object properties window"""
+    bl_label = "MeasureIt-ARCH Anotations"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        
+        obj = context.object
+        if context.object is not None:
+            if 'AnnotationGenerator' in context.object:     
+                scene = context.scene
+                annoGen = context.object.AnnotationGenerator[0]
+
+                row = layout.row()
+                
+                # Draw The UI List
+                row.template_list("M_ARCH_UL_annotations_list", "", annoGen, "annotations", annoGen, "active_annotation_index",rows=2, type='DEFAULT')
+                
+                # Operators Next to List
+                col = row.column(align=True)
+                op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
+                op.tag = annoGen.active_annotation_index  # saves internal data
+                op.item_type = 'A'
+                op.is_style = False
+                col.separator()
+
+
+                
+                # Settings Below List
+                col = layout.column()
+                if len(annoGen.annotations) > 0 and  annoGen.active_annotation_index < len(annoGen.annotations):
+                    annotation = annoGen.annotations[annoGen.active_annotation_index]
+                    
+                    if not annotation.uses_style:
+                        col = layout.column(align=True)
+                        col.label(text= annotation.text + ' Settings:')
+
+                        split = layout.split(factor=0.485)
+                        col = split.column()
+                        col.alignment ='RIGHT'
+                        col.label(text='Font')
+                        col = split.column(align=True)
+                        col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
+
+                        col = layout.column(align=True)
+                        col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
+                        col.prop(annotation, 'textResolution', text="Resolution")
+                        col.prop(annotation, 'fontSize', text="Size") 
+                        col.prop(annotation, 'textAlignment', text='Alignment')
+                        col.prop(annotation, 'textPosition', text='Position')
+
+                        col = layout.column(align=True)
+                        col.prop(annotation, 'lineWeight', text="Line Weight" )
+
+                    else:
+                        col.label(text= annotation.text + ' Uses Style Settings')
+                    
+                    col = layout.column()
+                    col.prop(annotation, 'annotationOffset', text='Offset')
+                    col.prop(annotation, 'annotationRotation', text='Rotation')
+                    col.prop(annotation,'textFlippedX',text='Flip Text X')
+                    col.prop(annotation,'textFlippedY',text='Flip Text Y')
+                # Delete Operator (Move to drop down menu next to list)
+                col = layout.column()
+                delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
+                delOp.is_style = False
+                delOp.item_type = 'A'
+ 
+
+
+
+
+
+class MeasureitArchAnnotationsPanel(Panel): # SOON TO BE LEGACY
     bl_idname = "annotations"
     bl_label = "Annotations"
     bl_space_type = "PROPERTIES"

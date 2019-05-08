@@ -45,7 +45,6 @@ class SingleLineProperties(PropertyGroup):
                         
     pointB: IntProperty(name = "pointB",
                         description = "Second vertex index of the line")
-
 bpy.utils.register_class(SingleLineProperties)
 
 class LineProperties(BaseProp, PropertyGroup):
@@ -90,7 +89,6 @@ class LineProperties(BaseProp, PropertyGroup):
                         default = 0.0)
     #collection of indicies                        
     singleLine: CollectionProperty(type=SingleLineProperties)
-
 bpy.utils.register_class(LineProperties)
 
 class LineContainer(PropertyGroup):
@@ -99,7 +97,6 @@ class LineContainer(PropertyGroup):
     # Array of segments
     line_groups: CollectionProperty(type=LineProperties)
     active_line_index: IntProperty(name='Active Line Index')
-
 bpy.utils.register_class(LineContainer)
 Object.LineGenerator = CollectionProperty(type=LineContainer)
 
@@ -154,6 +151,7 @@ class AddLineButton(Operator):
                     lGroup.uses_style = False
                 lGroup.lineWeight = 1     
                 lGroup.lineColor = scene.measureit_arch_default_color
+                lGroup.name = 'Line ' + str(len(lineGen.line_groups))
                 
                 for x in range (0, len(mylist)-1, 2):
                     sLine = lGroup.singleLine.add()
@@ -176,7 +174,6 @@ class AddLineButton(Operator):
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
-
 
 class M_ARCH_UL_lines_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
@@ -209,6 +206,7 @@ class M_ARCH_UL_lines_list(UIList):
             if not line.uses_style:
                 subrow.scale_x = 0.5
                 subrow.prop(line, 'color',emboss=True, text="")
+                subrow.separator()
                 row.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
                 row.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
             else:
@@ -268,6 +266,7 @@ class OBJECT_PT_UILines(Panel):
                     line = lineGen.line_groups[lineGen.active_line_index]
                     
                     if not line.uses_style:
+                        col.label(text= line.name + ' Settings:')
                         col.prop(line, 'lineWeight', text="Lineweight" )
                         col.prop(line, 'lineDepthOffset', text="Z Offset")
 
@@ -277,14 +276,14 @@ class OBJECT_PT_UILines(Panel):
                         col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
                         col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
                         col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
-
+                    else:
+                        col.label(text= line.name + ' Uses Style Settings')
                 # Delete Operator (Move to drop down menu next to list)
                 col = layout.column()
                 delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
                 delOp.is_style = False
                 delOp.item_type = 'L'
-
-            
+ 
 class AddToLineGroup(Operator):   
     bl_idname = "measureit_arch.addtolinegroup"
     bl_label = "Add Selection to Line Group"
@@ -381,7 +380,7 @@ class AddLineByProperty(Operator):
                             lGroup.uses_style = False
                         lGroup.lineWeight = 1     
                         lGroup.lineColor = scene.measureit_arch_default_color
-
+                        lGroup.name = 'Line ' + str(len(lineGen.line_groups))
                         angle = obj.data.auto_smooth_angle
                         edgesToAdd = []
 
