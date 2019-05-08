@@ -94,9 +94,14 @@ bpy.utils.register_class(LineProperties)
 class LineContainer(PropertyGroup):
     line_num: IntProperty(name='Number of Line Groups', min=0, max=1000, default=0,
                                 description='Number total of line groups')
+    
+    active_line_index: IntProperty(name='Active Line Index')
+
+    show_line_settings: BoolProperty(name='Show Line Settings', default=False)
+
     # Array of segments
     line_groups: CollectionProperty(type=LineProperties)
-    active_line_index: IntProperty(name='Active Line Index')
+
 bpy.utils.register_class(LineContainer)
 Object.LineGenerator = CollectionProperty(type=LineContainer)
 
@@ -233,6 +238,7 @@ class OBJECT_PT_UILines(Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
         
         obj = context.object
         if context.object is not None:
@@ -261,23 +267,31 @@ class OBJECT_PT_UILines(Panel):
 
                 
                 # Settings Below List
-                col = layout.column()
+                box = layout.box()
+                col = box.column()
                 if len(lineGen.line_groups) > 0 and  lineGen.active_line_index < len(lineGen.line_groups):
                     line = lineGen.line_groups[lineGen.active_line_index]
-                    
-                    if not line.uses_style:
-                        col.label(text= line.name + ' Settings:')
-                        col.prop(line, 'lineWeight', text="Lineweight" )
-                        col.prop(line, 'lineDepthOffset', text="Z Offset")
+                    if lineGen.show_line_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
+                    else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
+                    if line.uses_style: settingsIcon = 'DOT'
 
-                        col = layout.column(align=True)
-                        if line.lineDrawHidden is True: col.enabled = True
-                        else: col.enabled = False
-                        col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
-                        col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
-                        col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
-                    else:
-                        col.label(text= line.name + ' Uses Style Settings')
+                    row = col.row()
+                    row.prop(lineGen, 'show_line_settings', text="", icon=settingsIcon,emboss=False)
+                    if not line.uses_style: row.label(text= line.name + ' Settings:')
+                    else: row.label(text= line.name + ' Uses Style Settings')
+
+                    if lineGen.show_line_settings:
+                        if not line.uses_style:
+                            col.prop(line, 'lineWeight', text="Lineweight" )
+                            col.prop(line, 'lineDepthOffset', text="Z Offset")
+
+                            col = box.column(align=True)
+                            if line.lineDrawHidden is True: col.enabled = True
+                            else: col.enabled = False
+                            col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
+                            col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
+                            col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+
                 # Delete Operator (Move to drop down menu next to list)
                 col = layout.column()
                 delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")

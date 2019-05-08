@@ -326,7 +326,6 @@ class DimensionContainer(PropertyGroup):
     measureit_arch_segments = CollectionProperty(type=MeasureitArchProperties)
     alignedDimensions = CollectionProperty(type=AlignedDimensionProperties)
     angleDimensions = CollectionProperty(type=AngleDimensionProperties)
-
 bpy.utils.register_class(DimensionContainer)
 Object.DimensionGenerator = CollectionProperty(type=DimensionContainer)
 

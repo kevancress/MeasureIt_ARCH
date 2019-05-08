@@ -60,7 +60,6 @@ def update_custom_props(self,context):
 
 class CustomProperties(PropertyGroup):
     name: StringProperty(name='Custom Properties')
-
 bpy.utils.register_class(CustomProperties)
 
 class AnnotationProperties(BaseWithText,PropertyGroup):
@@ -93,17 +92,15 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
                            ('1', "Line", "The point of the arrow are lines")),
                     name="A end",
                     description="Add arrows to point A")  
-
-
 bpy.utils.register_class(AnnotationProperties)
 
 class AnnotationContainer(PropertyGroup):
     num_annotations: IntProperty(name='Number of Annotations', min=0, max=1000, default=0,
                                 description='Number total of Annotations')
     active_annotation_index: IntProperty(name='Active Annotation Index')
+    show_anotation_settings: BoolProperty(name='Show Annotation Settings',default=False)
     # Array of segments
     annotations: CollectionProperty(type=AnnotationProperties)
-
 bpy.utils.register_class(AnnotationContainer)
 Object.AnnotationGenerator = CollectionProperty(type=AnnotationContainer)
 
@@ -183,7 +180,6 @@ class AddAnnotationButton(Operator):
 
         return {'CANCELLED'}
 
-
 class M_ARCH_UL_annotations_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
         scene = bpy.context.scene
@@ -234,6 +230,7 @@ class OBJECT_PT_UIAnnotations(Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
         
         obj = context.object
         if context.object is not None:
@@ -257,42 +254,47 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                 
                 # Settings Below List
-                col = layout.column()
+                box = layout.box()
+                col = box.column()
                 if len(annoGen.annotations) > 0 and  annoGen.active_annotation_index < len(annoGen.annotations):
                     annotation = annoGen.annotations[annoGen.active_annotation_index]
-                    
-                    if not annotation.uses_style:
-                        col = layout.column(align=True)
-                        col.label(text= annotation.text + ' Settings:')
 
-                        split = layout.split(factor=0.485)
-                        col = split.column()
-                        col.alignment ='RIGHT'
-                        col.label(text='Font')
-                        col = split.column(align=True)
-                        col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
+                    if annoGen.show_anotation_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
+                    else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
 
-                        col = layout.column(align=True)
-                        col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
-                        col.prop(annotation, 'textResolution', text="Resolution")
-                        col.prop(annotation, 'fontSize', text="Size") 
-                        col.prop(annotation, 'textAlignment', text='Alignment')
-                        col.prop(annotation, 'textPosition', text='Position')
+                    row = col.row()
+                    row.prop(annoGen, 'show_anotation_settings', text="", icon=settingsIcon,emboss=False)
+                    row.label(text= annotation.text + ' Settings:')
 
-                        col = layout.column(align=True)
-                        col.prop(annotation, 'lineWeight', text="Line Weight" )
+                    if annoGen.show_anotation_settings:
+                        if not annotation.uses_style:
+                            split = box.split(factor=0.485)
+                            col = split.column()
+                            col.alignment ='RIGHT'
+                            col.label(text='Font')
+                            col = split.column(align=True)
+                            col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
 
-                    else:
-                        col.label(text= annotation.text + ' Uses Style Settings')
-                    
-                    col = layout.column()
-                    col.prop(annotation, 'annotationOffset', text='Offset')
-                    col.prop(annotation, 'annotationRotation', text='Rotation')
-                    col.prop(annotation,'textFlippedX',text='Flip Text X')
-                    col.prop(annotation,'textFlippedY',text='Flip Text Y')
+                            col = box.column(align=True)
+                            col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
+                            col.prop(annotation, 'textResolution', text="Resolution")
+                            col.prop(annotation, 'fontSize', text="Size") 
+                            col.prop(annotation, 'textAlignment', text='Alignment')
+                            col.prop(annotation, 'textPosition', text='Position')
+
+                            col = box.column(align=True)
+                            col.prop(annotation, 'lineWeight', text="Line Weight" )
+                        
+                        col = box.column()
+                        col.prop(annotation, 'annotationOffset', text='Offset')
+                        col.prop(annotation, 'annotationRotation', text='Rotation')
+                        col.prop(annotation,'textFlippedX',text='Flip Text X')
+                        col.prop(annotation,'textFlippedY',text='Flip Text Y')
+
                 # Delete Operator (Move to drop down menu next to list)
                 col = layout.column()
                 delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
                 delOp.is_style = False
                 delOp.item_type = 'A'
+ 
  

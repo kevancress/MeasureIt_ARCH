@@ -60,7 +60,6 @@ def recalc_index(self,context):
             style.itemIndex = id_a
             id_a += 1
 
-
 class StyleWrapper(PropertyGroup):
     itemType:EnumProperty(
                 items=(('L', "Line", ""),
@@ -70,19 +69,23 @@ class StyleWrapper(PropertyGroup):
                 description="Set Font Position",
                 update=recalc_index)
     itemIndex: IntProperty(name='Item Index')
-
 bpy.utils.register_class(StyleWrapper)
 
 class StyleContainer(PropertyGroup):
     active_style_index: IntProperty(name='Active Style Index', min=0, max=1000, default=0,
                                 description='Index of the current Style')
-            
+    
+    show_style_settings: BoolProperty(name='Show Style Settings', default=False)
+
     # Array of styles
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
+
     annotations: CollectionProperty(type=AnnotationProperties)
+
     line_groups: CollectionProperty(type=LineProperties)
-    wrappedStyles: CollectionProperty(type=StyleWrapper)
-    
+
+    wrappedStyles: CollectionProperty(type=StyleWrapper) 
+
 bpy.utils.register_class(StyleContainer)
 Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
 
@@ -123,6 +126,7 @@ class SCENE_PT_UIStyles(Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
         
         obj = context.object
         if 'StyleGenerator' in context.scene:     
@@ -142,21 +146,36 @@ class SCENE_PT_UIStyles(Panel):
 
             
             # Settings Below List
-            col = layout.column()
+            box = layout.box()
+            col = box.column()
             if len(StyleGen.wrappedStyles) > 0 and  StyleGen.active_style_index < len(StyleGen.wrappedStyles):
                 activeWrapperItem = StyleGen.wrappedStyles[StyleGen.active_style_index]
-                # Show Line Settings
+
                 if activeWrapperItem.itemType == 'L':
-                    activeLineStyle = StyleGen.line_groups[activeWrapperItem.itemIndex]
-                    draw_line_style_settings(activeLineStyle,layout)
-                # Show Annotation Settings
+                    item = StyleGen.line_groups[activeWrapperItem.itemIndex]
                 if activeWrapperItem.itemType == 'A':
-                    activeAnnoStyle = StyleGen.annotations[activeWrapperItem.itemIndex]
-                    draw_annotation_style_settings(activeAnnoStyle,layout)
-                # Show Dimension Settings
+                    item = StyleGen.annotations[activeWrapperItem.itemIndex]
                 if activeWrapperItem.itemType == 'D':
-                    activeDimStyle = StyleGen.alignedDimensions[activeWrapperItem.itemIndex]
-                    draw_dim_style_settings(activeDimStyle,layout)
+                    item = StyleGen.alignedDimensions[activeWrapperItem.itemIndex]
+
+                if StyleGen.show_style_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
+                else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
+
+                row = col.row()
+                row.prop(StyleGen, 'show_style_settings', text="", icon=settingsIcon,emboss=False)
+
+                row.label(text= item.name + ' Settings:')
+                if StyleGen.show_style_settings:
+                    
+                    # Show Line Settings
+                    if activeWrapperItem.itemType == 'L':
+                        draw_line_style_settings(item,box)
+                    # Show Annotation Settings
+                    if activeWrapperItem.itemType == 'A':
+                        draw_annotation_style_settings(item,box)
+                    # Show Dimension Settings
+                    if activeWrapperItem.itemType == 'D':
+                        draw_dim_style_settings(item,box)
                 
 
             # Delete Operator (Move this to a menu button beside list)
@@ -358,8 +377,7 @@ def draw_line_style_row(line,layout):
     subrow.prop(line, "visible", text="", icon = visIcon)
 
 def draw_line_style_settings(line,layout):
-    col = layout.column(align=True)
-    col.label(text= line.name + ' Settings:')
+    col=layout.column()
     col.prop(line, 'color', text="Color")
     col.prop(line, 'lineWeight', text="Lineweight" )
     col.prop(line, 'lineDepthOffset', text="Z Offset")
@@ -389,9 +407,7 @@ def draw_annotation_style_row(annotation,layout):
     subrow.prop(annotation, "visible", text="", icon = visIcon,emboss=False)
 
 def draw_annotation_style_settings(annotation,layout):
-    col = layout.column()
-    col.label(text=annotation.name  + ' Settings:')
-
+    col=layout.column()
     split = layout.split(factor=0.485)
     col = split.column()
     col.alignment ='RIGHT'
@@ -428,9 +444,7 @@ def draw_dimension_style_row(dim,layout):
 
 def draw_dim_style_settings(dim,layout):
 
-    col = layout.column()
-    col.label(text=dim.name  + ' Settings:')
-    
+    col = layout.column()    
     split = layout.split(factor=0.485)
     col = split.column()
     col.alignment ='RIGHT'
