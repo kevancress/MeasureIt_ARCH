@@ -86,7 +86,6 @@ class StyleContainer(PropertyGroup):
 bpy.utils.register_class(StyleContainer)
 Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
 
-
 class M_ARCH_UL_styles_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         StyleGen = bpy.context.scene.StyleGenerator[0]
@@ -199,126 +198,6 @@ class ListDeletePropButton(Operator):
 
         recalc_index(self,context)
         return {'FINISHED'}
-
-def draw_line_style_row(line,layout):
-    row = layout.row(align=True)
-    subrow = row.row()
-
-    subrow.prop(line, "name", text="",emboss=False,icon='MESH_CUBE')
-    
-    if line.visible: visIcon = 'HIDE_OFF'
-    else: visIcon = 'HIDE_ON'
-
-    if line.isOutline: outIcon = 'SEQ_CHROMA_SCOPE' 
-    else: outIcon = 'VOLUME'
-
-    if line.lineDrawHidden: hiddenIcon = 'MOD_WIREFRAME'
-    else: hiddenIcon = 'MESH_CUBE'
-
-    subrow = row.row()
-    subrow.scale_x = 0.5
-    subrow.prop(line, 'color',emboss=True, text="")
-    subrow = row.row(align=True)
-    subrow.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
-    subrow.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
-    subrow.prop(line, "visible", text="", icon = visIcon)
-
-def draw_line_style_settings(line,layout):
-    col = layout.column(align=True)
-    col.label(text= line.name + ' Settings')
-    col.prop(line, 'color', text="Color")
-    col.prop(line, 'lineWeight', text="Lineweight" )
-    col.prop(line, 'lineDepthOffset', text="Z Offset")
-
-    
-    col = layout.column(align=True)
-    if line.lineDrawHidden is True: col.enabled = True
-    else: col.enabled = False
-    col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
-    col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
-    col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
-
-def draw_annotation_style_row(annotation,layout):
-    row = layout.row(align=True)
-    subrow = row.row()
-
-    subrow.prop(annotation, "name", text="",emboss=False,icon='FONT_DATA')
-    
-    if annotation.visible: visIcon = 'HIDE_OFF'
-    else: visIcon = 'HIDE_ON'
-    
-    subrow = row.row()
-    subrow.scale_x = 0.6
-    subrow.prop(annotation, 'color', text="" )
-
-    subrow = row.row(align=True)
-    subrow.prop(annotation, "visible", text="", icon = visIcon,emboss=False)
-
-def draw_annotation_style_settings(annotation,layout):
-    col = layout.column()
-    col.label(text=annotation.name  + ' Settings')
-
-    split = layout.split(factor=0.485)
-    col = split.column()
-    col.alignment ='RIGHT'
-    col.label(text='Font')
-    col = split.column()
-    col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
-
-    col = layout.column(align=True)
-    col.prop(annotation, 'lineWeight', text="Line Weight" )
-
-    col = layout.column(align=True)
-    col.prop(annotation, 'textResolution', text="Resolution")
-    col.prop(annotation, 'fontSize', text="Size")
-    col.prop(annotation, 'textAlignment', text='Alignment')
-    col.prop(annotation, 'textPosition', text='Position')
-
-def draw_dimension_style_row(dim,layout):
-    row = layout.row(align=True)
-    subrow = row.row()
-
-    subrow.prop(dim, "name", text="",emboss=False,icon='DRIVER_DISTANCE')
-
-    if dim.visible: visIcon = 'HIDE_OFF'
-    else: visIcon = 'HIDE_ON'
-    
-    subrow = row.row()
-    subrow.scale_x = 0.6
-    subrow.prop(dim, 'color', text="" )
-
-    subrow = row.row(align=True)
-    subrow.prop(dim, "visible", text="", icon = visIcon,emboss=False)
-
-def draw_dim_style_settings(dim,layout):
-
-    col = layout.column()
-    col.label(text=dim.name  + ' Settings')
-    
-    split = layout.split(factor=0.485)
-    col = split.column()
-    col.alignment ='RIGHT'
-    col.label(text='Font')
-    col = split.column()
-
-    col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
-
-    col = layout.column(align=True)
-    col.prop(dim,'dimViewPlane', text='View Plane')
-    col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
-    col.prop(dim,'lineWeight',text='Line Weight')
-
-    col = layout.column(align=True)
-    col.prop(dim,'fontSize',text='Font Size')
-    col.prop(dim,'textResolution',text='Resolution')
-    col.prop(dim,'textAlignment',text='Alignment')
-    col.prop(dim,'textPosition',text='Position')
-
-    col = layout.column(align=True)
-    col.prop(dim,'endcapA', text='Arrow Start')
-    col.prop(dim,'endcapB', text='End')
-    col.prop(dim,'endcapSize', text='Arrow Size')
-
 
 class MeasureitArchDimensionSettingsPanel(Panel):
     bl_idname = "measureit_arch.settings_panel"
@@ -455,5 +334,124 @@ class AddStyleButton(Operator):
             context.scene.StyleGenerator.add()
             return {'FINISHED'}
 
+def draw_line_style_row(line,layout):
+    row = layout.row(align=True)
+    subrow = row.row()
+
+    subrow.prop(line, "name", text="",emboss=False,icon='MESH_CUBE')
     
-       
+    if line.visible: visIcon = 'HIDE_OFF'
+    else: visIcon = 'HIDE_ON'
+
+    if line.isOutline: outIcon = 'SEQ_CHROMA_SCOPE' 
+    else: outIcon = 'VOLUME'
+
+    if line.lineDrawHidden: hiddenIcon = 'MOD_WIREFRAME'
+    else: hiddenIcon = 'MESH_CUBE'
+
+    subrow = row.row()
+    subrow.scale_x = 0.5
+    subrow.prop(line, 'color',emboss=True, text="")
+    subrow = row.row(align=True)
+    subrow.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
+    subrow.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
+    subrow.prop(line, "visible", text="", icon = visIcon)
+
+def draw_line_style_settings(line,layout):
+    col = layout.column(align=True)
+    col.label(text= line.name + ' Settings')
+    col.prop(line, 'color', text="Color")
+    col.prop(line, 'lineWeight', text="Lineweight" )
+    col.prop(line, 'lineDepthOffset', text="Z Offset")
+
+    
+    col = layout.column(align=True)
+    if line.lineDrawHidden is True: col.enabled = True
+    else: col.enabled = False
+    col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
+    col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
+    col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+
+def draw_annotation_style_row(annotation,layout):
+    row = layout.row(align=True)
+    subrow = row.row()
+
+    subrow.prop(annotation, "name", text="",emboss=False,icon='FONT_DATA')
+    
+    if annotation.visible: visIcon = 'HIDE_OFF'
+    else: visIcon = 'HIDE_ON'
+    
+    subrow = row.row()
+    subrow.scale_x = 0.6
+    subrow.prop(annotation, 'color', text="" )
+
+    subrow = row.row(align=True)
+    subrow.prop(annotation, "visible", text="", icon = visIcon,emboss=False)
+
+def draw_annotation_style_settings(annotation,layout):
+    col = layout.column()
+    col.label(text=annotation.name  + ' Settings')
+
+    split = layout.split(factor=0.485)
+    col = split.column()
+    col.alignment ='RIGHT'
+    col.label(text='Font')
+    col = split.column(align=True)
+    col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
+
+    col = layout.column(align=True)
+    col.prop(annotation, 'textResolution', text="Resolution")
+    col.prop(annotation, 'fontSize', text="Size")
+
+    col = layout.column(align=True)   
+    col.prop(annotation, 'textAlignment', text='Alignment')
+    col.prop(annotation, 'textPosition', text='Position')
+
+    col = layout.column(align=True)
+    col.prop(annotation, 'lineWeight', text="Line Weight" )
+
+def draw_dimension_style_row(dim,layout):
+    row = layout.row(align=True)
+    subrow = row.row()
+
+    subrow.prop(dim, "name", text="",emboss=False,icon='DRIVER_DISTANCE')
+
+    if dim.visible: visIcon = 'HIDE_OFF'
+    else: visIcon = 'HIDE_ON'
+    
+    subrow = row.row()
+    subrow.scale_x = 0.6
+    subrow.prop(dim, 'color', text="" )
+
+    subrow = row.row(align=True)
+    subrow.prop(dim, "visible", text="", icon = visIcon,emboss=False)
+
+def draw_dim_style_settings(dim,layout):
+
+    col = layout.column()
+    col.label(text=dim.name  + ' Settings')
+    
+    split = layout.split(factor=0.485)
+    col = split.column()
+    col.alignment ='RIGHT'
+    col.label(text='Font')
+    col = split.column()
+
+    col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
+
+    col = layout.column(align=True)
+    col.prop(dim,'dimViewPlane', text='View Plane')
+    col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+    col.prop(dim,'lineWeight',text='Line Weight')
+
+    col = layout.column(align=True)
+    col.prop(dim,'fontSize',text='Font Size')
+    col.prop(dim,'textResolution',text='Resolution')
+    col.prop(dim,'textAlignment',text='Alignment')
+    col.prop(dim,'textPosition',text='Position')
+
+    col = layout.column(align=True)
+    col.prop(dim,'endcapA', text='Arrow Start')
+    col.prop(dim,'endcapB', text='End')
+    col.prop(dim,'endcapSize', text='Arrow Size')
+

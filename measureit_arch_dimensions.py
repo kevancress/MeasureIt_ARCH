@@ -47,7 +47,6 @@ class MeasureitArchFaces(PropertyGroup):
                          description="Face number")
     # Array of index
     measureit_arch_index: CollectionProperty(type=MeasureitArchIndex)
-
 bpy.utils.register_class(MeasureitArchFaces)
 
 class AlignedDimensionProperties(BaseWithText,PropertyGroup):
@@ -109,7 +108,6 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
                             description='Rotation for Annotation',
                             default= 0.0,
                             subtype='ANGLE')
-
 bpy.utils.register_class(AlignedDimensionProperties)
 
 class AngleDimensionProperties(BaseWithText,PropertyGroup):
@@ -128,13 +126,9 @@ class AngleDimensionProperties(BaseWithText,PropertyGroup):
                     description='Radius Dimension',
                     default= (0.05),
                     subtype='DISTANCE')
-
 bpy.utils.register_class(AngleDimensionProperties)
 
-# ------------------------------------------------------------------
-# LEGACY Define property group class for measureit_arch data
-# ------------------------------------------------------------------
-class MeasureitArchProperties(PropertyGroup):
+class MeasureitArchProperties(PropertyGroup): # LEGACY
     style: IntProperty(name="style",
                         description="Dimension Style to use",
                         min = 0)
@@ -323,14 +317,8 @@ class MeasureitArchProperties(PropertyGroup):
 
     # Array of faces
     measureit_arch_faces: CollectionProperty(type=MeasureitArchFaces)
-
-# Register
 bpy.utils.register_class(MeasureitArchProperties)
 
-# ------------------------------------------------------------------
-# Define object class (container of segments)
-# MeasureitArch
-# ------------------------------------------------------------------
 class DimensionContainer(PropertyGroup):
     measureit_arch_num = IntProperty(name='Number of measures', min=0, max=1000, default=0,
                                 description='Number total of measureit_arch elements')
@@ -610,10 +598,7 @@ def add_alignedDimension_item(layout, idx, alignedDim):
             col.prop(alignedDim,'endcapA', text='Arrow Start')
             col.prop(alignedDim,'endcapB', text='End')
             col.prop(alignedDim,'endcapSize', text='Arrow Size')
-# -------------------------------------------------------------
-# Defines button that adds a measure segment
-#
-# -------------------------------------------------------------
+
 class AddAlignedDimensionButton(Operator):
     bl_idname = "measureit_arch.addaligneddimensionbutton"
     bl_label = "Add"
@@ -764,12 +749,7 @@ class AddAlignedDimensionButton(Operator):
 
             return {'CANCELLED'}
 
-
-# -------------------------------------------------------------
-# Defines button that adds an area measure
-#
-# -------------------------------------------------------------
-class AddAreaButton(Operator):
+class AddAreaButton(Operator): # LEGACY
     bl_idname = "measureit_arch.addareabutton"
     bl_label = "Area"
     bl_description = "(EDITMODE only) Add a new measure for area (select 1 o more faces)"
@@ -852,12 +832,6 @@ class AddAreaButton(Operator):
 
         return {'CANCELLED'}
 
-
-# -------------------------------------------------------------
-# Defines button that adds a measure segment to x/y/z origin
-#
-# -------------------------------------------------------------
-class AddSegmentOrtoButton(Operator):
     bl_idname = "measureit_arch.addsegmentortobutton"
     bl_label = "Add"
     bl_description = "(EDITMODE only) Add a new measure segment from vertex to object origin for one " \
@@ -944,11 +918,6 @@ class AddSegmentOrtoButton(Operator):
 
         return {'CANCELLED'}
 
-
-# -------------------------------------------------------------
-# Defines button that adds an angle measure
-#
-# -------------------------------------------------------------
 class AddAngleButton(Operator):
     bl_idname = "measureit_arch.addanglebutton"
     bl_label = "Angle"
@@ -1084,11 +1053,8 @@ def add_angleDimension_item(layout, idx, angleDim):
 
         col.prop(angleDim,'textFlippedX',text='Flip Text X')
         col.prop(angleDim,'textFlippedY',text='Flip Text Y')
-# -------------------------------------------------------------
-# Defines button that adds an arc measure
-#
-# -------------------------------------------------------------
-class AddArcButton(Operator):
+
+class AddArcButton(Operator): #LEGACY
     bl_idname = "measureit_arch.addarcbutton"
     bl_label = "Angle"
     bl_description = "(EDITMODE only) Add a new arc measure (select 3 vertices of the arc," \
@@ -1168,12 +1134,6 @@ class AddArcButton(Operator):
 
         return {'CANCELLED'}
 
-
-# -------------------------------------------------------------
-# Defines button that adds an origin segment
-#
-# -------------------------------------------------------------
-class AddOriginButton(Operator):
     bl_idname = "measureit_arch.addoriginbutton"
     bl_label = "Add"
     bl_description = "(OBJECT mode only) Add a new measure to origin (select object and optionally 1 vertex)"
@@ -1267,38 +1227,6 @@ class AddOriginButton(Operator):
 
         return {'CANCELLED'}
 
-
-# -------------------------------------------------------------
-# Defines button that deletes all measure segment sums
-#
-# -------------------------------------------------------------
-class DeleteAllSumButton(Operator):
-    bl_idname = "measureit_arch.deleteallsumbutton"
-    bl_label = "Delete"
-    bl_description = "Delete all sum groups"
-    bl_category = 'MeasureitArch'
-    tag= IntProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    # noinspection PyMethodMayBeStatic
-    def execute(self, context):
-        if context.object is not None:
-            if 'DimensionGenerator' in context.object:
-                mp = context.object.DimensionGenerator[0]
-                for idx in range(0, mp.measureit_arch_num):
-                    ms = mp.measureit_arch_segments[idx]
-                    ms.gltot = '99'
-
-            return {'FINISHED'}
-
-
-# -------------------------------------------------------------
-# Defines a new note
-#
-# -------------------------------------------------------------
-class AddNoteButton(Operator):
     bl_idname = "measureit_arch.addnotebutton"
     bl_label = "Note"
     bl_description = "(OBJECT mode only) Add a new note"
