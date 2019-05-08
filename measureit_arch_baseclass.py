@@ -12,10 +12,6 @@ def update_flag(self,context):
     self.text_updated = True
 
 class BaseProp:
-    name: StringProperty(name="Item Name",
-            description="Item Name",
-            default="")
-
     is_style: BoolProperty(name= "is Style",
                 description= "This property Group is a Style",
                 default=False)
@@ -29,7 +25,7 @@ class BaseProp:
                 description= 'flag when text need to be redrawn',
                 default = False)
 
-    style: StringProperty(name="Item Name",
+    style: StringProperty(name="Style Name",
             description="Item Name",
             default="",
             update = update_flag)
@@ -38,8 +34,8 @@ class BaseProp:
             description= 'flag for common operators',
             default = '')
 
-    color: FloatVectorProperty(name="dimColor",
-                description="Color for the Dimension",
+    color: FloatVectorProperty(name="Color",
+                description="Color for the Item",
                 default=(0.0,0.0,0.0, 1.0),
                 min=0,
                 max=1,
@@ -47,25 +43,25 @@ class BaseProp:
                 size=4,
                 update= update_flag)
 
-    lineWeight: IntProperty(name="lineWeight",
+    lineWeight: IntProperty(name="Line Weight",
                 description="Lineweight",
                 min = 1)
 
-    free: BoolProperty(name="annotationFree",
-                description="This annotation is free and can be deleted",
+    free: BoolProperty(name="Free",
+                description="This Item is free and can be deleted",
                 default=False)
     
     settings: BoolProperty(name= "Settings",
                 description= "Show Settings",
                 default=False)
 
-    visible: BoolProperty(name="annotationVis",
+    visible: BoolProperty(name="Visibility",
                 description="Line show/hide",
                 default=True)
 
 class BaseWithText(BaseProp):  
-    text: StringProperty(name="annotationText",
-                description="Text Associated With Annotation ",
+    text: StringProperty(name="Text",
+                description="Text Associated With Item",
                 default="",
                 update= update_flag)
 
@@ -170,6 +166,8 @@ class DeletePropButton(Operator):
             itemGroup = Generator.alignedDimensions
         elif self.item_type == 'D-ANGLE':
             itemGroup = Generator.angleDimensions
+        elif 'D' in self.item_type:
+            itemGroup = Generator.alignedDimensions
         # Delete element
         itemGroup[self.tag].free = True
         itemGroup.remove(self.tag)
@@ -212,6 +210,9 @@ class DeleteAllItemsButton(Operator):
                 StyleGen.line_groups.remove(0)
             for annotation in StyleGen.annotations:
                 StyleGen.annotations.remove(0)
+            for wrapper in StyleGen.wrappedStyles:
+                StyleGen.wrappedStyles.remove(0)
+
         else:
             
             if self.item_type is 'D':

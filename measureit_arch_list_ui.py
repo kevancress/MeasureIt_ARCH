@@ -26,64 +26,69 @@
 
 import bpy
 
-class M_ARCH_UL_styles_list(bpy.types.UIList):
-    # The draw_item function is called for each item of the collection that is visible in the list.
-    #   data is the RNA object containing the collection,
-    #   item is the current drawn item of the collection,
-    #   icon is the "computed" icon for the item (as an integer, because some objects like materials or textures
-    #   have custom icons ID, which are not available as enum items).
-    #   active_data is the RNA object containing the active property for the collection (i.e. integer pointing to the
-    #   active item of the collection).
-    #   active_propname is the name of the active property (use 'getattr(active_data, active_propname)').
-    #   index is index of the current item in the collection.
-    #   flt_flag is the result of the filtering process for this item.
-    #   Note: as index and flt_flag are optional arguments, you do not have to use/declare them here if you don't
-    #         need them.
+from bpy.types import Operator, UIList, Panel
+from bpy.props import IntProperty, StringProperty, BoolProperty
+
+from .measureit_arch_baseclass import DeletePropButton
+from .measureit_arch_styles import recalc_index
+
+
+class M_ARCH_UL_styles_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        gen = data
-        # draw_item must handle the three layout types... Usually 'DEFAULT' and 'COMPACT' can share the same code.
+        StyleGen = bpy.context.scene.StyleGenerator[0]
+        lineStyles = StyleGen.line_groups
+        annotationStyles = StyleGen.annotations
+        dimensionStyles= StyleGen.alignedDimensions
+    
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.use_property_decorate = False
-            # You should always start your row layout by a label (icon + text), or a non-embossed text field,
-            # this will also make the row easily selectable in the list! The later also enables ctrl-click rename.
-            # We use icon_value of label, as our given icon is an integer value, not an enum ID.
-            # Note "data" names should never be translated!
-            row = layout.row(align=True)
-            subrow = row.row()
-            subrow.prop(item, "name", text="",emboss=False,icon='MESH_CUBE')
-            if item.visible:
-                visIcon = 'HIDE_OFF'
-            else:
-                visIcon = 'HIDE_ON'
+            # Get correct item
+            if item.itemType == 'L':
+                item = lineStyles[item.itemIndex]
 
-            if item.isOutline:
-                outIcon = 'SEQ_CHROMA_SCOPE'
-            else:
-                outIcon = 'VOLUME'
+                row = layout.row(align=True)
+                subrow = row.row()
 
-            if item.lineDrawHidden:
-                hiddenIcon = 'MOD_WIREFRAME'
-            else:
-                hiddenIcon = 'MESH_CUBE'
-            subrow = row.row()
-            subrow.scale_x = 0.4
-            subrow.prop(item, 'color',emboss=True, text="")
-            subrow = row.row(align=True)
-            subrow.prop(item, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
-            subrow.prop(item, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
-            subrow.prop(item, "visible", text="", icon = visIcon)
+                subrow.prop(item, "name", text="",emboss=False,icon='MESH_CUBE')
+                
+                if item.visible: visIcon = 'HIDE_OFF'
+                else: visIcon = 'HIDE_ON'
+
+                if item.isOutline: outIcon = 'SEQ_CHROMA_SCOPE' 
+                else: outIcon = 'VOLUME'
+
+                if item.lineDrawHidden: hiddenIcon = 'MOD_WIREFRAME'
+                else: hiddenIcon = 'MESH_CUBE'
+
+                subrow = row.row()
+                subrow.scale_x = 0.4
+                subrow.prop(item, 'color',emboss=True, text="")
+                subrow = row.row(align=True)
+                subrow.prop(item, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
+                subrow.prop(item, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
+                subrow.prop(item, "visible", text="", icon = visIcon)
             
-            
+            elif item.itemType == 'A':
+                item = annotationStyles[item.itemIndex]
+                row = layout.row(align=True)
+                subrow = row.row()
 
-        # 'GRID' layout type should be as compact as possible (typically a single icon!).
+                subrow.prop(item, "name", text="",emboss=False,icon='FONT_DATA')
+
+            elif item.itemType == 'D':
+                item = dimensionStyles[item.itemIndex]
+                row = layout.row(align=True)
+                subrow = row.row()
+
+                subrow.prop(item, "name", text="",emboss=False,icon='DRIVER_DISTANCE')
+
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+            layout.label(text="", icon='MESH_CUBE')
 
-class UIStylesList(bpy.types.Panel):
+class SCENE_PT_UIStyles(Panel):
     """Creates a Panel in the Object properties window"""
     bl_label = "MeasureIt-ARCH Styles"
-    bl_idname = "OBJECT_PT_ui_list_example"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
@@ -91,35 +96,68 @@ class UIStylesList(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        #layout.use_property_decorate = False
         
         obj = context.object
         if 'StyleGenerator' in context.scene:     
             scene = context.scene
             StyleGen = scene.StyleGenerator[0]
 
-            # template_list now takes two new args.
-            # The first one is the identifier of the registered UIList to use (if you want only the default list,
-            # with no custom draw code, use "UI_UL_list").\
             row = layout.row()
-            row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "line_groups", StyleGen, "active_style_index",rows=2, type='DEFAULT')
-
+            
+            # Draw The UI List
+            row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "wrappedStyles", StyleGen, "active_style_index",rows=2, type='DEFAULT')
+            
+            # Operators Next to List
             col = row.column(align=True)
             col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
-            op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
+            op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
             op.tag = StyleGen.active_style_index  # saves internal data
-            op.item_type = 'L'
-            op.is_style = True
 
+            
+            # Settings Below List
             col = layout.column()
-            activeLineStyle = StyleGen.line_groups[StyleGen.active_style_index]
-            col.prop(activeLineStyle, 'color', text="Color")
-            col.prop(activeLineStyle, 'lineWeight', text="Lineweight" )
-            col.prop(activeLineStyle, 'lineDepthOffset', text="Z Offset")
+            if len(StyleGen.wrappedStyles) > 0 and  StyleGen.active_style_index < len(StyleGen.wrappedStyles):
+                activeWrapperItem = StyleGen.wrappedStyles[StyleGen.active_style_index]
+                #Show Line Settings
+                if activeWrapperItem.itemType == 'L':
+                    activeLineStyle = StyleGen.line_groups[activeWrapperItem.itemIndex]
+                    col.prop(activeLineStyle, 'color', text="Color")
+                    col.prop(activeLineStyle, 'lineWeight', text="Lineweight" )
+                    col.prop(activeLineStyle, 'lineDepthOffset', text="Z Offset")
+
+            # Delete Operator
+            col = layout.column()
+            col.label(text="") #For Spacing
             delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
-            delOp.is_style = True
-            # The second one can usually be left as an empty string.
-            # It's an additional ID used to distinguish lists in case you
-            # use the same list several times in a given area.
-            #layout.template_list("M_ARCH_UL_measure_list", "compact",  StyleGen, "line_groups",
-            #                    StyleGen, "active_style_index", type='COMPACT')
+
+class ListDeletePropButton(Operator):
+
+    bl_idname = "measureit_arch.listdeletepropbutton"
+    bl_label = "Delete property"
+    bl_description = "Delete a property"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'} 
+    tag= IntProperty()
+    item_type: StringProperty()
+    is_style: BoolProperty()
+
+    def execute(self, context):
+        # Add properties
+
+        StyleGen = context.scene.StyleGenerator[0]
+        wrapper = StyleGen.wrappedStyles[self.tag]
+
+        wrapperTag = self.tag
+        self.item_type = wrapper.itemType
+        self.tag = wrapper.itemIndex
+        self.is_style = True
+
+        StyleGen.wrappedStyles.remove(wrapperTag)
+
+        DeletePropButton.tag = self.tag
+        DeletePropButton.item_type = self.item_type
+        DeletePropButton.is_style = True
+        DeletePropButton.execute(self,context)
+
+        recalc_index(self,context)
+        return {'FINISHED'}

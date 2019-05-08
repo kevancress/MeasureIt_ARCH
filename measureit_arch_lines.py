@@ -49,14 +49,14 @@ class SingleLineProperties(PropertyGroup):
 bpy.utils.register_class(SingleLineProperties)
 
 class LineProperties(BaseProp, PropertyGroup):
-    numLines: IntProperty(name="numLines",
+    numLines: IntProperty(name="Number of Lines",
                         description="Number Of Single Lines")
 
-    lineDrawHidden: BoolProperty(name= "lineDrawHidden",
+    lineDrawHidden: BoolProperty(name= "Draw Hidden Lines",
                         description= "Draw Hidden Lines",
                         default= False)
 
-    lineHiddenColor: FloatVectorProperty(name="lineHiddenColor",
+    lineHiddenColor: FloatVectorProperty(name="Hidden Line Color",
                         description="Color for Hidden Lines",
                         default=(0.2, 0.2, 0.2, 1.0),
                         min=0.0,
@@ -64,28 +64,28 @@ class LineProperties(BaseProp, PropertyGroup):
                         subtype='COLOR',
                         size=4) 
 
-    lineHiddenWeight: IntProperty(name="lineHiddenWeight",
+    lineHiddenWeight: IntProperty(name="Hidden Line Lineweight",
                         description="Hidden Line Lineweight",
                         default= 1,
                         min = 0)
     
-    lineHiddenDashScale: IntProperty(name="lineHiddenDashScale",
+    lineHiddenDashScale: IntProperty(name="Hidden Line Dash Scale",
                         description="Hidden Line Dash Scale",
                         default= 10,
                         min = 0)
 
-    isOutline: BoolProperty(name= "isOutline",
+    isOutline: BoolProperty(name= "Is Outline",
                         description= "Line Group Is For Drawing Outlines",
                         default=False)
     
     lineTexture: PointerProperty(type= bpy.types.Texture)
 
-    useLineTexture: BoolProperty(name="useLineTexture",
+    useLineTexture: BoolProperty(name="Use Line Texture",
                         description='Use Line Texture',
                         default = False)
     #TODO: This Should be automated based on line thickness, distance from clipping plane etc... but I havent figured it out yet
     #Left as a tweak until it can be reliably calculated automatically
-    lineDepthOffset: FloatProperty(name= "lineDepthOffset",
+    lineDepthOffset: FloatProperty(name= "Line Depth Offset",
                         description= "Z buffer Offset tweak for clean rendering, TEMP",
                         default = 0.0)
     #collection of indicies                        

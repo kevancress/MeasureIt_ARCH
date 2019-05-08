@@ -34,16 +34,44 @@ from bpy.props import (
         StringProperty,
         FloatProperty,
         EnumProperty,
+        PointerProperty
         )
 from .measureit_arch_dimensions import AlignedDimensionProperties, add_alignedDimension_item
 from .measureit_arch_annotations import AnnotationProperties, add_annotation_item
 from .measureit_arch_lines import LineProperties, add_line_item
 
+def recalc_index(self,context):
+    #ensure index's are accurate
+    StyleGen = context.scene.StyleGenerator[0]
+    wrappedStyles = StyleGen.wrappedStyles
+    id_l = 0
+    id_a = 0
+    id_d = 0
+    for style in wrappedStyles:
+        if style.itemType == 'L':
+            style.itemIndex = id_l
+            id_l += 1
+        elif style.itemType == 'D':
+            style.itemIndex = id_d
+            id_d += 1
+        elif style.itemType == 'A':
+            style.itemIndex = id_a
+            id_a += 1
+
+
+class StyleWrapper(PropertyGroup):
+    itemType:EnumProperty(
+                items=(('L', "Line", ""),
+                        ('A', "Annotation", ""),
+                        ('D', "Dimension", "")),
+                name="align Font",
+                description="Set Font Position",
+                update=recalc_index)
+    itemIndex: IntProperty(name='Item Index')
+
+bpy.utils.register_class(StyleWrapper)
 
 class StyleContainer(PropertyGroup):
-    style_num: IntProperty(name='Number of styles', min=0, max=1000, default=0,
-                                description='Number total of measureit_arch Dimension Styles')
-    
     active_style_index: IntProperty(name='Active Style Index', min=0, max=1000, default=0,
                                 description='Index of the current Style')
             
@@ -51,6 +79,8 @@ class StyleContainer(PropertyGroup):
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
     annotations: CollectionProperty(type=AnnotationProperties)
     line_groups: CollectionProperty(type=LineProperties)
+    wrappedStyles: CollectionProperty(type=StyleWrapper)
+    
 bpy.utils.register_class(StyleContainer)
 Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
 
@@ -203,24 +233,36 @@ class AddStyleButton(Operator):
                     # Add properties
                     scene = context.scene
                     if 'StyleGenerator' not in bpy.context.scene:
-                        
+                        bpy.context.scene.StyleGenerator.add()
                         return {'FINISHED'}
 
                     StyleGen = scene.StyleGenerator[0]
                     annotationStyles = StyleGen.annotations
                     lineStyles = StyleGen.line_groups
                     alignedDimStyles = StyleGen.alignedDimensions
-                    
+                    styleWrappers = StyleGen.wrappedStyles
+
+                    newWrapper = styleWrappers.add()
+
                     if self.styleType is 'A':
                         newStyle = annotationStyles.add()
                         newStyle.itemType = 'A'
+                        newWrapper.itemType = 'A'
+
                     elif self.styleType is 'L':
                         newStyle = lineStyles.add()
                         newStyle.itemType = 'L'
+                        newStyle.lineWeight = 1
+                        newStyle.lineDepthOffset =1
+                        newStyle.name = 'Line Style' + str(len(lineStyles))
+                        newWrapper.itemType = 'L'
+
                     else:
                         newStyle = alignedDimStyles.add()
                         newStyle.itemType = 'D'
+                        newWrapper.itemType = 'D'
                     
+                    recalc_index(self,context)
                     newStyle.is_style = True
                     context.area.tag_redraw()
                     return {'FINISHED'}
