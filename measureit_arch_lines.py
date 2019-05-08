@@ -249,16 +249,18 @@ class OBJECT_PT_UILines(Panel):
                 
                 # Operators Next to List
                 col = row.column(align=True)
+                op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
+                op.tag = lineGen.active_line_index  # saves internal data
+                op.item_type = 'L'
+                op.is_style = False
+                col.separator()
+
                 op = col.operator('measureit_arch.addtolinegroup', text="", icon='ADD')
                 op.tag = lineGen.active_line_index  # saves internal data
                 op = col.operator('measureit_arch.removefromlinegroup', text="", icon='REMOVE')
                 op.tag = lineGen.active_line_index  # saves internal data
 
-                col.separator()
-                op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
-                op.tag = lineGen.active_line_index  # saves internal data
-                op.item_type = 'L'
-                op.is_style = False
+
                 
                 # Settings Below List
                 col = layout.column()
@@ -282,126 +284,6 @@ class OBJECT_PT_UILines(Panel):
                 delOp.is_style = False
                 delOp.item_type = 'L'
 
-                    
-class MeasureitArchLinesPanel(Panel):#SOON TO BE LEGACY
-    bl_idname = "obj_lines"
-    bl_label = "Lines"
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    bl_context = "object"
-    
-    @classmethod
-    def poll(cls, context):
-        if 'LineGenerator' in bpy.context.object:
-            return True
-        else:
-            return False
-        
-    def draw(self, context):
-         scene = context.scene
-         if context.object is not None:
-            if 'LineGenerator' in context.object:
-                layout = self.layout
-                layout.use_property_split = True
-                layout.use_property_decorate = False
-                # -----------------
-                # loop
-                # -----------------
-                
-                lineGen = context.object.LineGenerator[0]
-                row = layout.row(align = True)
-                
-                exp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Expand All", icon="ADD")
-                exp.state = True
-                exp.is_style = False
-                exp.item_type = 'L'
-
-                clp = row.operator("measureit_arch.expandcollapseallpropbutton", text="Collapse All", icon="REMOVE")
-                clp.state = False
-                clp.is_style = False
-                exp.item_type = 'L'
-                
-
-                idx = 0
-                for line in lineGen.line_groups:
-                    add_line_item(layout, idx, line)
-                    idx += 1
-
-                col = layout.column()
-                delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
-                delOp.is_style = False
-                delOp.item_type = 'L'
-
-def add_line_item(layout, idx, line): #SOON TO BE LEGACY
-    scene = bpy.context.scene
-    hasGen = False
-    if 'StyleGenerator' in scene:
-        StyleGen = scene.StyleGenerator[0]
-        hasGen = True
-
-    if line.settings is True:
-        box = layout.box()
-        row = box.row(align=True)
-    else:
-        row = layout.row(align=True)
-    
-    useStyleIcon = 'UNLINKED'
-    if line.uses_style is True:
-        useStyleIcon = 'LINKED'
-    
-    row.prop(line, 'visible', text="", toggle=True, icon='MESH_CUBE')
-    
-    if hasGen and not line.is_style:
-        row.prop(line, 'uses_style', text="",toggle=True, icon=useStyleIcon)
-    
-    row.prop(line, 'settings', text="",toggle=True, icon='PREFERENCES')
-    if line.uses_style is False:
-        row.prop(line, 'isOutline', text="", toggle=True, icon='SEQ_CHROMA_SCOPE')
-        row.prop(line, 'lineDrawHidden', text="", toggle=True, icon='MOD_WIREFRAME')
-        row.prop(line, 'color', text="" )
-        if line.is_style is False: row.prop(line, 'lineWeight', text="")
-        if line.is_style: row.prop(line, 'name', text="")
-    else:
-        row.prop_search(line,'style', StyleGen,'line_groups',text="", icon='COLOR')
-
-    op = row.operator("measureit_arch.deletepropbutton", text="", icon="X")
-    op.tag = idx  # saves internal data
-    op.item_type = 'L'
-    op.is_style = line.is_style
-    
-    if line.settings is True:
-
-        row = box.row(align=True)
-        if line.is_style is False:
-            op = row.operator('measureit_arch.addtolinegroup', text="Add Line", icon='ADD')
-            op.tag = idx
-            op = row.operator('measureit_arch.removefromlinegroup', text="Remove Line", icon='REMOVE')
-            op.tag = idx
-
-        if line.uses_style is False:
-            col = box.column()
-            ########################################
-            ###### TODO Line Texture Implimentatioon 
-            #########################################
-            #if line.useLineTexture is False:
-            #    op = col.operator('measureit_arch.uselinetexture')
-            #    op.tag = idx
-            #    op.is_style = line.is_style
-            #if line.useLineTexture is True:
-            #    col.template_ID(line, "lineTexture", new="texture.new")
-            #    if line.lineTexture is not 'none':
-            #        texture=line.lineTexture
-            #        curvemap = texture.node_tree.nodes['Time']
-            #        col.template_curve_mapping(curvemap,'curve')
-
-            col.prop(line, 'lineWeight', text="Lineweight" )
-            col.prop(line, 'lineDepthOffset', text="Z Offset")
-        
-            if line.lineDrawHidden is True:
-                col = box.column()
-                col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
-                col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
-                col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
             
 class AddToLineGroup(Operator):   
     bl_idname = "measureit_arch.addtolinegroup"
