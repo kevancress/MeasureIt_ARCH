@@ -39,7 +39,7 @@ from bpy.props import (
 
 from .measureit_arch_baseclass import DeletePropButton
 from .measureit_arch_dimensions import AlignedDimensionProperties, add_alignedDimension_item
-from .measureit_arch_annotations import AnnotationProperties, add_annotation_item
+from .measureit_arch_annotations import AnnotationProperties
 from .measureit_arch_lines import LineProperties
 
 def recalc_index(self,context):
