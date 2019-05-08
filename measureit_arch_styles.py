@@ -250,7 +250,6 @@ class MeasureitArchDimensionSettingsPanel(Panel):
             col.prop(scene, 'measureit_arch_scale_pos_y')
 
         # Override
-        
         if scene.measureit_arch_ovr is True:
             styleBox = layout.box()
             styleBox.label(text='Style Override')

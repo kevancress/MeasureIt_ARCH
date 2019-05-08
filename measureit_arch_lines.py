@@ -30,7 +30,7 @@ import bgl
 import gpu
 from bmesh import from_edit_mesh
 from gpu_extras.batch import batch_for_shader
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty, PointerProperty
 from bpy.app.handlers import persistent
@@ -98,6 +98,7 @@ class LineContainer(PropertyGroup):
                                 description='Number total of line groups')
     # Array of segments
     line_groups: CollectionProperty(type=LineProperties)
+    active_line_index: IntProperty(name='Active Line Index')
 
 bpy.utils.register_class(LineContainer)
 Object.LineGenerator = CollectionProperty(type=LineContainer)
@@ -176,7 +177,113 @@ class AddLineButton(Operator):
 
         return {'CANCELLED'}
 
-class MeasureitArchLinesPanel(Panel):
+
+class M_ARCH_UL_lines_list(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
+        scene = bpy.context.scene
+        hasGen = False
+        if 'StyleGenerator' in scene:
+            StyleGen = scene.StyleGenerator[0]
+            hasGen = True
+        
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            line = item
+            layout.use_property_decorate = False
+            row = layout.row(align=True)
+            subrow = row.row()
+            subrow.prop(line, "name", text="",emboss=False,icon='MESH_CUBE')
+            
+            if line.visible: visIcon = 'HIDE_OFF'
+            else: visIcon = 'HIDE_ON'
+
+            if line.isOutline: outIcon = 'SEQ_CHROMA_SCOPE' 
+            else: outIcon = 'VOLUME'
+
+            if line.lineDrawHidden: hiddenIcon = 'MOD_WIREFRAME'
+            else: hiddenIcon = 'MESH_CUBE'
+
+            if line.uses_style: styleIcon = 'LINKED'
+            else: styleIcon = 'UNLINKED'
+            
+            subrow = row.row(align=True)
+            if not line.uses_style:
+                subrow.scale_x = 0.5
+                subrow.prop(line, 'color',emboss=True, text="")
+                row.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
+                row.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
+            else:
+                row.prop_search(line,'style', StyleGen,'line_groups',text="", icon='COLOR')
+                row.separator()
+
+            if hasGen:
+                row = row.row(align=True)
+                row.prop(line, 'uses_style', text="",toggle=True, icon=styleIcon,emboss=False)
+            
+            row.prop(line, "visible", text="", icon = visIcon)
+
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon='MESH_CUBE')
+
+class OBJECT_PT_UILines(Panel):
+    """Creates a Panel in the Object properties window"""
+    bl_label = "MeasureIt-ARCH Lines"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        
+        obj = context.object
+        if context.object is not None:
+            if 'LineGenerator' in context.object:     
+                scene = context.scene
+                lineGen = context.object.LineGenerator[0]
+
+                row = layout.row()
+                
+                # Draw The UI List
+                row.template_list("M_ARCH_UL_lines_list", "", lineGen, "line_groups", lineGen, "active_line_index",rows=2, type='DEFAULT')
+                
+                # Operators Next to List
+                col = row.column(align=True)
+                op = col.operator('measureit_arch.addtolinegroup', text="", icon='ADD')
+                op.tag = lineGen.active_line_index  # saves internal data
+                op = col.operator('measureit_arch.removefromlinegroup', text="", icon='REMOVE')
+                op.tag = lineGen.active_line_index  # saves internal data
+
+                col.separator()
+                op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
+                op.tag = lineGen.active_line_index  # saves internal data
+                op.item_type = 'L'
+                op.is_style = False
+                
+                # Settings Below List
+                col = layout.column()
+                if len(lineGen.line_groups) > 0 and  lineGen.active_line_index < len(lineGen.line_groups):
+                    line = lineGen.line_groups[lineGen.active_line_index]
+                    
+                    if not line.uses_style:
+                        col.prop(line, 'lineWeight', text="Lineweight" )
+                        col.prop(line, 'lineDepthOffset', text="Z Offset")
+
+                        col = layout.column(align=True)
+                        if line.lineDrawHidden is True: col.enabled = True
+                        else: col.enabled = False
+                        col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
+                        col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
+                        col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+
+                # Delete Operator (Move to drop down menu next to list)
+                col = layout.column()
+                delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
+                delOp.is_style = False
+                delOp.item_type = 'L'
+
+                    
+class MeasureitArchLinesPanel(Panel):#SOON TO BE LEGACY
     bl_idname = "obj_lines"
     bl_label = "Lines"
     bl_space_type = "PROPERTIES"
@@ -225,7 +332,7 @@ class MeasureitArchLinesPanel(Panel):
                 delOp.is_style = False
                 delOp.item_type = 'L'
 
-def add_line_item(layout, idx, line):
+def add_line_item(layout, idx, line): #SOON TO BE LEGACY
     scene = bpy.context.scene
     hasGen = False
     if 'StyleGenerator' in scene:
@@ -529,7 +636,6 @@ class UseLineTexture(Operator):
         line.useLineTexture = True
 
         return {'FINISHED'}
-
 
 def sLineExists(sLine,a,b):
     if (sLine.pointA == a and sLine.pointB == b):
