@@ -376,7 +376,7 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         width = dim.textWidth
         height = dim.textHeight 
         resolution = dimProps.textResolution
-        size = dimProps.fontSize 
+        size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.2*size
         origin = Vector(midPoint)

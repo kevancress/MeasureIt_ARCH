@@ -222,7 +222,9 @@ class DeleteAllItemsButton(Operator):
                 for angleDim in mainobject.DimensionGenerator[0].angleDimensions:
                     mainobject.DimensionGenerator[0].angleDimensions.remove(0)
                     mainobject.DimensionGenerator[0].measureit_arch_num = 0
-            
+                for wrapper in mainobject.DimensionGenerator[0].wrappedDimensions:
+                    mainobject.DimensionGenerator[0].wrappedDimensions.remove(0)
+
             elif self.item_type is 'L':
                 for line in mainobject.LineGenerator[0].line_groups:
                     mainobject.LineGenerator[0].line_groups.remove(0)

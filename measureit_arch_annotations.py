@@ -254,14 +254,15 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                 
                 # Settings Below List
-                box = layout.box()
-                col = box.column()
+
                 if len(annoGen.annotations) > 0 and  annoGen.active_annotation_index < len(annoGen.annotations):
                     annotation = annoGen.annotations[annoGen.active_annotation_index]
 
                     if annoGen.show_anotation_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                     else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
-
+                    
+                    box = layout.box()
+                    col = box.column()
                     row = col.row()
                     row.prop(annoGen, 'show_anotation_settings', text="", icon=settingsIcon,emboss=False)
                     row.label(text= annotation.text + ' Settings:')

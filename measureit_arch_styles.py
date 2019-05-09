@@ -38,7 +38,7 @@ from bpy.props import (
         )
 
 from .measureit_arch_baseclass import DeletePropButton
-from .measureit_arch_dimensions import AlignedDimensionProperties, add_alignedDimension_item
+from .measureit_arch_dimensions import AlignedDimensionProperties, add_alignedDimension_item, recalc_dimWrapper_index
 from .measureit_arch_annotations import AnnotationProperties
 from .measureit_arch_lines import LineProperties
 
@@ -60,15 +60,19 @@ def recalc_index(self,context):
             style.itemIndex = id_a
             id_a += 1
 
+# A Wrapper Object so multiple MeasureIt-ARCH element
+# types can be shown in the same UI List
+
 class StyleWrapper(PropertyGroup):
     itemType:EnumProperty(
                 items=(('L', "Line", ""),
                         ('A', "Annotation", ""),
                         ('D', "Dimension", "")),
-                name="align Font",
-                description="Set Font Position",
+                name="Style Item Type",
                 update=recalc_index)
+
     itemIndex: IntProperty(name='Item Index')
+
 bpy.utils.register_class(StyleWrapper)
 
 class StyleContainer(PropertyGroup):
@@ -79,9 +83,7 @@ class StyleContainer(PropertyGroup):
 
     # Array of styles
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
-
     annotations: CollectionProperty(type=AnnotationProperties)
-
     line_groups: CollectionProperty(type=LineProperties)
 
     wrappedStyles: CollectionProperty(type=StyleWrapper) 
@@ -143,11 +145,10 @@ class SCENE_PT_UIStyles(Panel):
             col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
             op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
             op.tag = StyleGen.active_style_index  # saves internal data
+            op.is_style = True
 
             
             # Settings Below List
-            box = layout.box()
-            col = box.column()
             if len(StyleGen.wrappedStyles) > 0 and  StyleGen.active_style_index < len(StyleGen.wrappedStyles):
                 activeWrapperItem = StyleGen.wrappedStyles[StyleGen.active_style_index]
 
@@ -160,7 +161,9 @@ class SCENE_PT_UIStyles(Panel):
 
                 if StyleGen.show_style_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                 else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
-
+                
+                box = layout.box()
+                col = box.column()
                 row = col.row()
                 row.prop(StyleGen, 'show_style_settings', text="", icon=settingsIcon,emboss=False)
 
@@ -183,11 +186,11 @@ class SCENE_PT_UIStyles(Panel):
             col.label(text="") # For Spacing
             delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
         else:
-            
             layout.operator("measureit_arch.addstylebutton", text="Use Styles", icon="ADD")
 
+# The Way this Operator handles style & dimension wrappers is
+# Super Messy -- Clean this up later
 class ListDeletePropButton(Operator):
-
     bl_idname = "measureit_arch.listdeletepropbutton"
     bl_label = "Delete property"
     bl_description = "Delete a property"
@@ -199,24 +202,33 @@ class ListDeletePropButton(Operator):
 
     def execute(self, context):
         # Add properties
+        if self.is_style:
+            Generator = context.scene.StyleGenerator[0]
+            wrapper = Generator.wrappedStyles[self.tag]
 
-        StyleGen = context.scene.StyleGenerator[0]
-        wrapper = StyleGen.wrappedStyles[self.tag]
-
-        wrapperTag = self.tag
+        elif not self.is_style and self.item_type == 'D':
+            obj = context.object
+            Generator = obj.DimensionGenerator[0]
+            wrapper = Generator.wrappedDimensions[self.tag]
+        
+        wrapperTag = self.tag        
         self.item_type = wrapper.itemType
         self.tag = wrapper.itemIndex
-        self.is_style = True
 
-        StyleGen.wrappedStyles.remove(wrapperTag)
+        if self.is_style:
+            Generator.wrappedStyles.remove(wrapperTag)
+            recalc_index(self,context)
+
+        else:
+            Generator.wrappedDimensions.remove(wrapperTag)
+            recalc_dimWrapper_index(self,context)
 
         DeletePropButton.tag = self.tag
         DeletePropButton.item_type = self.item_type
         DeletePropButton.is_style = True
         DeletePropButton.execute(self,context)
-
-        recalc_index(self,context)
         return {'FINISHED'}
+        
 
 class MeasureitArchDimensionSettingsPanel(Panel):
     bl_idname = "measureit_arch.settings_panel"

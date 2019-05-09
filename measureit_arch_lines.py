@@ -267,14 +267,15 @@ class OBJECT_PT_UILines(Panel):
 
                 
                 # Settings Below List
-                box = layout.box()
-                col = box.column()
                 if len(lineGen.line_groups) > 0 and  lineGen.active_line_index < len(lineGen.line_groups):
+                         
                     line = lineGen.line_groups[lineGen.active_line_index]
                     if lineGen.show_line_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                     else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
                     if line.uses_style: settingsIcon = 'DOT'
-
+                        
+                    box = layout.box()
+                    col = box.column() 
                     row = col.row()
                     row.prop(lineGen, 'show_line_settings', text="", icon=settingsIcon,emboss=False)
                     if not line.uses_style: row.label(text= line.name + ' Settings:')

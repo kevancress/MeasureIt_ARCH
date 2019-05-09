@@ -24,7 +24,7 @@
 #
 # ----------------------------------------------------------
 import bpy
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty, PointerProperty
 from .measureit_arch_main import *
@@ -47,6 +47,7 @@ class MeasureitArchFaces(PropertyGroup):
                          description="Face number")
     # Array of index
     measureit_arch_index: CollectionProperty(type=MeasureitArchIndex)
+
 bpy.utils.register_class(MeasureitArchFaces)
 
 class AlignedDimensionProperties(BaseWithText,PropertyGroup):
@@ -108,6 +109,7 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
                             description='Rotation for Annotation',
                             default= 0.0,
                             subtype='ANGLE')
+
 bpy.utils.register_class(AlignedDimensionProperties)
 
 class AngleDimensionProperties(BaseWithText,PropertyGroup):
@@ -126,6 +128,7 @@ class AngleDimensionProperties(BaseWithText,PropertyGroup):
                     description='Radius Dimension',
                     default= (0.05),
                     subtype='DISTANCE')
+
 bpy.utils.register_class(AngleDimensionProperties)
 
 class MeasureitArchProperties(PropertyGroup): # LEGACY
@@ -317,17 +320,55 @@ class MeasureitArchProperties(PropertyGroup): # LEGACY
 
     # Array of faces
     measureit_arch_faces: CollectionProperty(type=MeasureitArchFaces)
+
 bpy.utils.register_class(MeasureitArchProperties)
 
+def recalc_dimWrapper_index(self,context):
+    dimGen = context.object.DimensionGenerator[0]
+    wrappedDimensions = dimGen.wrappedDimensions
+    id_aligned = 0
+    id_angle = 0
+    for dim in wrappedDimensions:
+        if dim.itemType == 'D-ALIGNED':
+            dim.itemIndex = id_aligned
+            id_aligned += 1
+        elif dim.itemType == 'D-ANGLE':
+            dim.itemIndex = id_angle
+            id_angle += 1
+
+# A Wrapper object so multiple dimension types can be
+# Shown in the same UI List
+
+class DimensionWrapper(PropertyGroup):
+    itemType: EnumProperty(
+                items=(('D-ALIGNED', "Aligned Dimension", ""),
+                        ('D-ANGLE', "Angle Dimension", "")),
+                name="Dimension Item Type",
+                update=recalc_dimWrapper_index)
+
+    itemIndex: IntProperty(name='Dimension Index')
+
+bpy.utils.register_class(DimensionWrapper)
+
+
 class DimensionContainer(PropertyGroup):
-    measureit_arch_num = IntProperty(name='Number of measures', min=0, max=1000, default=0,
+    measureit_arch_num: IntProperty(name='Number of measures', min=0, max=1000, default=0,
                                 description='Number total of measureit_arch elements')
+    
+    active_dimension_index: IntProperty(name="Active Dimension Index")
+
+    show_dimension_settings: BoolProperty(name='Show Dimension Settings', default=False)
+    
     # Array of segments
-    measureit_arch_segments = CollectionProperty(type=MeasureitArchProperties)
-    alignedDimensions = CollectionProperty(type=AlignedDimensionProperties)
-    angleDimensions = CollectionProperty(type=AngleDimensionProperties)
+    measureit_arch_segments: CollectionProperty(type=MeasureitArchProperties)
+    alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
+    angleDimensions: CollectionProperty(type=AngleDimensionProperties)
+
+    wrappedDimensions: CollectionProperty(type=DimensionWrapper)
+
 bpy.utils.register_class(DimensionContainer)
 Object.DimensionGenerator = CollectionProperty(type=DimensionContainer)
+
 
 class MeasureitArchDimensionsPanel(Panel):
     bl_idname = "obj_dimensions"
@@ -651,7 +692,13 @@ class AddAlignedDimensionButton(Operator):
                                 newDimension.dimPointB = mylist[x]
                                 newDimension.dimPointA = mylist[x + 1]
                                 newDimensions.append(newDimension)
+
+                                newWrapper = DimGen.wrappedDimensions.add()
+                                newWrapper.itemType = 'D-ALIGNED'
+
+
                         # redraw
+                        recalc_dimWrapper_index(self,context)
                         context.area.tag_redraw()
                     else:
                         self.report({'ERROR'},
@@ -709,6 +756,10 @@ class AddAlignedDimensionButton(Operator):
                 newDimension.dimPointB = mylinkvertex[0]
 
                 newDimensions.append(newDimension)
+                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper.itemType = 'D-ALIGNED'
+                recalc_dimWrapper_index(self,context)
+
                 context.area.tag_redraw()
 
             # Set Common Values
@@ -923,6 +974,7 @@ class AddAngleButton(Operator):
     bl_description = "(EDITMODE only) Add a new angle measure (select 3 vertices, 2nd is angle vertex)"
     bl_category = 'MeasureitArch'
 
+    
     # ------------------------------
     # Poll
     # ------------------------------
@@ -960,6 +1012,10 @@ class AddAngleButton(Operator):
 
                 newDimension = DimGen.angleDimensions.add()
                 newDimension.itemType = 'D-ANGLE'
+
+                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper.itemType = 'D-ANGLE'
+                recalc_dimWrapper_index(self,context)
 
                 newDimension.dimVisibleInView = scene.camera.data
 
@@ -1289,3 +1345,189 @@ class AddArcButton(Operator): #LEGACY
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
+
+class M_ARCH_UL_dimension_list(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        dimGen = context.object.DimensionGenerator[0]
+        angleDim = dimGen.angleDimensions
+        alignedDim = dimGen.alignedDimensions
+
+        scene = bpy.context.scene
+        hasGen = False
+        if 'StyleGenerator' in scene:
+            StyleGen = scene.StyleGenerator[0]
+            hasGen = True
+    
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.use_property_decorate = False
+            # Get correct item and icon
+            if item.itemType == 'D-ALIGNED':
+                dim = alignedDim[item.itemIndex]
+                nameIcon = 'DRIVER_DISTANCE'
+    
+            elif item.itemType == 'D-ANGLE':
+                dim = angleDim[item.itemIndex]
+                nameIcon = 'DRIVER_ROTATIONAL_DIFFERENCE'
+
+
+            row = layout.row(align=True)
+            subrow = row.row()
+
+            subrow.prop(dim, "name", text="",emboss=False,icon=nameIcon)
+
+            if dim.visible: visIcon = 'HIDE_OFF'
+            else: visIcon = 'HIDE_ON'
+            
+            if dim.uses_style: styleIcon = 'LINKED'
+            else: styleIcon = 'UNLINKED'
+            
+            if not dim.uses_style:
+                subrow = row.row()
+                subrow.scale_x = 0.6
+                subrow.prop(dim, 'color', text="" )
+            else:
+                row.prop_search(dim,'style', StyleGen,'alignedDimensions',text="", icon='COLOR')
+                row.separator()
+
+            subrow = row.row(align=True)
+            if item.itemType == 'D-ALIGNED':
+                if dim.dimFlip: flipIcon = 'TRACKING_BACKWARDS_SINGLE'
+                else: flipIcon = 'TRACKING_FORWARDS_SINGLE'
+                subrow.prop(dim, 'dimFlip',text='',toggle=True, icon=flipIcon,emboss=False)
+            
+            if hasGen:
+                row = row.row(align=True)
+                row.prop(dim, 'uses_style', text="",toggle=True, icon=styleIcon,emboss=False)
+            
+            row.prop(dim, "visible", text="", icon = visIcon,emboss=False)
+
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon='MESH_CUBE')
+
+class OBJECT_PT_UIDimensions(Panel):
+    """Creates a Panel in the Object properties window"""
+    bl_label = "MeasureIt-ARCH Dimensions"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+        
+        obj = context.object
+        if 'DimensionGenerator' in context.object:     
+            scene = context.scene
+            dimGen = obj.DimensionGenerator[0]
+
+            row = layout.row()
+            
+            # Draw The UI List
+            row.template_list("M_ARCH_UL_dimension_list", "", dimGen, "wrappedDimensions", dimGen, "active_dimension_index",rows=2, type='DEFAULT')
+            
+            # Operators Next to List
+            col = row.column(align=True)
+            op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
+            op.tag = dimGen.active_dimension_index  # saves internal data
+            op.is_style = False
+            op.item_type = 'D'
+
+            # Settings Below List
+            if len(dimGen.wrappedDimensions) > 0 and  dimGen.active_dimension_index < len(dimGen.wrappedDimensions):
+                activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index ]
+
+                if activeWrapperItem.itemType == 'D-ALIGNED':
+                    item = dimGen.alignedDimensions[activeWrapperItem.itemIndex]
+                if activeWrapperItem.itemType == 'D-ANGLE':
+                    item = dimGen.angleDimensions[activeWrapperItem.itemIndex]
+
+                if dimGen.show_dimension_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
+                else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
+                
+                box = layout.box()
+                col = box.column()
+                row = col.row()
+                row.prop(dimGen, 'show_dimension_settings', text="", icon=settingsIcon,emboss=False)
+
+                row.label(text= item.name + ' Settings:')
+                if dimGen.show_dimension_settings:
+                    if activeWrapperItem.itemType == 'D-ALIGNED':
+                        draw_aligned_dimension_settings(item,box)
+                    if activeWrapperItem.itemType == 'D-ANGLE':
+                        draw_angle_dimension_settings(item,box)
+            
+            # Delete Operator (Move this to a menu button beside list)
+            col = layout.column()
+            delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Dimensions", icon="X")
+            delOp.is_style = False
+            delOp.item_type = 'D'
+
+def draw_aligned_dimension_settings(dim,layout):
+    col = layout.column()    
+
+    if dim.uses_style is False:
+        split = layout.split(factor=0.485)
+        col = split.column()
+        col.alignment ='RIGHT'
+        col.label(text='Font')
+        col = split.column()
+
+        col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
+
+        col = layout.column(align=True)
+        col.prop(dim,'dimViewPlane', text='View Plane')
+    col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+    if dim.uses_style is False: col.prop(dim,'lineWeight',text='Line Weight')
+
+    col = layout.column(align=True)
+    col.prop(dim,'dimOffset',text='Distance')
+    col.prop(dim,'dimLeaderOffset',text='Offset')
+    col.prop(dim, 'dimRotation', text='Rotation')
+    
+    if dim.uses_style is False:
+        col = layout.column(align=True)
+        col.prop(dim,'fontSize',text='Font Size')
+        col.prop(dim,'textResolution',text='Resolution')
+        col.prop(dim,'textAlignment',text='Alignment')
+        col.prop(dim,'textPosition',text='Position')
+
+        col = layout.column(align=True)
+        col.prop(dim,'endcapA', text='Arrow Start')
+        col.prop(dim,'endcapB', text='End')
+        col.prop(dim,'endcapSize', text='Arrow Size')
+
+    col.prop(dim,'textFlippedX',text='Flip Text X')
+    col.prop(dim,'textFlippedY',text='Flip Text Y')
+
+def draw_angle_dimension_settings(dim,layout):
+        col = layout.column()
+        if dim.uses_style is False:
+            split = layout.split(factor=0.485)
+            col = split.column()
+            col.alignment ='RIGHT'
+            col.label(text='Font')
+            col = split.column()
+
+            col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
+
+            col = layout.column()
+            
+        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        if dim.uses_style is False:
+            col = layout.column(align=True)
+            col.prop(dim,'lineWeight',text='Line Weight')
+
+        col.prop(dim,'dimRadius',text='Radius')
+
+        if dim.uses_style is False:
+            col = layout.column(align=True)
+            col.prop(dim,'fontSize',text='Font Size')
+            col.prop(dim,'textResolution',text='Resolution')
+            #col.prop(dim,'textAlignment',text='Alignment')
+            #col.prop(dim,'textPosition',text='Position')
+
+        col = layout.column(align=True)
+        col.prop(dim,'textFlippedX',text='Flip Text X')
+        col.prop(dim,'textFlippedY',text='Flip Text Y')
