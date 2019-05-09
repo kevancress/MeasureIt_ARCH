@@ -147,6 +147,9 @@ class SCENE_PT_UIStyles(Panel):
             op.tag = StyleGen.active_style_index  # saves internal data
             op.is_style = True
 
+            col.separator()
+            col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+
             
             # Settings Below List
             if len(StyleGen.wrappedStyles) > 0 and  StyleGen.active_style_index < len(StyleGen.wrappedStyles):
@@ -180,13 +183,20 @@ class SCENE_PT_UIStyles(Panel):
                     if activeWrapperItem.itemType == 'D':
                         draw_dim_style_settings(item,box)
                 
-
-            # Delete Operator (Move this to a menu button beside list)
-            col = layout.column()
-            col.label(text="") # For Spacing
-            delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
         else:
             layout.operator("measureit_arch.addstylebutton", text="Use Styles", icon="ADD")
+
+
+
+class SCENE_MT_styles_menu(bpy.types.Menu):
+    bl_label = "Custom Menu"
+
+    def draw(self,context):
+        layout = self.layout
+
+        delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
+        delOp.is_style = True
+
 
 # The Way this Operator handles style & dimension wrappers is
 # Super Messy -- Clean this up later
@@ -229,7 +239,6 @@ class ListDeletePropButton(Operator):
         DeletePropButton.execute(self,context)
         return {'FINISHED'}
         
-
 class MeasureitArchDimensionSettingsPanel(Panel):
     bl_idname = "measureit_arch.settings_panel"
     bl_label = "Dimension Settings"

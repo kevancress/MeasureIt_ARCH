@@ -421,6 +421,7 @@ class AddAlignedDimensionButton(Operator):
                                 newDimension.dimObjectB = mainobject
                                 newDimension.dimPointB = mylist[x]
                                 newDimension.dimPointA = mylist[x + 1]
+                                newDimension.name = 'Dimension ' + str(len(DimGen.alignedDimensions))
                                 newDimensions.append(newDimension)
 
                                 newWrapper = DimGen.wrappedDimensions.add()
@@ -484,7 +485,7 @@ class AddAlignedDimensionButton(Operator):
                 newDimension.dimPointA = myobjvertex[0]
                 newDimension.dimObjectB = linkobject
                 newDimension.dimPointB = mylinkvertex[0]
-
+                newDimension.name = 'Dimension ' + str(len(DimGen.alignedDimensions))
                 newDimensions.append(newDimension)
                 newWrapper = DimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-ALIGNED'
@@ -495,7 +496,6 @@ class AddAlignedDimensionButton(Operator):
             # Set Common Values
             for newDimension in newDimensions:
                 newDimension.itemType = 'D-ALIGNED'
-                
                 newDimension.style = scene.measureit_arch_default_dimension_style
                 if scene.measureit_arch_default_dimension_style is not '':
                     newDimension.uses_style = True
@@ -742,7 +742,7 @@ class AddAngleButton(Operator):
 
                 newDimension = DimGen.angleDimensions.add()
                 newDimension.itemType = 'D-ANGLE'
-
+                newDimension.name = 'Angle ' + str(len(DimGen.angleDimensions))
                 newWrapper = DimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-ANGLE'
                 recalc_dimWrapper_index(self,context)
@@ -1104,6 +1104,9 @@ class OBJECT_PT_UIDimensions(Panel):
             op.is_style = False
             op.item_type = 'D'
 
+            col.separator()
+            col.menu("OBJECT_MT_dimension_menu", icon='DOWNARROW_HLT', text="")
+
             # Settings Below List
             if len(dimGen.wrappedDimensions) > 0 and  dimGen.active_dimension_index < len(dimGen.wrappedDimensions):
                 activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index ]
@@ -1128,11 +1131,17 @@ class OBJECT_PT_UIDimensions(Panel):
                     if activeWrapperItem.itemType == 'D-ANGLE':
                         draw_angle_dimension_settings(item,box)
             
-            # Delete Operator (Move this to a menu button beside list)
-            col = layout.column()
-            delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Dimensions", icon="X")
-            delOp.is_style = False
-            delOp.item_type = 'D'
+
+
+class OBJECT_MT_dimension_menu(bpy.types.Menu):
+    bl_label = "Custom Menu"
+
+    def draw(self,context):
+        layout = self.layout
+
+        delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Dimensions", icon="X")
+        delOp.is_style = False
+        delOp.item_type = 'D'
 
 def draw_aligned_dimension_settings(dim,layout):
     col = layout.column()    

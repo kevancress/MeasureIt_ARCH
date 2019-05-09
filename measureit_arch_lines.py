@@ -259,10 +259,7 @@ class OBJECT_PT_UILines(Panel):
                 op.is_style = False
                 col.separator()
 
-                op = col.operator('measureit_arch.addtolinegroup', text="", icon='ADD')
-                op.tag = lineGen.active_line_index  # saves internal data
-                op = col.operator('measureit_arch.removefromlinegroup', text="", icon='REMOVE')
-                op.tag = lineGen.active_line_index  # saves internal data
+                col.menu("OBJECT_MT_lines_menu", icon='DOWNARROW_HLT', text="")
 
 
                 
@@ -293,16 +290,33 @@ class OBJECT_PT_UILines(Panel):
                             col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
                             col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
 
-                # Delete Operator (Move to drop down menu next to list)
-                col = layout.column()
-                delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
-                delOp.is_style = False
-                delOp.item_type = 'L'
- 
+
+
+class OBJECT_MT_lines_menu(bpy.types.Menu):
+    bl_label = "Custom Menu"
+
+    def draw(self,context):
+        layout = self.layout
+        scene = context.scene
+        lineGen = context.object.LineGenerator[0]
+
+        op = layout.operator('measureit_arch.addtolinegroup', text="Add To Line Group", icon='ADD')
+        op.tag = lineGen.active_line_index  # saves internal data
+        op = layout.operator('measureit_arch.removefromlinegroup', text="Remove From Line Group", icon='REMOVE')
+        op.tag = lineGen.active_line_index  # saves internal data
+
+        layout.separator()
+
+        delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
+        delOp.is_style = False
+        delOp.item_type = 'L'
+
+
+
 class AddToLineGroup(Operator):   
     bl_idname = "measureit_arch.addtolinegroup"
     bl_label = "Add Selection to Line Group"
-    bl_description = "Add Selection to Line Group"
+    bl_description = "(EDIT MODE) Adds the current selection to the active Line Group"
     bl_category = 'MeasureitArch'
     tag= IntProperty()
 
@@ -446,7 +460,7 @@ class AddLineByProperty(Operator):
 class RemoveFromLineGroup(Operator):   
     bl_idname = "measureit_arch.removefromlinegroup"
     bl_label = "Remove Selection from Line Group"
-    bl_description = "Remove Selection from Line Group"
+    bl_description = "(EDIT MODE) Removes the current selection from the active Line Group"
     bl_category = 'MeasureitArch'
     tag= IntProperty()
 

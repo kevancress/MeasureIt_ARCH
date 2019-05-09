@@ -251,6 +251,8 @@ class OBJECT_PT_UIAnnotations(Panel):
                 op.is_style = False
                 col.separator()
 
+                col.menu("OBJECT_MT_annotation_menu", icon='DOWNARROW_HLT', text="")
+
 
                 
                 # Settings Below List
@@ -294,8 +296,14 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                 # Delete Operator (Move to drop down menu next to list)
                 col = layout.column()
-                delOp = col.operator("measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
-                delOp.is_style = False
-                delOp.item_type = 'A'
+
  
- 
+class OBJECT_MT_annotation_menu(bpy.types.Menu):
+    bl_label = "Custom Menu"
+
+    def draw(self,context):
+        layout = self.layout
+
+        delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
+        delOp.is_style = False
+        delOp.item_type = 'A'
