@@ -93,8 +93,7 @@ auto_load.init()
 panels = (
         measureit_arch_styles.MeasureitArchDimensionSettingsPanel,
         measureit_arch_main.MeasureitArchMainPanel,
-        measureit_arch_render.MeasureitArchRenderPanel,
-        measureit_arch_dimensions.MeasureitArchDimensionsPanel,
+        measureit_arch_render.MeasureitArchRenderPanel
         )
 
 def update_panel(self, context):
