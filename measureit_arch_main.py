@@ -141,6 +141,7 @@ class MeasureitArchMainPanel(Panel):
 
         row.operator("measureit_arch.runopenglbutton", text=txt, icon=icon ,)
         row.prop(scene, "measureit_arch_gl_ghost", text="", icon='GHOST_ENABLED')
+        row.prop(scene, "measureit_arch_show_gizmos", text="", icon='GIZMO')
 
 
         # ------------------------------

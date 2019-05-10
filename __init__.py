@@ -139,6 +139,9 @@ def register():
     # Define properties
     
 
+    Scene.measureit_arch_show_gizmos = BoolProperty(name="Show Gizmos",
+                                        description="Display Measureit-ARCH Gizmos",
+                                        default=True)
 
     Scene.viewPlane= EnumProperty(
                     items=(('99', "None", "No View Plane Selected",'EMPTY_AXIS',0),
