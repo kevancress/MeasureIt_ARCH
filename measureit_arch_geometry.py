@@ -32,7 +32,7 @@ from gpu_extras.batch import batch_for_shader
 import blf
 from blf import ROTATION
 from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
-from mathutils import Vector, Matrix, Euler
+from mathutils import Vector, Matrix, Euler, Quaternion
 import bmesh
 from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
@@ -223,7 +223,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
 
         # Compute offset vector from face normal and user input
         rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)
-        selectedNormal = Vector(select_normal(myobj,dim,normDistVector,midpoint))
+        selectedNormal = Vector(select_normal(myobj,dim,normDistVector,midpoint,dimProps))
         if dim.dimFlip is True:
             selectedNormal.negate()
         
@@ -343,14 +343,16 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         # evenly spaced but you barely notice)
         distVector = vecA-vecB
         dist = distVector.length
-        numCircleVerts = math.ceil(radius/.4)+12
+        angle = vecA.angle(vecB)
+        numCircleVerts = math.ceil(radius/.4)+ int((degrees(angle))/10)
         verts = []
         for idx in range (numCircleVerts+1):
-            segDist = fabs(dist /(numCircleVerts+1))
-            currentDist = segDist * idx
-            point = Vector(interpolate3d(vecA, vecB, currentDist))
-            point.normalize()
+            rotangle= (angle/(numCircleVerts+1))*idx
+            point = Vector((vecA[0],vecA[1],vecA[2]))
+            point.rotate(Quaternion(norm,rotangle))
+            #point.normalize()
             verts.append(point)
+
 
         #get Midpoint for Text Placement
         midVec = Vector(interpolate3d(vecA, vecB, (dist/2)))
@@ -409,9 +411,9 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         for vert in verts:
             pointCoords.append((vert*radius)+p2)
         pointCoords.append(endpointB)
-        #batch3d = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
-        #batch3d.program_set(pointShader)
-        #batch3d.draw()
+        batch3d = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
+        batch3d.program_set(pointShader)
+        batch3d.draw()
 
         # batch & Draw Shader
         coords = []
@@ -431,7 +433,7 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(False)
 
-def select_normal(myobj, dim, normDistVector, midpoint):
+def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     #Set properties
     i = Vector((1,0,0)) # X Unit Vector
     j = Vector((0,1,0)) # Y Unit Vector
@@ -452,21 +454,26 @@ def select_normal(myobj, dim, normDistVector, midpoint):
                 possibleNormals.append(worldNormal)
                 
         bestNormal = directionRay
+        
+        if dimProps.dimViewPlane=='99':
+            viewPlane = dim.dimViewPlane
+        else:
+            viewPlane = dimProps.dimViewPlane
 
         #Face Normals Available Test Conditions
         if len(possibleNormals) > 1:  
             bestNormal = Vector((1,1,1))
-            if dim.dimViewPlane == 'XY':
+            if viewPlane == 'XY':
                 for norm in possibleNormals:
                     if abs(norm[2])< abs(bestNormal[2]):
                         bestNormal=norm
 
-            elif dim.dimViewPlane == 'YZ':
+            elif viewPlane == 'YZ':
                 for norm in possibleNormals:
                     if abs(norm[0])< abs(bestNormal[0]):
                         bestNormal=norm   
 
-            elif dim.dimViewPlane == 'XZ':
+            elif viewPlane == 'XZ':
                 for norm in possibleNormals:
                     if abs(norm[1])< abs(bestNormal[1]):
                         bestNormal=norm
@@ -477,11 +484,11 @@ def select_normal(myobj, dim, normDistVector, midpoint):
             
         #Face Normals Not Available 
         else:
-            if dim.dimViewPlane == 'XY':
+            if viewPlane == 'XY':
                 bestNormal = k.cross(normDistVector)
-            elif dim.dimViewPlane == 'YZ':
+            elif viewPlane == 'YZ':
                 bestNormal = i.cross(normDistVector)
-            elif dim.dimViewPlane == 'XZ':
+            elif viewPlane == 'XZ':
                 bestNormal = j.cross(normDistVector)
             else:
                 bestNormal = directionRay
@@ -491,11 +498,11 @@ def select_normal(myobj, dim, normDistVector, midpoint):
     
     #not mesh obj
     else:
-        if dim.dimViewPlane == 'XY':
+        if viewPlane == 'XY':
             bestNormal = k.cross(normDistVector)
-        elif dim.dimViewPlane == 'YZ':
+        elif viewPlane == 'YZ':
             bestNormal = i.cross(normDistVector)
-        elif dim.dimViewPlane == 'XZ':
+        elif viewPlane == 'XZ':
             bestNormal = j.cross(normDistVector)
         else:
             bestNormal = centerRay
@@ -528,7 +535,8 @@ def draw_line_group(context, myobj, lineGen):
             
         if lineGroup.visible and lineProps.visible:
             
-            rawRGB = lineProps.color           
+            rawRGB = lineProps.color        
+            alpha = 1.0   
             if bpy.context.mode == 'EDIT_MESH':
                 alpha=0.3
             else:

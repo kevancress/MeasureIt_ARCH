@@ -1131,8 +1131,6 @@ class OBJECT_PT_UIDimensions(Panel):
                     if activeWrapperItem.itemType == 'D-ANGLE':
                         draw_angle_dimension_settings(item,box)
             
-
-
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
@@ -1156,7 +1154,7 @@ def draw_aligned_dimension_settings(dim,layout):
         col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
 
         col = layout.column(align=True)
-        col.prop(dim,'dimViewPlane', text='View Plane')
+    col.prop(dim,'dimViewPlane', text='View Plane')
     col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
     if dim.uses_style is False: col.prop(dim,'lineWeight',text='Line Weight')
 
