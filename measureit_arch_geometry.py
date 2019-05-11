@@ -50,6 +50,10 @@ lineShader = gpu.types.GPUShader(
     Base_Shader_3D.fragment_shader,
     geocode=Base_Shader_3D.geometry_shader)
 
+triShader = gpu.types.GPUShader(
+    Base_Shader_3D.vertex_shader,
+    Base_Shader_3D.fragment_shader)
+
 dashedLineShader = gpu.types.GPUShader(
     Dashed_Shader_3D.vertex_shader,
     Dashed_Shader_3D.fragment_shader,
@@ -262,13 +266,6 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
     
         draw_text_3D(context,dim,myobj,square)
 
-        #bind shader
-        dimensionShader.bind()
-        dimensionShader.uniform_float("Viewport",viewport)
-        dimensionShader.uniform_float("thickness",lineWeight)
-        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        dimensionShader.uniform_float("offset", (0,0,0))
-
         # Define Lines
         leadStartA = Vector(p1) + geoOffsetDistance
         leadEndA = Vector(p1) + offsetDistance
@@ -281,11 +278,41 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         #Collect coords and endcaps
         coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
         ACoords = generate_end_caps(context,dim,capA,capSize,dimLineStart,userOffsetVector,textLoc)
-        for coord in ACoords:
-            coords.append(coord)
         BCoords = generate_end_caps(context,dim,capB,capSize,dimLineEnd,userOffsetVector,textLoc)
-        for coord in BCoords:
-            coords.append(coord)
+        filledCoords = []
+        if capA == 'L':
+            for coord in ACoords:
+                coords.append(coord)
+        if capB == 'L':
+            for coord in BCoords:
+                coords.append(coord)
+        
+        if capA == 'T':
+            for coord in ACoords:
+                filledCoords.append(coord)
+        if capB == 'T':
+            for coord in BCoords:
+                filledCoords.append(coord)
+
+
+        if capB == 'T' or capA == 'T':
+            #bind shader
+            triShader.bind()
+            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            triShader.uniform_float("offset", (0,0,0))
+
+            batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
+            batch.program_set(triShader)
+            batch.draw()
+            gpu.shader.unbind()
+
+        
+        #bind shader
+        dimensionShader.bind()
+        dimensionShader.uniform_float("Viewport",viewport)
+        dimensionShader.uniform_float("thickness",lineWeight)
+        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        dimensionShader.uniform_float("offset", (0,0,0))
 
         # batch & Draw Shader   
         batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
@@ -767,8 +794,7 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
     normDistVector.normalize()
     if capType == 99:
         pass
-    elif capType == '1':
-        
+    elif capType == 'L' or capType == 'T' :
         p1 = (pos - (normDistVector + userOffsetVector)*size)
         p2 = (pos)
         p3 = (pos - (normDistVector - userOffsetVector)*size)
@@ -776,9 +802,11 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
         capCoords.append(p1)
         capCoords.append(p2)
         capCoords.append(p3)
-        capCoords.append(p2)
-
+        if capType == 'L':
+            capCoords.append(p2)
     return capCoords
+
+
 
 def generate_text_card(context,textobj,textProps,rotation,basePoint): 
     width = textobj.textWidth

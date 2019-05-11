@@ -482,8 +482,8 @@ def draw_dim_style_settings(dim,layout):
     col = layout.column(align=True)
     col.prop(dim,'fontSize',text='Font Size')
     col.prop(dim,'textResolution',text='Resolution')
-    col.prop(dim,'textAlignment',text='Alignment')
-    col.prop(dim,'textPosition',text='Position')
+    #col.prop(dim,'textAlignment',text='Alignment')
+    #col.prop(dim,'textPosition',text='Position')
 
     col = layout.column(align=True)
     col.prop(dim,'endcapA', text='Arrow Start')

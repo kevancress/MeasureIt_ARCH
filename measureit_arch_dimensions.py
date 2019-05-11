@@ -91,17 +91,17 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
 
     endcapA: EnumProperty(
                     items=(('99', "--", "No arrow"),
-                           ('1', "Line", "The point of the arrow are lines"),
-                           ('2', "Triangle", "The point of the arrow is triangle"),
-                           ('3', "TShape", "The point of the arrow is a T")),
+                           ('L', "Line", "The point of the arrow are lines"),
+                           ('T', "Triangle", "The point of the arrow is triangle"),
+                           ('D', "TShape", "The point of the arrow is a T")),
                     name="A end",
                     description="Add arrows to point A")
 
     endcapB: EnumProperty(
                     items=(('99', "--", "No arrow"),
-                           ('1', "Line", "The point of the arrow are lines"),
-                           ('2', "Triangle", "The point of the arrow is triangle"),
-                           ('3', "TShape", "The point of the arrow is a T")),
+                           ('L', "Line", "The point of the arrow are lines"),
+                           ('T', "Triangle", "The point of the arrow is triangle"),
+                           ('D', "TShape", "The point of the arrow is a T")),
                     name="B end",
                     description="Add arrows to point A")     
 
@@ -1167,8 +1167,8 @@ def draw_aligned_dimension_settings(dim,layout):
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
         col.prop(dim,'textResolution',text='Resolution')
-        col.prop(dim,'textAlignment',text='Alignment')
-        col.prop(dim,'textPosition',text='Position')
+        #col.prop(dim,'textAlignment',text='Alignment')
+        #col.prop(dim,'textPosition',text='Position')
 
         col = layout.column(align=True)
         col.prop(dim,'endcapA', text='Arrow Start')

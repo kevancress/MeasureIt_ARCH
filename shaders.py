@@ -52,7 +52,6 @@ class Base_Shader_2D ():
         }
     '''
 
-
 class Base_Shader_3D ():
 
     vertex_shader = '''
