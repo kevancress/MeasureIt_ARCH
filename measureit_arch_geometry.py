@@ -284,7 +284,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         if capA == 'L' or capA == 'D':
             for coord in ACoords:
                 coords.append(coord)
-        if capB == 'L' or capB == 'D':
+        if capB == 'L' or capB == 'D' :
             for coord in BCoords:
                 coords.append(coord)
         
@@ -294,6 +294,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         if capB == 'T':
             for coord in BCoords:
                 filledCoords.append(coord)
+
 
 
         if capB == 'T' or capA == 'T':
@@ -793,7 +794,7 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
     size = capSize/100
     distVector = Vector(pos-Vector(midpoint)).normalized()
     norm = distVector.cross(userOffsetVector)
-    norm = Vector((abs(norm[0]),abs(norm[1]),abs(norm[2])))
+    #norm = Vector((abs(norm[0]),abs(norm[1]),abs(norm[2])))
     line = distVector*size
     
     #normDistVector.normalize()
