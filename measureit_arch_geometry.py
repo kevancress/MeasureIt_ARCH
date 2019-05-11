@@ -213,13 +213,15 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
             p1 = p2
             p2 = switchTemp
 
-
+        
         #calculate distance & Midpoint
         distVector = Vector(p1)-Vector(p2)
+        dim.gizRotAxis = distVector
         dist = distVector.length
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
         absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
+        dim.gizLoc = midpoint
 
         # Compute offset vector from face normal and user input
         rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)

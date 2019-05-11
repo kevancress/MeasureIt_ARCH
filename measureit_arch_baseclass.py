@@ -58,6 +58,15 @@ class BaseProp:
     visible: BoolProperty(name="Visibility",
                 description="Line show/hide",
                 default=True)
+    
+    gizLoc: FloatVectorProperty(name="Gizmo Location",
+                description= "Default Location for item Gizmo",
+                subtype='TRANSLATION')
+                
+    gizRotAxis: FloatVectorProperty(name="Gizmo Rotation Axis",
+                description= "Default Rot Axis for item Gizmo",
+                subtype='TRANSLATION')
+    
 
 class BaseWithText(BaseProp):  
     text: StringProperty(name="Text",

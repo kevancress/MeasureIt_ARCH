@@ -140,7 +140,7 @@ def register():
     
 
     Scene.measureit_arch_show_gizmos = BoolProperty(name="Show Gizmos",
-                                        description="Display Measureit-ARCH Gizmos",
+                                        description="(EXPERIMENTAL) Display Measureit-ARCH Gizmos",
                                         default=True)
 
     Scene.viewPlane= EnumProperty(

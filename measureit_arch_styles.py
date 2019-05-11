@@ -241,7 +241,7 @@ class ListDeletePropButton(Operator):
         
 class MeasureitArchDimensionSettingsPanel(Panel):
     bl_idname = "measureit_arch.settings_panel"
-    bl_label = "Dimension Settings"
+    bl_label = "MeasureIt-ARCH Dimension Settings"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'scene'
@@ -261,8 +261,9 @@ class MeasureitArchDimensionSettingsPanel(Panel):
         col.prop(scene, 'measureit_arch_units')
 
         col = layout.column(align=True)
-        col.prop(scene, 'measureit_arch_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
-        col.prop(scene, 'measureit_arch_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
+        #col.prop(scene, 'measureit_arch_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
+        #col.prop(scene, 'measureit_arch_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
+        col.prop(scene, "measureit_arch_show_gizmos", text="Show Gizmo's")
         #col.prop(scene, 'measureit_arch_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
         
         # Scale factor
@@ -270,8 +271,8 @@ class MeasureitArchDimensionSettingsPanel(Panel):
         col.use_property_split= True
         col.alignment = 'RIGHT'
         col.label(text = 'Override:')
-        col.prop(scene, 'measureit_arch_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
-        col.prop(scene, 'measureit_arch_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
+        #col.prop(scene, 'measureit_arch_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
+        #col.prop(scene, 'measureit_arch_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
 
         if scene.measureit_arch_scale is True:
             scaleBox = layout.box()

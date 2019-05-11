@@ -25,11 +25,72 @@
 # ----------------------------------------------------------
 
 import bpy
+from mathutils import Vector, Matrix, Euler, Quaternion
+from math import degrees, radians
 from bpy.types import (
     GizmoGroup,
+    Gizmo,
     Scene
 )
 
+
+# Coordinates (each one is a triangle).
+custom_shape_verts = (
+    (1.0, 0.0, 0.0), (1.0, 0.0, -2.0), (-1.0, 0.0, -2.0),
+    (1.0, 0.0, 0.0), (-1.0, 0.0,  0.0), (-1.0, 0.0, -2.0),
+)
+
+
+class CustomShapeWidget(Gizmo):
+    bl_idname = "VIEW3D_GT_Custom"
+    bl_target_properties = (
+        {"id": "offset", "type": 'FLOAT', "array_length": 1},
+    )
+
+    __slots__ = (
+        "custom_shape",
+        "init_mouse_y",
+        "init_value",
+    )
+
+    def _update_offset_matrix(self):
+        # offset behind the light
+        self.matrix_offset.col[3][2] = self.target_get_value("offset")
+
+    def draw(self, context):
+        self._update_offset_matrix()
+        self.draw_custom_shape(self.custom_shape)
+
+    def draw_select(self, context, select_id):
+        self._update_offset_matrix()
+        self.draw_custom_shape(self.custom_shape, select_id=select_id)
+
+    def setup(self):
+        if not hasattr(self, "custom_shape"):
+            self.custom_shape = self.new_custom_shape('TRIS', custom_shape_verts)
+
+    def invoke(self, context, event):
+        self.init_mouse_y = event.mouse_y
+        self.init_value = self.target_get_value("offset")
+        return {'RUNNING_MODAL'}
+
+    def exit(self, context, cancel):
+        context.area.header_text_set(None)
+        if cancel:
+            self.target_set_value("offset", self.init_value)
+
+    def modal(self, context, event, tweak):
+        delta = (event.mouse_y - self.init_mouse_y) / 50.0
+        if 'SNAP' in tweak:
+            delta = round(delta)
+        if 'PRECISE' in tweak:
+            delta /= 10.0
+        value = self.init_value + delta
+        self.target_set_value("offset", value)
+        context.area.header_text_set("My Gizmo: %.4f" % value)
+        return {'RUNNING_MODAL'}
+
+bpy.utils.register_class(CustomShapeWidget)
 
 class MyLightWidgetGroup(GizmoGroup):
     bl_idname = "OBJECT_GGT_light_test"
@@ -47,60 +108,64 @@ class MyLightWidgetGroup(GizmoGroup):
                 if len(ob.DimensionGenerator[0].alignedDimensions) > 0:
                     return (ob)
 
-    def setup(self, context):
-        # Arrow gizmo has one 'offset' property we can assign to the light energy.
-        ob = context.object
-        dimGen = ob.DimensionGenerator[0]
+    def createGiz(self,dimGen):
         for dim in dimGen.alignedDimensions:
-            mpr = self.gizmos.new("GIZMO_GT_arrow_3d")
+            mpr = self.gizmos.new("VIEW3D_GT_Custom")
             mpr.target_set_prop("offset", dim, "dimOffset")
-            mpr.matrix_basis = ob.matrix_world.normalized()
-            mpr.draw_style = 'BOX'
+            #mpr.draw_style = 'BOX'
+            
+            basisMatrix = Matrix.Translation(Vector((0,0,0)))
+            rot = Quaternion(Vector(dim.gizRotAxis),radians(-90))
+            rotMatrix = rot.to_matrix()
+            rotMatrix.resize_4x4()
+            basisMatrix = basisMatrix @ rotMatrix
+            basisMatrix.translation = Vector(dim.gizLoc)
 
-            rotateGiz = self.gizmos.new("GIZMO_GT_dial_3d")
-            rotateGiz.line_width = 3
-            rotateGiz.target_set_prop("offset", dim, "dimRotation")
-            rotateGiz.matrix_basis = ob.matrix_world.normalized()
+            #basisMatrix = Matrix([
+            #[ 1.0000, -0.0000, 0.0000, 0.0000],
+            #[ 0.0000,  0.7089, 0.7053, 1.0000],
+            #[-0.0000, -0.7053, 0.7089, 1.0000],
+            #[ 0.0000,  0.0000, 0.0000, 1.0000]])
 
+            print(str(basisMatrix)+dim.name)
+        
+            mpr.matrix_basis = basisMatrix
+
+            #rotateGiz = self.gizmos.new("GIZMO_GT_dial_3d")
+            #rotateGiz.line_width = 3
+            #rotateGiz.target_set_prop("offset", dim, "dimRotation")
+            #rotateGiz.matrix_basis = ob.matrix_world.normalized()
+            mpr.scale_basis = 0.1
             mpr.color = 0.0, 0.0, 0.0
-            mpr.alpha = 0.5
+            mpr.alpha = 0.1
+
+            #rotateGiz.color = 0.0, 0.0, 0.0
+            #rotateGiz.alpha = 0.5
+
+            #rotateGiz.color_highlight = 0.0, 0.0, 0.0
+            #rotateGiz.alpha_highlight = 0.5
 
             mpr.color_highlight = 1.0, 1.0, 1.0
             mpr.alpha_highlight = 0.5
 
             self.energy_widget = mpr
-            self.rotate_widget = rotateGiz
+            #self.rotate_widget = rotateGiz
+
+
+    def setup(self, context):
+        # Arrow gizmo has one 'offset' property we can assign to the light energy.
+        ob = context.object
+        dimGen = ob.DimensionGenerator[0]
+        self.createGiz(dimGen)
 
 
     def refresh(self, context):
         ob = context.object
         dimGen = ob.DimensionGenerator[0]
         self.gizmos.clear()
-        for dim in dimGen.alignedDimensions:
-            mpr = self.gizmos.new("GIZMO_GT_arrow_3d")
-            mpr.target_set_prop("offset", dim, "dimOffset")
-            mpr.matrix_basis = ob.matrix_world.normalized()
-            mpr.draw_style = 'BOX'
-
-            rotateGiz = self.gizmos.new("GIZMO_GT_dial_3d")
-            rotateGiz.line_width = 3
-            rotateGiz.target_set_prop("offset", dim, "dimRotation")
-            rotateGiz.matrix_basis = ob.matrix_world.normalized()
-
-            mpr.color = 0.0, 0.0, 0.0
-            mpr.alpha = 0.5
-
-            rotateGiz.color = 0.0, 0.0, 0.0
-            rotateGiz.alpha = 0.5
-
-            rotateGiz.color_highlight = 0.0, 0.0, 0.0
-            rotateGiz.alpha_highlight = 0.5
-
-            mpr.color_highlight = 1.0, 1.0, 1.0
-            mpr.alpha_highlight = 0.5
-
-            self.energy_widget = mpr
-            self.rotate_widget = rotateGiz
+        self.createGiz(dimGen)
+        
+   
 
 
 bpy.utils.register_class(MyLightWidgetGroup)
