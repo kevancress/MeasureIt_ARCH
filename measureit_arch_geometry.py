@@ -236,7 +236,15 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         userOffsetVector = rotationMatrix@selectedNormal
         offsetDistance = userOffsetVector*offset
         geoOffsetDistance = userOffsetVector*geoOffset
-        textLoc = offsetDistance + Vector(midpoint)
+        
+        # Define Lines
+        leadStartA = Vector(p1) + geoOffsetDistance
+        leadEndA = Vector(p1) + offsetDistance
+        leadStartB = Vector(p2) + geoOffsetDistance
+        leadEndB = Vector(p2)+offsetDistance
+        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
+        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
+        textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
         #i,j,k as card axis
         i = Vector((1,0,0))
@@ -266,13 +274,6 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
     
         draw_text_3D(context,dim,myobj,square)
 
-        # Define Lines
-        leadStartA = Vector(p1) + geoOffsetDistance
-        leadEndA = Vector(p1) + offsetDistance
-        leadStartB = Vector(p2) + geoOffsetDistance
-        leadEndB = Vector(p2)+offsetDistance
-        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.01))
-        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.01))
 
       
         #Collect coords and endcaps
@@ -280,10 +281,10 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         ACoords = generate_end_caps(context,dim,capA,capSize,dimLineStart,userOffsetVector,textLoc)
         BCoords = generate_end_caps(context,dim,capB,capSize,dimLineEnd,userOffsetVector,textLoc)
         filledCoords = []
-        if capA == 'L':
+        if capA == 'L' or capA == 'D':
             for coord in ACoords:
                 coords.append(coord)
-        if capB == 'L':
+        if capB == 'L' or capB == 'D':
             for coord in BCoords:
                 coords.append(coord)
         
@@ -790,20 +791,38 @@ def draw_text_3D(context,textobj,myobj,card):
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint):
     capCoords = []
     size = capSize/100
-    normDistVector = Vector(pos-Vector(midpoint))
-    normDistVector.normalize()
+    distVector = Vector(pos-Vector(midpoint)).normalized()
+    norm = distVector.cross(userOffsetVector)
+    norm = Vector((abs(norm[0]),abs(norm[1]),abs(norm[2])))
+    line = distVector*size
+    
+    #normDistVector.normalize()
     if capType == 99:
         pass
     elif capType == 'L' or capType == 'T' :
-        p1 = (pos - (normDistVector + userOffsetVector)*size)
+        rotangle = radians(45)
+        line.rotate(Quaternion(norm,rotangle))
+        p1 = (pos - line)
         p2 = (pos)
-        p3 = (pos - (normDistVector - userOffsetVector)*size)
+        line.rotate(Quaternion(norm,-(rotangle*2)))
+        p3 = (pos - line)
 
         capCoords.append(p1)
         capCoords.append(p2)
         capCoords.append(p3)
         if capType == 'L':
             capCoords.append(p2)
+
+    elif capType == 'D':
+        rotangle = radians(-45)
+        line = userOffsetVector.copy()
+        line *= size*0.75
+        line.rotate(Quaternion(norm,rotangle))
+        p1 = (pos - line)
+        p2 = (pos + line)
+        capCoords.append(p1)
+        capCoords.append(p2)
+        
     return capCoords
 
 

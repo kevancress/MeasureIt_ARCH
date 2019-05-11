@@ -87,21 +87,21 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
 
     endcapSize: IntProperty(name="dimEndcapSize",
                     description="End Cap size",
-                    default=15, min=6, max=500)
+                    default=15, min=1, max=500)
 
     endcapA: EnumProperty(
                     items=(('99', "--", "No arrow"),
-                           ('L', "Line", "The point of the arrow are lines"),
-                           ('T', "Triangle", "The point of the arrow is triangle"),
-                           ('D', "TShape", "The point of the arrow is a T")),
+                           ('L', "Arrow", "Arrow"),
+                           ('T', "Triangle", "Triangle"),
+                           ('D', "Dashed", "Dashed")),
                     name="A end",
                     description="Add arrows to point A")
 
     endcapB: EnumProperty(
                     items=(('99', "--", "No arrow"),
-                           ('L', "Line", "The point of the arrow are lines"),
-                           ('T', "Triangle", "The point of the arrow is triangle"),
-                           ('D', "TShape", "The point of the arrow is a T")),
+                           ('L', "Arrow", "Arrow"),
+                           ('T', "Triangle", "Triangle"),
+                           ('D', "Dashed", "Dashed")),
                     name="B end",
                     description="Add arrows to point A")     
 
