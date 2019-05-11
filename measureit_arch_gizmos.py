@@ -33,11 +33,22 @@ from bpy.types import (
     Scene
 )
 
-
+h = -2.5
 # Coordinates (each one is a triangle).
 custom_shape_verts = (
-    (1.0, 0.0, 0.0), (1.0, 0.0, -2.0), (-1.0, 0.0, -2.0),
-    (1.0, 0.0, 0.0), (-1.0, 0.0,  0.0), (-1.0, 0.0, -2.0),
+    (0.0, -1.16, 0.0), (1.0, -0.6, 0.0), (0.0, 0.0, 0.0),
+    (1.0, -0.6, 0.0), (1.0, 0.6, 0.0) , (0.0, 0.0, 0.0),
+    (1.0, 0.6, 0.0) , (0.0, 1.16, 0.0), (0.0, 0.0, 0.0),
+    (0.0, 1.16, 0.0), (-1.0, 0.6, 0.0), (0.0, 0.0, 0.0),
+    (-1.0, 0.6, 0.0), (-1.0, -0.6, 0.0), (0.0, 0.0, 0.0),
+    (-1.0, -0.6, 0.0), (0.0, -1.16, 0.0),  (0.0, 0.0, 0.0),
+
+    (0.0, -1.16, 0.0), (1.0, -0.6, 0.0), (0.0, 0.0, h),
+    (1.0, -0.6, 0.0), (1.0, 0.6, 0.0) , (0.0, 0.0, h),
+    (1.0, 0.6, 0.0) , (0.0, 1.16, 0.0), (0.0, 0.0, h),
+    (0.0, 1.16, 0.0), (-1.0, 0.6, 0.0), (0.0, 0.0, h),
+    (-1.0, 0.6, 0.0), (-1.0, -0.6, 0.0), (0.0, 0.0, h),
+    (-1.0, -0.6, 0.0), (0.0, -  1.16, 0.0),  (0.0, 0.0, h),
 )
 
 
@@ -103,7 +114,7 @@ class MyLightWidgetGroup(GizmoGroup):
     def poll(cls, context):
         ob = context.object
         scene = context.scene
-        if scene.measureit_arch_show_gizmos:
+        if scene.measureit_arch_show_gizmos and context.window_manager.measureit_arch_run_opengl:
             if 'DimensionGenerator' in ob:
                 if len(ob.DimensionGenerator[0].alignedDimensions) > 0:
                     return (ob)
@@ -127,7 +138,7 @@ class MyLightWidgetGroup(GizmoGroup):
             #[-0.0000, -0.7053, 0.7089, 1.0000],
             #[ 0.0000,  0.0000, 0.0000, 1.0000]])
 
-            print(str(basisMatrix)+dim.name)
+            #print(str(basisMatrix)+dim.name)
         
             mpr.matrix_basis = basisMatrix
 
@@ -135,9 +146,9 @@ class MyLightWidgetGroup(GizmoGroup):
             #rotateGiz.line_width = 3
             #rotateGiz.target_set_prop("offset", dim, "dimRotation")
             #rotateGiz.matrix_basis = ob.matrix_world.normalized()
-            mpr.scale_basis = 0.1
+            mpr.scale_basis = 0.075
             mpr.color = 0.0, 0.0, 0.0
-            mpr.alpha = 0.1
+            mpr.alpha = 0.5
 
             #rotateGiz.color = 0.0, 0.0, 0.0
             #rotateGiz.alpha = 0.5

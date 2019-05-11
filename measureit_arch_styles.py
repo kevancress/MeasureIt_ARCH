@@ -241,7 +241,7 @@ class ListDeletePropButton(Operator):
         
 class MeasureitArchDimensionSettingsPanel(Panel):
     bl_idname = "measureit_arch.settings_panel"
-    bl_label = "MeasureIt-ARCH Dimension Settings"
+    bl_label = "MeasureIt-ARCH Settings"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'scene'
@@ -268,9 +268,8 @@ class MeasureitArchDimensionSettingsPanel(Panel):
         
         # Scale factor
         col = layout.column(align = True)
-        col.use_property_split= True
         col.alignment = 'RIGHT'
-        col.label(text = 'Override:')
+        #col.label(text = 'Override:')
         #col.prop(scene, 'measureit_arch_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
         #col.prop(scene, 'measureit_arch_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
 
