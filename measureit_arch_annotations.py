@@ -85,13 +85,15 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
     
     endcapSize: IntProperty(name="dimEndcapSize",
                 description="End Cap size",
-                default=15, min=6, max=500)
+                default=15, min=1, max=500)
 
     endcapA: EnumProperty(
-                    items=(('99', "--", "No arrow"),
-                           ('1', "Line", "The point of the arrow are lines")),
+                    items=(('99', "--", "No Cap"),
+                           ('D', "Dot", "Dot"),
+                           ('T', "Triangle", "Triangle")),
                     name="A end",
-                    description="Add arrows to point A")  
+                    description="Add arrows to point A") 
+
 bpy.utils.register_class(AnnotationProperties)
 
 class AnnotationContainer(PropertyGroup):
@@ -284,6 +286,10 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col.prop(annotation, 'fontSize', text="Size") 
                             col.prop(annotation, 'textAlignment', text='Alignment')
                             col.prop(annotation, 'textPosition', text='Position')
+
+                            col = box.column(align=True)
+                            col.prop(annotation, 'endcapA', text='End Cap')
+                            col.prop(annotation, 'endcapSize', text='Size')
 
                             col = box.column(align=True)
                             col.prop(annotation, 'lineWeight', text="Line Weight" )

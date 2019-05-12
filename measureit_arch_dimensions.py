@@ -90,7 +90,7 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
                     default=15, min=1, max=500)
 
     endcapA: EnumProperty(
-                    items=(('99', "--", "No arrow"),
+                    items=(('99', "--", "No Cap"),
                            ('L', "Arrow", "Arrow"),
                            ('T', "Triangle", "Triangle"),
                            ('D', "Dashed", "Dashed")),
@@ -98,7 +98,7 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
                     description="Add arrows to point A")
 
     endcapB: EnumProperty(
-                    items=(('99', "--", "No arrow"),
+                    items=(('99', "--", "No Cap"),
                            ('L', "Arrow", "Arrow"),
                            ('T', "Triangle", "Triangle"),
                            ('D', "Dashed", "Dashed")),

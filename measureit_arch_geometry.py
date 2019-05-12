@@ -698,9 +698,17 @@ def draw_annotation(context, myobj, annotationGen):
             #undo blenders Default Gamma Correction
             rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
+            pointShader.bind()
+            pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            pointShader.uniform_float("size", 1)
+            pointShader.uniform_float("offset", 0)
+            bgl.glPointSize(lineWeight)
+            gpu.shader.unbind()
+
             lineShader.bind()
             lineShader.uniform_float("Viewport",viewport)
             lineShader.uniform_float("thickness",lineWeight)
+            lineShader.uniform_float("offset",0)
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             if annotation.annotationAnchorObject.type == 'MESH':
                 p1 = get_point(obverts[annotation.annotationAnchor], myobj)
@@ -709,15 +717,71 @@ def draw_annotation(context, myobj, annotationGen):
             offset = annotation.annotationOffset
             p2 = Vector(p1) + Vector(offset)
 
+            textcard = generate_text_card(context,annotation,annotationProps,annotation.annotationRotation,p2)
             if  p1 is not None and p2 is not None:
-                coords =[p1,p2]
+
+                coords =[]
+                coords.append(p1)
+                coords.append(p2)
+                coords.append(p2)
+                if annotation.textPosition == 'T':
+                    coords.append(textcard[3])
+                    pointcoords = [p2]
+                elif annotation.textPosition == 'B':
+                    coords.append(textcard[2])
+                    pointcoords = [p2]
 
                 batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
                 batch3d.program_set(lineShader)
                 batch3d.draw()
                 gpu.shader.unbind()
+                
+                # Again This is Super Lazy, gotta write up a shader that handles
+                # Mitered thick lines, but for now this works.
+                if annotation.textPosition == 'T' or annotation.textPosition == 'B':
+                    batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoords})
+                    batch3d.program_set(pointShader)
+                    batch3d.draw()
             
-            textcard = generate_text_card(context,annotation,annotationProps,annotation.annotationRotation,p2)
+            # Draw Line Endcaps
+            if annotation.endcapA == 'D':
+                pointShader.bind()
+                pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                pointShader.uniform_float("size", 1)
+                pointShader.uniform_float("offset", -0.01)
+                bgl.glPointSize(annotation.endcapSize)
+                gpu.shader.unbind()
+                
+                pointcoords = [p1]
+                batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoords})
+                batch3d.program_set(pointShader)
+                batch3d.draw()
+            
+            if annotation.endcapA == 'T':
+                axis = Vector(p1) - Vector(p2)
+                line = interpolate3d(Vector((0,0,0)), axis, -0.1)
+                line = Vector(line) * annotation.endcapSize/10
+                perp = line.orthogonal()
+                rotangle = radians(20)
+                line.rotate(Quaternion(perp,rotangle))
+                coords = []
+                for idx in range (12):
+                    rotangle = radians(360/12)
+                    coords.append(line.copy() + Vector(p1))
+                    coords.append(Vector((0,0,0)) + Vector(p1))
+                    line.rotate(Quaternion(axis,rotangle))
+                    coords.append(line.copy() + Vector(p1))
+                
+                triShader.bind()
+                triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                triShader.uniform_float("offset", (0,0,0))
+
+                batch = batch_for_shader(triShader, 'TRIS', {"pos": coords})
+                batch.program_set(triShader)
+                batch.draw()
+                gpu.shader.unbind()
+
+           
             draw_text_3D(context,annotation,myobj,textcard)
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -825,8 +889,6 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
         capCoords.append(p2)
         
     return capCoords
-
-
 
 def generate_text_card(context,textobj,textProps,rotation,basePoint): 
     width = textobj.textWidth
