@@ -687,10 +687,14 @@ def draw_annotation(context, myobj, annotationGen):
     for idx in range(0, annotationGen.num_annotations):
         annotation = annotationGen.annotations[idx]
         annotationProps = annotation
+        
         if annotation.uses_style:
             for annotationStyle in context.scene.StyleGenerator[0].annotations:
                 if annotationStyle.name == annotation.style:
                     annotationProps= annotationStyle
+
+        endcap = annotationProps.endcapA
+        endcapSize = annotationProps.endcapSize
 
         if annotation.visible is True:
             lineWeight = annotationProps.lineWeight
@@ -744,12 +748,12 @@ def draw_annotation(context, myobj, annotationGen):
                     batch3d.draw()
             
             # Draw Line Endcaps
-            if annotation.endcapA == 'D':
+            if endcap == 'D':
                 pointShader.bind()
                 pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 pointShader.uniform_float("size", 1)
                 pointShader.uniform_float("offset", -0.01)
-                bgl.glPointSize(annotation.endcapSize)
+                bgl.glPointSize(endcapSize)
                 gpu.shader.unbind()
                 
                 pointcoords = [p1]
@@ -757,10 +761,10 @@ def draw_annotation(context, myobj, annotationGen):
                 batch3d.program_set(pointShader)
                 batch3d.draw()
             
-            if annotation.endcapA == 'T':
+            if endcap == 'T':
                 axis = Vector(p1) - Vector(p2)
                 line = interpolate3d(Vector((0,0,0)), axis, -0.1)
-                line = Vector(line) * annotation.endcapSize/10
+                line = Vector(line) * endcapSize/10
                 perp = line.orthogonal()
                 rotangle = radians(20)
                 line.rotate(Quaternion(perp,rotangle))

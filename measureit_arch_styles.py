@@ -443,6 +443,10 @@ def draw_annotation_style_settings(annotation,layout):
     col = layout.column(align=True)   
     col.prop(annotation, 'textAlignment', text='Alignment')
     col.prop(annotation, 'textPosition', text='Position')
+    
+    col = layout.column(align=True)  
+    col.prop(annotation, 'endcapA', text='End Cap')
+    col.prop(annotation, 'endcapSize', text='Size')
 
     col = layout.column(align=True)
     col.prop(annotation, 'lineWeight', text="Line Weight" )
