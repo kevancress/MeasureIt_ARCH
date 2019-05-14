@@ -295,9 +295,44 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
             for coord in BCoords:
                 filledCoords.append(coord)
 
+        if capA == 'D':
+                  # Define Square
+            pos = dimLineStart
+            x = distVector.normalized() * dimProps.endcapSize/20
+            y = userOffsetVector.normalized() * dimProps.endcapSize/20
+            a = 0.055
+            b = 0.085
+            s1 = (pos + (a*x) + (b*y))
+            s2 = (pos + (b*x) + (a*y))
+            s3 = (pos + (-a*x) + (-b*y))
+            s4 = (pos + (-b*x) + (-a*y))
+            filledCoords.append(s1)
+            filledCoords.append(s2)
+            filledCoords.append(s3)
+            filledCoords.append(s1)
+            filledCoords.append(s3)
+            filledCoords.append(s4) 
+
+        if capB == 'D':
+                  # Define Square
+            pos = dimLineEnd
+            x = distVector.normalized() * dimProps.endcapSize/20
+            y = userOffsetVector.normalized() * dimProps.endcapSize/20
+            a = 0.055
+            b = 0.085
+            s1 = (pos + (a*x) + (b*y))
+            s2 = (pos + (b*x) + (a*y))
+            s3 = (pos + (-a*x) + (-b*y))
+            s4 = (pos + (-b*x) + (-a*y))
+            filledCoords.append(s1)
+            filledCoords.append(s2)
+            filledCoords.append(s3)
+            filledCoords.append(s1)
+            filledCoords.append(s3)
+            filledCoords.append(s4) 
 
 
-        if capB == 'T' or capA == 'T':
+        if capB == 'T' or capA == 'T' or capA == 'D' or capB == 'D':
             #bind shader
             triShader.bind()
             triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
@@ -779,7 +814,7 @@ def draw_annotation(context, myobj, annotationGen):
                 triShader.bind()
                 triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 triShader.uniform_float("offset", (0,0,0))
-
+                bgl.glEnable(bgl.GL_MULTISAMPLE)
                 batch = batch_for_shader(triShader, 'TRIS', {"pos": coords})
                 batch.program_set(triShader)
                 batch.draw()
@@ -885,13 +920,15 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
     elif capType == 'D':
         rotangle = radians(-45)
         line = userOffsetVector.copy()
-        line *= size*0.75
+        line *= 1/20
         line.rotate(Quaternion(norm,rotangle))
         p1 = (pos - line)
         p2 = (pos + line)
-        capCoords.append(p1)
-        capCoords.append(p2)
-        
+        line.rotate(Quaternion(norm,rotangle))
+        # Define Overextension
+        capCoords.append(pos)
+        capCoords.append(line + pos)
+        # We Draw the square outside in the draw method   
     return capCoords
 
 def generate_text_card(context,textobj,textProps,rotation,basePoint): 
