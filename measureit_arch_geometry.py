@@ -280,8 +280,9 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         cardX = normDistVector * sx
         cardY = userOffsetVector *sy
         square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
-    
-        draw_text_3D(context,dim,myobj,square)
+
+        if scene.measureit_arch_gl_show_d:
+            draw_text_3D(context,dim,myobj,square)
 
 
       
@@ -339,7 +340,6 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
             filledCoords.append(s1)
             filledCoords.append(s3)
             filledCoords.append(s4) 
-
 
         if capB == 'T' or capA == 'T' or capA == 'D' or capB == 'D':
             #bind shader
@@ -467,8 +467,9 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         cardX = vecX * 0.25 * sx
         cardY = midVec * 0.25 *sy
         square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
-    
-        draw_text_3D(context,dim,myobj,square)
+
+        if scene.measureit_arch_gl_show_d:
+            draw_text_3D(context,dim,myobj,square)
 
 
 
@@ -840,8 +841,8 @@ def draw_annotation(context, myobj, annotationGen):
                 batch.draw()
                 gpu.shader.unbind()
 
-           
-            draw_text_3D(context,annotation,myobj,textcard)
+            if scene.measureit_arch_gl_show_d:
+                draw_text_3D(context,annotation,myobj,textcard)
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
@@ -853,6 +854,7 @@ def draw_text_3D(context,textobj,myobj,card):
     
     width = textobj.textWidth
     height = textobj.textHeight 
+
     uvFlippedDiagonal= [(1,1),(1,0),(0,0),(0,1)]
     normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
     flipMatrixX = Matrix([
@@ -890,7 +892,7 @@ def draw_text_3D(context,textobj,myobj,card):
     )
 
     dim = width * height * 4
-    
+
     if 'texture' in textobj:
         buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
         texBuf = bgl.Buffer(bgl.GL_INT, 1)

@@ -299,7 +299,6 @@ class Text_Shader():
         uniform sampler2D image;
 
         in vec2 uvInterp;
-
         out vec4 fragColor;
 
         void main()

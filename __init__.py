@@ -144,7 +144,7 @@ def register():
 
     Scene.measureit_arch_show_gizmos = BoolProperty(name="Show Gizmos",
                                         description="(EXPERIMENTAL) Display Measureit-ARCH Gizmos",
-                                        default=True)
+                                        default=False)
 
     Scene.viewPlane= EnumProperty(
                     items=(('99', "None", "No View Plane Selected",'EMPTY_AXIS',0),
@@ -208,8 +208,8 @@ def register():
 
     Scene.measureit_arch_gl_precision = IntProperty(name='Precision', min=0, max=5, default=2,
                                                description="Number of decimal precision")
-    Scene.measureit_arch_gl_show_d = BoolProperty(name="ShowDist",
-                                             description="Display distances",
+    Scene.measureit_arch_gl_show_d = BoolProperty(name="Show Dimension Text",
+                                             description="Display Dimension Text",
                                              default=True)
     Scene.measureit_arch_gl_show_n = BoolProperty(name="ShowName",
                                              description="Display texts",
