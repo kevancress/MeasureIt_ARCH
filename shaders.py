@@ -208,49 +208,70 @@ class Dashed_Shader_3D ():
 
 class Point_Shader_3D ():
 
+   
     vertex_shader = '''
 
         uniform mat4 ModelViewProjectionMatrix;
-        uniform float size;
         uniform float offset;
-
         in vec3 pos;
-        out vec2 radii;
-
+        
         vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
         vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
 
-        void main() {
+        void main()
+        {
             gl_Position = project + vecOffset;
-            gl_PointSize = size;
-
-            // calculate concentric radii in pixels
-            float radius = 0.5 * size;
-
-            // start at the outside and progress toward the center
-            radii[0] = radius;
-            radii[1] = radius - 1.0;
-
-            // convert to PointCoord units
-            radii /= size;
         }
+
+        '''
+
+    geometry_shader = '''
+        layout(points) in;
+        layout(triangle_strip, max_vertices = 50) out;
+
+        uniform mat4 ModelViewProjectionMatrix;
+        uniform vec2 Viewport;
+        uniform float thickness;
+
+        float aspect = Viewport.x/Viewport.y;
+        float radius = 0.00118 * thickness * aspect;
+
+        vec4 p1 =  gl_in[0].gl_Position;
+        vec2 ssp1 = vec2(p1.xy / p1.w);
+
+
+        const float PI = 3.1415926;
+
+        void main() {
+
+            gl_Position = gl_in[0].gl_Position;
+            EmitVertex();
+
+            for (int i = 0; i <= 24; i++) {
+                // Angle between each side in radians
+                float ang = PI * 2.0 / 24 * i;
+
+                // Offset from center of point (0.3 to accomodate for aspect ratio)
+                vec2 offset = vec2(cos(ang)*radius, -sin(ang)*radius);
+                offset.x /= aspect;
+                gl_Position = vec4(ssp1 + offset,(p1.z/p1.w),1.0);
+                EmitVertex();
+
+                gl_Position = gl_in[0].gl_Position;
+                EmitVertex();
+
+            }
+
+            EndPrimitive();
+        }  
     '''
 
     fragment_shader = '''
-            
         uniform vec4 finalColor;
         out vec4 fragColor;
 
         void main()
         {
-            vec2 centered = gl_PointCoord - vec2(0.5);
-            float dist_squared = dot(centered, centered);
-            const float rad_squared = 0.25;
-
-            // round point with jaggy edges
-            if (dist_squared > rad_squared)
-                discard;
-
             fragColor = finalColor;
         }
     '''
