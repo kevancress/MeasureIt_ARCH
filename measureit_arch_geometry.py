@@ -671,6 +671,7 @@ def draw_line_group(context, myobj, lineGen):
             
             #Get line data to be drawn
             coords =[]
+            pointcoord =[]
             arclengths = []
             for x in range(0,lineGroup.numLines):
                 sLine = lineGroup.singleLine[x]
@@ -681,13 +682,14 @@ def draw_line_group(context, myobj, lineGen):
 
                 if  a_p1 is not None and b_p1 is not None:
                     coords.append(a_p1)
+                    pointcoord.append(a_p1)
                     arclengths.append(0)
                     
                     coords.append(b_p1)
                     arclengths.append((Vector(a_p1)-Vector(b_p1)).length)
                     
             #Draw Point Pass for Clean Corners
-            batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
+            batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoord})
             batch3d.program_set(pointShader)
             batch3d.draw()
 
