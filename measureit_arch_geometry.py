@@ -880,7 +880,6 @@ def draw_text_3D(context,textobj,myobj,card):
         uv = (Vector(normUV) + Vector((1,1)))*0.5
         uvs.append(uv)
 
-
     # Batch Geometry
     batch = batch_for_shader(
         textShader, 'TRI_FAN',
@@ -890,20 +889,18 @@ def draw_text_3D(context,textobj,myobj,card):
         },
     )
 
-
-    
-
     dim = width * height * 4
-    buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
-    texBuf = bgl.Buffer(bgl.GL_INT, 1)
-    bgl.glGenTextures(1, texBuf)
-    bgl.glActiveTexture(bgl.GL_TEXTURE0)
-    bgl.glBindTexture(bgl.GL_TEXTURE_2D, texBuf.to_list()[0])
+    
+    if 'texture' in textobj:
+        buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
+        texBuf = bgl.Buffer(bgl.GL_INT, 1)
+        bgl.glGenTextures(1, texBuf)
+        bgl.glActiveTexture(bgl.GL_TEXTURE0)
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, texBuf.to_list()[0])
 
-
-    bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)
-    bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-    textobj.texture_updated=False
+        bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+        textobj.texture_updated=False
 
     
     # Draw Shader
