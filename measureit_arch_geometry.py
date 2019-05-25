@@ -589,7 +589,7 @@ def draw_line_group(context, myobj, lineGen):
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
   
-    viewport = [context.window.width,context.window.height]
+    viewport = [context.area.width,context.area.height]
 
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]

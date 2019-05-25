@@ -89,14 +89,15 @@ class Base_Shader_3D ():
             vec2 ssp1 = vec2(p1.xy / p1.w);
             vec2 ssp2 = vec2(p2.xy / p2.w);
 
-            float width = 0.00118 * thickness ;
+            float width = 0.00118 * thickness * aspect ;
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
-            
+
             // get offset factor from normal and user input thicknes
             vec2 offset = vec2(normal * width);
             offset.x /= aspect;
+            
 
             vec4 coords[4];
             coords[0] = vec4((ssp1 + offset),(p1.z/p1.w),1.0);

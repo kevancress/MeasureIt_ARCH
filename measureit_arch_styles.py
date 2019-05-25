@@ -383,7 +383,7 @@ def draw_line_style_row(line,layout):
     else: visIcon = 'HIDE_ON'
 
     if line.isOutline: outIcon = 'SEQ_CHROMA_SCOPE' 
-    else: outIcon = 'VOLUME'
+    else: outIcon = 'FILE_3D'
 
     if line.lineDrawHidden: hiddenIcon = 'MOD_WIREFRAME'
     else: hiddenIcon = 'MESH_CUBE'
