@@ -264,8 +264,8 @@ def render_main(self, context, animation=False):
         [0, 0, 0, 1]])
 
     view_matrix_3d = scene.camera.matrix_world.inverted()
-    projection_matrix = scene.camera.calc_matrix_camera(context.depsgraph, x=width, y=height)
-
+    projection_matrix = scene.camera.calc_matrix_camera(context.view_layer.depsgraph, x=width, y=height)
+    scene.measureit_arch_is_render_draw = True
     with offscreen.bind():
         # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
         bgl.glClearDepth(clipdepth)
@@ -349,6 +349,7 @@ def render_main(self, context, animation=False):
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
     offscreen.free()
 
+    scene.measureit_arch_is_render_draw = False
     # -----------------------------
     # Create image
     # -----------------------------
@@ -423,7 +424,7 @@ def draw_scene(self, context, projection_matrix):
     for obj in objs:
         mesh = obj.data
         bm = bmesh.new()
-        bm.from_object(obj, context.depsgraph, deform=True)
+        bm.from_object(obj, context.view_layer.depsgraph, deform=True)
         mesh.calc_loop_triangles()
         vertices = []
         indices = np.empty((len(mesh.loop_triangles), 3), 'i')

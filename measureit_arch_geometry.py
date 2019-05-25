@@ -61,7 +61,8 @@ dashedLineShader = gpu.types.GPUShader(
 
 pointShader = gpu.types.GPUShader(
     Point_Shader_3D.vertex_shader,
-    Point_Shader_3D.fragment_shader)
+    Point_Shader_3D.fragment_shader,
+    geocode=Point_Shader_3D.geometry_shader)
 
 textShader = gpu.types.GPUShader(
     Text_Shader.vertex_shader,
@@ -178,7 +179,10 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         lineWeight = dimProps.lineWeight
-        viewport = [context.window.width,context.window.height]
+        if context.scene.measureit_arch_is_render_draw:
+            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+        else:
+            viewport = [context.area.width,context.area.height]
 
         # Obj Properties
         obvertA = get_mesh_vertices(dim.dimObjectA)
@@ -376,7 +380,11 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         lineWeight = dimProps.lineWeight
-        viewport = [context.window.width,context.window.height]
+        if context.scene.measureit_arch_is_render_draw:
+            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+        else:
+            viewport = [context.area.width,context.area.height]
+
         bgl.glPointSize(dimProps.lineWeight)
 
         scene = context.scene
@@ -459,7 +467,7 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         #configure shaders
         pointShader.bind()
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("size", 1)
+        pointShader.uniform_float("thickness", lineWeight)
         pointShader.uniform_float("offset", -offset)
         gpu.shader.unbind()
 
@@ -588,8 +596,11 @@ def draw_line_group(context, myobj, lineGen):
 
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
-  
-    viewport = [context.area.width,context.area.height]
+    
+    if context.scene.measureit_arch_is_render_draw:
+        viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+    else:
+        viewport = [context.area.width,context.area.height]
 
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
@@ -612,17 +623,18 @@ def draw_line_group(context, myobj, lineGen):
             rgb = [pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),alpha]
 
             #overide line color with theme selection colors when selected
-            if myobj.select_get() and bpy.context.mode != 'EDIT_MESH' and context.scene.measureit_arch_gl_ghost:
-                rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
-                rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
-                rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
-                rgb[3] = alpha
-
-                if myobj.data.name == context.view_layer.objects.active.data.name:
-                    rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
-                    rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
-                    rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
+            if not context.scene.measureit_arch_is_render_draw:
+                if myobj.select_get() and bpy.context.mode != 'EDIT_MESH' and context.scene.measureit_arch_gl_ghost:
+                    rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
+                    rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
+                    rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
                     rgb[3] = alpha
+
+                    if myobj.data.name == context.view_layer.objects.active.data.name:
+                        rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
+                        rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
+                        rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
+                        rgb[3] = alpha
 
             #set other line properties
             offset = (lineProps.lineDepthOffset/1000)
@@ -640,7 +652,8 @@ def draw_line_group(context, myobj, lineGen):
             #configure Shaders
             pointShader.bind()
             pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            pointShader.uniform_float("size", 1)
+            pointShader.uniform_float("Viewport",viewport)
+            pointShader.uniform_float("thickness", lineWeight)
             pointShader.uniform_float("offset", -offset)
             gpu.shader.unbind()
 
@@ -716,7 +729,10 @@ def draw_annotation(context, myobj, annotationGen):
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
 
-    viewport = [context.window.width,context.window.height]
+    if context.scene.measureit_arch_is_render_draw:
+        viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+    else:
+        viewport = [context.area.width,context.area.height]
     
 
     for idx in range(0, annotationGen.num_annotations):
@@ -739,7 +755,7 @@ def draw_annotation(context, myobj, annotationGen):
 
             pointShader.bind()
             pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            pointShader.uniform_float("size", 1)
+            pointShader.uniform_float("thickness", lineWeight)
             pointShader.uniform_float("offset", 0)
             bgl.glPointSize(lineWeight)
             gpu.shader.unbind()
@@ -786,7 +802,7 @@ def draw_annotation(context, myobj, annotationGen):
             if endcap == 'D':
                 pointShader.bind()
                 pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                pointShader.uniform_float("size", 1)
+                pointShader.uniform_float("thickness", lineWeight)
                 pointShader.uniform_float("offset", -0.01)
                 bgl.glPointSize(endcapSize)
                 gpu.shader.unbind()
