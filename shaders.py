@@ -227,7 +227,7 @@ class Point_Shader_3D ():
 
     geometry_shader = '''
         layout(points) in;
-        layout(triangle_strip, max_vertices = 50) out;
+        layout(triangle_strip, max_vertices = 26) out;
 
         uniform mat4 ModelViewProjectionMatrix;
         uniform vec2 Viewport;
@@ -247,9 +247,9 @@ class Point_Shader_3D ():
             gl_Position = gl_in[0].gl_Position;
             EmitVertex();
 
-            for (int i = 0; i <= 24; i++) {
+            for (int i = 0; i <= 12; i++) {
                 // Angle between each side in radians
-                float ang = PI * 2.0 / 24 * i;
+                float ang = PI * 2.0 / 12 * i;
 
                 // Offset from center of point (0.3 to accomodate for aspect ratio)
                 vec2 offset = vec2(cos(ang)*radius, -sin(ang)*radius);

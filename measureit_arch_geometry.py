@@ -172,7 +172,12 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
+    #check all visibility conditions
     if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+        inView = True        
+    else:
+        inView = False    
+    if dim.visible and dimProps.visible and inView:
         # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
@@ -362,7 +367,6 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         gpu.shader.unbind()
 
         #Reset openGL Settings
-        bgl.glLineWidth(1)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
 
@@ -372,8 +376,13 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
-    
+
+    # Check Visibility Conditions
+    inView = False
     if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+        inView = True
+    
+    if inView and dim.visible and dimProps.visible:
          # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
@@ -385,7 +394,6 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         else:
             viewport = [context.area.width,context.area.height]
 
-        bgl.glPointSize(dimProps.lineWeight)
 
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
@@ -502,7 +510,6 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         gpu.shader.unbind()
 
         #Reset openGL Settings
-        bgl.glLineWidth(1)
         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(False)
@@ -646,8 +653,6 @@ def draw_line_group(context, myobj, lineGen):
 
             #gl Settings
             bgl.glDepthFunc(bgl.GL_LEQUAL) 
-            bgl.glLineWidth(lineWeight)
-            bgl.glPointSize(lineWeight)
 
             #configure Shaders
             pointShader.bind()
@@ -714,7 +719,6 @@ def draw_line_group(context, myobj, lineGen):
             gpu.shader.unbind()
             #Draw Hidden Lines
             
-    bgl.glLineWidth(1)
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
@@ -724,7 +728,7 @@ def draw_annotation(context, myobj, annotationGen):
     obverts = get_mesh_vertices(myobj)
 
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+    #bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
@@ -747,7 +751,7 @@ def draw_annotation(context, myobj, annotationGen):
         endcap = annotationProps.endcapA
         endcapSize = annotationProps.endcapSize
 
-        if annotation.visible is True:
+        if annotation.visible and annotationProps.visible:
             lineWeight = annotationProps.lineWeight
             rawRGB = annotationProps.color
             #undo blenders Default Gamma Correction
@@ -756,14 +760,13 @@ def draw_annotation(context, myobj, annotationGen):
             pointShader.bind()
             pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             pointShader.uniform_float("thickness", lineWeight)
-            pointShader.uniform_float("offset", 0)
-            bgl.glPointSize(lineWeight)
+            pointShader.uniform_float("offset", -0.01)
             gpu.shader.unbind()
 
             lineShader.bind()
             lineShader.uniform_float("Viewport",viewport)
             lineShader.uniform_float("thickness",lineWeight)
-            lineShader.uniform_float("offset",0)
+            lineShader.uniform_float("offset",-0.01)
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             if annotation.annotationAnchorObject.type == 'MESH':
                 p1 = get_point(obverts[annotation.annotationAnchor], myobj)
@@ -802,9 +805,8 @@ def draw_annotation(context, myobj, annotationGen):
             if endcap == 'D':
                 pointShader.bind()
                 pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                pointShader.uniform_float("thickness", lineWeight)
+                pointShader.uniform_float("thickness", endcapSize)
                 pointShader.uniform_float("offset", -0.01)
-                bgl.glPointSize(endcapSize)
                 gpu.shader.unbind()
                 
                 pointcoords = [p1]

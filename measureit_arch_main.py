@@ -446,11 +446,9 @@ def draw_main_3d (context):
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator[0]
                 for alignedDim in DimGen.alignedDimensions:
-                    if alignedDim.visible is True:
-                        draw_alignedDimension(context, myobj, DimGen, alignedDim)
+                    draw_alignedDimension(context, myobj, DimGen, alignedDim)
                 for angleDim in DimGen.angleDimensions:
-                    if angleDim.visible is True:
-                        draw_angleDimension(context, myobj, DimGen, angleDim)
+                    draw_angleDimension(context, myobj, DimGen, angleDim)
                 
 # -------------------------------------------------------------
 # Handler for drawing OpenGl
