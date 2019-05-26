@@ -732,9 +732,9 @@ def draw_line_group(context, myobj, lineGen):
 
 def draw_annotation(context, myobj, annotationGen):
     obverts = get_mesh_vertices(myobj)
-
+    scene = context.scene
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    #bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
@@ -764,9 +764,10 @@ def draw_annotation(context, myobj, annotationGen):
             rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
 
             pointShader.bind()
+            pointShader.uniform_float("Viewport",viewport)
             pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             pointShader.uniform_float("thickness", lineWeight)
-            pointShader.uniform_float("offset", -0.01)
+            pointShader.uniform_float("offset", 0)
             gpu.shader.unbind()
 
             lineShader.bind()
@@ -774,14 +775,39 @@ def draw_annotation(context, myobj, annotationGen):
             lineShader.uniform_float("thickness",lineWeight)
             lineShader.uniform_float("offset",-0.01)
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+
+            # Get Points
             if annotation.annotationAnchorObject.type == 'MESH':
                 p1 = get_point(obverts[annotation.annotationAnchor], myobj)
             else:
                 p1 = annotation.annotationAnchorObject.location
-            offset = annotation.annotationOffset
-            p2 = Vector(p1) + Vector(offset)
 
-            textcard = generate_text_card(context,annotation,annotationProps,annotation.annotationRotation,p2)
+            diff = Vector(p1) - Vector(annotation.annotationAnchorObject.location)
+            offset = annotation.annotationOffset
+            
+            p2 = Vector((0,0,0)) + Vector(offset)
+            textcard = generate_text_card(context,annotation,annotationProps,annotation.annotationRotation,(0,0,0))
+
+            #Get local Rotation and Translation
+            rot = myobj.matrix_local.to_quaternion()
+            loc = myobj.matrix_local.to_translation()
+
+            #Compose Rotation and Translation Matrix
+            rotMatrix = Matrix.Identity(3)
+            rotMatrix.rotate(rot)
+            rotMatrix.resize_4x4()
+            locMatrix = Matrix.Translation(loc)
+            rotLocMatrix = locMatrix @ rotMatrix
+
+            # Transform offset and Text Card with Composed Matrix
+            p2 = rotLocMatrix @ Vector(p2) + diff
+            textcard[0] = rotLocMatrix @ (textcard[0] + offset) + diff
+            textcard[1] = rotLocMatrix @ (textcard[1] + offset) + diff
+            textcard[2] = rotLocMatrix @ (textcard[2] + offset) + diff
+            textcard[3] = rotLocMatrix @ (textcard[3] + offset) + diff
+
+
+
             if  p1 is not None and p2 is not None:
 
                 coords =[]
