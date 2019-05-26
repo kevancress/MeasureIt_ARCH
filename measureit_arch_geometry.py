@@ -523,9 +523,17 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     loc = Vector(get_location(myobj))
     centerRay = Vector((-1,1,1))
 
+    if dimProps.dimViewPlane=='99':
+        viewPlane = dim.dimViewPlane
+    else:
+        viewPlane = dimProps.dimViewPlane
+
     if myobj.type == 'MESH':
-        vertA = myobj.data.vertices[dim.dimPointA]
-        directionRay = vertA.normal + loc 
+        if dim.dimPointA != 9999999:
+            vertA = myobj.data.vertices[dim.dimPointA]
+            directionRay = vertA.normal + loc 
+        else:
+            directionRay = Vector((0,0,0))
         #get Adjacent Face normals if possible
         possibleNormals = []
         for face in myobj.data.polygons:
@@ -536,12 +544,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
                 possibleNormals.append(worldNormal)
                 
         bestNormal = directionRay
-        
-        if dimProps.dimViewPlane=='99':
-            viewPlane = dim.dimViewPlane
-        else:
-            viewPlane = dimProps.dimViewPlane
-
+    
         #Face Normals Available Test Conditions
         if len(possibleNormals) > 1:  
             bestNormal = Vector((1,1,1))
