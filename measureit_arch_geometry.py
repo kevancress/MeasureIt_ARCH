@@ -600,6 +600,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     return bestNormal 
         
 def draw_line_group(context, myobj, lineGen):
+    scene = context.scene
     obverts = get_mesh_vertices(myobj)
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
@@ -648,12 +649,28 @@ def draw_line_group(context, myobj, lineGen):
                         rgb[3] = alpha
 
             #set other line properties
-            offset = (lineProps.lineDepthOffset/1000)
+            isOrtho = False
+            if scene.measureit_arch_is_render_draw:
+                if scene.camera.data.type == 'ORTHO':
+                    isOrtho = True
+            else:
+                for space in context.area.spaces:
+                    if space.type == 'VIEW_3D':
+                        r3d = space.region_3d
+                if r3d.view_perspective == 'ORTHO':
+                    isOrtho = True
+                
             drawHidden = lineProps.lineDrawHidden
             lineWeight = lineProps.lineWeight
 
+            # Calculate Offset with User Tweaks
+            offset = lineWeight/2.5
+            offset += lineProps.lineDepthOffset
+            if isOrtho:
+                offset /= 15
             if lineProps.isOutline:
                 offset = -10*offset
+            offset /= 1000
 
             #gl Settings
             bgl.glDepthFunc(bgl.GL_LEQUAL) 
