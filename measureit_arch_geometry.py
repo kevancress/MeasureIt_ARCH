@@ -165,8 +165,16 @@ def update_text(textobj,props,context):
         #image.pixels = [v / 255 for v in texture_buffer]
 
 def draw_alignedDimension(context, myobj, measureGen,dim):
-
+    # GL Settings
+    bgl.glEnable(bgl.GL_MULTISAMPLE)
+    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthFunc(bgl.GL_LEQUAL) 
     dimProps = dim
+    lineWeight = dimProps.lineWeight
+
+  
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
             if alignedDimStyle.name == dim.style:
@@ -178,12 +186,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
     else:
         inView = False    
     if dim.visible and dimProps.visible and inView:
-        # GL Settings
-        bgl.glEnable(bgl.GL_MULTISAMPLE)
-        bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        lineWeight = dimProps.lineWeight
+
         if context.scene.measureit_arch_is_render_draw:
             viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
         else:
