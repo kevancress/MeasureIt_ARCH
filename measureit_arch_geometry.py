@@ -373,6 +373,215 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
 
+def draw_axisDimension(context, myobj, measureGen,dim):
+    # GL Settings
+    bgl.glEnable(bgl.GL_MULTISAMPLE)
+    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthFunc(bgl.GL_LEQUAL) 
+    dimProps = dim
+    lineWeight = dimProps.lineWeight
+
+  
+    if dim.uses_style:
+        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+            if alignedDimStyle.name == dim.style:
+                dimProps = alignedDimStyle
+
+    #check all visibility conditions
+    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+        inView = True        
+    else:
+        inView = False    
+    if dim.visible and dimProps.visible and inView:
+
+        if context.scene.measureit_arch_is_render_draw:
+            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+        else:
+            viewport = [context.area.width,context.area.height]
+
+        # Obj Properties
+        obvertA = get_mesh_vertices(dim.dimObjectA)
+        obvertB = get_mesh_vertices(dim.dimObjectB)
+        scene = context.scene
+        pr = scene.measureit_arch_gl_precision
+        textFormat = "%1." + str(pr) + "f"
+        scale = bpy.context.scene.unit_settings.scale_length
+        units = scene.measureit_arch_units
+        rawRGB = dimProps.color
+        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        
+        capA = dimProps.endcapA
+        capB = dimProps.endcapB
+        capSize = dimProps.endcapSize
+
+        
+
+        offset = dim.dimOffset
+        geoOffset = dim.dimLeaderOffset
+    
+        # get points positions from indicies
+        if dim.dimPointA == 9999999:
+            p1 = dim.dimObjectA.location
+        else:
+            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA)
+        
+        if dim.dimPointB == 9999999:
+            p2 = dim.dimObjectB.location
+        else:
+            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
+        
+        #check x axis alignment for text
+        if p2[0] > p1[0]:
+            switchTemp = p1
+            p1 = p2
+            p2 = switchTemp
+
+        
+        #calculate distance & Midpoint
+        distVector = Vector(p1)-Vector(p2)
+        dim.gizRotAxis = distVector
+        dist = distVector.length
+        midpoint = interpolate3d(p1, p2, fabs(dist / 2))
+        normDistVector = distVector.normalized()
+        absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
+        dim.gizLoc = midpoint
+
+        # Compute offset vector from face normal and user input
+        rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)
+        selectedNormal = Vector(select_normal(myobj,dim,normDistVector,midpoint,dimProps))
+        if dim.dimFlip is True:
+            selectedNormal.negate()
+        
+        userOffsetVector = rotationMatrix@selectedNormal
+        offsetDistance = userOffsetVector*offset
+        geoOffsetDistance = userOffsetVector*geoOffset
+        
+        # Define Lines
+        leadStartA = Vector(p1) + geoOffsetDistance
+        leadEndA = Vector(p1) + offsetDistance
+        leadStartB = Vector(p2) + geoOffsetDistance
+        leadEndB = Vector(p2)+offsetDistance
+        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
+        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
+        textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
+
+        #i,j,k as card axis
+        i = Vector((1,0,0))
+        j = Vector((0,1,0))
+        k = Vector((0,0,1))
+
+
+        #quaternion = userOffsetVector.to_track_quat('Y','Z')
+        #textRotation=quaternion.to_euler('XYZ')
+        #textRotation=(-textRotation[0],-textRotation[1],-textRotation[2],)
+        #format text and update if necessary
+        distanceText = str(format_distance(textFormat,units,dist))
+        if dim.text != str(distanceText):
+            dim.text = str(distanceText)
+            dim.text_updated = True
+        
+        width = dim.textWidth
+        height = dim.textHeight 
+        resolution = dimProps.textResolution
+        size = dimProps.fontSize/fontSizeMult
+        sx = (width/resolution)*0.1*size
+        sy = (height/resolution)*0.15*size
+        origin = Vector(textLoc)
+        cardX = normDistVector * sx
+        cardY = userOffsetVector *sy
+        square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
+
+        if scene.measureit_arch_gl_show_d:
+            draw_text_3D(context,dim,myobj,square)
+
+
+      
+        #Collect coords and endcaps
+        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
+        ACoords = generate_end_caps(context,dim,capA,capSize,dimLineStart,userOffsetVector,textLoc)
+        BCoords = generate_end_caps(context,dim,capB,capSize,dimLineEnd,userOffsetVector,textLoc)
+        filledCoords = []
+        if capA == 'L' or capA == 'D':
+            for coord in ACoords:
+                coords.append(coord)
+        if capB == 'L' or capB == 'D' :
+            for coord in BCoords:
+                coords.append(coord)
+        
+        if capA == 'T':
+            for coord in ACoords:
+                filledCoords.append(coord)
+        if capB == 'T':
+            for coord in BCoords:
+                filledCoords.append(coord)
+
+        if capA == 'D':
+                  # Define Square
+            pos = dimLineStart
+            x = distVector.normalized() * dimProps.endcapSize/20
+            y = userOffsetVector.normalized() * dimProps.endcapSize/20
+            a = 0.055
+            b = 0.085
+            s1 = (pos + (a*x) + (b*y))
+            s2 = (pos + (b*x) + (a*y))
+            s3 = (pos + (-a*x) + (-b*y))
+            s4 = (pos + (-b*x) + (-a*y))
+            filledCoords.append(s1)
+            filledCoords.append(s2)
+            filledCoords.append(s3)
+            filledCoords.append(s1)
+            filledCoords.append(s3)
+            filledCoords.append(s4) 
+
+        if capB == 'D':
+                  # Define Square
+            pos = dimLineEnd
+            x = distVector.normalized() * dimProps.endcapSize/20
+            y = userOffsetVector.normalized() * dimProps.endcapSize/20
+            a = 0.055
+            b = 0.085
+            s1 = (pos + (a*x) + (b*y))
+            s2 = (pos + (b*x) + (a*y))
+            s3 = (pos + (-a*x) + (-b*y))
+            s4 = (pos + (-b*x) + (-a*y))
+            filledCoords.append(s1)
+            filledCoords.append(s2)
+            filledCoords.append(s3)
+            filledCoords.append(s1)
+            filledCoords.append(s3)
+            filledCoords.append(s4) 
+
+        if capB == 'T' or capA == 'T' or capA == 'D' or capB == 'D':
+            #bind shader
+            triShader.bind()
+            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            triShader.uniform_float("offset", (0,0,0))
+
+            batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
+            batch.program_set(triShader)
+            batch.draw()
+            gpu.shader.unbind()
+
+        
+        #bind shader
+        dimensionShader.bind()
+        dimensionShader.uniform_float("Viewport",viewport)
+        dimensionShader.uniform_float("thickness",lineWeight)
+        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        dimensionShader.uniform_float("offset", (0,0,0))
+
+        # batch & Draw Shader   
+        batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
+        batch.program_set(dimensionShader)
+        batch.draw()
+        gpu.shader.unbind()
+
+        #Reset openGL Settings
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthMask(False)
+
 def draw_angleDimension(context, myobj, DimGen, dim):
     dimProps = dim
     if dim.uses_style:

@@ -175,8 +175,11 @@ class DeletePropButton(Operator):
             itemGroup = Generator.alignedDimensions
         elif self.item_type == 'D-ANGLE':
             itemGroup = Generator.angleDimensions
+        elif self.item_type == 'D-AXIS':
+            itemGroup = Generator.axisDimensions
         elif 'D' in self.item_type:
             itemGroup = Generator.alignedDimensions
+            
         # Delete element
         itemGroup[self.tag].free = True
         itemGroup.remove(self.tag)
@@ -230,6 +233,9 @@ class DeleteAllItemsButton(Operator):
                     mainobject.DimensionGenerator[0].measureit_arch_num = 0
                 for angleDim in mainobject.DimensionGenerator[0].angleDimensions:
                     mainobject.DimensionGenerator[0].angleDimensions.remove(0)
+                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
+                for axisDim in mainobject.DimensionGenerator[0].axisDimensions:
+                    mainobject.DimensionGenerator[0].axisDimensions.remove(0)
                     mainobject.DimensionGenerator[0].measureit_arch_num = 0
                 for wrapper in mainobject.DimensionGenerator[0].wrappedDimensions:
                     mainobject.DimensionGenerator[0].wrappedDimensions.remove(0)

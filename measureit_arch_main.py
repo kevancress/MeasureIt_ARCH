@@ -37,7 +37,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
 # noinspection PyUnresolvedReferences
-from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_vertices, draw_object, draw_edges
+from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_vertices, draw_object, draw_edges, draw_axisDimension
 
 
 coords = [(100, 100, 1), (200, 400, 0), (-2, -1, 3), (0, 1, 1)]
@@ -154,6 +154,7 @@ class MeasureitArchMainPanel(Panel):
 
         col = box.column(align=True)
         col.operator("measureit_arch.addaligneddimensionbutton", text="Aligned", icon="DRIVER_DISTANCE")
+        col.operator("measureit_arch.addaxisdimensionbutton", text="Axis", icon="TRACKING_FORWARDS_SINGLE")
         col.operator("measureit_arch.addanglebutton", text="Angle", icon="DRIVER_ROTATIONAL_DIFFERENCE")
         #col.operator("measureit_arch.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
         #col = box.column()
@@ -379,6 +380,14 @@ def draw_main(context):
                             if dimStyle.name == angleDim.style:
                                 dimProps= dimStyle
                     update_text(textobj=angleDim,props=dimProps,context=context)
+                
+                for axisDim in DimGen.axisDimensions: 
+                    dimProps = axisDim
+                    if axisDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+                            if dimStyle.name == angleDim.style:
+                                dimProps= dimStyle
+                    update_text(textobj=axisDim,props=dimProps,context=context)
             
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
@@ -449,6 +458,8 @@ def draw_main_3d (context):
                     draw_alignedDimension(context, myobj, DimGen, alignedDim)
                 for angleDim in DimGen.angleDimensions:
                     draw_angleDimension(context, myobj, DimGen, angleDim)
+                for axisDim in DimGen.axisDimensions:
+                    draw_axisDimension(context,myobj,DimGen,axisDim)
                 
 # -------------------------------------------------------------
 # Handler for drawing OpenGl

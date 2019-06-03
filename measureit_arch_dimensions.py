@@ -112,6 +112,69 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
 
 bpy.utils.register_class(AlignedDimensionProperties)
 
+class AxisDimensionProperties(BaseWithText,PropertyGroup):
+    dimPointA: IntProperty(name='dimPointA',
+                    description="Dimension Start Vertex Index")
+
+    dimObjectA: PointerProperty(type=Object)
+
+    dimPointB: IntProperty(name='dimPointB',
+                    description="Dimension End Vertex Index")
+
+    dimObjectB: PointerProperty(type=Object)
+
+    dimOffset: FloatProperty(name='Dimension Offset',
+                    description='Offset for Dimension',
+                    default= (0.5),
+                    subtype='DISTANCE')
+
+    dimLeaderOffset: FloatProperty(name='Dimension Offset',
+                    description='Offset for Dimension',
+                    default= (0.05),
+                    subtype='DISTANCE')
+    
+    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
+
+    dimFlip: BoolProperty(name='Flip Dimension',
+                    description= 'Flip The Dimension Normal',
+                    default=False)
+
+    dimViewPlane: EnumProperty(
+                    items=(('99', "None", "None",'EMPTY_AXIS',0),
+                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
+                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
+                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
+                    name="B end",
+                    description="Add arrows to point A")   
+
+    endcapSize: IntProperty(name="dimEndcapSize",
+                    description="End Cap size",
+                    default=15, min=1, max=500)
+
+    endcapA: EnumProperty(
+                    items=(('99', "--", "No Cap"),
+                           ('L', "Arrow", "Arrow"),
+                           ('T', "Triangle", "Triangle"),
+                           ('D', "Dashed", "Dashed")),
+                    name="A end",
+                    description="Add arrows to point A")
+
+    endcapB: EnumProperty(
+                    items=(('99', "--", "No Cap"),
+                           ('L', "Arrow", "Arrow"),
+                           ('T', "Triangle", "Triangle"),
+                           ('D', "Dashed", "Dashed")),
+                    name="B end",
+                    description="Add arrows to point A")     
+
+    dimRotation:FloatProperty(name='annotationOffset',
+                            description='Rotation for Annotation',
+                            default= 0.0,
+                            subtype='ANGLE')
+
+bpy.utils.register_class(AxisDimensionProperties)
+
+
 class AngleDimensionProperties(BaseWithText,PropertyGroup):
     dimPointA: IntProperty(name='dimPointA',
                     description="Angle Start Vertex Index")
@@ -328,6 +391,7 @@ def recalc_dimWrapper_index(self,context):
     wrappedDimensions = dimGen.wrappedDimensions
     id_aligned = 0
     id_angle = 0
+    id_axis = 0
     for dim in wrappedDimensions:
         if dim.itemType == 'D-ALIGNED':
             dim.itemIndex = id_aligned
@@ -335,6 +399,9 @@ def recalc_dimWrapper_index(self,context):
         elif dim.itemType == 'D-ANGLE':
             dim.itemIndex = id_angle
             id_angle += 1
+        elif dim.itemType == 'D-AXIS':
+            dim.itemIndex = id_axis
+            id_axis += 1
 
 # A Wrapper object so multiple dimension types can be
 # Shown in the same UI List
@@ -342,7 +409,8 @@ def recalc_dimWrapper_index(self,context):
 class DimensionWrapper(PropertyGroup):
     itemType: EnumProperty(
                 items=(('D-ALIGNED', "Aligned Dimension", ""),
-                        ('D-ANGLE', "Angle Dimension", "")),
+                        ('D-ANGLE', "Angle Dimension", ""),
+                        ('D-AXIS', "Axisi Dimension", "")),
                 name="Dimension Item Type",
                 update=recalc_dimWrapper_index)
 
@@ -363,6 +431,7 @@ class DimensionContainer(PropertyGroup):
     measureit_arch_segments: CollectionProperty(type=MeasureitArchProperties)
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
     angleDimensions: CollectionProperty(type=AngleDimensionProperties)
+    axisDimensions: CollectionProperty(type=AxisDimensionProperties)
 
     wrappedDimensions: CollectionProperty(type=DimensionWrapper)
 
@@ -509,7 +578,168 @@ class AddAlignedDimensionButton(Operator):
 
                 newDimension.endcapA= scene.measureit_arch_glarrow_a
                 newDimension.endcapB = scene.measureit_arch_glarrow_b
-                newDimension.endcapSize= scene.measureit_arch_glarrow_s
+                newDimension.endcapSize= 8
+                # color
+                newDimension.color = scene.measureit_arch_default_color
+                # dist
+                newDimension.dimOffset = 0.3
+                newDimension.dimLeaderOffset = 0.05
+                # text
+                newDimension.text = scene.measureit_arch_gl_txt
+                newDimension.fontSize = 24
+                newDimension.textResolution = 150
+                newDimension.textAlignment = 'C'
+                # Sum group
+                DimGen.measureit_arch_num += 1 
+            return{'FINISHED'}
+        else:
+            self.report({'WARNING'},
+                        "View3D not found, cannot run operator")
+
+            return {'CANCELLED'}
+
+
+class AddAxisDimensionButton(Operator):
+    bl_idname = "measureit_arch.addaxisdimensionbutton"
+    bl_label = "Add"
+    bl_description = "Add Single Axis Dimension (Dimension Properties can be edited in the Object Properties)"
+    bl_category = 'MeasureitArch'
+
+    # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        o = context.object
+        if o is None:
+            return False
+        else:
+            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
+                return True
+            else:
+                return False
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        if context.area.type == 'VIEW_3D':
+            # get selected
+            scene = context.scene
+            
+            newDimensions = []
+
+            # Edit Context
+            if bpy.context.mode == 'EDIT_MESH':
+                for mainobject in context.objects_in_mode:
+                    mylist = get_smart_selected(mainobject)
+                    if len(mylist) < 2:  # if not selected linked vertex
+                        mylist = get_selected_vertex(mainobject)
+                    if len(mylist) >= 2:
+                        #Check Generators
+                        if 'DimensionGenerator' not in mainobject:
+                            mainobject.DimensionGenerator.add()
+                        if 'StyleGenerator' not in scene:
+                            scene.StyleGenerator.add()
+
+                        DimGen = mainobject.DimensionGenerator[0]
+
+                        for x in range(0, len(mylist) - 1, 2):
+                            if exist_segment(DimGen, mylist[x], mylist[x + 1]) is False:
+                                newDimension = DimGen.axisDimensions.add()
+                                newDimension.dimObjectA = mainobject
+                                newDimension.dimObjectB = mainobject
+                                newDimension.dimPointB = mylist[x]
+                                newDimension.dimPointA = mylist[x + 1]
+                                newDimension.name = 'Axis ' + str(len(DimGen.axisDimensions))
+                                newDimensions.append(newDimension)
+
+                                newWrapper = DimGen.wrappedDimensions.add()
+                                newWrapper.itemType = 'D-AXIS'
+
+
+                        # redraw
+                        recalc_dimWrapper_index(self,context)
+                        context.area.tag_redraw()
+                    else:
+                        self.report({'ERROR'},
+                                    "MeasureIt-ARCH: Select at least two vertices for creating measure segment.")
+            
+            # Object Context
+            elif bpy.context.mode == 'OBJECT':
+                mainobject = context.object
+                if len(context.selected_objects) != 2:
+                    self.report({'ERROR'},
+                            "MeasureIt-ARCH: Select two objects only, and optionally 1 vertex or 2 vertices "
+                            "(one of each object)")
+                    return {'FINISHED'}
+                
+                linkobject = None
+                for obj in context.selected_objects:
+                    if obj.name != mainobject.name:
+                        linkobject = obj
+
+                 # Verify destination vertex
+                mylinkvertex = get_selected_vertex(linkobject)
+                if len(mylinkvertex) != 1:
+                    if len(mylinkvertex) == 0:
+                        mylinkvertex.append(9999999)
+                    else:
+                        self.report({'ERROR'},
+                                    "MeasureIt-ARCH: The destination object has more than one vertex selected. "
+                                    "Select only 1")
+                        return {'FINISHED'}
+                # Verify origin vertex
+                myobjvertex = get_selected_vertex(mainobject)
+                if len(myobjvertex) != 1:
+                    if len(myobjvertex) == 0:
+                        myobjvertex.append(9999999)
+                    else:
+                        self.report({'ERROR'},
+                                    "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1")
+                        return {'FINISHED'}
+
+                # -------------------------------
+                # Add properties
+                # -------------------------------
+                flag = False
+                if 'DimensionGenerator' not in mainobject:
+                    mainobject.DimensionGenerator.add()
+
+                DimGen = mainobject.DimensionGenerator[0]
+
+                # Create all array elements
+                newDimension = DimGen.axisDimensions.add()
+
+                newDimension.dimObjectA = mainobject
+                newDimension.dimPointA = myobjvertex[0]
+                newDimension.dimObjectB = linkobject
+                newDimension.dimPointB = mylinkvertex[0]
+                newDimension.name = 'Axis ' + str(len(DimGen.axisDimensions))
+                newDimensions.append(newDimension)
+                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper.itemType = 'D-AXIS'
+                recalc_dimWrapper_index(self,context)
+
+                context.area.tag_redraw()
+
+            # Set Common Values
+            for newDimension in newDimensions:
+                newDimension.itemType = 'D-AXIS'
+                newDimension.style = scene.measureit_arch_default_dimension_style
+                if scene.measureit_arch_default_dimension_style is not '':
+                    newDimension.uses_style = True
+                else:
+                    newDimension.uses_style = False
+                
+                newDimension.lineWeight = 1
+                if 'camera' in scene:
+                    newDimension.dimVisibleInView = scene.camera.data
+                newDimension.dimViewPlane = scene.viewPlane
+
+                newDimension.endcapA= scene.measureit_arch_glarrow_a
+                newDimension.endcapB = scene.measureit_arch_glarrow_b
+                newDimension.endcapSize= 8
                 # color
                 newDimension.color = scene.measureit_arch_default_color
                 # dist
@@ -1021,6 +1251,7 @@ class M_ARCH_UL_dimension_list(UIList):
         dimGen = context.object.DimensionGenerator[0]
         angleDim = dimGen.angleDimensions
         alignedDim = dimGen.alignedDimensions
+        axisDim =  dimGen.axisDimensions
 
         scene = bpy.context.scene
         hasGen = False
@@ -1038,6 +1269,10 @@ class M_ARCH_UL_dimension_list(UIList):
             elif item.itemType == 'D-ANGLE':
                 dim = angleDim[item.itemIndex]
                 nameIcon = 'DRIVER_ROTATIONAL_DIFFERENCE'
+
+            elif item.itemType == 'D-AXIS':
+                dim = axisDim[item.itemIndex]
+                nameIcon = 'TRACKING_FORWARDS_SINGLE'
 
 
             row = layout.row(align=True)
@@ -1060,9 +1295,9 @@ class M_ARCH_UL_dimension_list(UIList):
                 row.separator()
 
             subrow = row.row(align=True)
-            if item.itemType == 'D-ALIGNED':
-                if dim.dimFlip: flipIcon = 'TRACKING_BACKWARDS_SINGLE'
-                else: flipIcon = 'TRACKING_FORWARDS_SINGLE'
+            if item.itemType == 'D-ALIGNED' or item.itemType == 'D-AXIS':
+                if dim.dimFlip: flipIcon ='BACK'
+                else: flipIcon = 'FORWARD'
                 subrow.prop(dim, 'dimFlip',text='',toggle=True, icon=flipIcon,emboss=False)
             
             if hasGen:
@@ -1115,6 +1350,8 @@ class OBJECT_PT_UIDimensions(Panel):
                     item = dimGen.alignedDimensions[activeWrapperItem.itemIndex]
                 if activeWrapperItem.itemType == 'D-ANGLE':
                     item = dimGen.angleDimensions[activeWrapperItem.itemIndex]
+                if activeWrapperItem.itemType == 'D-AXIS':
+                    item = dimGen.axisDimensions[activeWrapperItem.itemIndex]
 
                 if dimGen.show_dimension_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                 else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
@@ -1130,7 +1367,10 @@ class OBJECT_PT_UIDimensions(Panel):
                         draw_aligned_dimension_settings(item,box)
                     if activeWrapperItem.itemType == 'D-ANGLE':
                         draw_angle_dimension_settings(item,box)
-            
+                    if activeWrapperItem.itemType == 'D-AXIS':
+                        draw_axis_dimension_settings(item,box)
+
+
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
@@ -1142,6 +1382,43 @@ class OBJECT_MT_dimension_menu(bpy.types.Menu):
         delOp.item_type = 'D'
 
 def draw_aligned_dimension_settings(dim,layout):
+    col = layout.column()    
+
+    if dim.uses_style is False:
+        split = layout.split(factor=0.485)
+        col = split.column()
+        col.alignment ='RIGHT'
+        col.label(text='Font')
+        col = split.column()
+
+        col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
+
+        col = layout.column(align=True)
+    col.prop(dim,'dimViewPlane', text='View Plane')
+    col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+    if dim.uses_style is False: col.prop(dim,'lineWeight',text='Line Weight')
+
+    col = layout.column(align=True)
+    col.prop(dim,'dimOffset',text='Distance')
+    col.prop(dim,'dimLeaderOffset',text='Offset')
+    col.prop(dim, 'dimRotation', text='Rotation')
+    
+    if dim.uses_style is False:
+        col = layout.column(align=True)
+        col.prop(dim,'fontSize',text='Font Size')
+        col.prop(dim,'textResolution',text='Resolution')
+        #col.prop(dim,'textAlignment',text='Alignment')
+        #col.prop(dim,'textPosition',text='Position')
+
+        col = layout.column(align=True)
+        col.prop(dim,'endcapA', text='Arrow Start')
+        col.prop(dim,'endcapB', text='End')
+        col.prop(dim,'endcapSize', text='Arrow Size')
+
+    col.prop(dim,'textFlippedX',text='Flip Text X')
+    col.prop(dim,'textFlippedY',text='Flip Text Y')
+
+def draw_axis_dimension_settings(dim,layout):
     col = layout.column()    
 
     if dim.uses_style is False:
