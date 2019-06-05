@@ -147,6 +147,13 @@ class AxisDimensionProperties(BaseWithText,PropertyGroup):
                     name="B end",
                     description="Add arrows to point A")   
 
+    dimAxis: EnumProperty(
+                    items=(('X', "X Axis", "Measure only the X Axis"),
+                           ('Y', "Y Axis", "Measure only the Y Axis"),
+                           ('Z', "Z Axis", "Measure only the Z Axis")),
+                    name="Measurement Axis",
+                    description="Measurement Axis")   
+
     endcapSize: IntProperty(name="dimEndcapSize",
                     description="End Cap size",
                     default=15, min=1, max=500)
@@ -1432,6 +1439,7 @@ def draw_axis_dimension_settings(dim,layout):
 
         col = layout.column(align=True)
     col.prop(dim,'dimViewPlane', text='View Plane')
+    col.prop(dim,'dimAxis', text='Measurement Axis')
     col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
     if dim.uses_style is False: col.prop(dim,'lineWeight',text='Line Weight')
 

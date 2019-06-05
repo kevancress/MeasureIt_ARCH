@@ -412,6 +412,8 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         
+        axis = dimProps.dimAxis
+
         capA = dimProps.endcapA
         capB = dimProps.endcapB
         capSize = dimProps.endcapSize
@@ -439,9 +441,66 @@ def draw_axisDimension(context, myobj, measureGen,dim):
             p2 = switchTemp
 
         
+        #i,j,k as card axis
+        i = Vector((1,0,0))
+        j = Vector((0,1,0))
+        k = Vector((0,0,1))
+
+        if dim.dimViewPlane == 'XY':
+            viewAxis = k
+        elif dim.dimViewPlane == 'XZ':
+            viewAxis = j
+        elif dim.dimViewPlane == 'YZ':
+            viewAxis = i
+        elif dim.dimViewPlane == '99':
+            viewRot = context.area.spaces[0].region_3d.view_rotation
+            viewVec = k.copy()
+            viewVec.rotate(viewRot)
+            viewAxis = viewVec
+
+        # define axis relatd values
+        #basicThreshold = 0.5773
+        if axis =='X':
+            p1axis = (p1[0],0,0)
+            p2axis = (p2[0],0,0)
+            xThreshold = 0.95796
+            yThreshold = 0.22146
+            zThreshold = 0.197568
+            axisVec = i
+        elif axis == 'Y':
+            p1axis = (0,p1[1],0)
+            p2axis = (0,p2[1],0)
+            xThreshold = 0.22146
+            yThreshold = 0.95796
+            zThreshold = 0.197568
+            axisVec = j
+        elif axis == 'Z':
+            xThreshold = 0.24681
+            yThreshold = 0.24681
+            zThreshold = 0.93800
+            p1axis = (0,0,p1[2])
+            p2axis = (0,0,p2[2])
+            axisVec = k
+
+        # Divide the view space into four sectors by threshold
+        if viewAxis[0] > xThreshold:
+            viewSector = (1,0,0)
+        elif viewAxis[0] < -xThreshold:
+            viewSector = (-1,0,0)
+        
+        if viewAxis[1] > yThreshold:
+            viewSector = (0,1,0)
+        elif viewAxis[1] < -yThreshold:
+            viewSector = (0,-1,0)
+
+        if viewAxis[2] > zThreshold:
+            viewSector = (0,0,1)
+        elif viewAxis[2] < -zThreshold:
+            viewSector = (0,0,-1)
+
         #calculate distance & Midpoint
-        distVector = Vector(p1)-Vector(p2)
-        dim.gizRotAxis = distVector
+        distVector = Vector(p1axis)-Vector(p2axis)
+        
         dist = distVector.length
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
@@ -451,26 +510,63 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         # Compute offset vector from face normal and user input
         rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)
         selectedNormal = Vector(select_normal(myobj,dim,normDistVector,midpoint,dimProps))
+
+        #The Direction of the Dimension Lines
+        dirVector = Vector(viewSector).cross(axisVec)
+        if dirVector.dot(selectedNormal) < 0:
+            dirVector.negate()
+            selectedNormal = dirVector.normalized()
+        else:
+            selectedNormal = -dirVector.normalized()
+
         if dim.dimFlip is True:
             selectedNormal.negate()
         
+        print (dirVector)
+
         userOffsetVector = rotationMatrix@selectedNormal
         offsetDistance = userOffsetVector*offset
         geoOffsetDistance = userOffsetVector*geoOffset
         
         # Define Lines
-        leadStartA = Vector(p1) + geoOffsetDistance
-        leadEndA = Vector(p1) + offsetDistance
-        leadStartB = Vector(p2) + geoOffsetDistance
-        leadEndB = Vector(p2)+offsetDistance
-        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
-        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
+        
+        # get the components of p1 & p1 in the direction vector
+        p1Dir = Vector((p1[0]*dirVector[0],p1[1]*dirVector[1],p1[2]*dirVector[2]))
+        p2Dir = Vector((p2[0]*dirVector[0],p2[1]*dirVector[1],p2[2]*dirVector[2]))
+        
+        
+        if p1Dir <= p2Dir:
+            basePoint = p1
+            secondPoint = p2
+            secondPointAxis = Vector(p1axis) - Vector(p2axis)
+            alignedDistVector = Vector(p2)-Vector(p1)
+        else: 
+            basePoint = p2
+            secondPoint = p1
+            secondPointAxis = Vector(p2axis) - Vector(p1axis)
+            alignedDistVector = Vector(p1)-Vector(p2)
+
+        # get the difference between the points in the view axis
+        if dim.dimViewPlane == '99':
+            viewAxis = Vector(viewSector)
+            if viewAxis[0]<0 or viewAxis[1]<0 or viewAxis[2]<0:
+                viewAxis*= -1
+        viewAxisDiff = Vector((alignedDistVector[0]*viewAxis[0],alignedDistVector[1]*viewAxis[1],alignedDistVector[2]*viewAxis[2]))
+        
+        dim.gizRotAxis = alignedDistVector
+
+
+        leadStartA = Vector(basePoint) + geoOffsetDistance
+        leadEndA = Vector(basePoint)  + offsetDistance
+        leadEndB =  leadEndA - Vector(secondPointAxis)
+        leadStartB = Vector(secondPoint) - viewAxisDiff + geoOffsetDistance
+        viewDiffStartB = leadStartB
+        viewDiffEndB = leadStartB + viewAxisDiff
+        dimLineStart = leadEndA -(userOffsetVector*0.05)
+        dimLineEnd = leadEndB-(userOffsetVector*0.05)
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
-        #i,j,k as card axis
-        i = Vector((1,0,0))
-        j = Vector((0,1,0))
-        k = Vector((0,0,1))
+
 
 
         #quaternion = userOffsetVector.to_track_quat('Y','Z')
@@ -499,7 +595,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
 
       
         #Collect coords and endcaps
-        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
+        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd,viewDiffStartB,viewDiffEndB]
         ACoords = generate_end_caps(context,dim,capA,capSize,dimLineStart,userOffsetVector,textLoc)
         BCoords = generate_end_caps(context,dim,capB,capSize,dimLineEnd,userOffsetVector,textLoc)
         filledCoords = []
