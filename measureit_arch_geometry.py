@@ -224,14 +224,27 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         else:
             p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
         
-        #check x axis alignment for text
-        if p2[0] > p1[0]:
-            switchTemp = p1
-            p1 = p2
-            p2 = switchTemp
+        #check dominant Axis
+        tempDirVec = Vector(p1)-Vector(p2)
+        domAxis = 0
+        if abs(tempDirVec[0]) > abs(tempDirVec[1]) and abs(tempDirVec[0]) > abs(tempDirVec[2]):
+            domAxis = 0
+        if abs(tempDirVec[1]) > abs(tempDirVec[0]) and abs(tempDirVec[1]) > abs(tempDirVec[2]):
+            domAxis = 1
+        if abs(tempDirVec[2]) > abs(tempDirVec[0]) and abs(tempDirVec[2]) > abs(tempDirVec[1]):
+            domAxis = 2
 
+        print(domAxis)
+        #check dom axis alignment for text
+        if p2[domAxis] > p1[domAxis]:
+            if domAxis==0:
+                switchTemp = p1
+                p1 = p2
+                p2 = switchTemp
+            else:
+                pass
         
-        #calculate distance & Midpoint
+        #calculate distance & MidpointGY
         distVector = Vector(p1)-Vector(p2)
         dim.gizRotAxis = distVector
         dist = distVector.length
@@ -282,6 +295,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         origin = Vector(textLoc)
         cardX = normDistVector.normalized() * sx
         cardY = userOffsetVector.normalized() *sy
+        #cardX = Vector((-cardX[0],-cardX[1],cardX[2]))
+        
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
 
         if scene.measureit_arch_gl_show_d:
