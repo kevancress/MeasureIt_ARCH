@@ -264,6 +264,8 @@ class MeasureitArchDimensionSettingsPanel(Panel):
         #col.prop(scene, 'measureit_arch_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
         #col.prop(scene, 'measureit_arch_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
         col.prop(scene, "measureit_arch_show_gizmos", text="Show Gizmo's")
+        col.prop(scene, "measureit_arch_debug_text")
+        
         col.prop(scene, "measureit_arch_gl_show_d")
         #col.prop(scene, 'measureit_arch_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
         

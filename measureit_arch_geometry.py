@@ -158,11 +158,12 @@ def update_text(textobj,props,context):
 
         #generate image datablock from buffer for debug preview
         #ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
-        #if not str('test') in bpy.data.images:
-        #    bpy.data.images.new(str('test'), width, height)
-        #image = bpy.data.images[str('test')]
-        #image.scale(width, height)
-        #image.pixels = [v / 255 for v in texture_buffer]
+        if context.scene.measureit_arch_debug_text:
+            if not str('test') in bpy.data.images:
+                bpy.data.images.new(str('test'), width, height)
+            image = bpy.data.images[str('test')]
+            image.scale(width, height)
+            image.pixels = [v / 255 for v in texture_buffer]
 
 def draw_alignedDimension(context, myobj, measureGen,dim):
     # GL Settings
@@ -264,9 +265,6 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         k = Vector((0,0,1))
 
 
-        #quaternion = userOffsetVector.to_track_quat('Y','Z')
-        #textRotation=quaternion.to_euler('XYZ')
-        #textRotation=(-textRotation[0],-textRotation[1],-textRotation[2],)
         #format text and update if necessary
         distanceText = str(format_distance(textFormat,units,dist))
         if dim.text != str(distanceText):
@@ -275,14 +273,16 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         
         width = dim.textWidth
         height = dim.textHeight 
+        
+
         resolution = dimProps.textResolution
         size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.15*size
+        sy = (height/resolution)*0.1*size
         origin = Vector(textLoc)
-        cardX = normDistVector * sx
-        cardY = userOffsetVector *sy
-        square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
+        cardX = normDistVector.normalized() * sx
+        cardY = userOffsetVector.normalized() *sy
+        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
 
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim,myobj,square)
@@ -535,7 +535,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         p2Dir = Vector((p2[0]*dirVector[0],p2[1]*dirVector[1],p2[2]*dirVector[2]))
         
         
-        if p1Dir <= p2Dir:
+        if p1Dir >= p2Dir:
             basePoint = p1
             secondPoint = p2
             secondPointAxis = Vector(p1axis) - Vector(p2axis)
@@ -566,12 +566,6 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         dimLineEnd = leadEndB-(userOffsetVector*0.05)
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
-
-
-
-        #quaternion = userOffsetVector.to_track_quat('Y','Z')
-        #textRotation=quaternion.to_euler('XYZ')
-        #textRotation=(-textRotation[0],-textRotation[1],-textRotation[2],)
         #format text and update if necessary
         distanceText = str(format_distance(textFormat,units,dist))
         if dim.text != str(distanceText):
@@ -1205,12 +1199,9 @@ def draw_annotation(context, myobj, annotationGen):
 def draw_text_3D(context,textobj,myobj,card):
     #get props
     bgl.glDepthMask(False)
-    
-    width = textobj.textWidth
-    height = textobj.textHeight 
-
-    uvFlippedDiagonal= [(1,1),(1,0),(0,0),(0,1)]
     normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
+
+    # Define Flip Matrix's
     flipMatrixX = Matrix([
         [-1,0],
         [ 0,1]   
@@ -1221,6 +1212,7 @@ def draw_text_3D(context,textobj,myobj,card):
         [0,-1]   
     ])
 
+    # Flip UV's if user selected
     if textobj.textFlippedX is True or textobj.textFlippedY is True:
         flippedUVs = []
         for uv in normalizedDeviceUVs:
@@ -1245,8 +1237,10 @@ def draw_text_3D(context,textobj,myobj,card):
         },
     )
 
+    # Gets Texture from Object
+    width = textobj.textWidth
+    height = textobj.textHeight 
     dim = width * height * 4
-
     if 'texture' in textobj:
         buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
         texBuf = bgl.Buffer(bgl.GL_INT, 1)
@@ -1254,11 +1248,10 @@ def draw_text_3D(context,textobj,myobj,card):
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, texBuf.to_list()[0])
 
-        bgl.glTexImage2D(bgl.GL_TEXTURE_2D,0,bgl.GL_RGBA,width,height,0,bgl.GL_RGBA,bgl.GL_UNSIGNED_BYTE, buffer)
+        bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width, height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
         textobj.texture_updated=False
 
-    
     # Draw Shader
     textShader.bind()
     textShader.uniform_float("image", 0)
