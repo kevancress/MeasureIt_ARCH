@@ -540,8 +540,6 @@ def draw_axisDimension(context, myobj, measureGen,dim):
 
         if dim.dimFlip is True:
             selectedNormal.negate()
-        
-        print (dirVector)
 
         userOffsetVector = rotationMatrix@selectedNormal
         offsetDistance = userOffsetVector*offset

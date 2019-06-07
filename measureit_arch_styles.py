@@ -238,73 +238,7 @@ class ListDeletePropButton(Operator):
         DeletePropButton.is_style = True
         DeletePropButton.execute(self,context)
         return {'FINISHED'}
-        
-class MeasureitArchDimensionSettingsPanel(Panel):
-    bl_idname = "measureit_arch.settings_panel"
-    bl_label = "MeasureIt-ARCH Settings"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = 'scene'
-
-    # -----------------------------------------------------
-    # Draw (create UI interface)
-    # -----------------------------------------------------
-    # noinspection PyUnusedLocal
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_decorate = False
-        layout.use_property_split = True
-        scene = context.scene
-        
-        col = layout.column(align = True)
-        col.prop(scene, 'measureit_arch_gl_precision', text="Precision")
-        col.prop(scene, 'measureit_arch_units')
-
-        col = layout.column(align=True)
-        #col.prop(scene, 'measureit_arch_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
-        #col.prop(scene, 'measureit_arch_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
-        col.prop(scene, "measureit_arch_show_gizmos", text="Show Gizmo's")
-        col.prop(scene, "measureit_arch_debug_text")
-        
-        col.prop(scene, "measureit_arch_gl_show_d")
-        #col.prop(scene, 'measureit_arch_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
-        
-        # Scale factor
-        col = layout.column(align = True)
-        col.alignment = 'RIGHT'
-        #col.label(text = 'Override:')
-        #col.prop(scene, 'measureit_arch_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
-        #col.prop(scene, 'measureit_arch_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
-
-        if scene.measureit_arch_scale is True:
-            scaleBox = layout.box()
-            scaleBox.label(text='Scale Override')
-            col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_scale_color', text="Color")
-            col.prop(scene, 'measureit_arch_scale_factor', text="Factor")
-
-            col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_gl_scaletxt', text="Text")
-            col.prop(scene, 'measureit_arch_scale_font', text="Font Size")
-            col.prop(scene, 'measureit_arch_scale_precision', text="Precision")
-            
-            col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_scale_pos_x')
-            col.prop(scene, 'measureit_arch_scale_pos_y')
-
-        # Override
-        if scene.measureit_arch_ovr is True:
-            styleBox = layout.box()
-            styleBox.label(text='Style Override')
-            col = styleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_ovr_color', text="Colour")
-            col.prop(scene, 'measureit_arch_ovr_width', text="Width")
-            col = styleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_ovr_font', text="Font Size")
-            col.prop(scene, 'measureit_arch_ovr_font_align', text="Alignment")
-            if scene.measureit_arch_ovr_font_align == 'L':
-                col.prop(scene, 'measureit_arch_ovr_font_rotation', text="Rotation")
-
+   
 class AddStyleButton(Operator):
     bl_idname = "measureit_arch.addstylebutton"
     bl_label = "Add"
