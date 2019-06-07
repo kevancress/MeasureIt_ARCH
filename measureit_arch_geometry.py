@@ -224,29 +224,13 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         else:
             p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
         
-        #check dominant Axis
-        tempDirVec = Vector(p1)-Vector(p2)
-        domAxis = 0
-        if abs(tempDirVec[0]) > abs(tempDirVec[1]) and abs(tempDirVec[0]) > abs(tempDirVec[2]):
-            domAxis = 0
-        if abs(tempDirVec[1]) > abs(tempDirVec[0]) and abs(tempDirVec[1]) > abs(tempDirVec[2]):
-            domAxis = 1
-        if abs(tempDirVec[2]) > abs(tempDirVec[0]) and abs(tempDirVec[2]) > abs(tempDirVec[1]):
-            domAxis = 2
+        
 
-       
-        #check dom axis alignment for text
-        if domAxis==0:
-            if p2[domAxis] > p1[domAxis]:
-                switchTemp = p1
-                p1 = p2
-                p2 = switchTemp
-        else:
-            if p2[domAxis] < p1[domAxis]:
-                switchTemp = p1
-                p1 = p2
-                p2 = switchTemp
-                pass
+        #check dominant Axis
+        sortedPoints = sortPoints(p1,p2)
+        p1 = sortedPoints[0]
+        p2 = sortedPoints[1]
+    
         
         #calculate distance & MidpointGY
         distVector = Vector(p1)-Vector(p2)
@@ -299,7 +283,6 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         origin = Vector(textLoc)
         cardX = normDistVector.normalized() * sx
         cardY = userOffsetVector.normalized() *sy
-        #cardX = Vector((-cardX[0],-cardX[1],cardX[2]))
         
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
 
@@ -453,11 +436,10 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         else:
             p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
         
-        #check x axis alignment for text
-        if p2[0] > p1[0]:
-            switchTemp = p1
-            p1 = p2
-            p2 = switchTemp
+        #Sort Points 
+        sortedPoints = sortPoints(p1,p2)
+        p1 = sortedPoints[0]
+        p2 = sortedPoints[1]
 
         
         #i,j,k as card axis
@@ -523,7 +505,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         dist = distVector.length
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
-        absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
+        absNormDistVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
         dim.gizLoc = midpoint
 
         # Compute offset vector from face normal and user input
@@ -534,9 +516,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         dirVector = Vector(viewSector).cross(axisVec)
         if dirVector.dot(selectedNormal) < 0:
             dirVector.negate()
-            selectedNormal = dirVector.normalized()
-        else:
-            selectedNormal = -dirVector.normalized()
+        selectedNormal = dirVector.normalized()
 
         if dim.dimFlip is True:
             selectedNormal.negate()
@@ -551,8 +531,9 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         p1Dir = Vector((p1[0]*dirVector[0],p1[1]*dirVector[1],p1[2]*dirVector[2]))
         p2Dir = Vector((p2[0]*dirVector[0],p2[1]*dirVector[1],p2[2]*dirVector[2]))
         
+        domAxis = get_dom_axis(p1Dir)
         
-        if p1Dir >= p2Dir:
+        if p1Dir[domAxis] >= p2Dir[domAxis]:
             basePoint = p1
             secondPoint = p2
             secondPointAxis = Vector(p1axis) - Vector(p2axis)
@@ -571,7 +552,6 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         viewAxisDiff = Vector((alignedDistVector[0]*viewAxis[0],alignedDistVector[1]*viewAxis[1],alignedDistVector[2]*viewAxis[2]))
         
         dim.gizRotAxis = alignedDistVector
-
 
         leadStartA = Vector(basePoint) + geoOffsetDistance
         leadEndA = Vector(basePoint)  + offsetDistance
@@ -594,11 +574,11 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         resolution = dimProps.textResolution
         size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.15*size
+        sy = (height/resolution)*0.1*size
         origin = Vector(textLoc)
-        cardX = normDistVector * sx
+        cardX = Vector((abs(normDistVector[0]),-abs(normDistVector[1]),-abs(normDistVector[2]))) * sx
         cardY = userOffsetVector *sy
-        square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
+        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
 
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim,myobj,square)
@@ -1402,6 +1382,35 @@ def generate_text_card(context,textobj,textProps,rotation,basePoint):
     return coords
 
 
+def sortPoints (p1, p2):
+    tempDirVec = Vector(p1)-Vector(p2)
+
+    domAxis = get_dom_axis(tempDirVec)
+
+    #check dom axis alignment for text
+    if domAxis==0:
+        if p2[domAxis] > p1[domAxis]:
+            switchTemp = p1
+            p1 = p2
+            p2 = switchTemp
+    else:
+        if p2[domAxis] < p1[domAxis]:
+            switchTemp = p1
+            p1 = p2
+            p2 = switchTemp
+    
+    return p1,p2
+
+def get_dom_axis (vector):
+    domAxis = 0
+    if abs(vector[0]) > abs(vector[1]) and abs(vector[0]) > abs(vector[2]):
+        domAxis = 0
+    if abs(vector[1]) > abs(vector[0]) and abs(vector[1]) > abs(vector[2]):
+        domAxis = 1
+    if abs(vector[2]) > abs(vector[0]) and abs(vector[2]) > abs(vector[1]):
+        domAxis = 2
+    
+    return domAxis
 # ------------------------------------------
 # Get polygon area and paint area
 #
