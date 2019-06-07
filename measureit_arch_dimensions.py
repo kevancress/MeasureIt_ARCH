@@ -747,6 +747,7 @@ class AddAxisDimensionButton(Operator):
                 newDimension.endcapA= scene.measureit_arch_glarrow_a
                 newDimension.endcapB = scene.measureit_arch_glarrow_b
                 newDimension.endcapSize= 8
+                newDimension.dimAxis = scene.measureit_arch_dim_axis
                 # color
                 newDimension.color = scene.measureit_arch_default_color
                 # dist

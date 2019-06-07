@@ -93,8 +93,8 @@ bpy.app.handlers.save_pre.append(save_handler)
 #    bl_space_type = 'PROPERTIES'
 #    bl_region_type = 'NAVIGATION_BAR'
 #    bl_label = "Navigation Bar"
-#   bl_options = {'HIDE_HEADER'}
-#
+#    bl_options = {'HIDE_HEADER'}
+
 #    def draw(self, context):
 #        layout = self.layout
 #        layout.scale_x = 1.4
@@ -154,7 +154,9 @@ class MeasureitArchMainPanel(Panel):
 
         col = box.column(align=True)
         col.operator("measureit_arch.addaligneddimensionbutton", text="Aligned", icon="DRIVER_DISTANCE")
-        col.operator("measureit_arch.addaxisdimensionbutton", text="Axis", icon="TRACKING_FORWARDS_SINGLE")
+        split = col.split(factor=0.8,align=True)
+        split.operator("measureit_arch.addaxisdimensionbutton", text="Axis", icon="TRACKING_FORWARDS_SINGLE")
+        split.prop(scene,'measureit_arch_dim_axis',text="")
         col.operator("measureit_arch.addanglebutton", text="Angle", icon="DRIVER_ROTATIONAL_DIFFERENCE")
         #col.operator("measureit_arch.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
         #col = box.column()
