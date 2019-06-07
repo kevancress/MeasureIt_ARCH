@@ -234,14 +234,18 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         if abs(tempDirVec[2]) > abs(tempDirVec[0]) and abs(tempDirVec[2]) > abs(tempDirVec[1]):
             domAxis = 2
 
-        print(domAxis)
+       
         #check dom axis alignment for text
-        if p2[domAxis] > p1[domAxis]:
-            if domAxis==0:
+        if domAxis==0:
+            if p2[domAxis] > p1[domAxis]:
                 switchTemp = p1
                 p1 = p2
                 p2 = switchTemp
-            else:
+        else:
+            if p2[domAxis] < p1[domAxis]:
+                switchTemp = p1
+                p1 = p2
+                p2 = switchTemp
                 pass
         
         #calculate distance & MidpointGY
