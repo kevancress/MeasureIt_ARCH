@@ -201,197 +201,6 @@ class AngleDimensionProperties(BaseWithText,PropertyGroup):
 
 bpy.utils.register_class(AngleDimensionProperties)
 
-class MeasureitArchProperties(PropertyGroup): # LEGACY
-    style: IntProperty(name="style",
-                        description="Dimension Style to use",
-                        min = 0)
-    gltype: IntProperty(name="gltype",
-                         description="Measure type (1-Segment, 2-Label, etc..)", default=1)
-    glpointa: IntProperty(name="glpointa",
-                           description="Hidden property for opengl")
-    glpointb: IntProperty(name="glpointb",
-                           description="Hidden property for opengl")
-    glpointc: IntProperty(name="glpointc",
-                           description="Hidden property for opengl")
-    glcolor: FloatVectorProperty(name="glcolor",
-                                  description="Color for the measure",
-                                  default=(0.173, 0.545, 1.0, 1.0),
-                                  min=0.1,
-                                  max=1,
-                                  subtype='COLOR',
-                                  size=4)
-    glview: BoolProperty(name="glview",
-                          description="Measure visible/hide",
-                          default=True)
-    glspace: FloatProperty(name='glspace', min=-100, max=100, default=0.1,
-                            precision=3,
-                            description='Distance to display measure')
-    glwidth: IntProperty(name='glwidth', min=1, max=20, default=1,
-                          description='line width')
-    glfree: BoolProperty(name="glfree",
-                          description="This measure is free and can be deleted",
-                          default=False)
-    gltxt: StringProperty(name="gltxt", maxlen=256,
-                           description="Short description (use | for line break)")
-    gladvance: BoolProperty(name="gladvance",
-                             description="Advanced options as line width or position",
-                             default=False)
-    gldefault: BoolProperty(name="gldefault",
-                             description="Display measure in position calculated by default",
-                             default=True)
-    glnormalx: FloatProperty(name="glnormalx",
-                              description="Change orientation in X axis",
-                              default=1, min=-1, max=1, precision=2)
-    glnormaly: FloatProperty(name="glnormaly",
-                              description="Change orientation in Y axis",
-                              default=0, min=-1, max=1, precision=2)
-    glnormalz: FloatProperty(name="glnormalz",
-                              description="Change orientation in Z axis",
-                              default=0, min=-1, max=1, precision=2)
-    glfont_size: IntProperty(name="Text Size",
-                              description="Text size",
-                              default=14, min=6, max=150)
-    glfont_align: EnumProperty(items=(('L', "Left align", ""),
-                                       ('C', "Center align", ""),
-                                       ('R', "Right align", "")),
-                                name="align Font",
-                                description="Set Font alignment")
-    glfont_rotat: IntProperty(name='Rotate', min=0, max=360, default=0,
-                                description="Text rotation in degrees")
-    gllink: StringProperty(name="gllink",
-                            description="linked object for linked measures")
-    glocwarning: BoolProperty(name="glocwarning",
-                               description="Display a warning if some axis is not used in distance",
-                               default=True)
-    glocx: BoolProperty(name="glocx",
-                         description="Include changes in X axis for calculating the distance",
-                         default=True)
-    glocy: BoolProperty(name="glocy",
-                         description="Include changes in Y axis for calculating the distance",
-                         default=True)
-    glocz: BoolProperty(name="glocz",
-                         description="Include changes in Z axis for calculating the distance",
-                         default=True)
-    glfontx: IntProperty(name="glfontx",
-                          description="Change font position in X axis",
-                          default=0, min=-3000, max=3000)
-    glfonty: IntProperty(name="glfonty",
-                          description="Change font position in Y axis",
-                          default=0, min=-3000, max=3000)
-    gldist: BoolProperty(name="gldist",
-                          description="Display distance for this measure",
-                          default=True)
-    glnames: BoolProperty(name="glnames",
-                           description="Display text for this measure",
-                           default=True)
-    gltot: EnumProperty(items=(('99', "-", "Select a group for sum"),
-                                ('0', "A", ""),
-                                ('1', "B", ""),
-                                ('2', "C", ""),
-                                ('3', "D", ""),
-                                ('4', "E", ""),
-                                ('5', "F", ""),
-                                ('6', "G", ""),
-                                ('7', "H", ""),
-                                ('8', "I", ""),
-                                ('9', "J", ""),
-                                ('10', "K", ""),
-                                ('11', "L", ""),
-                                ('12', "M", ""),
-                                ('13', "N", ""),
-                                ('14', "O", ""),
-                                ('15', "P", ""),
-                                ('16', "Q", ""),
-                                ('17', "R", ""),
-                                ('18', "S", ""),
-                                ('19', "T", ""),
-                                ('20', "U", ""),
-                                ('21', "V", ""),
-                                ('22', "W", ""),
-                                ('23', "X", ""),
-                                ('24', "Y", ""),
-                                ('25', "Z", "")),
-                         name="Sum in Group",
-                         description="Add segment length in selected group")
-    glorto: EnumProperty(items=(('99', "None", ""),
-                                 ('0', "A", "Point A must use selected point B location"),
-                                 ('1', "B", "Point B must use selected point A location")),
-                          name="Orthogonal",
-                          description="Display point selected as orthogonal (select axis to copy)")
-    glorto_x: BoolProperty(name="ox",
-                            description="Copy X location",
-                            default=False)
-    glorto_y: BoolProperty(name="oy",
-                            description="Copy Y location",
-                            default=False)
-    glorto_z: BoolProperty(name="oz",
-                            description="Copy Z location",
-                            default=False)
-    glarrow_a: EnumProperty(items=(('99', "--", "No arrow"),
-                                    ('1', "Line", "The point of the arrow are lines"),
-                                    ('2', "Triangle", "The point of the arrow is triangle"),
-                                    ('3', "TShape", "The point of the arrow is a T")),
-                             name="A end",
-                             description="Add arrows to point A")
-    glarrow_b: EnumProperty(items=(('99', "--", "No arrow"),
-                                    ('1', "Line", "The point of the arrow are lines"),
-                                    ('2', "Triangle", "The point of the arrow is triangle"),
-                                    ('3', "TShape", "The point of the arrow is a T")),
-                             name="B end",
-                             description="Add arrows to point B")
-    glarrow_s: IntProperty(name="Size",
-                            description="Arrow size",
-                            default=15, min=6, max=500)
-
-    glarc_full: BoolProperty(name="arcfull",
-                              description="Create full circunference",
-                              default=False)
-    glarc_extrad: BoolProperty(name="arcextrad",
-                                description="Adapt radio lengh to arc line",
-                                default=True)
-    glarc_rad: BoolProperty(name="arc rad",
-                             description="Show arc radius",
-                             default=True)
-    glarc_len: BoolProperty(name="arc len",
-                             description="Show arc length",
-                             default=True)
-    glarc_ang: BoolProperty(name="arc ang",
-                             description="Show arc angle",
-                             default=True)
-
-    glarc_a: EnumProperty(items=(('99', "--", "No arrow"),
-                                  ('1', "Line", "The point of the arrow are lines"),
-                                  ('2', "Triangle", "The point of the arrow is triangle"),
-                                  ('3', "TShape", "The point of the arrow is a T")),
-                           name="Ar end",
-                           description="Add arrows to point A")
-    glarc_b: EnumProperty(items=(('99', "--", "No arrow"),
-                                  ('1', "Line", "The point of the arrow are lines"),
-                                  ('2', "Triangle", "The point of the arrow is triangle"),
-                                  ('3', "TShape", "The point of the arrow is a T")),
-                           name="Br end",
-                           description="Add arrows to point B")
-    glarc_s: IntProperty(name="Size",
-                          description="Arrow size",
-                          default=15, min=6, max=500)
-    glarc_txradio: StringProperty(name="txradio",
-                                   description="Text for radius", default="r=")
-    glarc_txlen: StringProperty(name="txlen",
-                                 description="Text for length", default="L=")
-    glarc_txang: StringProperty(name="txang",
-                                 description="Text for angle", default="A=")
-    glcolorarea: FloatVectorProperty(name="glcolorarea",
-                                      description="Color for the measure of area",
-                                      default=(0.1, 0.1, 0.1, 1.0),
-                                      min=0.1,
-                                      max=1,
-                                      subtype='COLOR',
-                                      size=4)
-
-    # Array of faces
-    measureit_arch_faces: CollectionProperty(type=MeasureitArchFaces)
-
-bpy.utils.register_class(MeasureitArchProperties)
 
 def recalc_dimWrapper_index(self,context):
     dimGen = context.object.DimensionGenerator[0]
@@ -435,7 +244,6 @@ class DimensionContainer(PropertyGroup):
     show_dimension_settings: BoolProperty(name='Show Dimension Settings', default=False)
     
     # Array of segments
-    measureit_arch_segments: CollectionProperty(type=MeasureitArchProperties)
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
     angleDimensions: CollectionProperty(type=AngleDimensionProperties)
     axisDimensions: CollectionProperty(type=AxisDimensionProperties)
@@ -604,7 +412,6 @@ class AddAlignedDimensionButton(Operator):
                         "View3D not found, cannot run operator")
 
             return {'CANCELLED'}
-
 
 class AddAxisDimensionButton(Operator):
     bl_idname = "measureit_arch.addaxisdimensionbutton"
@@ -1377,7 +1184,6 @@ class OBJECT_PT_UIDimensions(Panel):
                         draw_angle_dimension_settings(item,box)
                     if activeWrapperItem.itemType == 'D-AXIS':
                         draw_axis_dimension_settings(item,box)
-
 
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
     bl_label = "Custom Menu"

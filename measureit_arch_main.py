@@ -552,22 +552,11 @@ def draw_callback_3d(self, context):
 
 # -------------------------------------------------------------
 # Check if the segment already exist
-#
+# LEGACY REMOVED - SHOULD BE RE IMPLIMENTED WITH NEW SYSTEM
 # -------------------------------------------------------------
 def exist_segment(mp, pointa, pointb, typ=1, pointc=None):
-    #  for ms in mp.measureit_arch_segments[mp.measureit_arch_num]
-    for ms in mp.measureit_arch_segments:
-        if ms.gltype == typ and ms.glfree is False:
-            if typ != 9:
-                if ms.glpointa == pointa and ms.glpointb == pointb:
-                    return True
-                if ms.glpointa == pointb and ms.glpointb == pointa:
-                    return True
-            else:
-                if ms.glpointa == pointa and ms.glpointb == pointb and ms.glpointc == pointc:
-                    return True
-
     return False
+    pass
 
 
 # -------------------------------------------------------------
