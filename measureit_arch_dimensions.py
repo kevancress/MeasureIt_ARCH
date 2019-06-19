@@ -1208,9 +1208,13 @@ def draw_aligned_dimension_settings(dim,layout):
         col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
 
         col = layout.column(align=True)
-    col.prop(dim,'dimViewPlane', text='View Plane')
-    col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
-    if dim.uses_style is False: col.prop(dim,'lineWeight',text='Line Weight')
+        col.prop(dim,'dimViewPlane', text='View Plane')
+    else:
+        col.prop(dim,'dimViewPlane', text='View Plane Overide')
+
+    if dim.uses_style is False:
+        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop(dim,'lineWeight',text='Line Weight')
 
     col = layout.column(align=True)
     col.prop(dim,'dimOffset',text='Distance')
@@ -1245,10 +1249,14 @@ def draw_axis_dimension_settings(dim,layout):
         col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
 
         col = layout.column(align=True)
-    col.prop(dim,'dimViewPlane', text='View Plane')
+        col.prop(dim,'dimViewPlane', text='View Plane')
+    else:
+        col.prop(dim,'dimViewPlane', text='View Plane Overide')
     col.prop(dim,'dimAxis', text='Measurement Axis')
-    col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
-    if dim.uses_style is False: col.prop(dim,'lineWeight',text='Line Weight')
+    
+    if dim.uses_style is False:
+        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop(dim,'lineWeight',text='Line Weight')
 
     col = layout.column(align=True)
     col.prop(dim,'dimOffset',text='Distance')

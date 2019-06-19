@@ -392,7 +392,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
                 dimProps = alignedDimStyle
 
     #check all visibility conditions
-    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+    if dimProps.dimVisibleInView is None or dimProps.dimVisibleInView.name == context.scene.camera.data.name:
         inView = True        
     else:
         inView = False    
@@ -414,7 +414,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         
-        axis = dimProps.dimAxis
+        axis = dim.dimAxis
 
         capA = dimProps.endcapA
         capB = dimProps.endcapB
@@ -447,13 +447,18 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         j = Vector((0,1,0))
         k = Vector((0,0,1))
 
-        if dim.dimViewPlane == 'XY':
+        if dim.dimViewPlane=='99':
+            viewPlane = dimProps.dimViewPlane
+        else:
+            viewPlane = dim.dimViewPlane
+
+        if viewPlane == 'XY':
             viewAxis = k
-        elif dim.dimViewPlane == 'XZ':
+        elif viewPlane == 'XZ':
             viewAxis = j
-        elif dim.dimViewPlane == 'YZ':
+        elif viewPlane == 'YZ':
             viewAxis = i
-        elif dim.dimViewPlane == '99':
+        elif viewPlane == '99':
             viewRot = context.area.spaces[0].region_3d.view_rotation
             viewVec = k.copy()
             viewVec.rotate(viewRot)
@@ -545,7 +550,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
             alignedDistVector = Vector(p1)-Vector(p2)
 
         # get the difference between the points in the view axis
-        if dim.dimViewPlane == '99':
+        if viewPlane == '99':
             viewAxis = Vector(viewSector)
             if viewAxis[0]<0 or viewAxis[1]<0 or viewAxis[2]<0:
                 viewAxis*= -1
@@ -822,10 +827,10 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     loc = Vector(get_location(myobj))
     centerRay = Vector((-1,1,1))
 
-    if dimProps.dimViewPlane=='99':
-        viewPlane = dim.dimViewPlane
-    else:
+    if dim.dimViewPlane=='99':
         viewPlane = dimProps.dimViewPlane
+    else:
+        viewPlane = dim.dimViewPlane
 
     if myobj.type == 'MESH':
         if dim.dimPointA != 9999999:

@@ -463,7 +463,7 @@ def draw_main(context):
                     dimProps = axisDim
                     if axisDim.uses_style:
                         for dimStyle in context.scene.StyleGenerator[0].alignedDimensions:
-                            if dimStyle.name == angleDim.style:
+                            if dimStyle.name == axisDim.style:
                                 dimProps= dimStyle
                     update_text(textobj=axisDim,props=dimProps,context=context)
             
