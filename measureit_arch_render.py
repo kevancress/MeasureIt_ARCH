@@ -82,7 +82,7 @@ class MeasureitArchRenderPanel(Panel):
         col = layout.column()
 
         col.prop(scene, "measureit_arch_render", text="Save Render to Output")
-        col.prop(scene, "measureit_arch_use_depth_clipping")
+        #col.prop(scene, "measureit_arch_use_depth_clipping")
 
 # -------------------------------------------------------------
 # Defines button for render option
@@ -261,9 +261,8 @@ def render_main(self, context, animation=False):
         bgl.glClearDepth(clipdepth)
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
 
-        # Draw Scene If Necessary
-        if scene.measureit_arch_use_depth_clipping is True:
-            draw_scene(self, context, projection_matrix) 
+
+        draw_scene(self, context, projection_matrix) 
         
         # Clear Color Keep on depth info
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
