@@ -373,6 +373,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
 
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(False)
 
 def draw_axisDimension(context, myobj, measureGen,dim):
@@ -400,8 +401,12 @@ def draw_axisDimension(context, myobj, measureGen,dim):
 
         if context.scene.measureit_arch_is_render_draw:
             viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+            cameraLoc = context.scene.camera.location.normalized()
         else:
             viewport = [context.area.width,context.area.height]
+            viewRot = context.area.spaces[0].region_3d.view_rotation
+            #cameraLoc = context.scene.camera.location.normalized()
+            #print(cameraLoc)
 
         # Obj Properties
         obvertA = get_mesh_vertices(dim.dimObjectA)
@@ -459,10 +464,12 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         elif viewPlane == 'YZ':
             viewAxis = i
         elif viewPlane == '99':
-            viewRot = context.area.spaces[0].region_3d.view_rotation
-            viewVec = k.copy()
-            viewVec.rotate(viewRot)
-            viewAxis = viewVec
+            if context.scene.measureit_arch_is_render_draw:
+                viewAxis = cameraLoc
+            else:
+                viewVec = k.copy()
+                viewVec.rotate(viewRot)
+                viewAxis = viewVec
 
         # define axis relatd values
         #basicThreshold = 0.5773
@@ -672,6 +679,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
 
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(False)
 
 def draw_angleDimension(context, myobj, DimGen, dim):
@@ -1192,7 +1200,7 @@ def draw_annotation(context, myobj, annotationGen):
                 gpu.shader.unbind()
 
             if scene.measureit_arch_gl_show_d:
-                draw_text_3D(context,annotation,myobj,textcard)
+                draw_text_3D(context,annotation,myobj,textcard)                
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDisable(bgl.GL_POLYGON_SMOOTH)

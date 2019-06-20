@@ -70,17 +70,22 @@ def save_handler(dummy):
             pass
         else:
             if 'DimensionGenerator' in obj:
-                for alignedDim in obj.DimensionGenerator[0].alignedDimensions:
-                    obj.DimensionGenerator[0].alignedDimensions.remove(0)
-                    obj.DimensionGenerator[0].measureit_arch_num = 0
-                for angleDim in obj.DimensionGenerator[0].angleDimensions:
-                    obj.DimensionGenerator[0].angleDimensions.remove(0)
-                    obj.DimensionGenerator[0].measureit_arch_num = 0
-                for axisDim in obj.DimensionGenerator[0].axisDimensions:
-                    obj.DimensionGenerator[0].axisDimensions.remove(0)
-                    obj.DimensionGenerator[0].measureit_arch_num = 0
-                for wrapper in obj.DimensionGenerator[0].wrappedDimensions:
-                    obj.DimensionGenerator[0].wrappedDimensions.remove(0)
+                dimgen = obj.DimensionGenerator[0]
+                if 'alignedDimensions' in dimgen:
+                    for alignedDim in obj.DimensionGenerator[0].alignedDimensions:
+                        obj.DimensionGenerator[0].alignedDimensions.remove(0)
+                        obj.DimensionGenerator[0].measureit_arch_num = 0
+                if 'angleDimensions' in dimgen:
+                    for angleDim in obj.DimensionGenerator[0].angleDimensions:
+                        obj.DimensionGenerator[0].angleDimensions.remove(0)
+                        obj.DimensionGenerator[0].measureit_arch_num = 0
+                if 'axisDimensions' in dimgen:
+                    for axisDim in obj.DimensionGenerator[0].axisDimensions:
+                        obj.DimensionGenerator[0].axisDimensions.remove(0)
+                        obj.DimensionGenerator[0].measureit_arch_num = 0
+                if 'wrappedDimensions' in dimgen:
+                    for wrapper in obj.DimensionGenerator[0].wrappedDimensions:
+                        obj.DimensionGenerator[0].wrappedDimensions.remove(0)
             if 'AnnotationGenerator' in obj:
                 for annotation in obj.AnnotationGenerator[0].annotations:
                     obj.AnnotationGenerator[0].annotations.remove(0)

@@ -294,10 +294,6 @@ def register():
                                           description="Save an image with measures over"
                                                       " render image",
                                           default=False)
-    Scene.measureit_arch_render_type = EnumProperty(items=(('4', "Image", ""),
-                                                      ('5', "Animation", "")),
-                                               name="Render type",
-                                               description="Type of render image")
     Scene.measureit_arch_sum = EnumProperty(items=(('99', "-", "Select a group for sum"),
                                               ('0', "A", ""),
                                               ('1', "B", ""),
@@ -494,7 +490,6 @@ def unregister():
     del Scene.measureit_arch_units
     del Scene.measureit_arch_hide_units
     del Scene.measureit_arch_render
-    del Scene.measureit_arch_render_type
     del Scene.measureit_arch_sum
     del Scene.measureit_arch_rf
     del Scene.measureit_arch_rf_color

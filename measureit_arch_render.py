@@ -44,6 +44,7 @@ from bgl import *
 import numpy as np
 import bmesh
 from .measureit_arch_geometry import *
+from .measureit_arch_main import draw_main, draw_main_3d
 from bpy.props import IntProperty
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 # ------------------------------------------------------------------
@@ -74,20 +75,14 @@ class MeasureitArchRenderPanel(Panel):
         # Render settings
         col = layout.column()
         col.label(text="MeasureIt-ARCH Render")
+        col = layout.column(align=True)
+        col.scale_y = 1.5
+        col.operator("measureit_arch.rendersegmentbutton", icon='RENDER_STILL', text= "MeasureIt-ARCH Image")
+        col.operator("measureit_arch.render_anim", icon='RENDER_ANIMATION', text= "MeasureIt-ARCH Animation")
         col = layout.column()
-        col.scale_y = 2 
-        col.operator("measureit_arch.rendersegmentbutton", icon='RENDER_STILL', text= "MeasureIt-ARCH Render")
-        col = layout.column()
-        col.prop(scene, "measureit_arch_render_type")
 
-        col.prop(scene, "measureit_arch_render", text="Save render image")
+        col.prop(scene, "measureit_arch_render", text="Save Render to Output")
         col.prop(scene, "measureit_arch_use_depth_clipping")
-        col.prop(scene, "measureit_arch_rf", text="Border")
-
-        if scene.measureit_arch_rf is True:
-            col.prop(scene, "measureit_arch_rf_color", text="Color")
-            col.prop(scene, "measureit_arch_rf_border", text="Space")
-            col.prop(scene, "measureit_arch_rf_line", text="Width")
 
 # -------------------------------------------------------------
 # Defines button for render option
@@ -119,81 +114,13 @@ class RenderSegmentButton(Operator):
         # -----------------------------
         # Use default render
         # -----------------------------
-        if scene.measureit_arch_render_type == "1":
-            # noinspection PyBroadException
-            try:
-                result = bpy.data.images['Render Result']
-                bpy.ops.render.render()
-            except:
-                bpy.ops.render.render()
-            print("MeasureIt-ARCH: Using current render image on buffer")
-            if render_main(self, context) is True:
-                self.report({'INFO'}, msg)
 
-        # -----------------------------
-        # OpenGL image
-        # -----------------------------
-        if scene.measureit_arch_render_type == "2":
-            self.set_camera_view()
-            self.set_only_render(True)
+        print("MeasureIt-ARCH: Rendering image")
+        bpy.ops.render.render()
+        if render_main(self, context) is True:
+            self.report({'INFO'}, msg)
 
-            print("MeasureIt-ARCH: Rendering opengl image")
-            bpy.ops.render.opengl()
-            if render_main(self, context) is True:
-                self.report({'INFO'}, msg)
-
-            self.set_only_render(False)
-
-        # -----------------------------
-        # OpenGL Animation
-        # -----------------------------
-        if scene.measureit_arch_render_type == "3":
-            oldframe = scene.frame_current
-            self.set_camera_view()
-            self.set_only_render(True)
-            flag = False
-            # loop frames
-            for frm in range(scene.frame_start, scene.frame_end + 1):
-                scene.frame_set(frm)
-                print("MeasureIt-ARCH: Rendering opengl frame %04d" % frm)
-                bpy.ops.render.opengl()
-                #flag = render_main(self, context, True)
-                #if flag is False:
-                #    break
-
-            self.set_only_render(False)
-            scene.frame_current = oldframe
-            if flag is True:
-                self.report({'INFO'}, msg)
-
-        # -----------------------------
-        # Image
-        # -----------------------------
-        if scene.measureit_arch_render_type == "4":
-            print("MeasureIt-ARCH: Rendering image")
-            bpy.ops.render.render()
-            if render_main(self, context) is True:
-                self.report({'INFO'}, msg)
-
-        # -----------------------------
-        # Animation
-        # -----------------------------
-        if scene.measureit_arch_render_type == "5":
-            oldframe = scene.frame_current
-            flag = False
-            # loop frames
-            for frm in range(scene.frame_start, scene.frame_end + 1):
-                scene.frame_set(frm)
-                print("MeasureIt-ARCH: Rendering frame: " + str(frm))
-                #bpy.ops.render.render()
-                render_main(self, context, True)
-                #if flag is False:
-                #   break
-
-            #scene.frame_current = oldframe
-            #if flag is True:
-            #    self.report({'INFO'}, msg)
-
+        
         return {'FINISHED'}
 
     # ---------------------
@@ -226,6 +153,67 @@ class RenderSegmentButton(Operator):
             s.show_only_render = status
 
 
+
+class MeasureitRenderAnim(bpy.types.Operator):
+    """Operator which runs its self from a timer"""
+    bl_idname = "measureit_arch.render_anim"
+    bl_label = "Render Measureit-ARCH animation"
+
+    _timer = None
+    _updating = False
+    view3d = None 
+
+    def modal(self, context, event):
+        scene = context.scene
+        wm = context.window_manager
+        
+        if event.type in {'RIGHTMOUSE', 'ESC'}:
+            self.cancel(context)
+            return {'CANCELLED'}
+            
+        if event.type == 'TIMER' and not self._updating:
+            self._updating=True
+            if scene.frame_current <= scene.frame_end:
+                scene.frame_set(scene.frame_current)
+                self.view3d.tag_redraw()      
+                print("MeasureIt-ARCH: Rendering frame: " + str(scene.frame_current))
+                render_main(self, context, True)
+                self._updating = False
+                scene.frame_current += 1
+            else:
+                self.cancel(context)
+                return {'CANCELLED'}
+
+        self.view3d.tag_redraw() 
+        return {'PASS_THROUGH'}
+                
+    def execute(self, context):
+        scene = context.scene
+        msg = "New image created with measures. Open it in UV/image editor"
+        camera_msg = "Unable to render. No camera found"
+        # -----------------------------
+        # Check camera
+        # -----------------------------
+        if scene.camera is None:
+            self.report({'ERROR'}, camera_msg)
+            return {'FINISHED'}
+
+        for area in context.screen.areas:
+            if area.type == 'VIEW_3D':
+                self.view3d = area
+
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.1, window=context.window)
+        scene.frame_current = scene.frame_start
+        wm.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
+        return {'CANCELLED'}
+
+
 # -------------------------------------------------------------
 # Render image main entry point
 #
@@ -233,12 +221,14 @@ class RenderSegmentButton(Operator):
 def render_main(self, context, animation=False):
 
     # Save old info
+    scene = context.scene
+    scene.measureit_arch_is_render_draw = True
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     settings = bpy.context.scene.render.image_settings
     depth = settings.color_depth
     settings.color_depth = '16'
 
-    scene = context.scene
+    
     clipdepth = context.scene.camera.data.clip_end
     path = scene.render.filepath
     objlist = context.view_layer.objects
@@ -265,7 +255,7 @@ def render_main(self, context, animation=False):
 
     view_matrix_3d = scene.camera.matrix_world.inverted()
     projection_matrix = scene.camera.calc_matrix_camera(context.view_layer.depsgraph, x=width, y=height)
-    scene.measureit_arch_is_render_draw = True
+    
     with offscreen.bind():
         # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
         bgl.glClearDepth(clipdepth)
@@ -285,10 +275,15 @@ def render_main(self, context, animation=False):
             if myobj.visible_get() is True:
                 if 'DimensionGenerator' in myobj:
                     measureGen = myobj.DimensionGenerator[0]
-                    for linDim in measureGen.alignedDimensions:
-                        draw_alignedDimension(context, myobj, measureGen,linDim)
-                    for dim in measureGen.angleDimensions:
-                        draw_angleDimension(context, myobj, measureGen,dim)
+                    if 'alignedDimensions' in measureGen:
+                        for linDim in measureGen.alignedDimensions:
+                            draw_alignedDimension(context, myobj, measureGen,linDim)
+                    if 'angleDimensions' in measureGen:
+                        for dim in measureGen.angleDimensions:
+                            draw_angleDimension(context, myobj, measureGen,dim)
+                    if 'axisDimensions' in measureGen:
+                        for dim in measureGen.axisDimensions:
+                            draw_axisDimension(context, myobj, measureGen,dim)
 
                 if 'LineGenerator' in myobj:
                     # Set 3D Projection Martix
@@ -349,7 +344,7 @@ def render_main(self, context, animation=False):
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
     offscreen.free()
 
-    scene.measureit_arch_is_render_draw = False
+    
     # -----------------------------
     # Create image
     # -----------------------------
@@ -371,7 +366,7 @@ def render_main(self, context, animation=False):
 
     # restore default value
     settings.color_depth = depth
-
+    scene.measureit_arch_is_render_draw = False
 
 # -------------------------------------
 # Save image to file
