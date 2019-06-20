@@ -201,6 +201,11 @@ class MeasureitRenderAnim(bpy.types.Operator):
         for area in context.screen.areas:
             if area.type == 'VIEW_3D':
                 self.view3d = area
+        
+        if self.view3d == None:
+            self.report({'ERROR'}, 'A 3D Viewport must be open to render MeasureIt-ARCH Animations')
+            self.cancel(context)
+            return {'CANCELLED'}
 
         wm = context.window_manager
         self._timer = wm.event_timer_add(0.1, window=context.window)
