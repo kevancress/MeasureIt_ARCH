@@ -137,6 +137,10 @@ def register():
     auto_load.register()
 
     # Define properties
+    Scene.measureit_arch_inst_dims = BoolProperty(name="Instance Dimensions & Annotations",
+                                    description="MeasureIt-ARCH will attempt to instance Dimensions and Annotations. They may be Unstable",
+                                    default=False)
+
     Scene.measureit_arch_eval_mods = BoolProperty(name="Evaluate Modifiers",
                                     description="MeasureIt-ARCH will attempt to evaluate Modifiers before drawing, May make dimensions and linework unstable",
                                     default=False)

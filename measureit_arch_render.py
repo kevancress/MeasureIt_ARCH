@@ -283,17 +283,18 @@ def render_main(self, context, animation=False):
         # -----------------------------
         for myobj in objlist:
             if myobj.visible_get() is True:
+                mat = myobj.matrix_world
                 if 'DimensionGenerator' in myobj:
                     measureGen = myobj.DimensionGenerator[0]
                     if 'alignedDimensions' in measureGen:
                         for linDim in measureGen.alignedDimensions:
-                            draw_alignedDimension(context, myobj, measureGen,linDim)
+                            draw_alignedDimension(context, myobj, measureGen,linDim,mat)
                     if 'angleDimensions' in measureGen:
                         for dim in measureGen.angleDimensions:
-                            draw_angleDimension(context, myobj, measureGen,dim)
+                            draw_angleDimension(context, myobj, measureGen,dim,mat)
                     if 'axisDimensions' in measureGen:
                         for dim in measureGen.axisDimensions:
-                            draw_axisDimension(context, myobj, measureGen,dim)
+                            draw_axisDimension(context, myobj, measureGen,dim,mat)
 
                 if 'LineGenerator' in myobj:
                     # Set 3D Projection Martix
@@ -303,7 +304,7 @@ def render_main(self, context, animation=False):
 
                     # Draw Line Groups
                     op = myobj.LineGenerator[0]
-                    draw_line_group(context, myobj, op)
+                    draw_line_group(context, myobj, op, mat)
              
                 if 'AnnotationGenerator' in myobj:
                     # Set 3D Projection Martix
@@ -313,8 +314,32 @@ def render_main(self, context, animation=False):
 
                     # Draw Line Groups
                     op = myobj.AnnotationGenerator[0]
-                    draw_annotation(context, myobj, op)                
+                    draw_annotation(context, myobj, op, mat)                
+       
+        # Draw Instance 
+        deps = bpy.context.view_layer.depsgraph
+        for obj_int in deps.object_instances:
+            if obj_int.is_instance:
+                myobj = obj_int.object
+                mat = obj_int.matrix_world
 
+                if 'LineGenerator' in myobj:
+                    lineGen = myobj.LineGenerator[0]
+                    draw_line_group(context,myobj,lineGen,mat)
+                
+                if scene.measureit_arch_inst_dims:
+                    if 'AnnotationGenerator' in myobj:
+                        annotationGen = myobj.AnnotationGenerator[0]
+                        draw_annotation(context,myobj,annotationGen,mat)
+
+                    if 'DimensionGenerator' in myobj:
+                        DimGen = myobj.DimensionGenerator[0]
+                        for alignedDim in DimGen.alignedDimensions:
+                            draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
+                        for angleDim in DimGen.angleDimensions:
+                            draw_angleDimension(context, myobj, DimGen, angleDim,mat)
+                        for axisDim in DimGen.axisDimensions:
+                            draw_axisDimension(context,myobj,DimGen,axisDim,mat)
         # -----------------------------
         # Loop to draw all debug
         # -----------------------------
@@ -420,30 +445,27 @@ def draw_scene(self, context, projection_matrix):
 
     # Get List of Mesh Objects
     objs = []
-    for obj in context.view_layer.objects:
-        if obj.type == 'MESH' and obj.hide_render == False:
-            objs.append(obj)
+    deps = bpy.context.view_layer.depsgraph
+    for obj_int in deps.object_instances:
+        if obj_int.object.type == 'MESH':
+            obj = obj_int.object
+            mat = obj_int.matrix_world
+            mesh = obj.data
+            bm = bmesh.new()
+            bm.from_object(obj, context.view_layer.depsgraph, deform=True)
+            tris = bm.calc_loop_triangles()
+            vertices = []
+            indices = []
 
-   
+            for vert in bm.verts:
+                # Multipy vertex Position by Object Transform Matrix
+                vertices.append(mat @ vert.co)
 
-    # Get Vertices and Indices of Objects
-    for obj in objs:
-        mesh = obj.data
-        bm = bmesh.new()
-        bm.from_object(obj, context.view_layer.depsgraph, deform=True)
-        tris = bm.calc_loop_triangles()
-        vertices = []
-        indices = []
-
-        for vert in bm.verts:
-            # Multipy vertex Position by Object Transform Matrix
-            vertices.append(obj.matrix_world @ vert.co)
-
-        for tri in tris:
-            triInd = []
-            for loop in tri:
-               triInd.append(loop.vert.index)
-            indices.append(triInd)      
+            for tri in tris:
+                triInd = []
+                for loop in tri:
+                    triInd.append(loop.vert.index)
+                    indices.append(triInd)      
 
         #shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
         shader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)

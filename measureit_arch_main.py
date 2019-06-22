@@ -305,7 +305,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(scene, "measureit_arch_gl_show_d")
         col.prop(scene, "measureit_arch_debug_text")
         col.prop(scene, "measureit_arch_eval_mods")
-
+        col.prop(scene, "measureit_arch_inst_dims")
 
         if scene.measureit_arch_scale is True:
             scaleBox = layout.box()
@@ -528,22 +528,49 @@ def draw_main_3d (context):
     # ---------------------------------------
     for myobj in objlist:
         if myobj.visible_get() is True:
+            mat = myobj.matrix_world
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]
-                draw_line_group(context,myobj,lineGen)
+                draw_line_group(context,myobj,lineGen,mat)
             
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
-                draw_annotation(context,myobj,annotationGen)
+                draw_annotation(context,myobj,annotationGen,mat)
 
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator[0]
                 for alignedDim in DimGen.alignedDimensions:
-                    draw_alignedDimension(context, myobj, DimGen, alignedDim)
+                    draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
                 for angleDim in DimGen.angleDimensions:
-                    draw_angleDimension(context, myobj, DimGen, angleDim)
+                    draw_angleDimension(context, myobj, DimGen, angleDim,mat)
                 for axisDim in DimGen.axisDimensions:
-                    draw_axisDimension(context,myobj,DimGen,axisDim)
+                    draw_axisDimension(context,myobj,DimGen,axisDim,mat)
+    
+    # Draw Instance 
+    deps = bpy.context.view_layer.depsgraph
+    for obj_int in deps.object_instances:
+        if obj_int.is_instance:
+            myobj = obj_int.object
+            mat = obj_int.matrix_world
+
+            if 'LineGenerator' in myobj:
+                lineGen = myobj.LineGenerator[0]
+                draw_line_group(context,myobj,lineGen,mat)
+            
+            if scene.measureit_arch_inst_dims:
+                if 'AnnotationGenerator' in myobj:
+                    annotationGen = myobj.AnnotationGenerator[0]
+                    draw_annotation(context,myobj,annotationGen,mat)
+
+                if 'DimensionGenerator' in myobj:
+                    DimGen = myobj.DimensionGenerator[0]
+                    for alignedDim in DimGen.alignedDimensions:
+                        draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
+                    for angleDim in DimGen.angleDimensions:
+                        draw_angleDimension(context, myobj, DimGen, angleDim,mat)
+                    for axisDim in DimGen.axisDimensions:
+                        draw_axisDimension(context,myobj,DimGen,axisDim,mat)
+
                 
 # -------------------------------------------------------------
 # Handler for drawing OpenGl

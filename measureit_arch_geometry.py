@@ -165,7 +165,7 @@ def update_text(textobj,props,context):
             image.scale(width, height)
             image.pixels = [v / 255 for v in texture_buffer]
 
-def draw_alignedDimension(context, myobj, measureGen,dim):
+def draw_alignedDimension(context, myobj, measureGen,dim,mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
@@ -219,12 +219,12 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
         else:
-            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA)
+            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA,mat)
         
         if dim.dimPointB == 9999999:
             p2 = dim.dimObjectB.location
         else:
-            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
+            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB,mat)
         
         
 
@@ -378,7 +378,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(True)
 
-def draw_axisDimension(context, myobj, measureGen,dim):
+def draw_axisDimension(context, myobj, measureGen,dim,mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
@@ -437,12 +437,12 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
         else:
-            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA)
+            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA,mat)
         
         if dim.dimPointB == 9999999:
             p2 = dim.dimObjectB.location
         else:
-            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB)
+            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB,mat)
         
         #Sort Points 
         sortedPoints = sortPoints(p1,p2)
@@ -685,7 +685,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(True)
 
-def draw_angleDimension(context, myobj, DimGen, dim):
+def draw_angleDimension(context, myobj, DimGen, dim,mat):
     dimProps = dim
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
@@ -722,9 +722,9 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         radius = dim.dimRadius
         offset = 0.001
 
-        p1 = Vector(get_point(obverts[dim.dimPointA], myobj))
-        p2 = Vector(get_point(obverts[dim.dimPointB], myobj))
-        p3 = Vector(get_point(obverts[dim.dimPointC], myobj))
+        p1 = Vector(get_point(obverts[dim.dimPointA], myobj,mat))
+        p2 = Vector(get_point(obverts[dim.dimPointB], myobj,mat))
+        p3 = Vector(get_point(obverts[dim.dimPointC], myobj,mat))
 
         #calc normal to plane defined by points
         vecA = (p1-p2)
@@ -914,7 +914,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     bestNormal.normalize()
     return bestNormal 
         
-def draw_line_group(context, myobj, lineGen):
+def draw_line_group(context, myobj, lineGen, mat):
     scene = context.scene
     obverts = get_mesh_vertices(myobj)
     bgl.glEnable(bgl.GL_MULTISAMPLE)
@@ -950,7 +950,7 @@ def draw_line_group(context, myobj, lineGen):
 
             #overide line color with theme selection colors when selected
             if not context.scene.measureit_arch_is_render_draw:
-                if myobj.select_get() and bpy.context.mode != 'EDIT_MESH' and context.scene.measureit_arch_gl_ghost:
+                if myobj in context.selected_objects and bpy.context.mode != 'EDIT_MESH' and context.scene.measureit_arch_gl_ghost:
                     rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
                     rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
                     rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
@@ -1012,8 +1012,8 @@ def draw_line_group(context, myobj, lineGen):
                 sLine = lineGroup.singleLine[x]
                 
                 if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
-                    a_p1 = get_point(obverts[sLine.pointA], myobj)
-                    b_p1 = get_point(obverts[sLine.pointB], myobj)
+                    a_p1 = get_point(obverts[sLine.pointA], myobj,mat)
+                    b_p1 = get_point(obverts[sLine.pointB], myobj,mat)
 
                 if  a_p1 is not None and b_p1 is not None:
                     coords.append(a_p1)
@@ -1061,7 +1061,7 @@ def draw_line_group(context, myobj, lineGen):
     bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
     bgl.glDepthMask(True)
 
-def draw_annotation(context, myobj, annotationGen):
+def draw_annotation(context, myobj, annotationGen, mat):
     obverts = get_mesh_vertices(myobj)
     scene = context.scene
     bgl.glEnable(bgl.GL_MULTISAMPLE)
@@ -1109,7 +1109,7 @@ def draw_annotation(context, myobj, annotationGen):
 
             # Get Points
             if annotation.annotationAnchorObject.type == 'MESH':
-                p1 = get_point(obverts[annotation.annotationAnchor], myobj)
+                p1 = get_point(obverts[annotation.annotationAnchor], myobj,mat)
             else:
                 p1 = annotation.annotationAnchorObject.location
 
@@ -1120,7 +1120,7 @@ def draw_annotation(context, myobj, annotationGen):
             textcard = generate_text_card(context,annotation,annotationProps,annotation.annotationRotation,(0,0,0))
 
             #Get local Rotation and Translation
-            rot = myobj.matrix_local.to_quaternion()
+            rot = mat.to_quaternion()
             loc = myobj.matrix_local.to_translation()
 
             #Compose Rotation and Translation Matrix
@@ -1447,9 +1447,9 @@ def get_area_and_paint(myvertices, myobj, obverts, region, rv3d):
 
         for t in tris:
             v1, v2, v3 = t
-            p1 = get_point(obverts[myvertices[v1]], myobj)
-            p2 = get_point(obverts[myvertices[v2]], myobj)
-            p3 = get_point(obverts[myvertices[v3]], myobj)
+            p1 = get_point(obverts[myvertices[v1]], myobj,mat)
+            p2 = get_point(obverts[myvertices[v2]], myobj,mat)
+            p3 = get_point(obverts[myvertices[v3]], myobj,mat)
 
             screen_point_p1 = get_2d_point(region, rv3d, p1)
             screen_point_p2 = get_2d_point(region, rv3d, p2)
@@ -1462,9 +1462,9 @@ def get_area_and_paint(myvertices, myobj, obverts, region, rv3d):
             totarea += area
     elif len(myvertices) == 3:
         v1, v2, v3 = myvertices
-        p1 = get_point(obverts[v1], myobj)
-        p2 = get_point(obverts[v2], myobj)
-        p3 = get_point(obverts[v3], myobj)
+        p1 = get_point(obverts[v1], myobj,mat)
+        p2 = get_point(obverts[v2], myobj,mat)
+        p3 = get_point(obverts[v3], myobj,mat)
 
         screen_point_p1 = get_2d_point(region, rv3d, p1)
         screen_point_p2 = get_2d_point(region, rv3d, p2)
@@ -1504,68 +1504,6 @@ def get_2d_point(region, rv3d, point3d):
         return get_render_location(point3d)
 
 
-# -------------------------------------------------------------
-# Get sum of a group
-#
-# myobj: Current object
-# Tag: group
-# -------------------------------------------------------------
-def get_group_sum(myobj, tag):
-    # noinspection PyBroadException
-    try:
-        tx = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S",
-              "T", "U", "V", "W", "X", "Y", "Z"]
-        g = tag[2:3]
-        mp = myobj.DimensionGenerator[0]
-        flag = False
-        # -----------------
-        # Sum loop segments
-        # -----------------
-        scale = bpy.context.scene.unit_settings.scale_length
-        tot = 0.0
-        obverts = get_mesh_vertices(myobj)
-        for idx in range(0, mp.measureit_arch_num):
-            ms = mp.measureit_arch_segments[idx]
-            if (ms.gltype == 1 or ms.gltype == 12 or
-                ms.gltype == 13 or ms.gltype == 14) and ms.gltot != '99' \
-                    and ms.glfree is False and g == tx[int(ms.gltot)]:  # only segments
-                if ms.glpointa <= len(obverts) and ms.glpointb <= len(obverts):
-                    p1 = get_point(obverts[ms.glpointa], myobj)
-                    if ms.gltype == 1:
-                        p2 = get_point(obverts[ms.glpointb], myobj)
-                    elif ms.gltype == 12:
-                        p2 = get_point((0.0,
-                                        obverts[ms.glpointa].co[1],
-                                        obverts[ms.glpointa].co[2]), myobj)
-                    elif ms.gltype == 13:
-                        p2 = get_point((obverts[ms.glpointa].co[0],
-                                        0.0,
-                                        obverts[ms.glpointa].co[2]), myobj)
-                    else:
-                        p2 = get_point((obverts[ms.glpointa].co[0],
-                                        obverts[ms.glpointa].co[1],
-                                        0.0), myobj)
-
-                    dist, distloc = distance(p1, p2, ms.glocx, ms.glocy, ms.glocz)
-                    if dist == distloc:
-                        usedist = dist
-                    else:
-                        usedist = distloc
-                    usedist *= scale
-                    tot += usedist
-                    flag = True
-
-        if flag is True:
-            # Return value
-            pr = bpy.context.scene.measureit_arch_gl_precision
-            fmt = "%1." + str(pr) + "f"
-            units = bpy.context.scene.measureit_arch_units
-
-            return format_distance(fmt, units, tot)
-        else:
-            return " "
-    except:
-        return " "
 
 # -------------------------------------------------------------
 # Draw a GPU line
@@ -1707,7 +1645,7 @@ def draw_vertices(context, myobj, region, rv3d):
                 continue
         # noinspection PyBroadException
         # try:
-        a_p1 = get_point(v.co, myobj)
+        a_p1 = get_point(v.co, myobj,mat)
         # colour
 
         #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
@@ -1766,7 +1704,7 @@ def draw_edges(context, myobj, region, rv3d):
             if e.select is False:
                 continue
         a_mp = midf(e, obverts)
-        a_p1 = get_point(a_mp, myobj)
+        a_p1 = get_point(a_mp, myobj,mat)
         # colour
 
         #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
@@ -1822,9 +1760,9 @@ def draw_faces(context, myobj, region, rv3d):
         # noinspection PyBroadException
         try:
             if myobj.mode == 'EDIT':
-                a_p1 = get_point(f.calc_center_median(), myobj)
+                a_p1 = get_point(f.calc_center_median(), myobj,mat)
             else:
-                a_p1 = get_point(f.center, myobj)
+                a_p1 = get_point(f.center, myobj,mat)
 
             a_p2 = (a_p1[0] + normal[0] * ln, a_p1[1] + normal[1] * ln, a_p1[2] + normal[2] * ln)
 
@@ -1854,9 +1792,9 @@ def draw_faces(context, myobj, region, rv3d):
                         i2 = f.vertices[1]
                         i3 = f.vertices[2]
 
-                    a_p1 = get_point(obverts[i1], myobj)
-                    a_p2 = get_point(obverts[i2], myobj)
-                    a_p3 = get_point(obverts[i3], myobj)
+                    a_p1 = get_point(obverts[i1], myobj,mat)
+                    a_p2 = get_point(obverts[i2], myobj,mat)
+                    a_p3 = get_point(obverts[i3], myobj,mat)
                     # converting to screen coordinates
                     a2d = get_2d_point(region, rv3d, a_p1)
                     b2d = get_2d_point(region, rv3d, a_p2)
@@ -1929,10 +1867,10 @@ def interpolate3d(v1, v2, d1):
 # v1: point
 # mainobject
 # --------------------------------------------------------------------
-def get_point(v1, mainobject):
+def get_point(v1, mainobject, mat):
     # Using World Matrix
     vt = Vector((v1[0], v1[1], v1[2], 1))
-    m4 = mainobject.matrix_world
+    m4 = mat
     vt2 = m4 @ vt
     v2 = [vt2[0], vt2[1], vt2[2]]
 
@@ -1964,9 +1902,8 @@ def get_mesh_vertices(myobj):
             verts = bm.verts
         else:
             bm = bmesh.new()
-            cm_res = check_mods(myobj)
             eval_res = bpy.context.scene.measureit_arch_eval_mods
-            if cm_res or eval_res:
+            if eval_res:
                 bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
                 verts= bm.verts 
             else:
@@ -2193,7 +2130,7 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
             break
         i = display_text.index("<#")
         tag = display_text[i:i + 4]
-        display_text = display_text.replace(tag, get_group_sum(myobj, tag.upper()))
+        #display_text = display_text.replace(tag, get_group_sum(myobj, tag.upper()))
 
     # split lines
     mylines = display_text.split("|")
