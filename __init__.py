@@ -138,7 +138,7 @@ def register():
 
     # Define properties
     Scene.measureit_arch_inst_dims = BoolProperty(name="Instance Dimensions & Annotations",
-                                    description="MeasureIt-ARCH will attempt to instance Dimensions and Annotations. They may be Unstable",
+                                    description="NOTE: Instanced Dimensions text will not adapt to local changes in scale or rotation",
                                     default=False)
 
     Scene.measureit_arch_eval_mods = BoolProperty(name="Evaluate Modifiers",
