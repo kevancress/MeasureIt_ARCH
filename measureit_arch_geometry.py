@@ -1988,11 +1988,11 @@ def check_mods(myobj):
                 'SMOOTH', 'CORRECTIVE_SMOOTH', 'LAPLACIANSMOOTH',
                 'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH', 'COLLISION', 
                 'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
-                'SMOKE', 'SOFT_BODY', 'SURFACE']
+                'SMOKE', 'SOFT_BODY', 'SURFACE','SOLIDIFY']
     for mod in myobj.modifiers:
         if mod.type not in goodMods:
             return False
-        else: return True
+    return True
 
 # --------------------------------------------------------------------
 # Get position for scale text
