@@ -116,7 +116,7 @@ class RenderSegmentButton(Operator):
         # -----------------------------
 
         print("MeasureIt-ARCH: Rendering image")
-        bpy.ops.render.render()
+        #bpy.ops.render.render()
         if render_main(self, context) is True:
             self.report({'INFO'}, msg)
 
@@ -263,11 +263,17 @@ def render_main(self, context, animation=False):
     
     with offscreen.bind():
         # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
-        bgl.glClearDepth(clipdepth)
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+        bgl.glClearDepth(clipdepth)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthFunc(bgl.GL_LESS)  
 
+        gpu.matrix.reset()
+        gpu.matrix.load_matrix(view_matrix_3d)
+        gpu.matrix.load_projection_matrix(projection_matrix)
 
         draw_scene(self, context, projection_matrix) 
+
         
         # Clear Color Keep on depth info
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
@@ -409,47 +415,61 @@ def save_image(self, filepath, myimage):
 #--------------------------------------
 
 def draw_scene(self, context, projection_matrix):
-    
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthFunc(bgl.GL_LESS)   
+
     # Get List of Mesh Objects
     objs = []
     for obj in context.view_layer.objects:
-            if obj.type == 'MESH':
-                objs.append(obj)
+        if obj.type == 'MESH' and obj.hide_render == False:
+            objs.append(obj)
 
-    # get 3D view matrix
-    view_matrix_3d = context.scene.camera.matrix_world.inverted()
+   
 
     # Get Vertices and Indices of Objects
     for obj in objs:
         mesh = obj.data
         bm = bmesh.new()
         bm.from_object(obj, context.view_layer.depsgraph, deform=True)
-        mesh.calc_loop_triangles()
+        tris = bm.calc_loop_triangles()
         vertices = []
-        indices = np.empty((len(mesh.loop_triangles), 3), 'i')
+        indices = []
 
         for vert in bm.verts:
             # Multipy vertex Position by Object Transform Matrix
             vertices.append(obj.matrix_world @ vert.co)
 
-        # get Indices
-        mesh.loop_triangles.foreach_get(
-            "vertices", np.reshape(indices, len(mesh.loop_triangles) * 3))            
+        for tri in tris:
+            triInd = []
+            for loop in tri:
+               triInd.append(loop.vert.index)
+            indices.append(triInd)      
 
-        #---------------
-        # Draw
-        #---------------
-        
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthFunc(bgl.GL_LESS)   
-
-        shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-        #shader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
+        #shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+        shader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
         batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=indices)
+        batch.program_set(shader)
+        batch.draw()
+        gpu.shader.unbind()
 
-        gpu.matrix.reset()
-        gpu.matrix.load_matrix(view_matrix_3d)
-        gpu.matrix.load_projection_matrix(projection_matrix)
+    #Write to Image for Debug
+    debug=True
+    if debug:
+        scene = context.scene
+        render_scale = scene.render.resolution_percentage / 100
+        width = int(scene.render.resolution_x * render_scale)
+        height = int(scene.render.resolution_y * render_scale)
 
-        batch.draw(shader)
-        bgl.glDisable(bgl.GL_DEPTH_TEST)
+        buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+        bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
+        bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
+
+        image_name = "measureit_arch_depth"
+        if image_name not in bpy.data.images:
+            bpy.data.images.new(image_name, width, height)
+
+        image = bpy.data.images[image_name]
+        image.scale(width, height)
+        image.pixels = [v / 255 for v in buffer]
+
+    bgl.glDisable(bgl.GL_DEPTH_TEST)

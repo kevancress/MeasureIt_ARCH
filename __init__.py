@@ -137,7 +137,10 @@ def register():
     auto_load.register()
 
     # Define properties
-    
+    Scene.measureit_arch_eval_mods = BoolProperty(name="Evaluate Modifiers",
+                                    description="MeasureIt-ARCH will attempt to evaluate Modifiers before drawing, May make dimensions and linework unstable",
+                                    default=False)
+
     Scene.measureit_arch_is_render_draw = BoolProperty(name="Is Render",
                                         description="Flag to use render size for draw aspect ratio",
                                         default=False)
@@ -151,6 +154,7 @@ def register():
                            ('Z', "Z", "Z Axis")),
                     name="Axis",
                     description="Axis")
+
     Scene.measureit_arch_debug_text = BoolProperty(name="Debug Text",
                                         description="(DEBUG) Draw Debug Info For Text",
                                         default=False)

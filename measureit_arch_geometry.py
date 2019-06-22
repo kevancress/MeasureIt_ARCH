@@ -171,7 +171,9 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthFunc(bgl.GL_LEQUAL) 
+    bgl.glDepthFunc(bgl.GL_LEQUAL)
+    bgl.glDepthMask(False)
+
     dimProps = dim
     lineWeight = dimProps.lineWeight
 
@@ -374,7 +376,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim):
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-        bgl.glDepthMask(False)
+        bgl.glDepthMask(True)
 
 def draw_axisDimension(context, myobj, measureGen,dim):
     # GL Settings
@@ -382,7 +384,8 @@ def draw_axisDimension(context, myobj, measureGen,dim):
     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthFunc(bgl.GL_LEQUAL) 
+    bgl.glDepthFunc(bgl.GL_LEQUAL)
+    bgl.glDepthMask(False)
     dimProps = dim
     lineWeight = dimProps.lineWeight
 
@@ -680,7 +683,7 @@ def draw_axisDimension(context, myobj, measureGen,dim):
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-        bgl.glDepthMask(False)
+        bgl.glDepthMask(True)
 
 def draw_angleDimension(context, myobj, DimGen, dim):
     dimProps = dim
@@ -700,6 +703,8 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthMask(False)
+
         lineWeight = dimProps.lineWeight
         if context.scene.measureit_arch_is_render_draw:
             viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
@@ -733,8 +738,6 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         endpointB = (vecB*radius)+p2
 
         #making it a circle
-        #(Quick and dirty circle, technically the verts arent,
-        # evenly spaced but you barely notice)
         distVector = vecA-vecB
         dist = distVector.length
         angle = vecA.angle(vecB)
@@ -825,13 +828,13 @@ def draw_angleDimension(context, myobj, DimGen, dim):
         #Reset openGL Settings
         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-        bgl.glDepthMask(False)
+        bgl.glDepthMask(True)
 
 def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     #Set properties
     i = Vector((1,0,0)) # X Unit Vector
     j = Vector((0,1,0)) # Y Unit Vector
-    k = Vector((0,0,1))
+    k = Vector((0,0,1)) # Z Unit Vector
     loc = Vector(get_location(myobj))
     centerRay = Vector((-1,1,1))
 
@@ -917,7 +920,6 @@ def draw_line_group(context, myobj, lineGen):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
-
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
     
@@ -1193,7 +1195,7 @@ def draw_annotation(context, myobj, annotationGen):
                 triShader.bind()
                 triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 triShader.uniform_float("offset", (0,0,0))
-                bgl.glEnable(bgl.GL_MULTISAMPLE)
+
                 batch = batch_for_shader(triShader, 'TRIS', {"pos": coords})
                 batch.program_set(triShader)
                 batch.draw()
@@ -1208,7 +1210,6 @@ def draw_annotation(context, myobj, annotationGen):
 
 def draw_text_3D(context,textobj,myobj,card):
     #get props
-    bgl.glDepthMask(False)
     normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
 
     # Define Flip Matrix's
@@ -1253,19 +1254,21 @@ def draw_text_3D(context,textobj,myobj,card):
     dim = width * height * 4
     if 'texture' in textobj:
         buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
-        texBuf = bgl.Buffer(bgl.GL_INT, 1)
-        bgl.glGenTextures(1, texBuf)
-        bgl.glActiveTexture(bgl.GL_TEXTURE0)
-        bgl.glBindTexture(bgl.GL_TEXTURE_2D, texBuf.to_list()[0])
+        #texBuf = bgl.Buffer(bgl.GL_INT, 1)
+        #bgl.glFinish()
+        #bgl.glGenTextures(1, texBuf)
+        #bgl.glActiveTexture(bgl.GL_TEXTURE0)
+        #bgl.glBindTexture(bgl.GL_TEXTURE_2D, texBuf.to_list()[0])
 
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width, height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
         textobj.texture_updated=False
-
+        
     # Draw Shader
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
+    #bgl.glDeleteTextures(1, texBuf)
     gpu.shader.unbind()
 
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint):
@@ -1955,28 +1958,41 @@ def get_location(mainobject):
 def get_mesh_vertices(myobj):
     try:
         obverts = []
+        verts=[]
         if myobj.mode == 'EDIT':
             bm = bmesh.from_edit_mesh(myobj.data)
             verts = bm.verts
-            for vert in verts:
-                obverts.append(vert.co)
         else:
             bm = bmesh.new()
-            #bm.from_mesh(myobj.data)
-            if not myobj.modifiers:
-                verts = myobj.data.vertices
+            cm_res = check_mods(myobj)
+            eval_res = bpy.context.scene.measureit_arch_eval_mods
+            if cm_res or eval_res:
+                bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
+                verts= bm.verts 
             else:
-                bm.from_object(myobj,bpy.context.depsgraph,deform=True)
-                verts= bm.verts
-                #verts.index_update()
-            
-            for vert in verts:
-                obverts.append(vert.co)
+                verts = myobj.data.vertices
+        for vert in verts:
+            obverts.append(vert.co)
        #bm.free()
         return obverts
     except AttributeError:
         return None
 
+def check_mods(myobj):
+    goodMods = ["DATA_TRANSFER ", "NORMAL_EDIT", "WEIGHTED_NORMAL",
+                'UV_PROJECT', 'UV_WARP', 'ARRAY', 'DECIMATE', 
+                'EDGE_SPLIT', 'MASK', 'MIRROR', 'MULTIRES', 'SCREW',
+                'SOLIDIFY', 'SUBSURF', 'TRIANGULATE', 'ARMATURE', 
+                'CAST', 'CURVE', 'DISPLACE', 'HOOK', 'LAPLACIANDEFORM',
+                'LATTICE', 'MESH_DEFORM', 'SHRINKWRAP', 'SIMPLE_DEFORM',
+                'SMOOTH', 'CORRECTIVE_SMOOTH', 'LAPLACIANSMOOTH',
+                'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH', 'COLLISION', 
+                'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
+                'SMOKE', 'SOFT_BODY', 'SURFACE']
+    for mod in myobj.modifiers:
+        if mod.type not in goodMods:
+            return False
+        else: return True
 
 # --------------------------------------------------------------------
 # Get position for scale text

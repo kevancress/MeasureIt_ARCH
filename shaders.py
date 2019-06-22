@@ -309,10 +309,11 @@ class Text_Shader():
 
 class DepthOnlyFrag():
     fragment_shader = ''' 
+        out vec4 fragColor;
+
         void main()
         {
-            // no color output, only depth (line below is implicit)
-            // gl_FragDepth = gl_FragCoord.z;
+            fragColor = vec4(gl_FragCoord.z);
         }
     '''
 

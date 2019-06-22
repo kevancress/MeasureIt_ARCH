@@ -304,6 +304,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col = layout.column()
         col.prop(scene, "measureit_arch_gl_show_d")
         col.prop(scene, "measureit_arch_debug_text")
+        col.prop(scene, "measureit_arch_eval_mods")
 
 
         if scene.measureit_arch_scale is True:
