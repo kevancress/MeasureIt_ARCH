@@ -447,12 +447,13 @@ def draw_scene(self, context, projection_matrix):
     objs = []
     deps = bpy.context.view_layer.depsgraph
     for obj_int in deps.object_instances:
-        if obj_int.object.type == 'MESH':
-            obj = obj_int.object
+        obj = obj_int.object
+        if obj.type == 'MESH' and obj.hide_render == False :
+
             mat = obj_int.matrix_world
             mesh = obj.data
             bm = bmesh.new()
-            bm.from_object(obj, context.view_layer.depsgraph, deform=True)
+            bm.from_object(obj, context.view_layer.depsgraph, deform=False)
             tris = bm.calc_loop_triangles()
             vertices = []
             indices = []
@@ -467,15 +468,15 @@ def draw_scene(self, context, projection_matrix):
                     triInd.append(loop.vert.index)
                     indices.append(triInd)      
 
-        #shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-        shader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
-        batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=indices)
-        batch.program_set(shader)
-        batch.draw()
-        gpu.shader.unbind()
+            #shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+            shader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
+            batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=indices)
+            batch.program_set(shader)
+            batch.draw()
+            gpu.shader.unbind()
 
     #Write to Image for Debug
-    debug=True
+    debug=False
     if debug:
         scene = context.scene
         render_scale = scene.render.resolution_percentage / 100
