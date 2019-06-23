@@ -62,13 +62,18 @@ def load_handler(dummy):
 # noinspection PyUnusedLocal
 @persistent
 def save_handler(dummy):        
-    # Check for phantom objects
+    # Check all Scenes for phantom objects
     print("Measureit-ARCH: Cleaning Phantom Objects")
-    objlist = bpy.context.scene.objects
+    objlist = []
+    for scene in bpy.data.scenes:
+        for obj in scene.objects:
+            objlist.append(obj.name)
+
     for obj in bpy.context.blend_data.objects:
         if obj.name in objlist:
             pass
         else:
+            print (str(obj.name) + ' Data Removed')
             if 'DimensionGenerator' in obj:
                 dimgen = obj.DimensionGenerator[0]
                 if 'alignedDimensions' in dimgen:
