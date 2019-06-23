@@ -214,17 +214,25 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
 
         offset = dim.dimOffset
         geoOffset = dim.dimLeaderOffset
+
+       # get points positions from indicies
+        if dim.dimObjectA == dim.dimObjectB:
+            aMatrix = mat
+            bMatrix = mat
+        else:
+            aMatrix = dim.dimObjectA.matrix_world
+            bMatrix = dim.dimObjectB.matrix_world
     
         # get points positions from indicies
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
         else:
-            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA,mat)
+            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA,aMatrix)
         
         if dim.dimPointB == 9999999:
             p2 = dim.dimObjectB.location
         else:
-            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB,mat)
+            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB,bMatrix)
         
         
 
@@ -434,15 +442,22 @@ def draw_axisDimension(context, myobj, measureGen,dim,mat):
         geoOffset = dim.dimLeaderOffset
     
         # get points positions from indicies
+        if dim.dimObjectA == dim.dimObjectB:
+            aMatrix = mat
+            bMatrix = mat
+        else:
+            aMatrix = dim.dimObjectA.matrix_world
+            bMatrix = dim.dimObjectB.matrix_world
+
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
         else:
-            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA,mat)
+            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA,aMatrix)
         
         if dim.dimPointB == 9999999:
             p2 = dim.dimObjectB.location
         else:
-            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB,mat)
+            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB,bMatrix)
         
         #Sort Points 
         sortedPoints = sortPoints(p1,p2)
