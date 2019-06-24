@@ -471,6 +471,7 @@ def draw_scene(self, context, projection_matrix):
             batch.program_set(shader)
             batch.draw()
             gpu.shader.unbind()
+            obj_eval.to_mesh_clear()
 
     #Write to Image for Debug
     debug=False

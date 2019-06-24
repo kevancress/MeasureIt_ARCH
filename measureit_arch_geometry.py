@@ -215,13 +215,11 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         offset = dim.dimOffset
         geoOffset = dim.dimLeaderOffset
 
-       # get points positions from indicies
-        if dim.dimObjectA == dim.dimObjectB:
-            aMatrix = mat
-            bMatrix = mat
-        else:
-            aMatrix = dim.dimObjectA.matrix_world
-            bMatrix = dim.dimObjectB.matrix_world
+        # get points positions from indicies
+        aMatrix = mat
+        bMatrix = mat
+        if dim.dimObjectB != dim.dimObjectA:
+            bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat 
     
         # get points positions from indicies
         if dim.dimPointA == 9999999:
@@ -386,7 +384,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(True)
 
-def draw_axisDimension(context, myobj, measureGen,dim,mat):
+def draw_axisDimension(context, myobj, measureGen,dim, mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
@@ -442,12 +440,10 @@ def draw_axisDimension(context, myobj, measureGen,dim,mat):
         geoOffset = dim.dimLeaderOffset
     
         # get points positions from indicies
-        if dim.dimObjectA == dim.dimObjectB:
-            aMatrix = mat
-            bMatrix = mat
-        else:
-            aMatrix = dim.dimObjectA.matrix_world
-            bMatrix = dim.dimObjectB.matrix_world
+        aMatrix = mat
+        bMatrix = mat
+        if dim.dimObjectB != dim.dimObjectA:
+            bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat 
 
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
@@ -971,7 +967,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                     rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
                     rgb[3] = alpha
 
-                    if myobj.data.name == context.view_layer.objects.active.data.name:
+                    if context.view_layer.objects.active != None and myobj.data.name == context.view_layer.objects.active.data.name:
                         rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
                         rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
                         rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
