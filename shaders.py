@@ -313,7 +313,7 @@ class DepthOnlyFrag():
 
         void main()
         {
-            fragColor = vec4(gl_FragCoord.z);
+            fragColor = vec4(gl_FragCoord.z,gl_FragCoord.z,gl_FragCoord.z,1.0);
         }
     '''
 

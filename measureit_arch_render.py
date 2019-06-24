@@ -451,22 +451,19 @@ def draw_scene(self, context, projection_matrix):
         if obj.type == 'MESH' and obj.hide_render == False :
 
             mat = obj_int.matrix_world
-            mesh = obj.data
-            bm = bmesh.new()
-            bm.from_object(obj, context.view_layer.depsgraph, deform=False)
-            tris = bm.calc_loop_triangles()
+            obj_eval = obj.evaluated_get(deps)
+            mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=bpy.context.view_layer.depsgraph)
+            mesh.calc_loop_triangles()
+            tris = mesh.loop_triangles
             vertices = []
             indices = []
 
-            for vert in bm.verts:
+            for vert in mesh.vertices:
                 # Multipy vertex Position by Object Transform Matrix
                 vertices.append(mat @ vert.co)
 
             for tri in tris:
-                triInd = []
-                for loop in tri:
-                    triInd.append(loop.vert.index)
-                    indices.append(triInd)      
+                indices.append(tri.vertices)      
 
             #shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
             shader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
