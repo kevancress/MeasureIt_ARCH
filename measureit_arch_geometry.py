@@ -996,7 +996,7 @@ def draw_line_group(context, myobj, lineGen, mat):
             if isOrtho:
                 offset /= 15
             if lineProps.isOutline:
-                offset = -10*offset
+                offset = -10 -offset
             offset /= 1000
 
             #gl Settings

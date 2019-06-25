@@ -47,6 +47,7 @@ from .measureit_arch_geometry import *
 from .measureit_arch_main import draw_main, draw_main_3d
 from bpy.props import IntProperty
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
+
 # ------------------------------------------------------------------
 # Define panel class for render functions.
 # ------------------------------------------------------------------
