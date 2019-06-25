@@ -196,8 +196,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
             viewport = [context.area.width,context.area.height]
 
         # Obj Properties
-        obvertA = get_mesh_vertices(dim.dimObjectA)
-        obvertB = get_mesh_vertices(dim.dimObjectB)
+        obvertA = dim.dimObjectA['obverts']
+        obvertB = dim.dimObjectB['obverts']
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
@@ -418,8 +418,8 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             #print(cameraLoc)
 
         # Obj Properties
-        obvertA = get_mesh_vertices(dim.dimObjectA)
-        obvertB = get_mesh_vertices(dim.dimObjectB)
+        obvertA = dim.dimObjectA['obverts']
+        obvertB = dim.dimObjectB['obverts']
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
@@ -727,7 +727,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         pr = scene.measureit_arch_gl_precision
         a_code = "\u00b0"  # degree
         fmt = "%1." + str(pr) + "f"
-        obverts = get_mesh_vertices(myobj)
+        obverts = myobj['obverts']
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         radius = dim.dimRadius
@@ -927,7 +927,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
         
 def draw_line_group(context, myobj, lineGen, mat):
     scene = context.scene
-    obverts = get_mesh_vertices(myobj)
+    obverts = myobj['obverts']
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
@@ -1074,7 +1074,7 @@ def draw_line_group(context, myobj, lineGen, mat):
     bgl.glDepthMask(True)
 
 def draw_annotation(context, myobj, annotationGen, mat):
-    obverts = get_mesh_vertices(myobj)
+    obverts = myobj['obverts']
     scene = context.scene
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
@@ -1902,53 +1902,7 @@ def get_location(mainobject):
     return [m4[0][3], m4[1][3], m4[2][3]]
 
 
-# --------------------------------------------------------------------
-# Get vertex data
-# mainobject
-# --------------------------------------------------------------------
-def get_mesh_vertices(myobj):
-    try:
-        obverts = []
-        verts=[]
-        if myobj.type == 'MESH':
-            if myobj.mode == 'EDIT':
-                bm = bmesh.from_edit_mesh(myobj.data)
-                verts = bm.verts
-            else:
-                eval_res = bpy.context.scene.measureit_arch_eval_mods
-                if eval_res or check_mods(myobj):
-                    deps = bpy.context.view_layer.depsgraph
-                    obj_eval = myobj.evaluated_get(deps)
-                    mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
-                    verts = mesh.vertices
-                    obj_eval.to_mesh_clear()
-                else:
-                    verts = myobj.data.vertices
-            for vert in verts:
-                obverts.append(vert.co)
-            #bm.free()
-            return obverts
-        else: return None 
-    except AttributeError:
-        return None
 
-def check_mods(myobj):
-    goodMods = ["DATA_TRANSFER ", "NORMAL_EDIT", "WEIGHTED_NORMAL",
-                'UV_PROJECT', 'UV_WARP', 'ARRAY', 'DECIMATE', 
-                'EDGE_SPLIT', 'MASK', 'MIRROR', 'MULTIRES', 'SCREW',
-                'SOLIDIFY', 'SUBSURF', 'TRIANGULATE', 'ARMATURE', 
-                'CAST', 'CURVE', 'DISPLACE', 'HOOK', 'LAPLACIANDEFORM',
-                'LATTICE', 'MESH_DEFORM', 'SHRINKWRAP', 'SIMPLE_DEFORM',
-                'SMOOTH', 'CORRECTIVE_SMOOTH', 'LAPLACIANSMOOTH',
-                'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH', 'COLLISION', 
-                'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
-                'SMOKE', 'SOFT_BODY', 'SURFACE','SOLIDIFY']
-    if myobj.modifiers == None:
-        return False
-    for mod in myobj.modifiers:
-        if mod.type not in goodMods:
-            return False
-    return True
 
 # --------------------------------------------------------------------
 # Get position for scale text

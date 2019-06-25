@@ -402,6 +402,58 @@ class ShowHideViewportButton(Operator):
         return {'CANCELLED'}
 
 
+# --------------------------------------------------------------------
+# Get vertex data
+# mainobject
+# --------------------------------------------------------------------
+def get_mesh_vertices(myobj):
+    try:
+        obverts = []
+        verts=[]
+        if myobj.type == 'MESH':
+            if myobj.mode == 'EDIT':
+                bm = bmesh.from_edit_mesh(myobj.data)
+                verts = bm.verts
+            else:
+                eval_res = bpy.context.scene.measureit_arch_eval_mods
+                if eval_res or check_mods(myobj):
+                    deps = bpy.context.view_layer.depsgraph
+                    obj_eval = myobj.evaluated_get(deps)
+                    mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
+                    verts = mesh.vertices
+                    obj_eval.to_mesh_clear()
+                else:
+                    verts = myobj.data.vertices
+            for vert in verts:
+                obverts.append(vert.co)
+            #bm.free()
+            return obverts
+        else: return None 
+    except AttributeError:
+        return None
+
+def check_mods(myobj):
+    goodMods = ["DATA_TRANSFER ", "NORMAL_EDIT", "WEIGHTED_NORMAL",
+                'UV_PROJECT', 'UV_WARP', 'ARRAY', 'DECIMATE', 
+                'EDGE_SPLIT', 'MASK', 'MIRROR', 'MULTIRES', 'SCREW',
+                'SOLIDIFY', 'SUBSURF', 'TRIANGULATE', 'ARMATURE', 
+                'CAST', 'CURVE', 'DISPLACE', 'HOOK', 'LAPLACIANDEFORM',
+                'LATTICE', 'MESH_DEFORM', 'SHRINKWRAP', 'SIMPLE_DEFORM',
+                'SMOOTH', 'CORRECTIVE_SMOOTH', 'LAPLACIANSMOOTH',
+                'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH', 'COLLISION', 
+                'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
+                'SMOKE', 'SOFT_BODY', 'SURFACE','SOLIDIFY']
+    if myobj.modifiers == None:
+        return False
+    for mod in myobj.modifiers:
+        if mod.type not in goodMods:
+            return False
+    return True
+
+
+
+
+
 # -------------------------------------------------------------
 # Handle all draw routines (OpenGL main entry point)
 #
@@ -533,6 +585,7 @@ def draw_main_3d (context):
     # ---------------------------------------
     for myobj in objlist:
         if myobj.visible_get() is True:
+            myobj['obverts'] = get_mesh_vertices(myobj) 
             mat = myobj.matrix_world
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]
@@ -556,6 +609,7 @@ def draw_main_3d (context):
     for obj_int in deps.object_instances:
         if obj_int.is_instance:
             myobj = obj_int.object
+            myobj['obverts'] = get_mesh_vertices(myobj) 
             mat = obj_int.matrix_world
 
             if 'LineGenerator' in myobj:
@@ -586,6 +640,10 @@ def draw_callback_px(self, context):
 
 def draw_callback_3d(self, context):
     draw_main_3d(context)
+
+
+
+
 
 
 # -------------------------------------------------------------
