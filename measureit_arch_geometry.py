@@ -1410,7 +1410,6 @@ def generate_text_card(context,textobj,textProps,rotation,basePoint):
 
     return coords
 
-
 def sortPoints (p1, p2):
     tempDirVec = Vector(p1)-Vector(p2)
 
@@ -1442,7 +1441,7 @@ def get_dom_axis (vector):
     return domAxis
 # ------------------------------------------
 # Get polygon area and paint area
-#
+# LEGACY
 # ------------------------------------------
 def get_area_and_paint(myvertices, myobj, obverts, region, rv3d):
     mymesh = myobj.data
@@ -1495,7 +1494,7 @@ def get_area_and_paint(myvertices, myobj, obverts, region, rv3d):
 
 # ------------------------------------------
 # Get area using Heron formula
-#
+# LEGACY
 # ------------------------------------------
 def get_triangle_area(p1, p2, p3):
     d1, dn = distance(p1, p2)
@@ -1508,7 +1507,7 @@ def get_triangle_area(p1, p2, p3):
 
 # ------------------------------------------
 # Get point in 2d space
-#
+# LEGACY
 # ------------------------------------------
 def get_2d_point(region, rv3d, point3d):
     if rv3d is not None and region is not None:
@@ -1520,7 +1519,7 @@ def get_2d_point(region, rv3d, point3d):
 
 # -------------------------------------------------------------
 # Draw a GPU line
-#
+# LEGACY
 # -------------------------------------------------------------
 def draw_line(v1, v2):
     # noinspection PyBroadException
@@ -1533,7 +1532,6 @@ def draw_line(v1, v2):
 
 
         coords = [v1,v2]
-        
         batch = batch_for_shader(shader, 'LINE_STRIP', {"pos": coords})
         #rgb = bpy.context.scene.measureit_arch_default_color
         batch.program_set(shader)
@@ -1548,7 +1546,7 @@ def draw_line(v1, v2):
 
 # -------------------------------------------------------------
 # Draw an OpenGL Rectangle
-#
+# LEGACY
 # v1, v2 are corners (bottom left / top right)
 # -------------------------------------------------------------
 def draw_rectangle(v1, v2):
@@ -1580,250 +1578,6 @@ def format_point(mypoint, pr):
     fmt += ")"
 
     return fmt
-
-
-# -------------------------------------------------------------
-# Draw object num for debug
-#
-# -------------------------------------------------------------
-# noinspection PyUnresolvedReferences,PyUnboundLocalVariable,PyUnusedLocal
-def draw_object(context, myobj, region, rv3d):
-    scene = bpy.context.scene
-    rawRGB = scene.measureit_arch_debug_obj_color
-    #undo blenders Default Gamma Correction
-    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-    fsize = scene.measureit_arch_debug_font
-    precision = scene.measureit_arch_debug_precision
-    # --------------------
-    # object Loop
-    # --------------------
-    objs = bpy.context.scene.objects
-    obidxs = list(range(len(bpy.context.scene.objects)))
-    for o in obidxs:
-        # Display only selected
-        if scene.measureit_arch_debug_select is True:
-            if objs[o].select is False:
-                continue
-        a_p1 = Vector(get_location(objs[o]))
-        # colour
-        
-        #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
-        # Text
-        txt = ''
-        if scene.measureit_arch_debug_objects is True:
-            txt += str(o)
-        if scene.measureit_arch_debug_object_loc is True:
-            txt += format_point(a_p1, precision)
-        # converting to screen coordinates
-        txtpoint2d = get_2d_point(region, rv3d, a_p1)
-        draw_text(myobj, txtpoint2d, txt, rgb, fsize)
-    return
-
-
-# -------------------------------------------------------------
-# Draw vertex num for debug
-#
-# -------------------------------------------------------------
-# noinspection PyUnresolvedReferences,PyUnboundLocalVariable,PyUnusedLocal
-def draw_vertices(context, myobj, region, rv3d):
-    # Only meshes
-    if myobj.type != "MESH":
-        return
-
-    scene = bpy.context.scene
-    rawRGB = scene.measureit_arch_debug_vert_color
-    #undo blenders Default Gamma Correction
-    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-
-    fsize = scene.measureit_arch_debug_font
-    precision = scene.measureit_arch_debug_precision
-    # --------------------
-    # vertex Loop
-    # --------------------
-    if scene.measureit_arch_debug_vert_loc_toggle == '1':
-        co_mult = lambda c: c
-    else:  # if global, convert local c to global
-        co_mult = lambda c: myobj.matrix_world @ c
-
-    if myobj.mode == 'EDIT':
-        bm = bmesh.from_edit_mesh(myobj.data)
-        obverts = bm.verts
-    else:
-        obverts = myobj.data.vertices
-
-    for v in obverts:
-        # Display only selected
-        if scene.measureit_arch_debug_select is True:
-            if v.select is False:
-                continue
-        # noinspection PyBroadException
-        # try:
-        a_p1 = get_point(v.co, myobj,mat)
-        # colour
-
-        #bgl .glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
-        # converting to screen coordinates
-        txtpoint2d = get_2d_point(region, rv3d, a_p1)
-        # Text
-        txt = ''
-        if scene.measureit_arch_debug_vertices is True:
-            txt += str(v.index)
-        if scene.measureit_arch_debug_vert_loc is True:
-            txt += format_point(co_mult(v), precision)
-        draw_text(myobj, txtpoint2d, txt, rgb, fsize)
-        # except:
-        #     print("Unexpected error:" + str(exc_info()))
-        #     pass
-
-    return
-
-
-# -------------------------------------------------------------
-# Draw edge num for debug
-#
-# -------------------------------------------------------------
-# noinspection PyUnresolvedReferences,PyUnboundLocalVariable,PyUnusedLocal
-def draw_edges(context, myobj, region, rv3d):
-    # Only meshes
-    if myobj.type != "MESH":
-        return
-
-    scene = bpy.context.scene
-    rawRGB = scene.measureit_arch_debug_edge_color
-    #undo blenders Default Gamma Correction
-    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-
-    fsize = scene.measureit_arch_debug_font
-    precision = scene.measureit_arch_debug_precision
-    # --------------------
-    # edge Loop
-    # 
-    # uses lambda for edge midpoint finder (midf) because edit mode
-    # edge vert coordinate is not stored in same places as in obj mode
-    # --------------------
-    if myobj.mode == 'EDIT':
-        bm = bmesh.from_edit_mesh(myobj.data)
-        obedges = bm.edges
-        obverts = None  # dummy value to avoid duplicating for loop
-        midf = lambda e, v: e.verts[0].co.lerp(e.verts[1], 0.5)
-    else:
-        obedges = myobj.data.edges
-        obverts = myobj.data.vertices
-        midf = lambda e, v: v[e.vertices[0]].lerp(v[e.vertices[1]], 0.5)
-
-    for e in obedges:
-        # Display only selected
-        if scene.measureit_arch_debug_select is True:
-            if e.select is False:
-                continue
-        a_mp = midf(e, obverts)
-        a_p1 = get_point(a_mp, myobj,mat)
-        # colour
-
-        #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
-        # converting to screen coordinates
-        txtpoint2d = get_2d_point(region, rv3d, a_p1)
-        draw_text(myobj, txtpoint2d, str(e.index), rgb, fsize)
-    return
-
-
-# -------------------------------------------------------------
-# Draw face num for debug
-#
-# -------------------------------------------------------------
-# noinspection PyUnresolvedReferences,PyUnboundLocalVariable,PyUnusedLocal
-def draw_faces(context, myobj, region, rv3d):
-    # Only meshes
-    if myobj.type != "MESH":
-        return
-
-    scene = bpy.context.scene
-    rawRGB = scene.measureit_arch_debug_face_color
-    #undo blenders Default Gamma Correction
-    rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-
-
-    rawRGB2 = scene.measureit_arch_debug_norm_color
-    #undo blenders Default Gamma Correction
-    rgb2 = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
-
-
-    fsize = scene.measureit_arch_debug_font
-    ln = scene.measureit_arch_debug_normal_size
-    th = scene.measureit_arch_debug_width
-    precision = scene.measureit_arch_debug_precision
-
-    # --------------------
-    # face Loop
-    # --------------------
-    if myobj.mode == 'EDIT':
-        bm = bmesh.from_edit_mesh(myobj.data)
-        obverts = bm.verts
-        myfaces = bm.faces
-    else:
-        obverts = myobj.data.vertices
-        myfaces = myobj.data.polygons
-
-    for f in myfaces:
-        normal = f.normal
-        # Display only selected
-        if scene.measureit_arch_debug_select is True:
-            if f.select is False:
-                continue
-        # noinspection PyBroadException
-        try:
-            if myobj.mode == 'EDIT':
-                a_p1 = get_point(f.calc_center_median(), myobj,mat)
-            else:
-                a_p1 = get_point(f.center, myobj,mat)
-
-            a_p2 = (a_p1[0] + normal[0] * ln, a_p1[1] + normal[1] * ln, a_p1[2] + normal[2] * ln)
-
-          
-            #bgl.glColor4f(rgb[0], rgb[1], rgb[2], rgb[3])
-            # converting to screen coordinates
-            txtpoint2d = get_2d_point(region, rv3d, a_p1)
-            point2 = get_2d_point(region, rv3d, a_p2)
-            # Text
-            if scene.measureit_arch_debug_faces is True:
-                draw_text(myobj, txtpoint2d, str(f.index), rgb, fsize)
-            # Draw Normal
-            if scene.measureit_arch_debug_normals is True:
-                shader.bind()
-                #shader.uniform_float("thickness", th)
-                shader.uniform_float("color", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                #bgl .glColor4f(rgb2[0], rgb2[1], rgb2[2], rgb2[3])
-                draw_arrow(txtpoint2d, point2, 10, "99", "1")
-
-                if len(obverts) > 2 and scene.measureit_arch_debug_normal_details is True:
-                    if myobj.mode == 'EDIT':
-                        i1 = f.verts[0].index
-                        i2 = f.verts[1].index
-                        i3 = f.verts[2].index
-                    else:
-                        i1 = f.vertices[0]
-                        i2 = f.vertices[1]
-                        i3 = f.vertices[2]
-
-                    a_p1 = get_point(obverts[i1], myobj,mat)
-                    a_p2 = get_point(obverts[i2], myobj,mat)
-                    a_p3 = get_point(obverts[i3], myobj,mat)
-                    # converting to screen coordinates
-                    a2d = get_2d_point(region, rv3d, a_p1)
-                    b2d = get_2d_point(region, rv3d, a_p2)
-                    c2d = get_2d_point(region, rv3d, a_p3)
-                    # draw vectors
-                    draw_arrow(a2d, b2d, 10, "99", "1")
-                    draw_arrow(b2d, c2d, 10, "99", "1")
-                    # Normal vector data
-                    txt = format_point(normal, precision)
-                    draw_text(myobj, point2, txt, rgb2, fsize)
-
-        except:
-            print("Unexpected error:" + str(exc_info()))
-            pass
-
-    return
 
 
 # --------------------------------------------------------------------

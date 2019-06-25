@@ -23,11 +23,9 @@
 # Author: Antonio Vazquez (antonioya), Kevan Cress
 #
 # ----------------------------------------------------------
-# noinspection PyUnresolvedReferences
 import bpy
 import bmesh
 from bmesh import from_edit_mesh
-# noinspection PyUnresolvedReferences
 import bgl
 import gpu
 from gpu_extras.batch import batch_for_shader
@@ -36,19 +34,13 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
-# noinspection PyUnresolvedReferences
-from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_vertices, draw_object, draw_edges, draw_axisDimension
-
-
-coords = [(100, 100, 1), (200, 400, 0), (-2, -1, 3), (0, 1, 1)]
-shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-batch = batch_for_shader(shader, 'LINES', {"pos": coords})
+from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension
 
 # ------------------------------------------------------
 # Handler to detect new Blend load
 #
 # ------------------------------------------------------
-# noinspection PyUnusedLocal
+
 @persistent
 def load_handler(dummy):
     ShowHideViewportButton.handle_remove(None, bpy.context)
@@ -59,10 +51,12 @@ def load_handler(dummy):
 # Clear not used measured
 #
 # ------------------------------------------------------
-# noinspection PyUnusedLocal
+
 @persistent
 def save_handler(dummy):        
     # Check all Scenes for phantom objects
+    # Necessary because the pointer properties on Dimensions and annotations
+    # count as an ID user and prevent the object from being removed normally
     print("Measureit-ARCH: Cleaning Phantom Objects")
     objlist = []
     for scene in bpy.data.scenes:
@@ -99,6 +93,8 @@ def save_handler(dummy):
 bpy.app.handlers.load_post.append(load_handler)
 bpy.app.handlers.save_pre.append(save_handler)
 
+# Rough Attempts to add a m-ARCH tab to the properties panel navigation bar
+# Not solved yet (not entirely sure its possible), but kept for future reference.
 
 #class MeasureIt_nav_button(Panel):
 #    bl_space_type = 'PROPERTIES'
@@ -268,9 +264,8 @@ class MeasureitArchMainPanel(Panel):
                 row.prop(scene, 'measureit_arch_debug_font', text="Font")
                 row.prop(scene, 'measureit_arch_debug_precision', text="Precision")
 
+# Measureit-ARCH settings
 
-
-     
 class SCENE_PT_MARCH_Settings(Panel):
     bl_idname = "SCENE_PT_MARCH_Settings"
     bl_label = "MeasureIt-ARCH Settings"
@@ -298,12 +293,9 @@ class SCENE_PT_MARCH_Settings(Panel):
         
         #col.prop(scene, 'measureit_arch_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
         
-        # Scale factor
+      
         col = layout.column(align = True)
         col.alignment = 'RIGHT'
-        #col.label(text = 'Override:')
-        #col.prop(scene, 'measureit_arch_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
-        #col.prop(scene, 'measureit_arch_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
         col = layout.column()
         col.prop(scene, "measureit_arch_show_gizmos", text="Show Gizmo's")
         col = layout.column()
@@ -312,6 +304,12 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(scene, "measureit_arch_eval_mods")
         col.prop(scene, "measureit_arch_inst_dims")
 
+        # Measureit-ARCH Legacy Overrides
+        # Overrides need to be re-implimented in the new version
+
+        #col.label(text = 'Override:')
+        #col.prop(scene, 'measureit_arch_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
+        #col.prop(scene, 'measureit_arch_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
         if scene.measureit_arch_scale is True:
             scaleBox = layout.box()
             scaleBox.label(text='Scale Override')
@@ -328,8 +326,6 @@ class SCENE_PT_MARCH_Settings(Panel):
             col.prop(scene, 'measureit_arch_scale_pos_x')
             col.prop(scene, 'measureit_arch_scale_pos_y')
 
-
-        # Override
         if scene.measureit_arch_ovr is True:
             styleBox = layout.box()
             styleBox.label(text='Style Override')
@@ -452,10 +448,8 @@ def check_mods(myobj):
 
 
 
-
-
 # -------------------------------------------------------------
-# Handle all draw routines (OpenGL main entry point)
+# Handle all 2d draw routines (Text Updating mostly)
 #
 # -------------------------------------------------------------
 def draw_main(context):
@@ -542,31 +536,7 @@ def draw_main(context):
                                 annotationProps= annotationStyle
 
                     update_text(textobj=annotation,props=annotationProps,context=context)
-    # ---------------------------------------
-    # Generate all OpenGL calls for debug
-    # ---------------------------------------
-    if scene.measureit_arch_debug is True:
-        selobj = bpy.context.selected_objects
-        for myobj in selobj:
-            if scene.measureit_arch_debug_objects is True:
-                draw_object(context, myobj, region, rv3d)
-            elif scene.measureit_arch_debug_object_loc is True:
-                draw_object(context, myobj, region, rv3d)
-            if scene.measureit_arch_debug_vertices is True:
-                draw_vertices(context, myobj, region, rv3d)
-            elif scene.measureit_arch_debug_vert_loc is True:
-                draw_vertices(context, myobj, region, rv3d)
-            if scene.measureit_arch_debug_edges is True:
-                draw_edges(context, myobj, region, rv3d)
-            if scene.measureit_arch_debug_faces is True or scene.measureit_arch_debug_normals is True:
-                draw_faces(context, myobj, region, rv3d)
 
-    # -----------------------
-    # restore opengl defaults
-    # -----------------------
-    #bgl.glLineWidth(1)
-    #bgl.glDisable(bgl.GL_BLEND)
-    #bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
 
 def draw_main_3d (context):
 
@@ -580,10 +550,13 @@ def draw_main_3d (context):
 
     # Enable GL drawing
     bgl.glEnable(bgl.GL_BLEND)
+
     # ---------------------------------------
     # Generate all OpenGL calls
     # ---------------------------------------
     for myobj in objlist:
+        
+        #Stash Object Vertices for use in Draw functions
         if myobj.visible_get() is True:
             myobj['obverts'] = get_mesh_vertices(myobj) 
             mat = myobj.matrix_world
@@ -604,7 +577,7 @@ def draw_main_3d (context):
                 for axisDim in DimGen.axisDimensions:
                     draw_axisDimension(context,myobj,DimGen,axisDim,mat)
     
-    # Draw Instance 
+    # Draw Instanced Objects 
     deps = bpy.context.view_layer.depsgraph
     for obj_int in deps.object_instances:
         if obj_int.is_instance:
@@ -632,15 +605,13 @@ def draw_main_3d (context):
 
                 
 # -------------------------------------------------------------
-# Handler for drawing OpenGl
+# Handlers for drawing OpenGl
 # -------------------------------------------------------------
-# noinspection PyUnusedLocal
 def draw_callback_px(self, context):
     draw_main(context)
 
 def draw_callback_3d(self, context):
     draw_main_3d(context)
-
 
 
 
