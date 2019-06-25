@@ -562,11 +562,11 @@ def draw_main_3d (context):
                 lineGen = myobj.LineGenerator[0]
                 draw_line_group(context,myobj,lineGen,mat)
             
+            if 'AnnotationGenerator' in myobj:
+                annotationGen = myobj.AnnotationGenerator[0]
+                draw_annotation(context,myobj,annotationGen,mat)
+                
             if scene.measureit_arch_inst_dims:
-                if 'AnnotationGenerator' in myobj:
-                    annotationGen = myobj.AnnotationGenerator[0]
-                    draw_annotation(context,myobj,annotationGen,mat)
-
                 if 'DimensionGenerator' in myobj:
                     DimGen = myobj.DimensionGenerator[0]
                     for alignedDim in DimGen.alignedDimensions:

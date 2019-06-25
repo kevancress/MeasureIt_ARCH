@@ -137,7 +137,7 @@ def register():
     auto_load.register()
 
     # Define properties
-    Scene.measureit_arch_inst_dims = BoolProperty(name="Instance Dimensions & Annotations",
+    Scene.measureit_arch_inst_dims = BoolProperty(name="Instance Dimensions",
                                     description="NOTE: Instanced Dimensions text will not adapt to local changes in scale or rotation",
                                     default=False)
 

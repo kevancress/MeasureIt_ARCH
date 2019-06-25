@@ -967,7 +967,9 @@ def draw_line_group(context, myobj, lineGen, mat):
                     rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
                     rgb[3] = alpha
 
-                    if context.view_layer.objects.active != None and myobj.data.name == context.view_layer.objects.active.data.name:
+                    if (context.view_layer.objects.active != None
+                    and context.view_layer.objects.active.data != None
+                    and myobj.data.name == context.view_layer.objects.active.data.name):
                         rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
                         rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
                         rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
@@ -1065,7 +1067,6 @@ def draw_line_group(context, myobj, lineGen, mat):
             batch3d.program_set(lineShader)
             batch3d.draw()
             gpu.shader.unbind()
-            #Draw Hidden Lines
             
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -1122,17 +1123,18 @@ def draw_annotation(context, myobj, annotationGen, mat):
             if annotation.annotationAnchorObject.type == 'MESH':
                 p1 = get_point(obverts[annotation.annotationAnchor], myobj,mat)
             else:
-                p1 = annotation.annotationAnchorObject.location
+                p1 = mat @ Vector((0,0,0))
 
-            diff = Vector(p1) - Vector(annotation.annotationAnchorObject.location)
+            loc = mat.to_translation()
+            diff = Vector(p1) - Vector(loc)
             offset = annotation.annotationOffset
             
-            p2 = Vector((0,0,0)) + Vector(offset)
+            p2 =  Vector(offset)
             textcard = generate_text_card(context,annotation,annotationProps,annotation.annotationRotation,(0,0,0))
 
             #Get local Rotation and Translation
             rot = mat.to_quaternion()
-            loc = myobj.matrix_local.to_translation()
+            loc = mat.to_translation()
 
             #Compose Rotation and Translation Matrix
             rotMatrix = Matrix.Identity(3)

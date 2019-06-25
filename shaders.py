@@ -56,6 +56,10 @@ class Base_Shader_3D ():
 
     vertex_shader = '''
 
+        #ifdef USE_WORLD_CLIP_PLANES
+        uniform mat4 ModelMatrix;
+        #endif
+
         uniform mat4 ModelViewProjectionMatrix;
         uniform float offset;
         in vec3 pos;
@@ -65,7 +69,11 @@ class Base_Shader_3D ():
 
         void main()
         {
-            gl_Position = project + vecOffset;
+           gl_Position = project + vecOffset;
+
+        #ifdef USE_WORLD_CLIP_PLANES
+           world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
+        #endif
         }
 
         '''
@@ -86,8 +94,15 @@ class Base_Shader_3D ():
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
 
+            vec3 ndc1 = vec3(p1.xyz / p1.w);
+            vec3 ndc2 = vec3(p2.xyz / p2.w);
+            
+            if ( ndc1.z < 0 || ndc2.z < 0 ||  ndc1.z > 1 || ndc2.z > 1 ) return;
+
             vec2 ssp1 = vec2(p1.xy / p1.w);
             vec2 ssp2 = vec2(p2.xy / p2.w);
+
+ 
 
             float width = 0.00118 * thickness * aspect ;
 
