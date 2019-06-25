@@ -93,16 +93,9 @@ class Base_Shader_3D ():
 
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
-
-            vec3 ndc1 = vec3(p1.xyz / p1.w);
-            vec3 ndc2 = vec3(p2.xyz / p2.w);
             
-            if ( ndc1.z < -1 || ndc2.z < -1 ||  ndc1.z > 1 || ndc2.z > 1 ) return;
-
             vec2 ssp1 = vec2(p1.xy / p1.w);
             vec2 ssp2 = vec2(p2.xy / p2.w);
-
- 
 
             float width = 0.00118 * thickness * aspect ;
 
@@ -115,10 +108,10 @@ class Base_Shader_3D ():
             
 
             vec4 coords[4];
-            coords[0] = vec4((ssp1 + offset),(p1.z/p1.w),1.0);
-            coords[1] = vec4((ssp1 - offset),(p1.z/p1.w),1.0);
-            coords[2] = vec4((ssp2 + offset),(p2.z/p2.w),1.0);
-            coords[3] = vec4((ssp2 - offset),(p2.z/p2.w),1.0);
+            coords[0] = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
+            coords[1] = vec4((ssp1 - offset)*p1.w,p1.z,p1.w);
+            coords[2] = vec4((ssp2 + offset)*p2.w,p2.z,p2.w);
+            coords[3] = vec4((ssp2 - offset)*p2.w,p2.z,p2.w);
 
             for (int i = 0; i < 4; ++i) {
                 gl_Position = coords[i];
