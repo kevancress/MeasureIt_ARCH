@@ -97,7 +97,7 @@ class Base_Shader_3D ():
             vec3 ndc1 = vec3(p1.xyz / p1.w);
             vec3 ndc2 = vec3(p2.xyz / p2.w);
             
-            if ( ndc1.z < 0 || ndc2.z < 0 ||  ndc1.z > 1 || ndc2.z > 1 ) return;
+            if ( ndc1.z < -1 || ndc2.z < -1 ||  ndc1.z > 1 || ndc2.z > 1 ) return;
 
             vec2 ssp1 = vec2(p1.xy / p1.w);
             vec2 ssp2 = vec2(p2.xy / p2.w);
