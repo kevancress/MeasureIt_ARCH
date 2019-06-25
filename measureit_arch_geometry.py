@@ -1910,21 +1910,25 @@ def get_mesh_vertices(myobj):
     try:
         obverts = []
         verts=[]
-        if myobj.mode == 'EDIT':
-            bm = bmesh.from_edit_mesh(myobj.data)
-            verts = bm.verts
-        else:
-            bm = bmesh.new()
-            eval_res = bpy.context.scene.measureit_arch_eval_mods
-            if eval_res:
-                bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
-                verts= bm.verts 
+        if myobj.type == 'MESH':
+            if myobj.mode == 'EDIT':
+                bm = bmesh.from_edit_mesh(myobj.data)
+                verts = bm.verts
             else:
-                verts = myobj.data.vertices
-        for vert in verts:
-            obverts.append(vert.co)
-       #bm.free()
-        return obverts
+                eval_res = bpy.context.scene.measureit_arch_eval_mods
+                if eval_res or check_mods(myobj):
+                    deps = bpy.context.view_layer.depsgraph
+                    obj_eval = myobj.evaluated_get(deps)
+                    mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
+                    verts = mesh.vertices
+                    obj_eval.to_mesh_clear()
+                else:
+                    verts = myobj.data.vertices
+            for vert in verts:
+                obverts.append(vert.co)
+            #bm.free()
+            return obverts
+        else: return None 
     except AttributeError:
         return None
 
@@ -1939,6 +1943,8 @@ def check_mods(myobj):
                 'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH', 'COLLISION', 
                 'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
                 'SMOKE', 'SOFT_BODY', 'SURFACE','SOLIDIFY']
+    if myobj.modifiers == None:
+        return False
     for mod in myobj.modifiers:
         if mod.type not in goodMods:
             return False
