@@ -78,6 +78,17 @@ class Base_Shader_3D ():
 
         '''
 
+    fragment_shader = '''
+        uniform vec4 finalColor;
+        out vec4 fragColor;
+
+        void main()
+        {
+            fragColor = finalColor;
+        }
+    '''
+
+class Line_Shader_3D ():
     geometry_shader = '''
         layout(lines) in;
         layout(triangle_strip, max_vertices = 10) out;
@@ -85,6 +96,8 @@ class Base_Shader_3D ():
         uniform mat4 ModelViewProjectionMatrix;
         uniform vec2 Viewport;
         uniform float thickness;
+
+        out vec2 mTexCoord;
 
         float aspect = Viewport.x/Viewport.y;
 
@@ -108,12 +121,21 @@ class Base_Shader_3D ():
             
 
             vec4 coords[4];
+            vec2 texCoords[4];
             coords[0] = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
+            texCoords[0] = vec2(0,1);
+
             coords[1] = vec4((ssp1 - offset)*p1.w,p1.z,p1.w);
+            texCoords[1] = vec2(0,0);
+
             coords[2] = vec4((ssp2 + offset)*p2.w,p2.z,p2.w);
+            texCoords[2] = vec2(0,1);
+
             coords[3] = vec4((ssp2 - offset)*p2.w,p2.z,p2.w);
+            texCoords[3] = vec2(0,0);
 
             for (int i = 0; i < 4; ++i) {
+                mTexCoord = texCoords[i];
                 gl_Position = coords[i];
                 EmitVertex();
             }
@@ -122,12 +144,32 @@ class Base_Shader_3D ():
     '''
 
     fragment_shader = '''
+        in vec2 mTexCoord;
         uniform vec4 finalColor;
         out vec4 fragColor;
 
         void main()
         {
-            fragColor = finalColor;
+            vec4 aaColor = finalColor;
+
+        
+                 
+
+            vec2 center = vec2(0,0.5);
+            float dist = length(mTexCoord - center);
+            float distFromEdge = 1-(dist*2);
+
+            float delta = fwidth(distFromEdge);
+            float threshold = 2*delta;
+            float aa = clamp((distFromEdge/threshold)+0.5,0,1);
+            aa = aa -clamp(0.5*fwidth(aa),0,1);
+
+            aaColor[3] = mix(0,1.0,aa);
+            if (finalColor[3]<0.75){
+                aaColor[3] *=0.25;
+            }
+
+            fragColor = aaColor;
         }
     '''
 

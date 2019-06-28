@@ -47,8 +47,8 @@ shader = gpu.types.GPUShader(
 
 lineShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
-    Base_Shader_3D.fragment_shader,
-    geocode=Base_Shader_3D.geometry_shader)
+    Line_Shader_3D.fragment_shader,
+    geocode=Line_Shader_3D.geometry_shader)
 
 triShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
@@ -67,11 +67,6 @@ pointShader = gpu.types.GPUShader(
 textShader = gpu.types.GPUShader(
     Text_Shader.vertex_shader,
     Text_Shader.fragment_shader)
-
-dimensionShader = gpu.types.GPUShader(
-    Base_Shader_3D.vertex_shader,
-    Base_Shader_3D.fragment_shader,
-    geocode=Base_Shader_3D.geometry_shader)
 
 fontSizeMult = 6
 # -------------------------------------------------------------
@@ -367,15 +362,15 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
 
         
         #bind shader
-        dimensionShader.bind()
-        dimensionShader.uniform_float("Viewport",viewport)
-        dimensionShader.uniform_float("thickness",lineWeight)
-        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        dimensionShader.uniform_float("offset", (0,0,0))
+        lineShader.bind()
+        lineShader.uniform_float("Viewport",viewport)
+        lineShader.uniform_float("thickness",lineWeight)
+        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        lineShader.uniform_float("offset", (0,0,0))
 
         # batch & Draw Shader   
-        batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
-        batch.program_set(dimensionShader)
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        batch.program_set(lineShader)
         batch.draw()
         gpu.shader.unbind()
 
@@ -679,15 +674,15 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
         
         #bind shader
-        dimensionShader.bind()
-        dimensionShader.uniform_float("Viewport",viewport)
-        dimensionShader.uniform_float("thickness",lineWeight)
-        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        dimensionShader.uniform_float("offset", (0,0,0))
+        lineShader.bind()
+        lineShader.uniform_float("Viewport",viewport)
+        lineShader.uniform_float("thickness",lineWeight)
+        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        lineShader.uniform_float("offset", (0,0,0))
 
         # batch & Draw Shader   
-        batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
-        batch.program_set(dimensionShader)
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        batch.program_set(lineShader)
         batch.draw()
         gpu.shader.unbind()
 
@@ -806,11 +801,11 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         pointShader.uniform_float("offset", -offset)
         gpu.shader.unbind()
 
-        dimensionShader.bind()
-        dimensionShader.uniform_float("Viewport",viewport)
-        dimensionShader.uniform_float("thickness",lineWeight)
-        dimensionShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        dimensionShader.uniform_float("offset", -offset)
+        lineShader.bind()
+        lineShader.uniform_float("Viewport",viewport)
+        lineShader.uniform_float("thickness",lineWeight)
+        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        lineShader.uniform_float("offset", -offset)
 
         # Draw Point Pass for Clean Corners
         # I'm being lazy here, should do a proper lineadjacency
@@ -831,14 +826,15 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
             coords.append((vert*radius)+p2)
             coords.append((vert*radius)+p2)
         coords.append(endpointB)
-        batch = batch_for_shader(dimensionShader, 'LINES', {"pos": coords})
-        batch.program_set(dimensionShader)
+
+        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        batch.program_set(lineShader)
         batch.draw()
         gpu.shader.unbind()
 
         #Reset openGL Settings
         bgl.glDisable(bgl.GL_DEPTH_TEST)
-        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(True)
 
 def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
@@ -929,7 +925,7 @@ def draw_line_group(context, myobj, lineGen, mat):
     scene = context.scene
     obverts = myobj['obverts']
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+    #bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
@@ -1070,7 +1066,6 @@ def draw_line_group(context, myobj, lineGen, mat):
             
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
-    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
     bgl.glDepthMask(True)
 
 def draw_annotation(context, myobj, annotationGen, mat):
