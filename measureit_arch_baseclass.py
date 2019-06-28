@@ -56,7 +56,7 @@ class BaseProp:
                 default=False)
 
     visible: BoolProperty(name="Visibility",
-                description="Line show/hide",
+                description="how/hide",
                 default=True)
     
     gizLoc: FloatVectorProperty(name="Gizmo Location",
@@ -137,7 +137,6 @@ class BaseWithText(BaseProp):
                     description="Add arrows to point A")        
 
 class DeletePropButton(Operator):
-
     bl_idname = "measureit_arch.deletepropbutton"
     bl_label = "Delete property"
     bl_description = "Delete a property"

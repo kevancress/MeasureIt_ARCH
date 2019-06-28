@@ -1223,6 +1223,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
 
 def draw_text_3D(context,textobj,myobj,card):
     #get props
+    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
     normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
 
     # Define Flip Matrix's
@@ -1278,9 +1279,11 @@ def draw_text_3D(context,textobj,myobj,card):
         textobj.texture_updated=False
         
     # Draw Shader
+    
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
+    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     #bgl.glDeleteTextures(1, texBuf)
     gpu.shader.unbind()
 
