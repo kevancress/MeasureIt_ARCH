@@ -169,14 +169,12 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
     bgl.glDepthMask(False)
 
     dimProps = dim
-    lineWeight = dimProps.lineWeight
-
-  
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
+    lineWeight = dimProps.lineWeight
     #check all visibility conditions
     if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
         inView = True        
@@ -387,13 +385,12 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
     bgl.glDepthMask(False)
 
     dimProps = dim
-    lineWeight = dimProps.lineWeight
-
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
+    lineWeight = dimProps.lineWeight
     #check all visibility conditions
     if dimProps.dimVisibleInView is None or dimProps.dimVisibleInView.name == context.scene.camera.data.name:
         inView = True        
