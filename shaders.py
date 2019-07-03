@@ -152,9 +152,6 @@ class Line_Shader_3D ():
         {
             vec4 aaColor = finalColor;
 
-        
-                 
-
             vec2 center = vec2(0,0.5);
             float dist = length(mTexCoord - center);
             float distFromEdge = 1-(dist*2);
@@ -277,18 +274,20 @@ class Point_Shader_3D ():
 
     geometry_shader = '''
         layout(points) in;
-        layout(triangle_strip, max_vertices = 26) out;
+        layout(triangle_strip, max_vertices = 50) out;
+        out vec2 mTexCoord;
 
         uniform mat4 ModelViewProjectionMatrix;
         uniform vec2 Viewport;
         uniform float thickness;
 
         float aspect = Viewport.x/Viewport.y;
-        float radius = 0.00118 * thickness * aspect;
+        float radius = 0.00117 * thickness * aspect;
 
         vec4 p1 =  gl_in[0].gl_Position;
         vec2 ssp1 = vec2(p1.xy / p1.w);
 
+        int segments = int(thickness) + 5;
 
         const float PI = 3.1415926;
 
@@ -296,18 +295,24 @@ class Point_Shader_3D ():
 
             gl_Position = gl_in[0].gl_Position;
             EmitVertex();
+            
+            if (segments > 24){
+                segments = 24;
+            }
 
-            for (int i = 0; i <= 12; i++) {
+            for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
-                float ang = PI * 2.0 / 12 * i;
+                float ang = PI * 2.0 / segments * i;
 
-                // Offset from center of point (0.3 to accomodate for aspect ratio)
+                // Offset from center of point
                 vec2 offset = vec2(cos(ang)*radius, -sin(ang)*radius);
                 offset.x /= aspect;
-                gl_Position = vec4(ssp1 + offset,(p1.z/p1.w),1.0);
+                mTexCoord = normalize(offset - ssp1);
+                gl_Position = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
                 EmitVertex();
 
                 gl_Position = gl_in[0].gl_Position;
+                mTexCoord = vec2(0,0);
                 EmitVertex();
 
             }
@@ -317,12 +322,29 @@ class Point_Shader_3D ():
     '''
 
     fragment_shader = '''
+        in vec2 mTexCoord;
         uniform vec4 finalColor;
         out vec4 fragColor;
 
         void main()
         {
-            fragColor = finalColor;
+            vec4 aaColor = finalColor;
+
+            vec2 center = vec2(0,0);
+            float dist = length(mTexCoord - center);
+            float distFromEdge = 1-(dist);
+
+            float delta = fwidth(distFromEdge);
+            float threshold = 2*delta;
+            float aa = clamp((distFromEdge/threshold)+0.5,0,1);
+            aa = aa -clamp(0.5*fwidth(aa),0,1);
+
+            aaColor[3] = mix(0,1.0,aa);
+            if (finalColor[3]<0.75){
+                aaColor[3] *=0.25;
+            }
+
+            fragColor = aaColor;
         }
     '''
 

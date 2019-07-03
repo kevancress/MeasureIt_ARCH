@@ -163,7 +163,6 @@ def update_text(textobj,props,context):
 def draw_alignedDimension(context, myobj, measureGen,dim,mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
@@ -351,6 +350,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
 
         if capB == 'T' or capA == 'T' or capA == 'D' or capB == 'D':
             #bind shader
+            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
             triShader.bind()
             triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             triShader.uniform_float("offset", (0,0,0))
@@ -359,7 +359,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
             batch.program_set(triShader)
             batch.draw()
             gpu.shader.unbind()
-
+            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         
         #bind shader
         lineShader.bind()
@@ -376,21 +376,19 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
 
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(True)
 
 def draw_axisDimension(context, myobj, measureGen,dim, mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glDepthMask(False)
+
     dimProps = dim
     lineWeight = dimProps.lineWeight
 
-  
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
             if alignedDimStyle.name == dim.style:
@@ -428,8 +426,6 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         capA = dimProps.endcapA
         capB = dimProps.endcapB
         capSize = dimProps.endcapSize
-
-        
 
         offset = dim.dimOffset
         geoOffset = dim.dimLeaderOffset
@@ -663,6 +659,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
         if capB == 'T' or capA == 'T' or capA == 'D' or capB == 'D':
             #bind shader
+            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
             triShader.bind()
             triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             triShader.uniform_float("offset", (0,0,0))
@@ -671,7 +668,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             batch.program_set(triShader)
             batch.draw()
             gpu.shader.unbind()
-
+            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         
         #bind shader
         lineShader.bind()
@@ -688,7 +685,6 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         bgl.glDepthMask(True)
 
 def draw_angleDimension(context, myobj, DimGen, dim,mat):
@@ -706,7 +702,6 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
     if inView and dim.visible and dimProps.visible:
          # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
-        bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
@@ -827,7 +822,6 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
             coords.append((vert*radius)+p2)
         coords.append(endpointB)
 
-        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
         batch.program_set(lineShader)
         batch.draw()
@@ -925,7 +919,6 @@ def draw_line_group(context, myobj, lineGen, mat):
     scene = context.scene
     obverts = myobj['obverts']
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    #bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
@@ -1072,7 +1065,6 @@ def draw_annotation(context, myobj, annotationGen, mat):
     obverts = myobj['obverts']
     scene = context.scene
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
@@ -1199,7 +1191,8 @@ def draw_annotation(context, myobj, annotationGen, mat):
                     coords.append(Vector((0,0,0)) + Vector(p1))
                     line.rotate(Quaternion(axis,rotangle))
                     coords.append(line.copy() + Vector(p1))
-                
+
+                bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
                 triShader.bind()
                 triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 triShader.uniform_float("offset", (0,0,0))
@@ -1208,17 +1201,16 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 batch.program_set(triShader)
                 batch.draw()
                 gpu.shader.unbind()
+                bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
             if scene.measureit_arch_gl_show_d:
                 draw_text_3D(context,annotation,myobj,textcard)                
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
-    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
     bgl.glDepthMask(True)
 
 def draw_text_3D(context,textobj,myobj,card):
     #get props
-    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
     normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
 
     # Define Flip Matrix's
@@ -1278,7 +1270,6 @@ def draw_text_3D(context,textobj,myobj,card):
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
-    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
     #bgl.glDeleteTextures(1, texBuf)
     gpu.shader.unbind()
 
