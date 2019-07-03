@@ -56,10 +56,6 @@ class Base_Shader_3D ():
 
     vertex_shader = '''
 
-        #ifdef USE_WORLD_CLIP_PLANES
-        uniform mat4 ModelMatrix;
-        #endif
-
         uniform mat4 ModelViewProjectionMatrix;
         uniform float offset;
         in vec3 pos;
@@ -70,10 +66,6 @@ class Base_Shader_3D ():
         void main()
         {
            gl_Position = project + vecOffset;
-
-        #ifdef USE_WORLD_CLIP_PLANES
-           world_clip_planes_calc_clip_distance((ModelMatrix * vec4(pos, 1.0)).xyz);
-        #endif
         }
 
         '''

@@ -353,7 +353,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
             bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
             triShader.bind()
             triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", (0,0,0))
+            triShader.uniform_float("offset", 0)
 
             batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
             batch.program_set(triShader)
@@ -366,7 +366,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         lineShader.uniform_float("Viewport",viewport)
         lineShader.uniform_float("thickness",lineWeight)
         lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", (0,0,0))
+        lineShader.uniform_float("offset", 0)
 
         # batch & Draw Shader   
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
@@ -662,7 +662,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
             triShader.bind()
             triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", (0,0,0))
+            triShader.uniform_float("offset", 0)
 
             batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
             batch.program_set(triShader)
@@ -675,7 +675,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         lineShader.uniform_float("Viewport",viewport)
         lineShader.uniform_float("thickness",lineWeight)
         lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", (0,0,0))
+        lineShader.uniform_float("offset", 0)
 
         # batch & Draw Shader   
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
@@ -985,7 +985,7 @@ def draw_line_group(context, myobj, lineGen, mat):
             if isOrtho:
                 offset /= 15
             if lineProps.isOutline:
-                offset = -10 -offset
+                offset = -10 - offset
             offset /= 1000
 
             #gl Settings
