@@ -528,13 +528,18 @@ def draw_main(context):
                 annotationGen = myobj.AnnotationGenerator[0]
                 for idx in range(0, annotationGen.num_annotations):
                     annotation = annotationGen.annotations[idx]
-
                     annotationProps = annotation
                     if annotation.uses_style:
                         for annotationStyle in context.scene.StyleGenerator[0].annotations:
                             if annotationStyle.name == annotation.style:
                                 annotationProps= annotationStyle
-
+                    if annotation.annotationTextSource is not '':
+                        try:
+                            annotation.text = context.object[annotation.annotationTextSource]
+                        except:
+                            pr = scene.measureit_arch_gl_precision
+                            fmt = "%1." + str(pr) + "f"
+                            annotation.text = fmt % context.object[annotation.annotationTextSource]
                     update_text(textobj=annotation,props=annotationProps,context=context)
 
 

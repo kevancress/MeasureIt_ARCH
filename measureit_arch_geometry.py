@@ -98,11 +98,7 @@ def update_text(textobj,props,context):
             font_id=0
 
         # Get Text
-        if 'annotationTextSource' in textobj:
-            if textobj.annotationTextSource is not '':
-                text = str(context.object[textobj.annotationTextSource])
-        else:
-            text = textobj.text
+        text = str(textobj.text)
 
         # Set BLF font Properties
         blf.color(font_id,rgb[0],rgb[1],rgb[2],rgb[3])
@@ -1209,6 +1205,11 @@ def draw_annotation(context, myobj, annotationGen, mat):
 def draw_text_3D(context,textobj,myobj,card):
     #get props
     normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
+
+    if context.scene.measureit_arch_is_render_draw:
+        cameraLoc = context.scene.camera.location.normalized()
+    else:
+        viewRot = context.area.spaces[0].region_3d.view_rotation
 
     # Define Flip Matrix's
     flipMatrixX = Matrix([

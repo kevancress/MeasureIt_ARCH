@@ -47,7 +47,7 @@ def annotation_update_flag(self,context):
     update_custom_props(self,context)
 
 def update_custom_props(self,context):
-    ignoredProps = ['AnnotationGenerator','DimensionGenerator','LineGenerator','_RNA_UI','cycles','cycles_visibility']
+    ignoredProps = ['AnnotationGenerator','DimensionGenerator','LineGenerator','_RNA_UI','cycles','cycles_visibility','obverts']
     idx = 0 
     for key in context.object.keys():
         if key not in ignoredProps:
