@@ -1268,7 +1268,6 @@ def draw_text_3D(context,textobj,myobj,card):
     viewAxisX.rotate(viewDif)
     viewAxisY.rotate(viewDif)
 
-    print(cardDirX.dot(viewAxisX))
     if cardDirX.dot(viewAxisX)<0:
         flippedUVs = []
         for uv in normalizedDeviceUVs:
@@ -1276,7 +1275,6 @@ def draw_text_3D(context,textobj,myobj,card):
             flippedUVs.append(uv)
         normalizedDeviceUVs = flippedUVs
 
-    print(cardDirY.dot(viewAxisY))
     if cardDirY.dot(viewAxisY)<0:
         flippedUVs = []
         for uv in normalizedDeviceUVs:
