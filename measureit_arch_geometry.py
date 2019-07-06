@@ -1787,6 +1787,8 @@ def get_arc_data(pointa, pointb, pointc, pointd):
 def format_distance(fmt, units, value, factor=1):
     s_code = "\u00b2"  # Superscript two
     hide_units = bpy.context.scene.measureit_arch_hide_units
+    scaleFactor = bpy.context.scene.unit_settings.scale_length
+    value *= scaleFactor
     # ------------------------
     # Units automatic
     # ------------------------
