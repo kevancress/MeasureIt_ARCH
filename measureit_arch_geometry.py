@@ -773,9 +773,9 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.2*size
         origin = Vector(midPoint)
-        cardX = vecX * 0.25 * sx
-        cardY = midVec * 0.25 *sy
-        square = [(origin-cardX),(origin-cardX+cardY ),(origin+cardX+cardY ),(origin+cardX)]
+        cardX = vecX * sx
+        cardY = midVec *sy
+        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
 
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim,myobj,square)
@@ -1206,10 +1206,20 @@ def draw_text_3D(context,textobj,myobj,card):
     #get props
     normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
 
-    if context.scene.measureit_arch_is_render_draw:
+    #i,j,k Basis Vectors
+    i = Vector((1,0,0))
+    j = Vector((0,1,0))
+    k = Vector((0,0,1))
+    basisVec=(i,j,k)
+
+    #Get View rotation
+    debug_camera = False
+    if context.scene.measureit_arch_is_render_draw or debug_camera:
         cameraLoc = context.scene.camera.location.normalized()
+        viewRot = context.scene.camera.rotation_euler.to_quaternion()
     else:
         viewRot = context.area.spaces[0].region_3d.view_rotation
+
 
     # Define Flip Matrix's
     flipMatrixX = Matrix([
@@ -1221,6 +1231,80 @@ def draw_text_3D(context,textobj,myobj,card):
         [1, 0],
         [0,-1]   
     ])
+
+    #Check Text Cards Direction Relative to view Vector
+    # Card Indicies:
+    #     
+    #     1----------------2
+    #     |                |
+    #     |                |
+    #     0----------------3
+
+    cardDirX = (card[3]-card[0]).normalized()
+    cardDirY = (card[1]-card[0]).normalized()
+    cardDirZ = cardDirX.cross(cardDirY)
+
+    viewAxisX = i.copy()
+    viewAxisY = j.copy()
+    viewAxisZ = k.copy()
+
+    viewAxisX.rotate(viewRot)
+    viewAxisY.rotate(viewRot)
+    viewAxisZ.rotate(viewRot)
+    
+    # Skew Rotation slightly to avoid errors that occur
+    # when the view Axis are perfectly orthogonal to the
+    # card axis 
+    rot = Quaternion(viewAxisZ,0.5)
+    viewAxisX.rotate(rot)
+    viewAxisY.rotate(rot)
+
+    if cardDirZ.dot(viewAxisZ) > 0:
+        viewDif = viewAxisZ.rotation_difference(cardDirZ)
+    else:
+        viewAxisZ.negate()
+        viewDif = viewAxisZ.rotation_difference(cardDirZ)
+    
+    viewAxisX.rotate(viewDif)
+    viewAxisY.rotate(viewDif)
+
+    print(cardDirX.dot(viewAxisX))
+    if cardDirX.dot(viewAxisX)<0:
+        flippedUVs = []
+        for uv in normalizedDeviceUVs:
+            uv = flipMatrixX@Vector(uv)
+            flippedUVs.append(uv)
+        normalizedDeviceUVs = flippedUVs
+
+    print(cardDirY.dot(viewAxisY))
+    if cardDirY.dot(viewAxisY)<0:
+        flippedUVs = []
+        for uv in normalizedDeviceUVs:
+            uv = flipMatrixY@Vector(uv)
+            flippedUVs.append(uv)
+        normalizedDeviceUVs = flippedUVs
+    
+    #Draw View Axis in Red and Card Axis in Green for debug
+    autoflipdebug = False
+    if autoflipdebug == True:
+        viewport = [context.area.width,context.area.height]
+        lineShader.bind()
+        lineShader.uniform_float("Viewport",viewport)
+        lineShader.uniform_float("thickness",4)
+        lineShader.uniform_float("finalColor", (1, 0, 0, 1))
+        lineShader.uniform_float("offset", 0)
+
+        zero = Vector((0,0,0))
+        coords = [zero,viewAxisX/2,zero,viewAxisY]
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        batch.program_set(lineShader)
+        batch.draw()
+        
+        lineShader.uniform_float("finalColor", (0, 1, 0, 1))
+        coords = [zero,cardDirX/2,zero,cardDirY,zero,cardDirZ*2]
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        batch.program_set(lineShader)
+        batch.draw()
 
     # Flip UV's if user selected
     if textobj.textFlippedX is True or textobj.textFlippedY is True:
@@ -1264,7 +1348,6 @@ def draw_text_3D(context,textobj,myobj,card):
         textobj.texture_updated=False
         
     # Draw Shader
-    
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
