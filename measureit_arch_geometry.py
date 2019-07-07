@@ -1806,10 +1806,16 @@ def format_distance(fmt, units, value, factor=1):
             feet = value * (3.2808399 ** factor)
             if round(feet, 2) >= 1.0:
                 if hide_units is False:
-                    fmt += " ft"
+                    fmt += "\""
                 if factor == 2:
                     fmt += s_code
-                tx_dist = fmt % feet
+                decFeet= value * (3.2808399 ** factor)
+                feet = int (floor(decFeet))
+                if feet != 0:
+                    inches = 12*(decFeet%feet)
+                else:
+                    inches = 12*(decFeet)
+                tx_dist = str(feet) + "' " + fmt % inches
             else:
                 inches = value * (39.3700787 ** factor)
                 if hide_units is False:
