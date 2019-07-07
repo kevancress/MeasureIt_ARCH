@@ -65,7 +65,6 @@ class CustomShapeWidget(Gizmo):
     )
 
     def _update_offset_matrix(self):
-        # offset behind the light
         self.matrix_offset.col[3][2] = self.target_get_value("offset")
 
     def draw(self, context):
@@ -103,80 +102,85 @@ class CustomShapeWidget(Gizmo):
 
 bpy.utils.register_class(CustomShapeWidget)
 
-class MyLightWidgetGroup(GizmoGroup):
-    bl_idname = "OBJECT_GGT_light_test"
-    bl_label = "Test Light Widget"
+class mArchGizmoGroup(GizmoGroup):
+    bl_idname = "OBJECT_GG_mArch"
+    bl_label = "MeasureIt-ARCH Gizmo Group"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_options = {'3D', 'PERSISTENT'}
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
+        obj = context.object
         scene = context.scene
         if scene.measureit_arch_show_gizmos and context.window_manager.measureit_arch_run_opengl:
-            if 'DimensionGenerator' in ob:
-                if len(ob.DimensionGenerator[0].alignedDimensions) > 0:
-                    return (ob)
+            if 'DimensionGenerator' in obj:
+                return (obj)
+            if 'AnnotationGenerator' in obj:
+                return (obj)
 
-    def createGiz(self,dimGen):
-        for dim in dimGen.alignedDimensions:
-            mpr = self.gizmos.new("VIEW3D_GT_Custom")
-            mpr.target_set_prop("offset", dim, "dimOffset")
-            #mpr.draw_style = 'BOX'
-            
-            basisMatrix = Matrix.Translation(Vector((0,0,0)))
-            rot = Quaternion(Vector(dim.gizRotAxis),radians(-90))
-            rotMatrix = rot.to_matrix()
-            rotMatrix.resize_4x4()
-            basisMatrix = basisMatrix @ rotMatrix
-            basisMatrix.translation = Vector(dim.gizLoc)
-
-            #basisMatrix = Matrix([
-            #[ 1.0000, -0.0000, 0.0000, 0.0000],
-            #[ 0.0000,  0.7089, 0.7053, 1.0000],
-            #[-0.0000, -0.7053, 0.7089, 1.0000],
-            #[ 0.0000,  0.0000, 0.0000, 1.0000]])
-
-            #print(str(basisMatrix)+dim.name)
-        
-            mpr.matrix_basis = basisMatrix
-
-            #rotateGiz = self.gizmos.new("GIZMO_GT_dial_3d")
-            #rotateGiz.line_width = 3
-            #rotateGiz.target_set_prop("offset", dim, "dimRotation")
-            #rotateGiz.matrix_basis = ob.matrix_world.normalized()
-            mpr.scale_basis = 0.075
-            mpr.color = 0.0, 0.0, 0.0
-            mpr.alpha = 0.5
-
-            #rotateGiz.color = 0.0, 0.0, 0.0
-            #rotateGiz.alpha = 0.5
-
-            #rotateGiz.color_highlight = 0.0, 0.0, 0.0
-            #rotateGiz.alpha_highlight = 0.5
-
-            mpr.color_highlight = 1.0, 1.0, 1.0
-            mpr.alpha_highlight = 0.5
-
-            self.energy_widget = mpr
-            #self.rotate_widget = rotateGiz
-
+    def createGiz(self,obj):
+        if 'DimensionGenerator' in obj:
+            dimGen = obj.DimensionGenerator[0]
+            for dim in dimGen.alignedDimensions:
+                createDimOffsetGiz(self,dim)
+            for dim in dimGen.axisDimensions:
+                createDimOffsetGiz(self,dim)
+        if 'AnnotationGenerator' in obj:
+            annoGen = obj.AnnotationGenerator[0]
+            for anno in annoGen.annotations:
+                createAnnotationGiz(self,anno)
 
     def setup(self, context):
-        # Arrow gizmo has one 'offset' property we can assign to the light energy.
-        ob = context.object
-        dimGen = ob.DimensionGenerator[0]
-        self.createGiz(dimGen)
-
+        obj = context.object
+        self.createGiz(obj)
 
     def refresh(self, context):
-        ob = context.object
-        dimGen = ob.DimensionGenerator[0]
+        obj = context.object
         self.gizmos.clear()
-        self.createGiz(dimGen)
-        
-   
+        self.createGiz(obj)
 
+bpy.utils.register_class(mArchGizmoGroup)
 
-bpy.utils.register_class(MyLightWidgetGroup)
+def createDimOffsetGiz(group,dim):
+    dimOffsetGiz = group.gizmos.new("VIEW3D_GT_Custom")
+    dimOffsetGiz.target_set_prop("offset", dim, "dimOffset")
+    
+    k = Vector((0,0,1))
+
+    basisMatrix = Matrix.Translation(Vector((0,0,0)))
+    rot = k.rotation_difference(dim.gizRotDir)
+    rotMatrix = rot.to_matrix()
+    rotMatrix.resize_4x4()
+    basisMatrix = basisMatrix @ rotMatrix
+    basisMatrix.translation = Vector(dim.gizLoc)-(Vector(dim.gizRotDir)*0.1)
+
+    dimOffsetGiz.matrix_basis = basisMatrix
+
+    dimOffsetGiz.scale_basis = 0.075
+    dimOffsetGiz.color = 0.0, 0.0, 0.0
+    dimOffsetGiz.alpha = 0.5
+
+    dimOffsetGiz.color_highlight = 1.0, 1.0, 1.0
+    dimOffsetGiz.alpha_highlight = 0.5
+
+    group.offset_widget = dimOffsetGiz
+    #self.rotate_widget = rotateGiz
+
+def createAnnotationGiz(group,anno):
+    annoGizX = group.gizmos.new("GIZMO_GT_move_3d")
+    annoGizX.target_set_prop("offset", anno, "annotationOffset")
+
+    basisMatrix = Matrix.Translation(Vector((0,0,0)))
+    basisMatrix.translation = Vector(anno.gizLoc)
+
+    annoGizX.matrix_basis = basisMatrix
+    annoGizX.scale_basis = 0.075
+    annoGizX.draw_style = 'RING_2D'
+    annoGizX.draw_options= {'ALIGN_VIEW'}
+    
+    annoGizX.color = 0.8, 0.8, 0.8
+    annoGizX.alpha = 0.5
+
+    annoGizX.color_highlight = 1.0, 1.0, 1.0
+    annoGizX.alpha_highlight = 0.5

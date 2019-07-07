@@ -62,9 +62,9 @@ class BaseProp:
     gizLoc: FloatVectorProperty(name="Gizmo Location",
                 description= "Default Location for item Gizmo",
                 subtype='TRANSLATION')
-                
-    gizRotAxis: FloatVectorProperty(name="Gizmo Rotation Axis",
-                description= "Default Rot Axis for item Gizmo",
+    
+    gizRotDir: FloatVectorProperty(name="Gizmo Rotation Direction",
+                description= "Default Rot Direction for item Gizmo",
                 subtype='TRANSLATION')
     
 

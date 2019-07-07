@@ -230,12 +230,11 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         
         #calculate distance & MidpointGY
         distVector = Vector(p1)-Vector(p2)
-        dim.gizRotAxis = distVector
         dist = distVector.length
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
         absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
-        dim.gizLoc = midpoint
+
 
         # Compute offset vector from face normal and user input
         rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)
@@ -246,6 +245,10 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         userOffsetVector = rotationMatrix@selectedNormal
         offsetDistance = userOffsetVector*offset
         geoOffsetDistance = userOffsetVector*geoOffset
+
+        #Set Gizmo Props
+        dim.gizLoc = midpoint
+        dim.gizRotDir = userOffsetVector
         
         # Define Lines
         leadStartA = Vector(p1) + geoOffsetDistance
@@ -516,7 +519,6 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
         absNormDistVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
-        dim.gizLoc = midpoint
 
         # Compute offset vector from face normal and user input
         rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)
@@ -535,8 +537,12 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         offsetDistance = userOffsetVector*offset
         geoOffsetDistance = userOffsetVector*geoOffset
         
+   
+        #Set Gizmo Props
+        dim.gizLoc = midpoint
+        dim.gizRotDir = userOffsetVector
+
         # Define Lines
-        
         # get the components of p1 & p1 in the direction vector
         p1Dir = Vector((p1[0]*dirVector[0],p1[1]*dirVector[1],p1[2]*dirVector[2]))
         p2Dir = Vector((p2[0]*dirVector[0],p2[1]*dirVector[1],p2[2]*dirVector[2]))
@@ -1130,8 +1136,10 @@ def draw_annotation(context, myobj, annotationGen, mat):
             textcard[2] = rotLocMatrix @ (textcard[2] + offset) + diff
             textcard[3] = rotLocMatrix @ (textcard[3] + offset) + diff
 
+            # Set Gizmo Properties
+            annotation.gizLoc = p1
 
-
+            # Draw
             if  p1 is not None and p2 is not None:
 
                 coords =[]
