@@ -33,77 +33,6 @@ from bpy.types import (
     Scene
 )
 
-h = -2.5
-# Coordinates (each one is a triangle).
-custom_shape_verts = (
-    (0.0, -1.16, 0.0), (1.0, -0.6, 0.0), (0.0, 0.0, 0.0),
-    (1.0, -0.6, 0.0), (1.0, 0.6, 0.0) , (0.0, 0.0, 0.0),
-    (1.0, 0.6, 0.0) , (0.0, 1.16, 0.0), (0.0, 0.0, 0.0),
-    (0.0, 1.16, 0.0), (-1.0, 0.6, 0.0), (0.0, 0.0, 0.0),
-    (-1.0, 0.6, 0.0), (-1.0, -0.6, 0.0), (0.0, 0.0, 0.0),
-    (-1.0, -0.6, 0.0), (0.0, -1.16, 0.0),  (0.0, 0.0, 0.0),
-
-    (0.0, -1.16, 0.0), (1.0, -0.6, 0.0), (0.0, 0.0, h),
-    (1.0, -0.6, 0.0), (1.0, 0.6, 0.0) , (0.0, 0.0, h),
-    (1.0, 0.6, 0.0) , (0.0, 1.16, 0.0), (0.0, 0.0, h),
-    (0.0, 1.16, 0.0), (-1.0, 0.6, 0.0), (0.0, 0.0, h),
-    (-1.0, 0.6, 0.0), (-1.0, -0.6, 0.0), (0.0, 0.0, h),
-    (-1.0, -0.6, 0.0), (0.0, -  1.16, 0.0),  (0.0, 0.0, h),
-)
-
-
-class CustomShapeWidget(Gizmo):
-    bl_idname = "VIEW3D_GT_Custom"
-    bl_target_properties = (
-        {"id": "offset", "type": 'FLOAT', "array_length": 1},
-    )
-
-    __slots__ = (
-        "custom_shape",
-        "init_mouse_y",
-        "init_mouse_x",
-        "init_value",
-    )
-
-    def _update_offset_matrix(self):
-        self.matrix_offset.col[3][2] = self.target_get_value("offset")
-
-    def draw(self, context):
-        self._update_offset_matrix()
-        self.draw_custom_shape(self.custom_shape)
-
-    def draw_select(self, context, select_id):
-        self._update_offset_matrix()
-        self.draw_custom_shape(self.custom_shape, select_id=select_id)
-
-    def setup(self):
-        if not hasattr(self, "custom_shape"):
-            self.custom_shape = self.new_custom_shape('TRIS', custom_shape_verts)
-
-    def invoke(self, context, event):
-        self.init_mouse_y = event.mouse_y
-        self.init_mouse_x = event.mouse_x
-        self.init_value = self.target_get_value("offset")
-        return {'RUNNING_MODAL'}
-
-    def exit(self, context, cancel):
-        context.area.header_text_set(None)
-        if cancel:
-            self.target_set_value("offset", self.init_value)
-
-    def modal(self, context, event, tweak):
-        delta = ((event.mouse_y - self.init_mouse_y)+(event.mouse_x - self.init_mouse_x)) / 100.0
-        if 'SNAP' in tweak:
-            delta = round(delta)
-        if 'PRECISE' in tweak:
-            delta /= 10.0
-        value = self.init_value + delta
-        self.target_set_value("offset", value)
-        context.area.header_text_set("My Gizmo: %.4f" % value)
-        return {'RUNNING_MODAL'}
-
-bpy.utils.register_class(CustomShapeWidget)
-
 class mArchGizmoGroup(GizmoGroup):
     bl_idname = "OBJECT_GG_mArch"
     bl_label = "MeasureIt-ARCH Gizmo Group"
@@ -132,7 +61,8 @@ class mArchGizmoGroup(GizmoGroup):
                     createDimOffsetGiz(self,dim,objIndex)
             if 'AnnotationGenerator' in obj:
                 annotationGen = obj.AnnotationGenerator[0]
-                createAnnotationGiz(self,annotationGen,objIndex)
+                createAnnotationTranslateGiz(self,annotationGen,objIndex)
+                createAnnotationRotateGiz(self,annotationGen,objIndex)
             objIndex += 1
 
     def setup(self, context):
@@ -183,7 +113,7 @@ def createDimOffsetGiz(group,dim,objIndex):
     #group.settings_widget = dimButton
     #self.rotate_widget = rotateGiz
 
-def createAnnotationGiz(group,annotationGen,objIndex):
+def createAnnotationTranslateGiz(group,annotationGen,objIndex):
     # Set Basis Matrix
     idx = 0
     for anno in annotationGen.annotations:
@@ -284,3 +214,87 @@ def createAnnotationGiz(group,annotationGen,objIndex):
         group.Y_widget = annotationOffsetY
         group.Z_widget = annotationOffsetZ
         idx += 1
+
+
+def createAnnotationRotateGiz(group,annotationGen,objIndex):
+    # Set Basis Matrix
+    idx = 0
+    for anno in annotationGen.annotations:
+        basisMatrix = Matrix.Translation(Vector((0,0,0)))
+        basisMatrix.translation = Vector(anno.gizLoc)
+
+        #Translate Op Gizmos
+        #X
+        annotationRotateX = group.gizmos.new("GIZMO_GT_dial_3d")
+        opX = annotationRotateX.target_set_operator("measureit_arch.rotate_annotation")
+        opX.constrainAxis = (True,False,False)
+        opX.objIndex = objIndex
+        opX.idx = idx
+
+        XbasisMatrix = basisMatrix.to_3x3()
+        rot = Quaternion(Vector((0,1,0)),radians(90))
+        XbasisMatrix.rotate(rot)
+        XbasisMatrix.resize_4x4()
+        XbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset)
+        
+
+        annotationRotateX.matrix_basis = XbasisMatrix
+        annotationRotateX.scale_basis = 0.75
+        annotationRotateX.line_width = 2
+
+        annotationRotateX.color = 0.96, 0.2, 0.31
+        annotationRotateX.alpha = 0.3
+
+        annotationRotateX.color_highlight = 0.96, 0.2, 0.31
+        annotationRotateX.alpha_highlight = 1
+
+        #Y
+        annotationRotateY = group.gizmos.new("GIZMO_GT_dial_3d")
+        opY = annotationRotateY.target_set_operator("measureit_arch.rotate_annotation")
+        opY.constrainAxis = (False,True,False)
+        opY.objIndex = objIndex
+        opY.idx = idx
+
+        YbasisMatrix = basisMatrix.to_3x3()
+        rot = Quaternion(Vector((1,0,0)),radians(-90))
+        YbasisMatrix.rotate(rot)
+        YbasisMatrix.resize_4x4()
+        YbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset)
+
+        annotationRotateY.matrix_basis = YbasisMatrix
+        annotationRotateY.scale_basis = 0.75
+        annotationRotateY.line_width = 2
+
+        annotationRotateY.color = 0.54, 0.86, 0
+        annotationRotateY.alpha = 0.3
+
+        annotationRotateY.color_highlight = 0.54, 0.86, 0
+        annotationRotateY.alpha_highlight = 1
+
+        #Z
+        annotationRotateZ = group.gizmos.new("GIZMO_GT_dial_3d")
+        opZ = annotationRotateZ.target_set_operator("measureit_arch.rotate_annotation")
+        opZ.constrainAxis = (False,False,True)
+        opZ.objIndex = objIndex
+        opZ.idx = idx
+
+        ZbasisMatrix = basisMatrix.copy()
+        ZbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset)
+
+        annotationRotateZ.matrix_basis = ZbasisMatrix
+        annotationRotateZ.scale_basis = 0.75
+        annotationRotateZ.line_width = 2
+
+        annotationRotateZ.color = 0.15, 0.56, 1
+        annotationRotateZ.alpha = 0.3
+
+        annotationRotateZ.color_highlight = 0.15, 0.56, 1
+        annotationRotateZ.alpha_highlight = 1
+        
+        #add to group
+
+        group.X_widget = annotationRotateX
+        group.Y_widget = annotationRotateY
+        group.Z_widget = annotationRotateZ
+        idx += 1
+

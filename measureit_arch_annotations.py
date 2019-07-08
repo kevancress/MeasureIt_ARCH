@@ -355,12 +355,15 @@ class TranlateAnnotationOp(bpy.types.Operator):
             
             if self.constrainAxis[0]:
                 annotation.annotationOffset[0] = self.init_x + delta 
+                axisText = 'X: '
             if self.constrainAxis[1]:
                 annotation.annotationOffset[1] = self.init_y + delta 
+                axisText = 'Y: '
             if self.constrainAxis[2]:
-                annotation.annotationOffset[2] = self.init_z + delta 
+                annotation.annotationOffset[2] = self.init_z + delta
+                axisText = 'Z: ' 
 
-            context.area.header_text_set("Offset %.4f" % delta)
+            context.area.header_text_set("Move " + axisText + "%.4f" % delta)
 
         elif event.type == 'LEFTMOUSE':
             #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
@@ -388,6 +391,86 @@ class TranlateAnnotationOp(bpy.types.Operator):
         self.init_x = annotation.annotationOffset[0]
         self.init_y = annotation.annotationOffset[1]
         self.init_z = annotation.annotationOffset[2]
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class RotateAnnotationOp(bpy.types.Operator):
+    """Rotate Annotation"""
+    bl_idname = "measureit_arch.rotate_annotation"
+    bl_label = "Rotate Annotation"
+    bl_options = {'GRAB_CURSOR','INTERNAL'}
+    
+    idx: IntProperty()
+    constrainAxis: BoolVectorProperty(
+        name="Constrain Axis",
+        size=3,
+        subtype='XYZ'
+    )
+    offset: FloatVectorProperty(
+        name="Offset",
+        size=3,
+    )
+
+    objIndex: IntProperty()
+
+    def modal(self, context, event):
+        myobj = context.selected_objects[self.objIndex]
+        annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
+        # Set Tweak Flags
+        if event.ctrl:
+            tweak_snap = True
+        else: tweak_snap = False
+        if event.shift:
+            tweak_precise = True
+        else: tweak_precise= False
+        
+        if event.type == 'MOUSEMOVE':
+            delta = ((event.mouse_y - self.init_mouse_y)+(event.mouse_x - self.init_mouse_x))* 0.001
+            delta = math.degrees(delta)
+            if tweak_snap:
+                delta = 5*round(delta)
+            if tweak_precise:
+                delta /= 10.0
+            
+            if self.constrainAxis[0]:
+                annotation.annotationRotation[0] = self.init_x + math.radians(delta)
+                axisText = 'X: '
+            if self.constrainAxis[1]:
+                annotation.annotationRotation[1] = self.init_y - math.radians(delta) 
+                axisText = 'Y: '
+            if self.constrainAxis[2]:
+                annotation.annotationRotation[2] = self.init_z - math.radians(delta)
+                axisText = 'Z: ' 
+
+            context.area.header_text_set("Rotate "+axisText+ "%.4f" % delta + "\u00b0")
+
+        elif event.type == 'LEFTMOUSE':
+            #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            context.area.header_text_set(None)
+            return {'FINISHED'}
+
+        elif event.type in {'RIGHTMOUSE', 'ESC'}:
+            #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            context.area.header_text_set(None)
+            annotation.annotationRotation[0] = self.init_x
+            annotation.annotationRotation[1] = self.init_y
+            annotation.annotationRotation[2] = self.init_z
+            return {'CANCELLED'}
+        
+        
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        myobj = context.selected_objects[self.objIndex]
+        annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
+        self.init_mouse_x = event.mouse_x
+        self.init_mouse_y = event.mouse_y
+
+        self.init_x = annotation.annotationRotation[0]
+        self.init_y = annotation.annotationRotation[1]
+        self.init_z = annotation.annotationRotation[2]
 
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
