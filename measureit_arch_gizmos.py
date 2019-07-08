@@ -122,15 +122,18 @@ class mArchGizmoGroup(GizmoGroup):
                 return (obj)
 
     def createGiz(self,obj):
-        if 'DimensionGenerator' in obj:
-            dimGen = obj.DimensionGenerator[0]
-            for dim in dimGen.alignedDimensions:
-                createDimOffsetGiz(self,dim)
-            for dim in dimGen.axisDimensions:
-                createDimOffsetGiz(self,dim)
-        if 'AnnotationGenerator' in obj:
-            annotationGen = obj.AnnotationGenerator[0]
-            createAnnotationGiz(self,annotationGen)
+        objIndex = 0
+        for obj in bpy.context.selected_objects:    
+            if 'DimensionGenerator' in obj:
+                dimGen = obj.DimensionGenerator[0]
+                for dim in dimGen.alignedDimensions:
+                    createDimOffsetGiz(self,dim,objIndex)
+                for dim in dimGen.axisDimensions:
+                    createDimOffsetGiz(self,dim,objIndex)
+            if 'AnnotationGenerator' in obj:
+                annotationGen = obj.AnnotationGenerator[0]
+                createAnnotationGiz(self,annotationGen,objIndex)
+            objIndex += 1
 
     def setup(self, context):
         obj = context.object
@@ -144,7 +147,7 @@ class mArchGizmoGroup(GizmoGroup):
 
 bpy.utils.register_class(mArchGizmoGroup)
 
-def createDimOffsetGiz(group,dim):
+def createDimOffsetGiz(group,dim,objIndex):
     #Set Matrix
     k = Vector((0,0,1))
     basisMatrix = Matrix.Translation(Vector((0,0,0)))
@@ -164,7 +167,7 @@ def createDimOffsetGiz(group,dim):
 
     dimOffsetGiz.scale_basis = 0.8
     dimOffsetGiz.color = (pow(dim.color[0],(1/2.2)),pow(dim.color[1],(1/2.2)),pow(dim.color[2],(1/2.2)))
-    dimOffsetGiz.alpha = 0.25
+    dimOffsetGiz.alpha = 0.3
 
     dimOffsetGiz.color_highlight = (pow(dim.color[0],(1/2.2)),pow(dim.color[1],(1/2.2)),pow(dim.color[2],(1/2.2)))
     dimOffsetGiz.alpha_highlight = 1
@@ -180,7 +183,7 @@ def createDimOffsetGiz(group,dim):
     #group.settings_widget = dimButton
     #self.rotate_widget = rotateGiz
 
-def createAnnotationGiz(group,annotationGen):
+def createAnnotationGiz(group,annotationGen,objIndex):
     # Set Basis Matrix
     idx = 0
     for anno in annotationGen.annotations:
@@ -192,21 +195,22 @@ def createAnnotationGiz(group,annotationGen):
         annotationMove.target_set_prop("offset", anno, "annotationOffset")
 
         annotationMove.matrix_basis = basisMatrix
-        annotationMove.scale_basis = 0.1
+        annotationMove.scale_basis = 0.15
         annotationMove.draw_style = 'RING_2D'
         annotationMove.draw_options= {'ALIGN_VIEW'}
-        
+        annotationMove.line_width = 2
         annotationMove.color = 0.8, 0.8, 0.8
         annotationMove.alpha = 0.5
 
         annotationMove.color_highlight = 1.0, 1.0, 1.0
-        annotationMove.alpha_highlight = 0.5
+        annotationMove.alpha_highlight = 1
 
         #Translate Op Gizmos
         #X
         annotationOffsetX = group.gizmos.new("GIZMO_GT_arrow_3d")
         opX = annotationOffsetX.target_set_operator("measureit_arch.translate_annotation")
         opX.constrainAxis = (True,False,False)
+        opX.objIndex = objIndex
         opX.idx = idx
 
         XbasisMatrix = basisMatrix.to_3x3()
@@ -222,7 +226,7 @@ def createAnnotationGiz(group,annotationGen):
         annotationOffsetX.line_width = 2
 
         annotationOffsetX.color = 0.96, 0.2, 0.31
-        annotationOffsetX.alpha = 0.5
+        annotationOffsetX.alpha = 0.3
 
         annotationOffsetX.color_highlight = 0.96, 0.2, 0.31
         annotationOffsetX.alpha_highlight = 1
@@ -231,6 +235,7 @@ def createAnnotationGiz(group,annotationGen):
         annotationOffsetY = group.gizmos.new("GIZMO_GT_arrow_3d")
         opY = annotationOffsetY.target_set_operator("measureit_arch.translate_annotation")
         opY.constrainAxis = (False,True,False)
+        opY.objIndex = objIndex
         opY.idx = idx
 
         YbasisMatrix = basisMatrix.to_3x3()
@@ -246,7 +251,7 @@ def createAnnotationGiz(group,annotationGen):
         annotationOffsetY.line_width = 2
 
         annotationOffsetY.color = 0.54, 0.86, 0
-        annotationOffsetY.alpha = 0.5
+        annotationOffsetY.alpha = 0.3
 
         annotationOffsetY.color_highlight = 0.54, 0.86, 0
         annotationOffsetY.alpha_highlight = 1
@@ -255,6 +260,7 @@ def createAnnotationGiz(group,annotationGen):
         annotationOffsetZ = group.gizmos.new("GIZMO_GT_arrow_3d")
         opZ = annotationOffsetZ.target_set_operator("measureit_arch.translate_annotation")
         opZ.constrainAxis = (False,False,True)
+        opZ.objIndex = objIndex
         opZ.idx = idx
 
         ZbasisMatrix = basisMatrix.copy()
@@ -267,7 +273,7 @@ def createAnnotationGiz(group,annotationGen):
         annotationOffsetZ.line_width = 2
 
         annotationOffsetZ.color = 0.15, 0.56, 1
-        annotationOffsetZ.alpha = 0.5
+        annotationOffsetZ.alpha = 0.3
 
         annotationOffsetZ.color_highlight = 0.15, 0.56, 1
         annotationOffsetZ.alpha_highlight = 1

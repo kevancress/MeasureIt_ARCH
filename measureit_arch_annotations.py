@@ -318,7 +318,7 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
 
 
 class TranlateAnnotationOp(bpy.types.Operator):
-    """Translate an annotation with mouse input"""
+    """Move Annotation"""
     bl_idname = "measureit_arch.translate_annotation"
     bl_label = "Translate Annotation"
     bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING'}
@@ -333,9 +333,11 @@ class TranlateAnnotationOp(bpy.types.Operator):
         name="Offset",
         size=3,
     )
+    objIndex: IntProperty()
 
     def modal(self, context, event):
-        annotation = context.object.AnnotationGenerator[0].annotations[self.idx]
+        myobj = context.selected_objects[self.objIndex]
+        annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
         # Set Tweak Flags
         if event.ctrl:
             tweak_snap = True
@@ -378,7 +380,8 @@ class TranlateAnnotationOp(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
-        annotation = context.object.AnnotationGenerator[0].annotations[self.idx]
+        myobj = context.selected_objects[self.objIndex]
+        annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
         self.init_mouse_x = event.mouse_x
         self.init_mouse_y = event.mouse_y
 
