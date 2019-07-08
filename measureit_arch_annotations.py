@@ -27,7 +27,7 @@ import bpy
 import blf
 import bgl
 import gpu
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, GizmoGroup
 from bpy.props import (
         CollectionProperty,
         FloatVectorProperty,
@@ -36,10 +36,13 @@ from bpy.props import (
         StringProperty,
         FloatProperty,
         EnumProperty,
-        PointerProperty
+        PointerProperty,
+        BoolVectorProperty
         )
 from .measureit_arch_baseclass import BaseProp, BaseWithText
 from .measureit_arch_main import get_smart_selected, get_selected_vertex
+from .measureit_arch_gizmos import mArchGizmoGroup
+from mathutils import Vector
 import math
 
 def annotation_update_flag(self,context):
@@ -303,7 +306,6 @@ class OBJECT_PT_UIAnnotations(Panel):
                 # Delete Operator (Move to drop down menu next to list)
                 col = layout.column()
 
- 
 class OBJECT_MT_annotation_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
@@ -313,3 +315,76 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
         delOp.is_style = False
         delOp.item_type = 'A'
+
+
+class TranlateAnnotationOp(bpy.types.Operator):
+    """Translate an annotation with mouse input"""
+    bl_idname = "measureit_arch.translate_annotation"
+    bl_label = "Translate Annotation"
+    bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING'}
+    
+    idx: IntProperty()
+    constrainAxis: BoolVectorProperty(
+        name="Constrain Axis",
+        size=3,
+        subtype='XYZ'
+    )
+    offset: FloatVectorProperty(
+        name="Offset",
+        size=3,
+    )
+
+    def modal(self, context, event):
+        annotation = context.object.AnnotationGenerator[0].annotations[self.idx]
+        # Set Tweak Flags
+        if event.ctrl:
+            tweak_snap = True
+        else: tweak_snap = False
+        if event.shift:
+            tweak_precise = True
+        else: tweak_precise= False
+        
+        if event.type == 'MOUSEMOVE':
+            delta = ((event.mouse_y - self.init_mouse_y)+(event.mouse_x - self.init_mouse_x))* 0.005
+            if tweak_snap:
+                delta = round(delta)
+            if tweak_precise:
+                delta /= 10.0
+            
+            if self.constrainAxis[0]:
+                annotation.annotationOffset[0] = self.init_x + delta 
+            if self.constrainAxis[1]:
+                annotation.annotationOffset[1] = self.init_y + delta 
+            if self.constrainAxis[2]:
+                annotation.annotationOffset[2] = self.init_z + delta 
+
+            context.area.header_text_set("Offset %.4f" % delta)
+
+        elif event.type == 'LEFTMOUSE':
+            #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            context.object.hide_viewport = False
+            context.area.header_text_set(None)
+            return {'FINISHED'}
+
+        elif event.type in {'RIGHTMOUSE', 'ESC'}:
+            #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            context.object.hide_viewport = False 
+            context.area.header_text_set(None)
+            annotation.annotationOffset[0] = self.init_x
+            annotation.annotationOffset[1] = self.init_y
+            annotation.annotationOffset[2] = self.init_z
+            return {'CANCELLED'}
+        
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        annotation = context.object.AnnotationGenerator[0].annotations[self.idx]
+        self.init_mouse_x = event.mouse_x
+        self.init_mouse_y = event.mouse_y
+
+        self.init_x = annotation.annotationOffset[0]
+        self.init_y = annotation.annotationOffset[1]
+        self.init_z = annotation.annotationOffset[2]
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
