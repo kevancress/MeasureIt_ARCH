@@ -1787,20 +1787,19 @@ def get_arc_data(pointa, pointb, pointc, pointd):
 #
 # -------------------------------------------------------------
 def format_distance(fmt, value, factor=1):
-    s_code = "\u00b2"  # Superscript two
-    hide_units = bpy.context.scene.measureit_arch_hide_units
+    s_code = "\u00b2"  # Superscript two THIS IS LEGACY (but being kept for when Area Measurements are re-implimented)
+    hide_units = bpy.context.scene.measureit_arch_hide_units # Also Legacy, Could be re-implimented... up for debate.
+
+    # Get Scene Unit Settings
     scaleFactor = bpy.context.scene.unit_settings.scale_length
     unit_system = bpy.context.scene.unit_settings.system
     unit_length = bpy.context.scene.unit_settings.length_unit
     seperate_units = bpy.context.scene.unit_settings.use_separate
 
-    toFeet = 3.2808399
-    
     toInches = 39.3700787401574887
-    precision = 2
-
     value *= scaleFactor
 
+    # Imperial Formating
     if unit_system == "IMPERIAL":
         base = int(bpy.context.scene.measureit_arch_imperial_precision)
         decInches = value * toInches
@@ -1808,9 +1807,13 @@ def format_distance(fmt, value, factor=1):
         if hide_units is False:
             fmt += "\""
         
-        #Seperate ft and inches
-        feet = floor(decInches/12)
-        decInches -= feet*12
+        # Seperate ft and inches
+        # Unless Inches are the specified Length Unit
+        if unit_length != 'INCHES':
+            feet = floor(decInches/12)
+            decInches -= feet*12
+        else:
+            feet = 0
         
         #Seperate Fractional Inches
         inches = floor(decInches)
@@ -1832,6 +1835,7 @@ def format_distance(fmt, value, factor=1):
             frac = 0
             inches += 1
 
+        # Check values and compose string
         if feet != 0:
             feetString = str(feet) + "' "
         else: feetString = ""
@@ -1851,21 +1855,42 @@ def format_distance(fmt, value, factor=1):
 
     # METRIC FORMATING
     elif unit_system == "METRIC":
-        if round(value, 2) >= 1.0:
+
+        # Meters
+        if unit_length == 'METERS':
             if hide_units is False:
                 fmt += " m"
-            tx_dist = fmt % value
-        else:
-            if round(value, 2) >= 0.01:
-                if hide_units is False:
-                    fmt += " cm"
+                tx_dist = fmt % value
+        # Centimeters
+        elif unit_length == 'CENTIMETERS':
+            if hide_units is False:
+                fmt += " cm"
                 d_cm = value * (100)
                 tx_dist = fmt % d_cm
-            else:
-                if hide_units is False:
-                    fmt += " mm"
+        #Millimeters
+        elif unit_length == 'MILLIMETERS':
+            if hide_units is False:
+                fmt += " mm"
                 d_mm = value * (1000)
                 tx_dist = fmt % d_mm
+
+        # Otherwise Use Adaptive Units
+        else:
+            if round(value, 2) >= 1.0:
+                if hide_units is False:
+                    fmt += " m"
+                tx_dist = fmt % value
+            else:
+                if round(value, 2) >= 0.01:
+                    if hide_units is False:
+                        fmt += " cm"
+                    d_cm = value * (100)
+                    tx_dist = fmt % d_cm
+                else:
+                    if hide_units is False:
+                        fmt += " mm"
+                    d_mm = value * (1000)
+                    tx_dist = fmt % d_mm
     else:
         tx_dist = fmt % value
     return tx_dist
