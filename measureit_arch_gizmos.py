@@ -226,7 +226,8 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
 
         #Translate Op Gizmos
         #X
-        annotationRotateX = group.gizmos.new("GIZMO_GT_dial_3d")
+        annotationRotateX = group.gizmos.new("GIZMO_GT_move_3d")
+        annotationRotateX.use_draw_modal = True
         opX = annotationRotateX.target_set_operator("measureit_arch.rotate_annotation")
         opX.constrainAxis = (True,False,False)
         opX.objIndex = objIndex
@@ -250,7 +251,8 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         annotationRotateX.alpha_highlight = 1
 
         #Y
-        annotationRotateY = group.gizmos.new("GIZMO_GT_dial_3d")
+        annotationRotateY = group.gizmos.new("GIZMO_GT_move_3d")
+        annotationRotateY.use_draw_modal = True
         opY = annotationRotateY.target_set_operator("measureit_arch.rotate_annotation")
         opY.constrainAxis = (False,True,False)
         opY.objIndex = objIndex
@@ -273,7 +275,8 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         annotationRotateY.alpha_highlight = 1
 
         #Z
-        annotationRotateZ = group.gizmos.new("GIZMO_GT_dial_3d")
+        annotationRotateZ = group.gizmos.new("GIZMO_GT_move_3d")
+        annotationRotateZ.use_draw_modal = True
         opZ = annotationRotateZ.target_set_operator("measureit_arch.rotate_annotation")
         opZ.constrainAxis = (False,False,True)
         opZ.objIndex = objIndex

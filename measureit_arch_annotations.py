@@ -41,8 +41,8 @@ from bpy.props import (
         )
 from .measureit_arch_baseclass import BaseProp, BaseWithText
 from .measureit_arch_main import get_smart_selected, get_selected_vertex
-from .measureit_arch_gizmos import mArchGizmoGroup
-from mathutils import Vector
+from .measureit_arch_geometry import draw_arc
+from mathutils import Vector, Matrix
 import math
 
 def annotation_update_flag(self,context):
@@ -395,12 +395,11 @@ class TranlateAnnotationOp(bpy.types.Operator):
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
-
 class RotateAnnotationOp(bpy.types.Operator):
     """Rotate Annotation"""
     bl_idname = "measureit_arch.rotate_annotation"
     bl_label = "Rotate Annotation"
-    bl_options = {'GRAB_CURSOR','INTERNAL'}
+    bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING'}
     
     idx: IntProperty()
     constrainAxis: BoolVectorProperty(
@@ -416,6 +415,7 @@ class RotateAnnotationOp(bpy.types.Operator):
     objIndex: IntProperty()
 
     def modal(self, context, event):
+        context.area.tag_redraw()
         myobj = context.selected_objects[self.objIndex]
         annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
         # Set Tweak Flags
@@ -457,8 +457,7 @@ class RotateAnnotationOp(bpy.types.Operator):
             annotation.annotationRotation[0] = self.init_x
             annotation.annotationRotation[1] = self.init_y
             annotation.annotationRotation[2] = self.init_z
-            return {'CANCELLED'}
-        
+            return {'CANCELLED'}        
         
         return {'RUNNING_MODAL'}
 
@@ -471,6 +470,6 @@ class RotateAnnotationOp(bpy.types.Operator):
         self.init_x = annotation.annotationRotation[0]
         self.init_y = annotation.annotationRotation[1]
         self.init_z = annotation.annotationRotation[2]
-
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
+

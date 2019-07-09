@@ -1204,6 +1204,42 @@ def draw_annotation(context, myobj, annotationGen, mat):
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 
+def draw_arc(basis,init_angle,current_angle):
+    i = Vector((1,0,0))
+    k = Vector((0,0,1))
+
+    startrot = Quaternion(k,init_angle)
+    endrot = Quaternion(k,current_angle)
+
+    arcStart = i.copy()
+    arcStart.rotate(startrot)
+
+    angle = init_angle - current_angle
+    radius = 1
+
+    numCircleVerts = math.ceil(radius/.4)+ int((degrees(angle))/10)
+    verts = []
+    verts.append(Vector((0,0,0)))
+    for idx in range (numCircleVerts+1):
+        rotangle= (angle/(numCircleVerts+1))*idx
+        point = arcStart.copy()
+        point.rotate(Quaternion(k,rotangle))
+        point = basis @ point
+        verts.append(Vector((0,0,0)))
+        verts.append(point)
+        
+
+    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+    triShader.bind()
+    triShader.uniform_float("finalColor", (1, 1, 1, 1))
+    triShader.uniform_float("offset", 0)
+
+    batch = batch_for_shader(triShader, 'TRIS', {"pos": verts})
+    batch.program_set(triShader)
+    batch.draw()
+    gpu.shader.unbind()
+    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+
 def draw_text_3D(context,textobj,myobj,card):
     #get props
     normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
