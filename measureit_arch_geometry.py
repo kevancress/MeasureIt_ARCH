@@ -189,16 +189,12 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
-        scale = bpy.context.scene.unit_settings.scale_length
-        units = scene.measureit_arch_units
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         
         capA = dimProps.endcapA
         capB = dimProps.endcapB
         capSize = dimProps.endcapSize
-
-        
 
         offset = dim.dimOffset
         geoOffset = dim.dimLeaderOffset
@@ -266,7 +262,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
 
 
         #format text and update if necessary
-        distanceText = str(format_distance(textFormat,units,dist))
+        distanceText = str(format_distance(textFormat,dist))
         if dim.text != str(distanceText):
             dim.text = str(distanceText)
             dim.text_updated = True
@@ -412,8 +408,6 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
-        scale = bpy.context.scene.unit_settings.scale_length
-        units = scene.measureit_arch_units
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         
@@ -580,7 +574,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
         #format text and update if necessary
-        distanceText = str(format_distance(textFormat,units,dist))
+        distanceText = str(format_distance(textFormat,dist))
         if dim.text != str(distanceText):
             dim.text = str(distanceText)
             dim.text_updated = True
@@ -1792,121 +1786,88 @@ def get_arc_data(pointa, pointb, pointc, pointd):
 # Format a number to the right unit
 #
 # -------------------------------------------------------------
-def format_distance(fmt, units, value, factor=1):
+def format_distance(fmt, value, factor=1):
     s_code = "\u00b2"  # Superscript two
     hide_units = bpy.context.scene.measureit_arch_hide_units
     scaleFactor = bpy.context.scene.unit_settings.scale_length
+    unit_system = bpy.context.scene.unit_settings.system
+    unit_length = bpy.context.scene.unit_settings.length_unit
+    seperate_units = bpy.context.scene.unit_settings.use_separate
+
+    toFeet = 3.2808399
+    
+    toInches = 39.3700787401574887
+    precision = 2
+
     value *= scaleFactor
-    # ------------------------
-    # Units automatic
-    # ------------------------
-    if units == "1":
-        # Units
-        if bpy.context.scene.unit_settings.system == "IMPERIAL":
-            feet = value * (3.2808399 ** factor)
-            if round(feet, 2) >= 1.0:
-                if hide_units is False:
-                    fmt += "\""
-                if factor == 2:
-                    fmt += s_code
-                decFeet= value * (3.2808399 ** factor)
-                feet = int (floor(decFeet))
-                if feet != 0:
-                    inches = 12*(decFeet%feet)
-                else:
-                    inches = 12*(decFeet)
-                tx_dist = str(feet) + "' " + fmt % inches
-            else:
-                inches = value * (39.3700787 ** factor)
-                if hide_units is False:
-                    fmt += " in"
-                if factor == 2:
-                    fmt += s_code
-                tx_dist = fmt % inches
-        elif bpy.context.scene.unit_settings.system == "METRIC":
-            if round(value, 2) >= 1.0:
-                if hide_units is False:
-                    fmt += " m"
-                if factor == 2:
-                    fmt += s_code
-                tx_dist = fmt % value
-            else:
-                if round(value, 2) >= 0.01:
-                    if hide_units is False:
-                        fmt += " cm"
-                    if factor == 2:
-                        fmt += s_code
-                    d_cm = value * (100 ** factor)
-                    tx_dist = fmt % d_cm
-                else:
-                    if hide_units is False:
-                        fmt += " mm"
-                    if factor == 2:
-                        fmt += s_code
-                    d_mm = value * (1000 ** factor)
-                    tx_dist = fmt % d_mm
-        else:
-            tx_dist = fmt % value
-    # ------------------------
-    # Units meters
-    # ------------------------
-    elif units == "2":
-        if hide_units is False:
-            fmt += " m"
-        if factor == 2:
-            fmt += s_code
-        tx_dist = fmt % value
-    # ------------------------
-    # Units centimeters
-    # ------------------------
-    elif units == "3":
-        if hide_units is False:
-            fmt += " cm"
-        if factor == 2:
-            fmt += s_code
-        d_cm = value * (100 ** factor)
-        tx_dist = fmt % d_cm
-    # ------------------------
-    # Units milimiters
-    # ------------------------
-    elif units == "4":
-        if hide_units is False:
-            fmt += " mm"
-        if factor == 2:
-            fmt += s_code
-        d_mm = value * (1000 ** factor)
-        tx_dist = fmt % d_mm
-    # ------------------------
-    # Units feet
-    # ------------------------
-    elif units == "5":
+
+    if unit_system == "IMPERIAL":
+        base = int(bpy.context.scene.measureit_arch_imperial_precision)
+        decInches = value * toInches
+
         if hide_units is False:
             fmt += "\""
-        if factor == 2:
-            fmt += s_code
-        decFeet= value * (3.2808399 ** factor)
-        feet = int (floor(decFeet))
-        if feet != 0:
-            inches = 12*(decFeet%feet)
+        
+        #Seperate ft and inches
+        feet = floor(decInches/12)
+        decInches -= feet*12
+        
+        #Seperate Fractional Inches
+        inches = floor(decInches)
+        if inches != 0:
+            frac = round(base*(decInches-inches))
         else:
-            inches = 12*(decFeet)
-        tx_dist = str(feet) + "' " + fmt % inches
-    # ------------------------
-    # Units inches
-    # ------------------------
-    elif units == "6":
-        if hide_units is False:
-            fmt += " in"
-        if factor == 2:
-            fmt += s_code
-        inches = value * (39.3700787 ** factor)
-        tx_dist = fmt % inches
-    # ------------------------
-    # Default
-    # ------------------------
+            frac = round(base*(decInches))
+        
+        #Set proper numerator and denominator
+        if frac != base:
+            numcycles = int(math.log2(base))
+            for i in range(numcycles):
+                if frac%2 == 0:
+                    frac = int(frac/2)
+                    base = int(base/2)
+                else:
+                    break
+        else:
+            frac = 0
+            inches += 1
+
+        if feet != 0:
+            feetString = str(feet) + "' "
+        else: feetString = ""
+
+        if inches !=0:
+            inchesString = str(inches)
+            if frac != 0: inchesString += "-"
+            else: inchesString += "\""
+        else: inchesString = ""
+
+        if frac != 0:
+            fracString = str(frac) + "/" + str(base) +"\""
+        else: fracString = ""
+
+        tx_dist = feetString + inchesString + fracString
+    
+
+    # METRIC FORMATING
+    elif unit_system == "METRIC":
+        if round(value, 2) >= 1.0:
+            if hide_units is False:
+                fmt += " m"
+            tx_dist = fmt % value
+        else:
+            if round(value, 2) >= 0.01:
+                if hide_units is False:
+                    fmt += " cm"
+                d_cm = value * (100)
+                tx_dist = fmt % d_cm
+            else:
+                if hide_units is False:
+                    fmt += " mm"
+                d_mm = value * (1000)
+                tx_dist = fmt % d_mm
     else:
         tx_dist = fmt % value
-
     return tx_dist
 
 

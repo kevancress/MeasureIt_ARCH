@@ -264,8 +264,8 @@ class MeasureitArchMainPanel(Panel):
                 row.prop(scene, 'measureit_arch_debug_font', text="Font")
                 row.prop(scene, 'measureit_arch_debug_precision', text="Precision")
 
-# Measureit-ARCH settings
 
+# Measureit-ARCH settings
 class SCENE_PT_MARCH_Settings(Panel):
     bl_idname = "SCENE_PT_MARCH_Settings"
     bl_label = "MeasureIt-ARCH Settings"
@@ -283,10 +283,6 @@ class SCENE_PT_MARCH_Settings(Panel):
         layout.use_property_split = True
         scene = context.scene
         
-        col = layout.column(align = True)
-        col.prop(scene, 'measureit_arch_gl_precision', text="Precision")
-        col.prop(scene, 'measureit_arch_units')
-
         col = layout.column(align=True)
         #col.prop(scene, 'measureit_arch_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
         #col.prop(scene, 'measureit_arch_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
@@ -296,8 +292,6 @@ class SCENE_PT_MARCH_Settings(Panel):
       
         col = layout.column(align = True)
         col.alignment = 'RIGHT'
-        col = layout.column()
-        col.prop(scene, "measureit_arch_show_gizmos", text="Show Gizmo's")
         col = layout.column()
         col.prop(scene, "measureit_arch_gl_show_d")
         col.prop(scene, "measureit_arch_debug_text")

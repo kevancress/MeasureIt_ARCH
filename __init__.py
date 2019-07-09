@@ -111,6 +111,23 @@ def update_panel(self, context):
         print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
         pass
 
+
+# Append Precision settings to units panel
+def precision_ui(self, context):
+    layout = self.layout
+    layout.use_property_decorate = False
+    layout.use_property_split = True
+
+    
+    scene = context.scene
+    col = layout.column()
+    col.alignment = 'RIGHT'
+    col.label(text="MeasureIt-ARCH Precision")
+    col = layout.column()
+    col.prop(scene, 'measureit_arch_gl_precision', text="Metric Precision")
+    col.prop(scene, 'measureit_arch_imperial_precision', text="Imperial Precision")
+
+
 class Measure_Pref(AddonPreferences):
     # this must match the addon name, use '__package__'
     # when defining this in a submodule of a python package.
@@ -135,6 +152,7 @@ class Measure_Pref(AddonPreferences):
 # noinspection PyUnusedLocal
 def register():
     auto_load.register()
+    bpy.types.SCENE_PT_unit.append(precision_ui)
 
     # Define properties
     Scene.measureit_arch_inst_dims = BoolProperty(name="Instance Dimensions",
@@ -170,7 +188,17 @@ def register():
                            ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
                     name="View Plane",
                     description="View Plane")   
-                
+    
+    Scene.measureit_arch_imperial_precision= EnumProperty(
+                items=(('1', "1\"", "1 Inch"),
+                        ('2', "1/2\"", "1/2 Inch"),
+                        ('4', "1/4\"", "1/4 Inch"),
+                        ('8', "1/8\"", "1/8th Inch"),
+                        ('16', "1/16\"", "1/16th Inch"),
+                        ('32', "1/32\"", "1/32th Inch"),
+                        ('64', "1/64\"", "1/64th Inch")),
+                name="Imperial Precision",
+                description="Measurement Precision for Imperial Units")                  
     Scene.measureit_arch_use_depth_clipping = BoolProperty(name="Use Depth Clipping",
                                              description="Lines Behind Objects Won't Be Rendered (Slower)",
                                              default=True)
@@ -281,20 +309,13 @@ def register():
 
     Scene.measureit_arch_ovr_font_rotation = IntProperty(name='Rotate', min=0, max=360, default=0,
                                                     description="Text rotation in degrees")
+
     Scene.measureit_arch_ovr_font_align = EnumProperty(items=(('L', "Left Align", "Use current render"),
                                                          ('C', "Center Align", ""),
                                                          ('R', "Right Align", "")),
                                                   name="Align Font",
                                                   description="Set Font Alignment")
-    Scene.measureit_arch_units = EnumProperty(items=(('1', "Automatic", "Use scene units"),
-                                                ('2', "Meters", ""),
-                                                ('3', "Centimeters", ""),
-                                                ('4', "Milimiters", ""),
-                                                ('5', "Feet", ""),
-                                                ('6', "Inches", "")),
-                                         name="Units",
-                                         default="2",
-                                         description="Units")
+
     Scene.measureit_arch_hide_units = BoolProperty(name="hide_units",
                                               description="Do not display unit of measurement on viewport",
                                               default=False)
@@ -302,6 +323,7 @@ def register():
                                           description="Save an image with measures over"
                                                       " render image",
                                           default=False)
+
     Scene.measureit_arch_sum = EnumProperty(items=(('99', "-", "Select a group for sum"),
                                               ('0', "A", ""),
                                               ('1', "B", ""),
@@ -448,8 +470,8 @@ def register():
                                                       description="Normal arrow size")
     Scene.measureit_arch_debug_width = IntProperty(name='Debug width', min=1, max=10, default=2,
                                               description='Vector line thickness')
-    Scene.measureit_arch_debug_precision = IntProperty(name='Precision', min=0, max=5, default=1,
-                                                  description="Number of decimal precision")
+    Scene.measureit_arch_debug_precision = IntProperty(name='Metric Precision', min=0, max=5, default=1,
+                                                  description="Number of Decimal Places for Metric Measurements")
     Scene.measureit_arch_debug_vert_loc_toggle = EnumProperty(items=(('1', "Local",
                                                                  "Uses local coordinates"),
                                                                 ('2', "Global",
@@ -471,7 +493,7 @@ def register():
     
 def unregister():
     auto_load.unregister()
-
+    bpy.types.SCENE_PT_unit.remove(precision_ui)
     # Remove properties 
     del Scene.measureit_arch_default_color
     del Scene.measureit_arch_font_size
@@ -495,7 +517,6 @@ def unregister():
     del Scene.measureit_arch_ovr_width
     del Scene.measureit_arch_ovr_font_rotation
     del Scene.measureit_arch_ovr_font_align
-    del Scene.measureit_arch_units
     del Scene.measureit_arch_hide_units
     del Scene.measureit_arch_render
     del Scene.measureit_arch_sum

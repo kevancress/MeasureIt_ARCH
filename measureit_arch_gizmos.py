@@ -219,6 +219,7 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
 def createAnnotationRotateGiz(group,annotationGen,objIndex):
     # Set Basis Matrix
     idx = 0
+    rotateGizScale = 0.5
     for anno in annotationGen.annotations:
         basisMatrix = Matrix.Translation(Vector((0,0,0)))
         basisMatrix.translation = Vector(anno.gizLoc)
@@ -239,7 +240,7 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         
 
         annotationRotateX.matrix_basis = XbasisMatrix
-        annotationRotateX.scale_basis = 0.75
+        annotationRotateX.scale_basis = rotateGizScale
         annotationRotateX.line_width = 2
 
         annotationRotateX.color = 0.96, 0.2, 0.31
@@ -262,7 +263,7 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         YbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset)
 
         annotationRotateY.matrix_basis = YbasisMatrix
-        annotationRotateY.scale_basis = 0.75
+        annotationRotateY.scale_basis = rotateGizScale
         annotationRotateY.line_width = 2
 
         annotationRotateY.color = 0.54, 0.86, 0
@@ -282,7 +283,7 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         ZbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset)
 
         annotationRotateZ.matrix_basis = ZbasisMatrix
-        annotationRotateZ.scale_basis = 0.75
+        annotationRotateZ.scale_basis = rotateGizScale
         annotationRotateZ.line_width = 2
 
         annotationRotateZ.color = 0.15, 0.56, 1
