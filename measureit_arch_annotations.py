@@ -347,22 +347,47 @@ class TranlateAnnotationOp(bpy.types.Operator):
         else: tweak_precise= False
         
         if event.type == 'MOUSEMOVE':
-            delta = ((event.mouse_y - self.init_mouse_y)+(event.mouse_x - self.init_mouse_x))* 0.005
+            sensitivity = 0.01
+            vecDelta = Vector(((event.mouse_x - self.init_mouse_x)* sensitivity,(event.mouse_y - self.init_mouse_y)* sensitivity,0))
+            viewRot = context.area.spaces[0].region_3d.view_rotation
+            vecDelta.rotate(viewRot)
+            mat = myobj.matrix_world
+            rot = mat.to_quaternion()
+            i = Vector((-1,0,0))
+            j = Vector((0,-1,0))
+            k = Vector((0,0,-1))
+
+            axis = 0
+            axisInd = 0
+            if self.constrainAxis[0]:
+                init = self.init_x
+                axis = i
+                axisInd = 0
+                axisText = 'X: '
+            if self.constrainAxis[1]:
+                init = self.init_y
+                axis = j
+                axisInd = 1
+                axisText = 'Y: '
+            if self.constrainAxis[2]:
+                init = self.init_z
+                axis = k
+                axisInd = 2
+                axisText = 'Z: ' 
+
+            axis.rotate(rot)
+            delta = vecDelta.project(axis)
+            delta = delta.magnitude
+            if axis.dot(vecDelta) > 0:
+                delta = -delta
+            
+
             if tweak_snap:
                 delta = round(delta)
             if tweak_precise:
                 delta /= 10.0
-            
-            if self.constrainAxis[0]:
-                annotation.annotationOffset[0] = self.init_x + delta 
-                axisText = 'X: '
-            if self.constrainAxis[1]:
-                annotation.annotationOffset[1] = self.init_y + delta 
-                axisText = 'Y: '
-            if self.constrainAxis[2]:
-                annotation.annotationOffset[2] = self.init_z + delta
-                axisText = 'Z: ' 
 
+            annotation.annotationOffset[axisInd] = init +  delta
             context.area.header_text_set("Move " + axisText + "%.4f" % delta)
 
         elif event.type == 'LEFTMOUSE':
