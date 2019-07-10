@@ -118,7 +118,11 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
     idx = 0
     for anno in annotationGen.annotations:
         basisMatrix = Matrix.Translation(Vector((0,0,0)))
-        basisMatrix.translation = Vector(anno.gizLoc)
+        obj = bpy.context.selected_objects[objIndex]
+        mat = obj.matrix_world
+        objrot = mat.to_quaternion()
+        basisMatrix.translation = Vector(anno.gizLoc) - Vector(anno.annotationOffset)
+     
 
         # Basic Move Gizmo
         annotationMove = group.gizmos.new("GIZMO_GT_move_3d")
@@ -146,8 +150,9 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         XbasisMatrix = basisMatrix.to_3x3()
         rot = Quaternion(Vector((0,1,0)),radians(90))
         XbasisMatrix.rotate(rot)
+        XbasisMatrix.rotate(objrot)
         XbasisMatrix.resize_4x4()
-        XbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset) + Vector((0.05,0,0))
+        XbasisMatrix.translation = Vector(anno.gizLoc)
 
         annotationOffsetX.matrix_basis = XbasisMatrix
         annotationOffsetX.use_draw_modal = False
@@ -171,8 +176,9 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         YbasisMatrix = basisMatrix.to_3x3()
         rot = Quaternion(Vector((1,0,0)),radians(-90))
         YbasisMatrix.rotate(rot)
+        YbasisMatrix.rotate(objrot)
         YbasisMatrix.resize_4x4()
-        YbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset) + Vector((0,0.05,0))
+        YbasisMatrix.translation = Vector(anno.gizLoc)
 
         annotationOffsetY.matrix_basis = YbasisMatrix
         annotationOffsetY.use_draw_modal = False
@@ -193,8 +199,10 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         opZ.objIndex = objIndex
         opZ.idx = idx
 
-        ZbasisMatrix = basisMatrix.copy()
-        ZbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset) + Vector((0,0,0.05))
+        ZbasisMatrix = basisMatrix.to_3x3()
+        ZbasisMatrix.rotate(objrot)
+        ZbasisMatrix.resize_4x4()
+        ZbasisMatrix.translation = Vector(anno.gizLoc)
 
         annotationOffsetZ.matrix_basis = ZbasisMatrix
         annotationOffsetZ.use_draw_modal = False
@@ -223,6 +231,9 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
     for anno in annotationGen.annotations:
         basisMatrix = Matrix.Translation(Vector((0,0,0)))
         basisMatrix.translation = Vector(anno.gizLoc)
+        obj = bpy.context.selected_objects[objIndex]
+        mat = obj.matrix_world
+        objrot = mat.to_quaternion()
 
         #Translate Op Gizmos
         #X
@@ -236,8 +247,9 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         XbasisMatrix = basisMatrix.to_3x3()
         rot = Quaternion(Vector((0,1,0)),radians(90))
         XbasisMatrix.rotate(rot)
+        XbasisMatrix.rotate(objrot)
         XbasisMatrix.resize_4x4()
-        XbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset)
+        XbasisMatrix.translation = Vector(anno.gizLoc)
         
 
         annotationRotateX.matrix_basis = XbasisMatrix
@@ -261,8 +273,9 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         YbasisMatrix = basisMatrix.to_3x3()
         rot = Quaternion(Vector((1,0,0)),radians(-90))
         YbasisMatrix.rotate(rot)
+        YbasisMatrix.rotate(objrot)
         YbasisMatrix.resize_4x4()
-        YbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset)
+        YbasisMatrix.translation = Vector(anno.gizLoc)
 
         annotationRotateY.matrix_basis = YbasisMatrix
         annotationRotateY.scale_basis = rotateGizScale
@@ -282,8 +295,10 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         opZ.objIndex = objIndex
         opZ.idx = idx
 
-        ZbasisMatrix = basisMatrix.copy()
-        ZbasisMatrix.translation = Vector(anno.gizLoc) + Vector(anno.annotationOffset)
+        ZbasisMatrix = basisMatrix.to_3x3()
+        ZbasisMatrix.rotate(objrot)
+        ZbasisMatrix.resize_4x4()
+        ZbasisMatrix.translation = Vector(anno.gizLoc)
 
         annotationRotateZ.matrix_basis = ZbasisMatrix
         annotationRotateZ.scale_basis = rotateGizScale

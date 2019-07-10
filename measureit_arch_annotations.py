@@ -321,7 +321,7 @@ class TranlateAnnotationOp(bpy.types.Operator):
     """Move Annotation"""
     bl_idname = "measureit_arch.translate_annotation"
     bl_label = "Translate Annotation"
-    bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING'}
+    bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING','UNDO'}
     
     idx: IntProperty()
     constrainAxis: BoolVectorProperty(
@@ -399,7 +399,7 @@ class RotateAnnotationOp(bpy.types.Operator):
     """Rotate Annotation"""
     bl_idname = "measureit_arch.rotate_annotation"
     bl_label = "Rotate Annotation"
-    bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING'}
+    bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING','UNDO'}
     
     idx: IntProperty()
     constrainAxis: BoolVectorProperty(
@@ -449,11 +449,13 @@ class RotateAnnotationOp(bpy.types.Operator):
         elif event.type == 'LEFTMOUSE':
             #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
             context.area.header_text_set(None)
+            bpy.context.window.cursor_modal_restore()
             return {'FINISHED'}
 
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
             #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
             context.area.header_text_set(None)
+            bpy.context.window.cursor_modal_restore()
             annotation.annotationRotation[0] = self.init_x
             annotation.annotationRotation[1] = self.init_y
             annotation.annotationRotation[2] = self.init_z

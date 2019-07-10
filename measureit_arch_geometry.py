@@ -1131,7 +1131,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
             textcard[3] = rotLocMatrix @ (textcard[3] + offset) + diff
 
             # Set Gizmo Properties
-            annotation.gizLoc = p1
+            annotation.gizLoc = p2
 
             # Draw
             if  p1 is not None and p2 is not None:
