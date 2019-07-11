@@ -27,6 +27,7 @@ import bpy
 import blf
 import bgl
 import gpu
+from bpy_extras import view3d_utils
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, GizmoGroup
 from bpy.props import (
         CollectionProperty,
@@ -424,7 +425,7 @@ class RotateAnnotationOp(bpy.types.Operator):
     """Rotate Annotation"""
     bl_idname = "measureit_arch.rotate_annotation"
     bl_label = "Rotate Annotation"
-    bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING','UNDO'}
+    bl_options = {'INTERNAL','BLOCKING','UNDO'}
     
     idx: IntProperty()
     constrainAxis: BoolVectorProperty(
@@ -443,6 +444,15 @@ class RotateAnnotationOp(bpy.types.Operator):
         context.area.tag_redraw()
         myobj = context.selected_objects[self.objIndex]
         annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
+        center = annotation.gizLoc
+        region = bpy.context.region
+        rv3d = bpy.context.space_data.region_3d
+        center = view3d_utils.location_3d_to_region_2d(region, rv3d, center)
+        #For some reason the value returned by view3d utils is 100px off in the y axis
+        center += Vector((0,100)) 
+        vecLast = Vector((self.init_mouse_x,self.init_mouse_y))
+        vecLast -= center
+        delta = 0
         # Set Tweak Flags
         if event.ctrl:
             tweak_snap = True
@@ -452,25 +462,30 @@ class RotateAnnotationOp(bpy.types.Operator):
         else: tweak_precise= False
         
         if event.type == 'MOUSEMOVE':
-            delta = ((event.mouse_y - self.init_mouse_y)+(event.mouse_x - self.init_mouse_x))* 0.001
+            sensitivity = 1
+            
+            vecDelta = Vector((event.mouse_x,event.mouse_y))
+            vecDelta -= center
+            delta += vecDelta.angle_signed(vecLast)*sensitivity
+
+
             delta = math.degrees(delta)
             if tweak_snap:
-                delta = 5*round(delta)
-            if tweak_precise:
-                delta /= 10.0
+                delta = 5*round(delta/5)
             
             if self.constrainAxis[0]:
-                annotation.annotationRotation[0] = self.init_x + math.radians(delta)
+                annotation.annotationRotation[0] = self.init_x - math.radians(delta)
                 axisText = 'X: '
             if self.constrainAxis[1]:
-                annotation.annotationRotation[1] = self.init_y - math.radians(delta) 
+                annotation.annotationRotation[1] = self.init_y + math.radians(delta) 
                 axisText = 'Y: '
             if self.constrainAxis[2]:
                 annotation.annotationRotation[2] = self.init_z - math.radians(delta)
                 axisText = 'Z: ' 
 
+            vecLast = vecDelta
             context.area.header_text_set("Rotate "+axisText+ "%.4f" % delta + "\u00b0")
-
+                    
         elif event.type == 'LEFTMOUSE':
             #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
             context.area.header_text_set(None)
@@ -485,6 +500,7 @@ class RotateAnnotationOp(bpy.types.Operator):
             annotation.annotationRotation[1] = self.init_y
             annotation.annotationRotation[2] = self.init_z
             return {'CANCELLED'}        
+        
         
         return {'RUNNING_MODAL'}
 
