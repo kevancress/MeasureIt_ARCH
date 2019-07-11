@@ -121,7 +121,13 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         obj = bpy.context.selected_objects[objIndex]
         mat = obj.matrix_world
         objrot = mat.to_quaternion()
-        basisMatrix.translation = Vector(anno.gizLoc) - Vector(anno.annotationOffset)
+        basisMatrix.translation = Vector(anno.gizLoc) - Vector(anno.annotationOffset) 
+        scale = 1
+        lineweight = 2
+        length = 0.6
+        offset = 0.05
+        baseAlpha = 0.15
+
      
 
         # Basic Move Gizmo
@@ -132,7 +138,7 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         annotationMove.scale_basis = 0.15
         annotationMove.draw_style = 'RING_2D'
         annotationMove.draw_options= {'ALIGN_VIEW'}
-        annotationMove.line_width = 2
+        annotationMove.line_width = lineweight
         annotationMove.color = 0.8, 0.8, 0.8
         annotationMove.alpha = 0.5
 
@@ -152,16 +158,18 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         XbasisMatrix.rotate(rot)
         XbasisMatrix.rotate(objrot)
         XbasisMatrix.resize_4x4()
-        XbasisMatrix.translation = Vector(anno.gizLoc)
+        offsetVec = Vector((offset,0,0))
+        offsetVec.rotate(objrot)
+        XbasisMatrix.translation = Vector(anno.gizLoc) + offsetVec
 
         annotationOffsetX.matrix_basis = XbasisMatrix
         annotationOffsetX.use_draw_modal = False
-        annotationOffsetX.scale_basis = 1
-        annotationOffsetX.length = 0.6
-        annotationOffsetX.line_width = 2
+        annotationOffsetX.scale_basis = scale
+        annotationOffsetX.length = length
+        annotationOffsetX.line_width = lineweight
 
         annotationOffsetX.color = 0.96, 0.2, 0.31
-        annotationOffsetX.alpha = 0.3
+        annotationOffsetX.alpha = baseAlpha
 
         annotationOffsetX.color_highlight = 0.96, 0.2, 0.31
         annotationOffsetX.alpha_highlight = 1
@@ -178,16 +186,18 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         YbasisMatrix.rotate(rot)
         YbasisMatrix.rotate(objrot)
         YbasisMatrix.resize_4x4()
-        YbasisMatrix.translation = Vector(anno.gizLoc)
+        offsetVec = Vector((0,offset,0))
+        offsetVec.rotate(objrot)
+        YbasisMatrix.translation = Vector(anno.gizLoc) + offsetVec
 
         annotationOffsetY.matrix_basis = YbasisMatrix
         annotationOffsetY.use_draw_modal = False
-        annotationOffsetY.scale_basis = 1
-        annotationOffsetY.length = 0.6
-        annotationOffsetY.line_width = 2
+        annotationOffsetY.scale_basis = scale
+        annotationOffsetY.length = length
+        annotationOffsetY.line_width = lineweight
 
         annotationOffsetY.color = 0.54, 0.86, 0
-        annotationOffsetY.alpha = 0.3
+        annotationOffsetY.alpha = baseAlpha
 
         annotationOffsetY.color_highlight = 0.54, 0.86, 0
         annotationOffsetY.alpha_highlight = 1
@@ -202,16 +212,18 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         ZbasisMatrix = basisMatrix.to_3x3()
         ZbasisMatrix.rotate(objrot)
         ZbasisMatrix.resize_4x4()
-        ZbasisMatrix.translation = Vector(anno.gizLoc)
+        offsetVec = Vector((0,0,offset))
+        offsetVec.rotate(objrot)
+        ZbasisMatrix.translation = Vector(anno.gizLoc) + offsetVec
 
         annotationOffsetZ.matrix_basis = ZbasisMatrix
         annotationOffsetZ.use_draw_modal = False
-        annotationOffsetZ.scale_basis = 1
-        annotationOffsetZ.length = 0.6
-        annotationOffsetZ.line_width = 2
+        annotationOffsetZ.scale_basis = scale
+        annotationOffsetZ.length = length
+        annotationOffsetZ.line_width = lineweight
 
         annotationOffsetZ.color = 0.15, 0.56, 1
-        annotationOffsetZ.alpha = 0.3
+        annotationOffsetZ.alpha = baseAlpha
 
         annotationOffsetZ.color_highlight = 0.15, 0.56, 1
         annotationOffsetZ.alpha_highlight = 1
@@ -234,6 +246,8 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         obj = bpy.context.selected_objects[objIndex]
         mat = obj.matrix_world
         objrot = mat.to_quaternion()
+        lineweight = 2
+        baseAlpha = 0.15
 
         #Translate Op Gizmos
         #X
@@ -254,10 +268,10 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
 
         annotationRotateX.matrix_basis = XbasisMatrix
         annotationRotateX.scale_basis = rotateGizScale
-        annotationRotateX.line_width = 2
+        annotationRotateX.line_width = lineweight
 
         annotationRotateX.color = 0.96, 0.2, 0.31
-        annotationRotateX.alpha = 0.3
+        annotationRotateX.alpha = baseAlpha
 
         annotationRotateX.color_highlight = 0.96, 0.2, 0.31
         annotationRotateX.alpha_highlight = 1
@@ -279,10 +293,10 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
 
         annotationRotateY.matrix_basis = YbasisMatrix
         annotationRotateY.scale_basis = rotateGizScale
-        annotationRotateY.line_width = 2
+        annotationRotateY.line_width = lineweight
 
         annotationRotateY.color = 0.54, 0.86, 0
-        annotationRotateY.alpha = 0.3
+        annotationRotateY.alpha = baseAlpha
 
         annotationRotateY.color_highlight = 0.54, 0.86, 0
         annotationRotateY.alpha_highlight = 1
@@ -302,10 +316,10 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
 
         annotationRotateZ.matrix_basis = ZbasisMatrix
         annotationRotateZ.scale_basis = rotateGizScale
-        annotationRotateZ.line_width = 2
+        annotationRotateZ.line_width = lineweight
 
         annotationRotateZ.color = 0.15, 0.56, 1
-        annotationRotateZ.alpha = 0.3
+        annotationRotateZ.alpha = baseAlpha
 
         annotationRotateZ.color_highlight = 0.15, 0.56, 1
         annotationRotateZ.alpha_highlight = 1
