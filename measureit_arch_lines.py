@@ -82,12 +82,11 @@ class LineProperties(BaseProp, PropertyGroup):
     useLineTexture: BoolProperty(name="Use Line Texture",
                         description='Use Line Texture',
                         default = False)
-    #TODO: This Should be automated based on line thickness, distance from clipping plane etc... but I havent figured it out yet
-    #Left as a tweak until it can be reliably calculated automatically
+
     lineDepthOffset: FloatProperty(name= "Line Depth Offset",
                         description= "Z buffer Offset tweak for clean rendering, TEMP",
                         default = 0.0)
-    #collection of indicies                        
+    #collection of individual line segments                        
     singleLine: CollectionProperty(type=SingleLineProperties)
 bpy.utils.register_class(LineProperties)
 

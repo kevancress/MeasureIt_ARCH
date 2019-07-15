@@ -471,12 +471,6 @@ def draw_main(context):
     # Get visible collections
     viewLayer = bpy.context.view_layer
 
-    visibleCollections = []
-
-    for collection in viewLayer.layer_collection.children:
-       if collection.exclude == False:
-            visibleCollections.extend([collection])
-
     # Display selected or all
     if scene.measureit_arch_gl_ghost is False:
         objlist = context.selected_objects
@@ -581,8 +575,10 @@ def draw_main_3d (context):
     for obj_int in deps.object_instances:
         if obj_int.is_instance:
             myobj = obj_int.object
-            myobj['obverts'] = get_mesh_vertices(myobj) 
-            mat = obj_int.matrix_world
+            
+            if 'obverts' not in myobj:
+                myobj['obverts'] = get_mesh_vertices(myobj) 
+                mat = obj_int.matrix_world
 
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]
