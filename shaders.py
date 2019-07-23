@@ -191,7 +191,7 @@ class Dashed_Shader_3D ():
         uniform mat4 ModelViewProjectionMatrix;
         uniform vec2 Viewport;
         uniform float thickness;
-
+        uniform bool screenSpaceDash;
         out vec2 mTexCoord;
 
         float aspect = Viewport.x/Viewport.y;
@@ -229,11 +229,19 @@ class Dashed_Shader_3D ():
             coords[3] = vec4((ssp2 - offset)*p2.w,p2.z,p2.w);
             texCoords[3] = vec2(0,0);
 
+            
             float arcLengths[4];
             arcLengths[0] = v_ArcLength[0];
             arcLengths[1] = v_ArcLength[0];
-            arcLengths[2] = v_ArcLength[1];
-            arcLengths[3] = v_ArcLength[1];
+            
+            if (screenSpaceDash){
+                arcLengths[2] = length(ssp2-ssp1) * 20;
+                arcLengths[3] = length(ssp2-ssp1) * 20;
+            }
+            else{
+                arcLengths[2] =  v_ArcLength[1];
+                arcLengths[3] =  v_ArcLength[1];
+            }
 
             for (int i = 0; i < 4; ++i) {
                 mTexCoord = texCoords[i];

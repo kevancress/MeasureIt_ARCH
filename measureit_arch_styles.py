@@ -346,7 +346,15 @@ def draw_line_style_settings(line,layout):
     else: col.enabled = False
     col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
     col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
+
+    col = layout.column(align=True)
+    if line.lineDrawDashed or line.lineDrawHidden: col.enabled = True
+    else: col.enabled = False
     col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+
+    col = layout.column(align=True)
+    col.prop(line, 'lineDrawDashed', text="Draw Dashed")
+    col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
 
 def draw_annotation_style_row(annotation,layout):
     row = layout.row(align=True)

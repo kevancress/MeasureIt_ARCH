@@ -58,6 +58,10 @@ class LineProperties(BaseProp, PropertyGroup):
     lineDrawDashed: BoolProperty(name= "Draw Dashed",
                         description= "Force Line Group to Draw Dashed",
                         default= False)
+    
+    screenSpaceDashes: BoolProperty(name= "Screen Space Dashed",
+                        description= "Draw Dashes in Screen Space",
+                        default= False)
 
     lineHiddenColor: FloatVectorProperty(name="Hidden Line Color",
                         description="Color for Hidden Lines",
@@ -296,9 +300,10 @@ class OBJECT_PT_UILines(Panel):
                             if line.lineDrawDashed or line.lineDrawHidden: col.enabled = True
                             else: col.enabled = False
                             col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
-                            
+
                             col = box.column(align=True)
                             col.prop(line, 'lineDrawDashed', text="Draw Dashed")
+                            col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
 
 
 

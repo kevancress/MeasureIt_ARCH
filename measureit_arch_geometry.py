@@ -1036,6 +1036,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
                 dashedLineShader.uniform_float("Viewport",viewport)
                 dashedLineShader.uniform_float("thickness",hiddenLineWeight)
+                dashedLineShader.uniform_float("screenSpaceDash",lineProps.screenSpaceDashes)
                 dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
    
             
@@ -1046,11 +1047,12 @@ def draw_line_group(context, myobj, lineGen, mat):
                 gpu.shader.unbind()
             
             # Draw Lines
-            if lineGroup.lineDrawDashed:
+            if lineProps.lineDrawDashed:
                 dashedLineShader.bind()
                 dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
                 dashedLineShader.uniform_float("Viewport",viewport)
                 dashedLineShader.uniform_float("thickness",lineWeight)
+                dashedLineShader.uniform_float("screenSpaceDash",lineProps.screenSpaceDashes)
                 dashedLineShader.uniform_float("finalColor",  (rgb[0], rgb[1], rgb[2], rgb[3]))
                
             
