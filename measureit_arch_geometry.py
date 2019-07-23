@@ -99,6 +99,8 @@ def update_text(textobj,props,context):
 
         # Get Text
         text = str(textobj.text)
+        if text == "":
+            text = " "
 
         # Set BLF font Properties
         blf.color(font_id,rgb[0],rgb[1],rgb[2],rgb[3])
