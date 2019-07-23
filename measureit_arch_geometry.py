@@ -949,7 +949,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                     rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
                     rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
                     rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
-                    rgb[3] = alpha
+                    rgb[3] = 1.0
 
                     if (context.view_layer.objects.active != None
                     and context.view_layer.objects.active.data != None
@@ -957,7 +957,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                         rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
                         rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
                         rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
-                        rgb[3] = alpha
+                        rgb[3] = 1.0
 
             #set other line properties
             isOrtho = False
