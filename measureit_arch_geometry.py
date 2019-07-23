@@ -1037,6 +1037,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("Viewport",viewport)
                 dashedLineShader.uniform_float("thickness",hiddenLineWeight)
                 dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
+   
             
                 batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
                 batchHidden.program_set(dashedLineShader)
@@ -1045,10 +1046,23 @@ def draw_line_group(context, myobj, lineGen, mat):
                 gpu.shader.unbind()
             
             # Draw Lines
-            batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-            batch3d.program_set(lineShader)
-            batch3d.draw()
-            gpu.shader.unbind()
+            if lineGroup.lineDrawDashed:
+                dashedLineShader.bind()
+                dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
+                dashedLineShader.uniform_float("Viewport",viewport)
+                dashedLineShader.uniform_float("thickness",lineWeight)
+                dashedLineShader.uniform_float("finalColor",  (rgb[0], rgb[1], rgb[2], rgb[3]))
+               
+            
+                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
+                batchHidden.program_set(dashedLineShader)
+                batchHidden.draw()
+
+            else:
+                batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+                batch3d.program_set(lineShader)
+                batch3d.draw()
+                gpu.shader.unbind()
             
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)

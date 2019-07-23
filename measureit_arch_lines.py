@@ -55,6 +55,10 @@ class LineProperties(BaseProp, PropertyGroup):
                         description= "Draw Hidden Lines",
                         default= False)
 
+    lineDrawDashed: BoolProperty(name= "Draw Dashed",
+                        description= "Force Line Group to Draw Dashed",
+                        default= False)
+
     lineHiddenColor: FloatVectorProperty(name="Hidden Line Color",
                         description="Color for Hidden Lines",
                         default=(0.2, 0.2, 0.2, 1.0),
@@ -281,13 +285,21 @@ class OBJECT_PT_UILines(Panel):
                         if not line.uses_style:
                             col.prop(line, 'lineWeight', text="Lineweight" )
                             col.prop(line, 'lineDepthOffset', text="Z Offset")
-
+                        
                             col = box.column(align=True)
-                            if line.lineDrawHidden is True: col.enabled = True
+                            if line.lineDrawHidden: col.enabled = True
                             else: col.enabled = False
                             col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
                             col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
+
+                            col = box.column(align=True)
+                            if line.lineDrawDashed or line.lineDrawHidden: col.enabled = True
+                            else: col.enabled = False
                             col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+                            
+                            col = box.column(align=True)
+                            col.prop(line, 'lineDrawDashed', text="Draw Dashed")
+
 
 
 
