@@ -1114,7 +1114,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
             lineShader.bind()
             lineShader.uniform_float("Viewport",viewport)
             lineShader.uniform_float("thickness",lineWeight)
-            lineShader.uniform_float("offset",-0.01)
+            lineShader.uniform_float("offset", 0)
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
 
             # Get Points
@@ -1155,7 +1155,14 @@ def draw_annotation(context, myobj, annotationGen, mat):
             if  p1 is not None and p2 is not None:
 
                 coords =[]
-                coords.append(p1)
+                
+                # Move end of line Back if arrow endcap
+                if endcap == 'T':
+                    axis = Vector(p1) - Vector(p2)
+                    lineEnd = p1 - axis * 0.02 * lineWeight
+                else: lineEnd = p1
+
+                coords.append(lineEnd)
                 coords.append(p2)
                 coords.append(p2)
                 if annotation.textPosition == 'T':
@@ -1164,6 +1171,9 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 elif annotation.textPosition == 'B':
                     coords.append(textcard[2])
                     pointcoords = [p2]
+
+
+
 
                 batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
                 batch3d.program_set(lineShader)
