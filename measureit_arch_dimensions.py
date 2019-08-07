@@ -85,10 +85,6 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
                     name="B end",
                     description="Add arrows to point A")   
 
-    endcapSize: IntProperty(name="dimEndcapSize",
-                    description="End Cap size",
-                    default=15, min=1, max=500)
-
     endcapA: EnumProperty(
                     items=(('99', "--", "No Cap"),
                            ('L', "Arrow", "Arrow"),
@@ -153,10 +149,6 @@ class AxisDimensionProperties(BaseWithText,PropertyGroup):
                            ('Z', "Z Axis", "Measure only the Z Axis")),
                     name="Measurement Axis",
                     description="Measurement Axis")   
-
-    endcapSize: IntProperty(name="dimEndcapSize",
-                    description="End Cap size",
-                    default=15, min=1, max=500)
 
     endcapA: EnumProperty(
                     items=(('99', "--", "No Cap"),
@@ -1232,6 +1224,8 @@ def draw_aligned_dimension_settings(dim,layout):
         col.prop(dim,'endcapA', text='Arrow Start')
         col.prop(dim,'endcapB', text='End')
         col.prop(dim,'endcapSize', text='Arrow Size')
+        col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
+
 
     col.prop(dim,'textFlippedX',text='Flip Text X')
     col.prop(dim,'textFlippedY',text='Flip Text Y')
@@ -1274,6 +1268,7 @@ def draw_axis_dimension_settings(dim,layout):
         col.prop(dim,'endcapA', text='Arrow Start')
         col.prop(dim,'endcapB', text='End')
         col.prop(dim,'endcapSize', text='Arrow Size')
+        col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
 
     col.prop(dim,'textFlippedX',text='Flip Text X')
     col.prop(dim,'textFlippedY',text='Flip Text Y')

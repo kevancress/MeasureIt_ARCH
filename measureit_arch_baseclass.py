@@ -119,22 +119,29 @@ class BaseWithText(BaseProp):
     textHeight: IntProperty(name='annotationHeight',
                 description= 'Height of annotation')
 
-    #ensure endcap related properties have some value for shared methods
+    # endcap properties are defined here to ensure compatiblity but the enumProps are overwritten in child property groups
     endcapSize: IntProperty(name="dimEndcapSize",
                 description="End Cap size",
                 default=15, min=6, max=500)
+    
+    endcapArrowAngle: FloatProperty(name="endcapArrowAngle",
+                description="End Cap Arrow Angle",
+                default = math.radians(30),
+                min = math.radians(15),
+                max = math.radians(45),
+                subtype = 'ANGLE')
 
     endcapA: EnumProperty(
-                    items=(('99', "--", "No arrow"),
-                           ('1', "Line", "The point of the arrow are lines")),
-                    name="A end",
-                    description="Add arrows to point A")
+                items=(('99', "--", "No arrow"),
+                        ('1', "Line", "The point of the arrow are lines")),
+                name="A end",
+                description="Add arrows to point A")
 
     endcapB: EnumProperty(
-                    items=(('99', "--", "No arrow"),
-                           ('1', "Line", "The point of the arrow are lines")),
-                    name="B end",
-                    description="Add arrows to point A")        
+                items=(('99', "--", "No arrow"),
+                        ('1', "Line", "The point of the arrow are lines")),
+                name="B end",
+                description="Add arrows to point A")        
 
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"

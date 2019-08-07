@@ -333,9 +333,6 @@ class SCENE_PT_MARCH_Settings(Panel):
                 col.prop(scene, 'measureit_arch_ovr_font_rotation', text="Rotation")
 
 
-        
-   
-
 # -------------------------------------------------------------
 # Defines button that enables/disables Viewport Display
 #
@@ -441,10 +438,8 @@ def check_mods(myobj):
     return True
 
 
-
 # -------------------------------------------------------------
 # Handle all 2d draw routines (Text Updating mostly)
-#
 # -------------------------------------------------------------
 def draw_main(context):
     region = bpy.context.region

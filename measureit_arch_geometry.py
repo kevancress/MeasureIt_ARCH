@@ -69,13 +69,7 @@ textShader = gpu.types.GPUShader(
     Text_Shader.fragment_shader)
 
 fontSizeMult = 6
-# -------------------------------------------------------------
-# Draw segments
-#
-# rgb: Color
-# fsize: Font size
-# -------------------------------------------------------------
-# noinspection PyUnresolvedReferences,PyUnboundLocalVariable
+
 
 
 def update_text(textobj,props,context):
@@ -194,8 +188,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         
-        capA = dimProps.endcapA
-        capB = dimProps.endcapB
+        # Define Caps as a tuple of capA and capB to reduce code duplications
+        caps = (dimProps.endcapA, dimProps.endcapB)
         capSize = dimProps.endcapSize
 
         offset = dim.dimOffset
@@ -287,63 +281,22 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
             draw_text_3D(context,dim,myobj,square)
 
 
-      
         #Collect coords and endcaps
         coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
-        ACoords = generate_end_caps(context,dim,capA,capSize,dimLineStart,userOffsetVector,textLoc)
-        BCoords = generate_end_caps(context,dim,capB,capSize,dimLineEnd,userOffsetVector,textLoc)
         filledCoords = []
-        if capA == 'L' or capA == 'D':
-            for coord in ACoords:
+        pos = (dimLineStart,dimLineEnd)
+        i=0
+        for cap in caps:
+            capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],userOffsetVector,textLoc,i)
+            i += 1 
+            for coord in capCoords[0]:
                 coords.append(coord)
-        if capB == 'L' or capB == 'D' :
-            for coord in BCoords:
-                coords.append(coord)
+            for filledCoord in capCoords[1]:
+                filledCoords.append(filledCoord)
+
         
-        if capA == 'T':
-            for coord in ACoords:
-                filledCoords.append(coord)
-        if capB == 'T':
-            for coord in BCoords:
-                filledCoords.append(coord)
-
-        if capA == 'D':
-                  # Define Square
-            pos = dimLineStart
-            x = distVector.normalized() * dimProps.endcapSize/20
-            y = userOffsetVector.normalized() * dimProps.endcapSize/20
-            a = 0.055
-            b = 0.085
-            s1 = (pos + (a*x) + (b*y))
-            s2 = (pos + (b*x) + (a*y))
-            s3 = (pos + (-a*x) + (-b*y))
-            s4 = (pos + (-b*x) + (-a*y))
-            filledCoords.append(s1)
-            filledCoords.append(s2)
-            filledCoords.append(s3)
-            filledCoords.append(s1)
-            filledCoords.append(s3)
-            filledCoords.append(s4) 
-
-        if capB == 'D':
-                  # Define Square
-            pos = dimLineEnd
-            x = distVector.normalized() * dimProps.endcapSize/20
-            y = userOffsetVector.normalized() * dimProps.endcapSize/20
-            a = 0.055
-            b = 0.085
-            s1 = (pos + (a*x) + (b*y))
-            s2 = (pos + (b*x) + (a*y))
-            s3 = (pos + (-a*x) + (-b*y))
-            s4 = (pos + (-b*x) + (-a*y))
-            filledCoords.append(s1)
-            filledCoords.append(s2)
-            filledCoords.append(s3)
-            filledCoords.append(s1)
-            filledCoords.append(s3)
-            filledCoords.append(s4) 
-
-        if capB == 'T' or capA == 'T' or capA == 'D' or capB == 'D':
+        # Keep this out of the loop to avoid extra draw calls 
+        if len(filledCoords) != 0:
             #bind shader
             bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
             triShader.bind()
@@ -415,8 +368,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         
         axis = dim.dimAxis
 
-        capA = dimProps.endcapA
-        capB = dimProps.endcapB
+        caps = (dimProps.endcapA, dimProps.endcapB)
         capSize = dimProps.endcapSize
 
         offset = dim.dimOffset
@@ -596,63 +548,22 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             draw_text_3D(context,dim,myobj,square)
 
 
-      
         #Collect coords and endcaps
-        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd,viewDiffStartB,viewDiffEndB]
-        ACoords = generate_end_caps(context,dim,capA,capSize,dimLineStart,userOffsetVector,textLoc)
-        BCoords = generate_end_caps(context,dim,capB,capSize,dimLineEnd,userOffsetVector,textLoc)
+        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
         filledCoords = []
-        if capA == 'L' or capA == 'D':
-            for coord in ACoords:
+        pos = (dimLineStart,dimLineEnd)
+        i=0
+        for cap in caps:
+            capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],userOffsetVector,textLoc,i)
+            i += 1 
+            for coord in capCoords[0]:
                 coords.append(coord)
-        if capB == 'L' or capB == 'D' :
-            for coord in BCoords:
-                coords.append(coord)
+            for filledCoord in capCoords[1]:
+                filledCoords.append(filledCoord)
+
         
-        if capA == 'T':
-            for coord in ACoords:
-                filledCoords.append(coord)
-        if capB == 'T':
-            for coord in BCoords:
-                filledCoords.append(coord)
-
-        if capA == 'D':
-                  # Define Square
-            pos = dimLineStart
-            x = distVector.normalized() * dimProps.endcapSize/20
-            y = userOffsetVector.normalized() * dimProps.endcapSize/20
-            a = 0.055
-            b = 0.085
-            s1 = (pos + (a*x) + (b*y))
-            s2 = (pos + (b*x) + (a*y))
-            s3 = (pos + (-a*x) + (-b*y))
-            s4 = (pos + (-b*x) + (-a*y))
-            filledCoords.append(s1)
-            filledCoords.append(s2)
-            filledCoords.append(s3)
-            filledCoords.append(s1)
-            filledCoords.append(s3)
-            filledCoords.append(s4) 
-
-        if capB == 'D':
-                  # Define Square
-            pos = dimLineEnd
-            x = distVector.normalized() * dimProps.endcapSize/20
-            y = userOffsetVector.normalized() * dimProps.endcapSize/20
-            a = 0.055
-            b = 0.085
-            s1 = (pos + (a*x) + (b*y))
-            s2 = (pos + (b*x) + (a*y))
-            s3 = (pos + (-a*x) + (-b*y))
-            s4 = (pos + (-b*x) + (-a*y))
-            filledCoords.append(s1)
-            filledCoords.append(s2)
-            filledCoords.append(s3)
-            filledCoords.append(s1)
-            filledCoords.append(s3)
-            filledCoords.append(s4) 
-
-        if capB == 'T' or capA == 'T' or capA == 'D' or capB == 'D':
+        # Keep this out of the loop to avoid extra draw calls 
+        if len(filledCoords) != 0:
             #bind shader
             bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
             triShader.bind()
@@ -845,6 +756,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
             directionRay = vertA.normal + loc 
         else:
             directionRay = Vector((0,0,0))
+            
         #get Adjacent Face normals if possible
         possibleNormals = []
         for face in myobj.data.polygons:
@@ -1172,9 +1084,6 @@ def draw_annotation(context, myobj, annotationGen, mat):
                     coords.append(textcard[2])
                     pointcoords = [p2]
 
-
-
-
                 batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
                 batch3d.program_set(lineShader)
                 batch3d.draw()
@@ -1401,12 +1310,6 @@ def draw_text_3D(context,textobj,myobj,card):
     dim = width * height * 4
     if 'texture' in textobj:
         buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
-        #texBuf = bgl.Buffer(bgl.GL_INT, 1)
-        #bgl.glFinish()
-        #bgl.glGenTextures(1, texBuf)
-        #bgl.glActiveTexture(bgl.GL_TEXTURE0)
-        #bgl.glBindTexture(bgl.GL_TEXTURE_2D, texBuf.to_list()[0])
-
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width, height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
         textobj.texture_updated=False
@@ -1418,44 +1321,77 @@ def draw_text_3D(context,textobj,myobj,card):
     #bgl.glDeleteTextures(1, texBuf)
     gpu.shader.unbind()
 
-def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint):
+def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag):
     capCoords = []
+    filledCoords = []
     size = capSize/100
     distVector = Vector(pos-Vector(midpoint)).normalized()
     norm = distVector.cross(userOffsetVector)
-    #norm = Vector((abs(norm[0]),abs(norm[1]),abs(norm[2])))
     line = distVector*size
+    arrowAngle = item.endcapArrowAngle
     
-    #normDistVector.normalize()
     if capType == 99:
         pass
+    
+    #Line and Triangle Geometry
     elif capType == 'L' or capType == 'T' :
-        rotangle = radians(45)
+        rotangle = arrowAngle
         line.rotate(Quaternion(norm,rotangle))
         p1 = (pos - line)
         p2 = (pos)
         line.rotate(Quaternion(norm,-(rotangle*2)))
         p3 = (pos - line)
+        
+        if capType == 'T':
+            filledCoords.append(p1)
+            filledCoords.append(p2)
+            filledCoords.append(p3)
 
-        capCoords.append(p1)
-        capCoords.append(p2)
-        capCoords.append(p3)
         if capType == 'L':
+            capCoords.append(p1)
+            capCoords.append(p2)
+            capCoords.append(p3)
             capCoords.append(p2)
 
+    #Dashed Endcap Geometry
     elif capType == 'D':
-        rotangle = radians(-45)
+        rotangle = radians(-90)
         line = userOffsetVector.copy()
         line *= 1/20
         line.rotate(Quaternion(norm,rotangle))
         p1 = (pos - line)
         p2 = (pos + line)
-        line.rotate(Quaternion(norm,rotangle))
+
         # Define Overextension
         capCoords.append(pos)
-        capCoords.append(line + pos)
-        # We Draw the square outside in the draw method   
-    return capCoords
+        capCoords.append(line + pos)  
+
+        # Define Square
+        x = distVector.normalized() * capSize/20
+        y = userOffsetVector.normalized() * capSize/20
+        a = 0.055
+        b = 0.085
+       
+        s1 = (a*x) + (b*y)
+        s2 = (b*x) + (a*y)
+        s3 = (-a*x) + (-b*y)
+        s4 = (-b*x) + (-a*y)
+
+        square = (s1,s2,s3,s4)
+
+        for s in square:
+            if posflag < 1:
+                s.rotate(Quaternion(norm,rotangle))
+            s += pos
+
+        filledCoords.append(square[0])
+        filledCoords.append(square[1])
+        filledCoords.append(square[2])
+        filledCoords.append(square[0])
+        filledCoords.append(square[2])
+        filledCoords.append(square[3]) 
+    
+    return capCoords, filledCoords
 
 def generate_text_card(context,textobj,textProps,rotation,basePoint): 
     width = textobj.textWidth

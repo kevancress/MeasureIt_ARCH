@@ -438,4 +438,5 @@ def draw_dim_style_settings(dim,layout):
     col.prop(dim,'endcapA', text='Arrow Start')
     col.prop(dim,'endcapB', text='End')
     col.prop(dim,'endcapSize', text='Arrow Size')
+    col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
 
