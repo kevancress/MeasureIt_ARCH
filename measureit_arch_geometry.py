@@ -744,6 +744,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     k = Vector((0,0,1)) # Z Unit Vector
     loc = Vector(get_location(myobj))
     centerRay = Vector((-1,1,1))
+    badNormals = False 
 
     # Check for View Plane Overides
     if dim.dimViewPlane=='99':
@@ -753,7 +754,6 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 
     # User View Segemntation to decide on a view plane
     # We only care about View Segmentation if the user hasn't specified a view plane
-    
     if viewPlane == '99':
         # Get Viewport and CameraLoc or ViewRot
         if context.scene.measureit_arch_is_render_draw:
@@ -795,10 +795,14 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
                 
         bestNormal = directionRay
     
-        # Face Normals Available
-        # Check relevent component against current best normal
-        if len(possibleNormals) > 1:  
-            bestNormal = Vector((1,1,1))
+        # Check if Face Normals are available
+        if len(possibleNormals) < 1: badNormals = True
+        else:
+            bestNormal = Vector((0,0,0))
+            for norm in possibleNormals:
+                bestNormal += norm
+
+            # Check relevent component against current best normal
             if viewPlane == 'XY':
                 for norm in possibleNormals:
                     if abs(norm[2])< abs(bestNormal[2]):
@@ -813,29 +817,10 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
                 for norm in possibleNormals:
                     if abs(norm[1])< abs(bestNormal[1]):
                         bestNormal=norm
-            else:
-                bestNormal = Vector((0,0,0))
-                for norm in possibleNormals:
-                    bestNormal += norm
-            
-        # Face Normals Not Available 
-        # Use the cross product of the view planes normal and the dimensions direction
-        else:
-            if viewPlane == 'XY':
-                bestNormal = k.cross(normDistVector)
-            elif viewPlane == 'YZ':
-                bestNormal = i.cross(normDistVector)
-            elif viewPlane == 'XZ':
-                bestNormal = j.cross(normDistVector)
-            else:
-                bestNormal = directionRay
-
-            if bestNormal.dot(directionRay)<0:
-                bestNormal.negate()
-    
-    # not mesh obj
-    # Same as above... I should clean up this code to avoid duplicating this
-    else:
+                   
+    # If Face Normals aren't available;
+    # use the cross product of the View Plane Normal and the dimensions distance vector.
+    if myobj.type != 'MESH' or badNormals:
         if viewPlane == 'XY':
             bestNormal = k.cross(normDistVector)
         elif viewPlane == 'YZ':
@@ -843,7 +828,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
         elif viewPlane == 'XZ':
             bestNormal = j.cross(normDistVector)
         else:
-            bestNormal = centerRay
+            bestNormal = centerRay 
 
         if bestNormal.dot(centerRay)<0:
             bestNormal.negate()

@@ -28,6 +28,7 @@ import bmesh
 from bmesh import from_edit_mesh
 import bgl
 import gpu
+import time
 from gpu_extras.batch import batch_for_shader
 
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
@@ -527,7 +528,7 @@ def draw_main(context):
 
 
 def draw_main_3d (context):
-
+   
     scene = context.scene
 
     # Display selected or all
@@ -536,14 +537,10 @@ def draw_main_3d (context):
     else:
         objlist = context.view_layer.objects
 
-    # Enable GL drawing
-    bgl.glEnable(bgl.GL_BLEND)
-
     # ---------------------------------------
     # Generate all OpenGL calls
     # ---------------------------------------
     for myobj in objlist:
-        
         #Stash Object Vertices for use in Draw functions
         if myobj.visible_get() is True:
             myobj['obverts'] = get_mesh_vertices(myobj) 
