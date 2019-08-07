@@ -348,14 +348,14 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         inView = False    
     if dim.visible and dimProps.visible and inView:
 
+        # Get Viewport and CameraLoc or ViewRot
         if context.scene.measureit_arch_is_render_draw:
             viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
             cameraLoc = context.scene.camera.location.normalized()
         else:
             viewport = [context.area.width,context.area.height]
             viewRot = context.area.spaces[0].region_3d.view_rotation
-            #cameraLoc = context.scene.camera.location.normalized()
-            #print(cameraLoc)
+
 
         # Obj Properties
         obvertA = dim.dimObjectA['obverts']
@@ -395,12 +395,11 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         p1 = sortedPoints[0]
         p2 = sortedPoints[1]
 
-        
-        #i,j,k as card axis
+        #i,j,k as base vectors
         i = Vector((1,0,0))
         j = Vector((0,1,0))
         k = Vector((0,0,1))
-
+        
         if dim.dimViewPlane=='99':
             viewPlane = dimProps.dimViewPlane
         else:
@@ -739,17 +738,45 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
 
 def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     #Set properties
+    context = bpy.context
     i = Vector((1,0,0)) # X Unit Vector
     j = Vector((0,1,0)) # Y Unit Vector
     k = Vector((0,0,1)) # Z Unit Vector
     loc = Vector(get_location(myobj))
     centerRay = Vector((-1,1,1))
 
+    # Check for View Plane Overides
     if dim.dimViewPlane=='99':
         viewPlane = dimProps.dimViewPlane
     else:
         viewPlane = dim.dimViewPlane
 
+    # User View Segemntation to decide on a view plane
+    # We only care about View Segmentation if the user hasn't specified a view plane
+    
+    if viewPlane == '99':
+        # Get Viewport and CameraLoc or ViewRot
+        if context.scene.measureit_arch_is_render_draw:
+            cameraLoc = context.scene.camera.location.normalized()
+            viewAxis = cameraLoc
+        else:
+            viewRot = context.area.spaces[0].region_3d.view_rotation
+            viewVec = k.copy()
+            viewVec.rotate(viewRot)
+            viewAxis = viewVec
+
+        # Use Basic Threshold
+        basicThreshold = 0.5773
+
+        # Set View Plane Based on View Sector
+        if viewAxis[0] > basicThreshold or viewAxis[0] < -basicThreshold:
+            viewPlane = 'YZ'
+        if viewAxis[1] > basicThreshold or viewAxis[1] < -basicThreshold:
+            viewPlane = 'XZ'
+        if viewAxis[2] > basicThreshold or viewAxis[2] < -basicThreshold:
+            viewPlane = 'XY'
+   
+    # Mesh Dimension Behaviour
     if myobj.type == 'MESH':
         if dim.dimPointA != 9999999:
             vertA = myobj.data.vertices[dim.dimPointA]
@@ -768,7 +795,8 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
                 
         bestNormal = directionRay
     
-        #Face Normals Available Test Conditions
+        # Face Normals Available
+        # Check relevent component against current best normal
         if len(possibleNormals) > 1:  
             bestNormal = Vector((1,1,1))
             if viewPlane == 'XY':
@@ -790,7 +818,8 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
                 for norm in possibleNormals:
                     bestNormal += norm
             
-        #Face Normals Not Available 
+        # Face Normals Not Available 
+        # Use the cross product of the view planes normal and the dimensions direction
         else:
             if viewPlane == 'XY':
                 bestNormal = k.cross(normDistVector)
@@ -804,7 +833,8 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
             if bestNormal.dot(directionRay)<0:
                 bestNormal.negate()
     
-    #not mesh obj
+    # not mesh obj
+    # Same as above... I should clean up this code to avoid duplicating this
     else:
         if viewPlane == 'XY':
             bestNormal = k.cross(normDistVector)
