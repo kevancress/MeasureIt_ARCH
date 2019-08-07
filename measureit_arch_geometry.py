@@ -752,8 +752,14 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     else:
         viewPlane = dim.dimViewPlane
 
-    # User View Segemntation to decide on a view plane
-    # We only care about View Segmentation if the user hasn't specified a view plane
+    # Set viewAxis
+    if viewPlane == 'XY':
+        viewAxis = k
+    elif viewPlane == 'XZ':
+        viewAxis = j
+    elif viewPlane == 'YZ':
+        viewAxis = i
+
     if viewPlane == '99':
         # Get Viewport and CameraLoc or ViewRot
         if context.scene.measureit_arch_is_render_draw:
@@ -770,12 +776,13 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 
         # Set View Plane Based on View Sector
         if viewAxis[0] > basicThreshold or viewAxis[0] < -basicThreshold:
-            viewPlane = 'YZ'
+            viewAxis = i
         if viewAxis[1] > basicThreshold or viewAxis[1] < -basicThreshold:
-            viewPlane = 'XZ'
+            viewAxis = j
         if viewAxis[2] > basicThreshold or viewAxis[2] < -basicThreshold:
-            viewPlane = 'XY'
-   
+            viewAxis = k
+
+
     # Mesh Dimension Behaviour
     if myobj.type == 'MESH':
         if dim.dimPointA != 9999999:
@@ -792,43 +799,38 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
                 worldNormal -= myobj.location
                 worldNormal.normalize()
                 possibleNormals.append(worldNormal)
-                
-        bestNormal = directionRay
-    
+                    
         # Check if Face Normals are available
-        if len(possibleNormals) < 1: badNormals = True
+        if len(possibleNormals) != 2: badNormals = True
         else:
             bestNormal = Vector((0,0,0))
+            sumNormal = Vector((0,0,0))
             for norm in possibleNormals:
-                bestNormal += norm
+                sumNormal += norm
 
             # Check relevent component against current best normal
-            if viewPlane == 'XY':
-                for norm in possibleNormals:
-                    if abs(norm[2])< abs(bestNormal[2]):
-                        bestNormal=norm
+            checkValue = 0 
+            planeNorm = Vector((0,0,0))
+            for norm in possibleNormals:
+                newCheckValue = viewAxis.dot(norm)
+                if abs(newCheckValue) > abs(checkValue):
+                    planeNorm = norm
+                    checkValue = newCheckValue
+            
+            # Project to view Plane
+            bestNormal = planeNorm.cross(normDistVector)
+            if bestNormal.length == 0 or viewPlane == '99':
+                bestNormal = sumNormal
+            if bestNormal.dot(sumNormal)<0:
+                bestNormal.negate()
 
-            elif viewPlane == 'YZ':
-                for norm in possibleNormals:
-                    if abs(norm[0])< abs(bestNormal[0]):
-                        bestNormal=norm   
-
-            elif viewPlane == 'XZ':
-                for norm in possibleNormals:
-                    if abs(norm[1])< abs(bestNormal[1]):
-                        bestNormal=norm
-                   
     # If Face Normals aren't available;
     # use the cross product of the View Plane Normal and the dimensions distance vector.
     if myobj.type != 'MESH' or badNormals:
-        if viewPlane == 'XY':
-            bestNormal = k.cross(normDistVector)
-        elif viewPlane == 'YZ':
-            bestNormal = i.cross(normDistVector)
-        elif viewPlane == 'XZ':
-            bestNormal = j.cross(normDistVector)
-        else:
-            bestNormal = centerRay 
+
+        bestNormal = viewAxis.cross(normDistVector)
+        if bestNormal.length == 0:
+            bestNormal = centerRay
 
         if bestNormal.dot(centerRay)<0:
             bestNormal.negate()
