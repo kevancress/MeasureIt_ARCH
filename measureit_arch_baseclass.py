@@ -127,8 +127,8 @@ class BaseWithText(BaseProp):
     endcapArrowAngle: FloatProperty(name="endcapArrowAngle",
                 description="End Cap Arrow Angle",
                 default = math.radians(30),
-                min = math.radians(15),
-                max = math.radians(45),
+                soft_min = math.radians(15),
+                soft_max = math.radians(45),
                 subtype = 'ANGLE')
 
     endcapA: EnumProperty(
