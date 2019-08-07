@@ -811,6 +811,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
             # Check relevent component against current best normal
             checkValue = 0 
             planeNorm = Vector((0,0,0))
+            possibleNormals.append(viewAxis)
             for norm in possibleNormals:
                 newCheckValue = viewAxis.dot(norm)
                 if abs(newCheckValue) > abs(checkValue):
@@ -819,7 +820,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
             
             # Project to view Plane
             bestNormal = planeNorm.cross(normDistVector)
-            if bestNormal.length == 0 or viewPlane == '99':
+            if bestNormal.length == 0:
                 bestNormal = sumNormal
             if bestNormal.dot(sumNormal)<0:
                 bestNormal.negate()
