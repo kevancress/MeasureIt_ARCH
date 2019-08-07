@@ -1071,7 +1071,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 # Move end of line Back if arrow endcap
                 if endcap == 'T':
                     axis = Vector(p1) - Vector(p2)
-                    lineEnd = p1 - axis * 0.02 * lineWeight
+                    lineEnd = Vector(p1) - axis * 0.02 * lineWeight
                 else: lineEnd = p1
 
                 coords.append(lineEnd)
