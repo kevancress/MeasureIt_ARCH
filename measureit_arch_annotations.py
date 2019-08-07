@@ -294,6 +294,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col = box.column(align=True)
                             col.prop(annotation, 'endcapA', text='End Cap')
                             col.prop(annotation, 'endcapSize', text='Size')
+                            col.prop(annotation,'endcapArrowAngle', text='Arrow Angle')
 
                             col = box.column(align=True)
                             col.prop(annotation, 'lineWeight', text="Line Weight" )

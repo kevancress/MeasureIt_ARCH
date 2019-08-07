@@ -1114,7 +1114,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 line = interpolate3d(Vector((0,0,0)), axis, -0.1)
                 line = Vector(line) * endcapSize/10
                 perp = line.orthogonal()
-                rotangle = radians(20)
+                rotangle = annotationProps.endcapArrowAngle-radians(5)
                 line.rotate(Quaternion(perp,rotangle))
                 coords = []
                 for idx in range (12):
