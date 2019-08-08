@@ -548,7 +548,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
 
         #Collect coords and endcaps
-        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
+        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd,viewDiffStartB,viewDiffEndB]
         filledCoords = []
         pos = (dimLineStart,dimLineEnd)
         i=0
@@ -782,7 +782,6 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
         if viewAxis[2] > basicThreshold or viewAxis[2] < -basicThreshold:
             viewAxis = k
 
-
     # Mesh Dimension Behaviour
     if myobj.type == 'MESH':
         if dim.dimPointA != 9999999:
@@ -818,10 +817,14 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
                     planeNorm = norm
                     checkValue = newCheckValue
             
-            # Project to view Plane
+            # Make Dim Direction perpindicular to the plane normal and dimension direction
             bestNormal = planeNorm.cross(normDistVector)
+
+            # if length is 0 just use the sum
             if bestNormal.length == 0:
                 bestNormal = sumNormal
+
+            # Check Direction
             if bestNormal.dot(sumNormal)<0:
                 bestNormal.negate()
 
