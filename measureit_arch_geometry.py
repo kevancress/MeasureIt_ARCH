@@ -40,6 +40,8 @@ from sys import exc_info
 from .shaders import *
 import math
 import time
+import numpy as np
+from array import array
 
 #define Shaders
 shader = gpu.types.GPUShader(
@@ -139,7 +141,7 @@ def update_text(textobj,props,context):
                 bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
                 
                 # Write Texture Buffer to ID Property as List
-                textobj['texture'] = texture_buffer.to_list()
+                textobj['texture'] = texture_buffer
                 textOffscreen.free()
                 textobj.text_updated = False
                 textobj.texture_updated = True
@@ -1330,19 +1332,20 @@ def draw_text_3D(context,textobj,myobj,card):
     width = textobj.textWidth
     height = textobj.textHeight 
     dim = width * height * 4
+
     if 'texture' in textobj:
-        buffer = bgl.Buffer(bgl.GL_BYTE, dim, textobj['texture'].to_list())
+        # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
+        buffer = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(textobj['texture'], dtype=np.uint8))
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width, height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
         textobj.texture_updated=False
-        
+     
     # Draw Shader
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
     #bgl.glDeleteTextures(1, texBuf)
     gpu.shader.unbind()
-
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag):
     capCoords = []
     filledCoords = []

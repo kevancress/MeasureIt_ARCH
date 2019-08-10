@@ -589,7 +589,6 @@ def draw_main_3d (context):
                         draw_angleDimension(context, myobj, DimGen, angleDim,mat)
                     for axisDim in DimGen.axisDimensions:
                         draw_axisDimension(context,myobj,DimGen,axisDim,mat)
-
                 
 # -------------------------------------------------------------
 # Handlers for drawing OpenGl
