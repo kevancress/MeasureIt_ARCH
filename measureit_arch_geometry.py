@@ -120,6 +120,7 @@ def update_text(textobj,props,context):
             with textOffscreen.bind():
                 # Clear Past Draw and Set 2D View matrix
                 bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+                bgl.glClearColor(rgb[0],rgb[1],rgb[2],0)
                 
                 view_matrix = Matrix([
                 [2 / width, 0, 0, -1],
