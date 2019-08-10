@@ -141,6 +141,9 @@ def update_text(textobj,props,context):
                 bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
                 
                 # Write Texture Buffer to ID Property as List
+                if 'texture' in textobj:
+                    del textobj['texture']
+                    
                 textobj['texture'] = texture_buffer
                 textOffscreen.free()
                 textobj.text_updated = False
