@@ -39,6 +39,7 @@ import bpy_extras.object_utils as object_utils
 from sys import exc_info
 from .shaders import *
 import math
+import time
 
 #define Shaders
 shader = gpu.types.GPUShader(
@@ -276,10 +277,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         cardY = userOffsetVector.normalized() *sy
         
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
-
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim,myobj,square)
-
 
         #Collect coords and endcaps
         coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
@@ -310,6 +309,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
             bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         
         #bind shader
+        
         lineShader.bind()
         lineShader.uniform_float("Viewport",viewport)
         lineShader.uniform_float("thickness",lineWeight)
@@ -321,7 +321,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         batch.program_set(lineShader)
         batch.draw()
         gpu.shader.unbind()
-
+        
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
@@ -1251,7 +1251,7 @@ def draw_text_3D(context,textobj,myobj,card):
     # Skew Rotation slightly to avoid errors that occur
     # when the view Axis are perfectly orthogonal to the
     # card axis 
-    rot = Quaternion(viewAxisZ,0.5)
+    rot = Quaternion(viewAxisZ,radians(0.5))
     viewAxisX.rotate(rot)
     viewAxisY.rotate(rot)
 
@@ -1488,6 +1488,8 @@ def generate_text_card(context,textobj,textProps,rotation,basePoint):
     ])
 
     # Transform Card By Transformation Matricies (Scale -> XYZ Euler Rotation -> Translate)
+    xyzEulerRotMatrix = rotateXMatrix @ rotateYMatrix @ rotateZMatrix
+
     coords = []
     for coord in square:
         coord= Vector(coord) - Vector(aOff)

@@ -235,7 +235,6 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         group.Z_widget = annotationOffsetZ
         idx += 1
 
-
 def createAnnotationRotateGiz(group,annotationGen,objIndex):
     # Set Basis Matrix
     idx = 0
