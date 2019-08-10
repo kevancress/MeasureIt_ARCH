@@ -516,7 +516,7 @@ def draw_main(context):
                     if annotation.uses_style:
                         for annotationStyle in context.scene.StyleGenerator[0].annotations:
                             if annotationStyle.name == annotation.style:
-                                annotationProps= annotationStyle
+                                annotationProps = annotationStyle
                     if annotation.annotationTextSource is not '':
                         try:
                             annotation.text = myobj[annotation.annotationTextSource]
