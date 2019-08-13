@@ -555,10 +555,14 @@ def draw_main_3d (context):
 
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator[0]
+                #start = time.perf_counter()
                 for alignedDim in DimGen.alignedDimensions:
                     draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
+                #end = time.perf_counter()
+                #print(("%.3f"%((end-start)*1000)) + ' ms')
                 for angleDim in DimGen.angleDimensions:
                     draw_angleDimension(context, myobj, DimGen, angleDim,mat)
+
                 for axisDim in DimGen.axisDimensions:
                     draw_axisDimension(context,myobj,DimGen,axisDim,mat)
     

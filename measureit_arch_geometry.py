@@ -143,7 +143,6 @@ def update_text(textobj,props,context):
                 # Write Texture Buffer to ID Property as List
                 if 'texture' in textobj:
                     del textobj['texture']
-                    
                 textobj['texture'] = texture_buffer
                 textOffscreen.free()
                 textobj.text_updated = False
@@ -254,8 +253,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         leadEndA = Vector(p1) + offsetDistance
         leadStartB = Vector(p2) + geoOffsetDistance
         leadEndB = Vector(p2)+offsetDistance
-        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.05))
-        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.05))
+        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.005*capSize))
+        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.005*capSize))
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
         #i,j,k as card axis
@@ -1539,6 +1538,7 @@ def get_dom_axis (vector):
         domAxis = 2
     
     return domAxis
+
 # ------------------------------------------
 # Get polygon area and paint area
 # LEGACY
