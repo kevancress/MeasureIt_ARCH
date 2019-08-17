@@ -540,11 +540,17 @@ def draw_main_3d (context):
     # ---------------------------------------
     # Generate all OpenGL calls
     # ---------------------------------------
+    start = time.perf_counter()
     for myobj in objlist:
         #Stash Object Vertices for use in Draw functions
-        if myobj.visible_get() is True:
+        if myobj.data == 'MESH':
             myobj['obverts'] = get_mesh_vertices(myobj) 
+                
+        if myobj.visible_get() is True:
             mat = myobj.matrix_world
+            if 'obverts' not in myobj:
+                myobj['obverts'] = get_mesh_vertices(myobj)
+
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]
                 draw_line_group(context,myobj,lineGen,mat)
@@ -555,45 +561,48 @@ def draw_main_3d (context):
 
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator[0]
-                #start = time.perf_counter()
+                
                 for alignedDim in DimGen.alignedDimensions:
                     draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
-                #end = time.perf_counter()
-                #print(("%.3f"%((end-start)*1000)) + ' ms')
+
                 for angleDim in DimGen.angleDimensions:
                     draw_angleDimension(context, myobj, DimGen, angleDim,mat)
 
                 for axisDim in DimGen.axisDimensions:
                     draw_axisDimension(context,myobj,DimGen,axisDim,mat)
-    
-    # Draw Instanced Objects 
-    deps = bpy.context.view_layer.depsgraph
-    for obj_int in deps.object_instances:
-        if obj_int.is_instance:
-            myobj = obj_int.object
 
-            if 'obverts' not in myobj:
-                myobj['obverts'] = get_mesh_vertices(myobj) 
-                mat = obj_int.matrix_world
+    # Draw Instanced Objects
+    draw_instanced = True
+    if draw_instanced:
+        deps = bpy.context.view_layer.depsgraph
+        for obj_int in deps.object_instances:
+            if obj_int.is_instance:
+                myobj = obj_int.object
 
-            if 'LineGenerator' in myobj:
-                lineGen = myobj.LineGenerator[0]
-                draw_line_group(context,myobj,lineGen,mat)
-            
-            if 'AnnotationGenerator' in myobj:
-                annotationGen = myobj.AnnotationGenerator[0]
-                draw_annotation(context,myobj,annotationGen,mat)
+                if 'obverts' not in myobj:
+                    myobj['obverts'] = get_mesh_vertices(myobj) 
+                    mat = obj_int.matrix_world
+
+                if 'LineGenerator' in myobj:
+                    lineGen = myobj.LineGenerator[0]
+                    draw_line_group(context,myobj,lineGen,mat)
                 
-            if scene.measureit_arch_inst_dims:
-                if 'DimensionGenerator' in myobj:
-                    DimGen = myobj.DimensionGenerator[0]
-                    for alignedDim in DimGen.alignedDimensions:
-                        draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
-                    for angleDim in DimGen.angleDimensions:
-                        draw_angleDimension(context, myobj, DimGen, angleDim,mat)
-                    for axisDim in DimGen.axisDimensions:
-                        draw_axisDimension(context,myobj,DimGen,axisDim,mat)
-                
+                if 'AnnotationGenerator' in myobj:
+                    annotationGen = myobj.AnnotationGenerator[0]
+                    draw_annotation(context,myobj,annotationGen,mat)
+                    
+                if scene.measureit_arch_inst_dims:
+                    if 'DimensionGenerator' in myobj:
+                        DimGen = myobj.DimensionGenerator[0]
+                        for alignedDim in DimGen.alignedDimensions:
+                            draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
+                        for angleDim in DimGen.angleDimensions:
+                            draw_angleDimension(context, myobj, DimGen, angleDim,mat)
+                        for axisDim in DimGen.axisDimensions:
+                            draw_axisDimension(context,myobj,DimGen,axisDim,mat)
+
+    end = time.perf_counter()
+    print(("%.3f"%((end-start)*1000)) + ' ms')   
 # -------------------------------------------------------------
 # Handlers for drawing OpenGl
 # -------------------------------------------------------------
