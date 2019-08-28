@@ -305,9 +305,6 @@ class OBJECT_PT_UILines(Panel):
                             col.prop(line, 'lineDrawDashed', text="Draw Dashed")
                             col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
 
-
-
-
 class OBJECT_MT_lines_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
@@ -326,8 +323,6 @@ class OBJECT_MT_lines_menu(bpy.types.Menu):
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
         delOp.is_style = False
         delOp.item_type = 'L'
-
-
 
 class AddToLineGroup(Operator):   
     bl_idname = "measureit_arch.addtolinegroup"

@@ -333,6 +333,8 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
 
 def draw_axisDimension(context, myobj, measureGen,dim, mat):
     # GL Settings
+
+    start = time.perf_counter()
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
@@ -547,10 +549,16 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         cardX = Vector((abs(normDistVector[0]),-abs(normDistVector[1]),-abs(normDistVector[2]))) * sx
         cardY = userOffsetVector *sy
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
+        
 
+        end = time.perf_counter()
+        print(("calc time: "+ "%.3f"%((end-start)*1000)) + ' ms')  
+
+        start = time.perf_counter()
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim,myobj,square)
-
+        
+        
 
         #Collect coords and endcaps
         coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd,viewDiffStartB,viewDiffEndB]
@@ -596,6 +604,9 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
+
+        end = time.perf_counter()
+        print(("draw time: "+ "%.3f"%((end-start)*1000)) + ' ms')  
 
 def draw_angleDimension(context, myobj, DimGen, dim,mat):
     dimProps = dim
@@ -779,7 +790,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
         # Use Basic Threshold
         basicThreshold = 0.5773
 
-        # Set View Plane Based on View Sector
+        # Set View axis Based on View Sector
         if viewAxis[0] > basicThreshold or viewAxis[0] < -basicThreshold:
             viewAxis = i
         if viewAxis[1] > basicThreshold or viewAxis[1] < -basicThreshold:
@@ -1348,6 +1359,7 @@ def draw_text_3D(context,textobj,myobj,card):
     batch.draw(textShader)
     #bgl.glDeleteTextures(1, texBuf)
     gpu.shader.unbind()
+
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag):
     capCoords = []
     filledCoords = []

@@ -67,7 +67,6 @@ class BaseProp:
                 description= "Default Rot Direction for item Gizmo",
                 subtype='TRANSLATION')
     
-
 class BaseWithText(BaseProp):  
     text: StringProperty(name="Text",
                 description="Text Associated With Item",

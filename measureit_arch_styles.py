@@ -186,8 +186,6 @@ class SCENE_PT_UIStyles(Panel):
         else:
             layout.operator("measureit_arch.addstylebutton", text="Use Styles", icon="ADD")
 
-
-
 class SCENE_MT_styles_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 

@@ -540,7 +540,7 @@ def draw_main_3d (context):
     # ---------------------------------------
     # Generate all OpenGL calls
     # ---------------------------------------
-    start = time.perf_counter()
+
     for myobj in objlist:
         #Stash Object Vertices for use in Draw functions
         if myobj.data == 'MESH':
@@ -548,8 +548,7 @@ def draw_main_3d (context):
                 
         if myobj.visible_get() is True:
             mat = myobj.matrix_world
-            if 'obverts' not in myobj:
-                myobj['obverts'] = get_mesh_vertices(myobj)
+            myobj['obverts'] = get_mesh_vertices(myobj)
 
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]
@@ -601,8 +600,6 @@ def draw_main_3d (context):
                         for axisDim in DimGen.axisDimensions:
                             draw_axisDimension(context,myobj,DimGen,axisDim,mat)
 
-    end = time.perf_counter()
-    print(("%.3f"%((end-start)*1000)) + ' ms')   
 # -------------------------------------------------------------
 # Handlers for drawing OpenGl
 # -------------------------------------------------------------

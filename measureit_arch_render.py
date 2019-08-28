@@ -90,7 +90,6 @@ class MeasureitArchRenderPanel(Panel):
 #
 # -------------------------------------------------------------
 
-
 class RenderSegmentButton(Operator):
     bl_idname = "measureit_arch.rendersegmentbutton"
     bl_label = "Render"
@@ -152,8 +151,6 @@ class RenderSegmentButton(Operator):
 
         if v3d is not False:
             s.show_only_render = status
-
-
 
 class MeasureitRenderAnim(bpy.types.Operator):
     """Operator which runs its self from a timer"""
