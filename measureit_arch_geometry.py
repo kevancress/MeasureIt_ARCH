@@ -1295,7 +1295,8 @@ def draw_text_3D(context,textobj,myobj,card):
         normalizedDeviceUVs = flippedUVs
     
     #Draw View Axis in Red and Card Axis in Green for debug
-    autoflipdebug = False
+    scene = bpy.context.scene
+    autoflipdebug = scene.measureit_arch_debug_flip_text
     if autoflipdebug == True:
         viewport = [context.area.width,context.area.height]
         lineShader.bind()

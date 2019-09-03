@@ -155,6 +155,10 @@ def register():
     bpy.types.SCENE_PT_unit.append(precision_ui)
 
     # Define properties
+    Scene.measureit_arch_debug_flip_text = BoolProperty(name="Debug Text Flip Vectors",
+                                    description="Displys Text Card and View Vectors used to Flip Text",
+                                    default=False)
+
     Scene.measureit_arch_inst_dims = BoolProperty(name="Instance Dimensions",
                                     description="NOTE: Instanced Dimensions text will not adapt to local changes in scale or rotation",
                                     default=False)

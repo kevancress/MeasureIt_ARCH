@@ -298,6 +298,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(scene, "measureit_arch_debug_text")
         col.prop(scene, "measureit_arch_eval_mods")
         col.prop(scene, "measureit_arch_inst_dims")
+        col.prop(scene, "measureit_arch_debug_flip_text")
 
         # Measureit-ARCH Legacy Overrides
         # Overrides need to be re-implimented in the new version
