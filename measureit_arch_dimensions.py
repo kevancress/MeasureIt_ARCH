@@ -1217,7 +1217,7 @@ def draw_aligned_dimension_settings(dim,layout):
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
         col.prop(dim,'textResolution',text='Resolution')
-        #col.prop(dim,'textAlignment',text='Alignment')
+        col.prop(dim,'textAlignment',text='Alignment')
         #col.prop(dim,'textPosition',text='Position')
 
         col = layout.column(align=True)
@@ -1261,7 +1261,7 @@ def draw_axis_dimension_settings(dim,layout):
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
         col.prop(dim,'textResolution',text='Resolution')
-        #col.prop(dim,'textAlignment',text='Alignment')
+        col.prop(dim,'textAlignment',text='Alignment')
         #col.prop(dim,'textPosition',text='Position')
 
         col = layout.column(align=True)
@@ -1297,7 +1297,7 @@ def draw_angle_dimension_settings(dim,layout):
             col = layout.column(align=True)
             col.prop(dim,'fontSize',text='Font Size')
             col.prop(dim,'textResolution',text='Resolution')
-            #col.prop(dim,'textAlignment',text='Alignment')
+            col.prop(dim,'textAlignment',text='Alignment')
             #col.prop(dim,'textPosition',text='Position')
 
         col = layout.column(align=True)

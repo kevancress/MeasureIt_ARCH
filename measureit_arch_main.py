@@ -415,7 +415,6 @@ def get_mesh_vertices(myobj):
                     verts = myobj.data.vertices
             for vert in verts:
                 obverts.append(vert.co)
-            #bm.free()
             return obverts
         else: return None 
     except AttributeError:
@@ -544,12 +543,10 @@ def draw_main_3d (context):
 
     for myobj in objlist:
         #Stash Object Vertices for use in Draw functions
-        if myobj.data == 'MESH':
-            myobj['obverts'] = get_mesh_vertices(myobj) 
-                
+        #                
+        myobj['obverts'] = get_mesh_vertices(myobj)
         if myobj.visible_get() is True:
             mat = myobj.matrix_world
-            myobj['obverts'] = get_mesh_vertices(myobj)
 
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator[0]

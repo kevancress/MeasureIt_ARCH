@@ -158,7 +158,7 @@ def update_text(textobj,props,context):
             image.scale(width, height)
             image.pixels = [v / 255 for v in texture_buffer]
 
-def draw_alignedDimension(context, myobj, measureGen,dim,mat):
+def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
@@ -280,10 +280,17 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         origin = Vector(textLoc)
         cardX = normDistVector.normalized() * sx
         cardY = userOffsetVector.normalized() *sy
+
+        flipCaps = False
+        if (cardX.length + capSize/100) > dist:
+            flipCaps=True
+            origin = Vector(dimLineEnd) - Vector(cardX/2 + cardX.normalized()*capSize/100) -Vector(cardY/2)
         
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim,myobj,square)
+
+    
 
         #Collect coords and endcaps
         coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
@@ -291,7 +298,7 @@ def draw_alignedDimension(context, myobj, measureGen,dim,mat):
         pos = (dimLineStart,dimLineEnd)
         i=0
         for cap in caps:
-            capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],userOffsetVector,textLoc,i)
+            capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],userOffsetVector,textLoc,i,flipCaps)
             i += 1 
             for coord in capCoords[0]:
                 coords.append(coord)
@@ -548,6 +555,13 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         origin = Vector(textLoc)
         cardX = Vector((abs(normDistVector[0]),-abs(normDistVector[1]),-abs(normDistVector[2]))) * sx
         cardY = userOffsetVector *sy
+
+        flipCaps = False
+        if (cardX.length + capSize/100) > dist:
+            flipCaps=True
+            origin = Vector(dimLineEnd) - Vector(cardX/2 + cardX.normalized()*capSize/100) - Vector(cardY/2)
+
+
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
         
 
@@ -566,7 +580,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         pos = (dimLineStart,dimLineEnd)
         i=0
         for cap in caps:
-            capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],userOffsetVector,textLoc,i)
+            capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],userOffsetVector,textLoc,i,flipCaps)
             i += 1 
             for coord in capCoords[0]:
                 coords.append(coord)
@@ -1312,10 +1326,13 @@ def draw_text_3D(context,textobj,myobj,card):
         batch.draw()
         
         lineShader.uniform_float("finalColor", (0, 1, 0, 1))
-        coords = [zero,cardDirX/2,zero,cardDirY,zero,cardDirZ*2]
+        coords = [zero,cardDirX/2,zero,cardDirY]
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
         batch.program_set(lineShader)
         batch.draw()
+
+        print ("X dot: " + str(cardDirX.dot(viewAxisX)))
+        print ("Y dot: " + str(cardDirY.dot(viewAxisY)))
 
     # Flip UV's if user selected
     if textobj.textFlippedX is True or textobj.textFlippedY is True:
@@ -1361,7 +1378,7 @@ def draw_text_3D(context,textobj,myobj,card):
     #bgl.glDeleteTextures(1, texBuf)
     gpu.shader.unbind()
 
-def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag):
+def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
     capCoords = []
     filledCoords = []
     size = capSize/100
@@ -1369,6 +1386,9 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
     norm = distVector.cross(userOffsetVector)
     line = distVector*size
     arrowAngle = item.endcapArrowAngle
+
+    if flipCaps:
+        arrowAngle += radians(180)
     
     if capType == 99:
         pass
