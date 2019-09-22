@@ -543,19 +543,21 @@ def draw_main_3d (context):
     for myobj in objlist:
         #Stash Object Vertices for use in Draw functions
         #                
-        myobj['obverts'] = get_mesh_vertices(myobj)
         if myobj.visible_get() is True:
             mat = myobj.matrix_world
 
             if 'LineGenerator' in myobj:
+                myobj['obverts'] = get_mesh_vertices(myobj)
                 lineGen = myobj.LineGenerator[0]
                 draw_line_group(context,myobj,lineGen,mat)
             
             if 'AnnotationGenerator' in myobj:
+                myobj['obverts'] = get_mesh_vertices(myobj)
                 annotationGen = myobj.AnnotationGenerator[0]
                 draw_annotation(context,myobj,annotationGen,mat)
 
             if 'DimensionGenerator' in myobj:
+                myobj['obverts'] = get_mesh_vertices(myobj)
                 DimGen = myobj.DimensionGenerator[0]
                 
                 for alignedDim in DimGen.alignedDimensions:
