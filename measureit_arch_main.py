@@ -546,18 +546,18 @@ def draw_main_3d (context):
         if myobj.visible_get() is True:
             mat = myobj.matrix_world
 
-            if 'LineGenerator' in myobj:
+            if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
                 myobj['obverts'] = get_mesh_vertices(myobj)
+
+            if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
                 lineGen = myobj.LineGenerator[0]
                 draw_line_group(context,myobj,lineGen,mat)
             
-            if 'AnnotationGenerator' in myobj:
-                myobj['obverts'] = get_mesh_vertices(myobj)
+            if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator[0].num_annotations != 0:
                 annotationGen = myobj.AnnotationGenerator[0]
                 draw_annotation(context,myobj,annotationGen,mat)
 
-            if 'DimensionGenerator' in myobj:
-                myobj['obverts'] = get_mesh_vertices(myobj)
+            if 'DimensionGenerator' in myobj and myobj.DimensionGenerator[0].measureit_arch_num != 0:
                 DimGen = myobj.DimensionGenerator[0]
                 
                 for alignedDim in DimGen.alignedDimensions:
@@ -581,16 +581,16 @@ def draw_main_3d (context):
                     myobj['obverts'] = get_mesh_vertices(myobj) 
                     mat = obj_int.matrix_world
 
-                if 'LineGenerator' in myobj:
+                if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
                     lineGen = myobj.LineGenerator[0]
                     draw_line_group(context,myobj,lineGen,mat)
                 
-                if 'AnnotationGenerator' in myobj:
+                if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator[0].num_annotations != 0:
                     annotationGen = myobj.AnnotationGenerator[0]
                     draw_annotation(context,myobj,annotationGen,mat)
                     
                 if scene.measureit_arch_inst_dims:
-                    if 'DimensionGenerator' in myobj:
+                    if 'DimensionGenerator' in myobj and myobj.DimensionGenerator[0].measureit_arch_num != 0:
                         DimGen = myobj.DimensionGenerator[0]
                         for alignedDim in DimGen.alignedDimensions:
                             draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
