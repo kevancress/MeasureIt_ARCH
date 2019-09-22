@@ -557,7 +557,7 @@ def draw_main_3d (context):
                 annotationGen = myobj.AnnotationGenerator[0]
                 draw_annotation(context,myobj,annotationGen,mat)
 
-            if 'DimensionGenerator' in myobj and myobj.DimensionGenerator[0].measureit_arch_num != 0:
+            if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator[0]
                 
                 for alignedDim in DimGen.alignedDimensions:

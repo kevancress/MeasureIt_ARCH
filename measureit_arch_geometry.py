@@ -713,7 +713,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         resolution = dimProps.textResolution
         size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.2*size
+        sy = (height/resolution)*0.1*size
         origin = Vector(midPoint)
         cardX = vecX * sx
         cardY = midVec *sy
