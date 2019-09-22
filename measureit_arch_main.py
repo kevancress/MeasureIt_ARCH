@@ -576,10 +576,11 @@ def draw_main_3d (context):
         for obj_int in deps.object_instances:
             if obj_int.is_instance:
                 myobj = obj_int.object
-
-                if 'obverts' not in myobj:
-                    myobj['obverts'] = get_mesh_vertices(myobj) 
-                    mat = obj_int.matrix_world
+                
+                if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
+                    if 'obverts' not in myobj:
+                        myobj['obverts'] = get_mesh_vertices(myobj) 
+                        mat = obj_int.matrix_world
 
                 if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
                     lineGen = myobj.LineGenerator[0]
