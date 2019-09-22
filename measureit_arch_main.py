@@ -410,7 +410,6 @@ def get_mesh_vertices(myobj):
                     obj_eval = myobj.evaluated_get(deps)
                     mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
                     verts = mesh.vertices
-                    obj_eval.to_mesh_clear()
                 else:
                     verts = myobj.data.vertices
             for vert in verts:
