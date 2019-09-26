@@ -78,20 +78,20 @@ def update_text(textobj, props, context):
     if textobj.text_updated is True or props.text_updated is True:
         # Get textitem Properties
         rawRGB = props.color
-        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
         size = 20
         resolution = props.textResolution
 
         # Get Font Id
-        badfonts=[None]
+        badfonts = [None]
         if 'Bfont' in bpy.data.fonts:
             badfonts.append(bpy.data.fonts['Bfont'])
         if props.font not in badfonts:
             vecFont = props.font
             fontPath = vecFont.filepath
-            font_id= blf.load(fontPath)
+            font_id = blf.load(fontPath)
         else:
-            font_id=0
+            font_id = 0
 
         # Get Text
         text = str(textobj.text)
@@ -99,41 +99,41 @@ def update_text(textobj, props, context):
             text = " "
 
         # Set BLF font Properties
-        blf.color(font_id,rgb[0],rgb[1],rgb[2],rgb[3])
-        blf.size(font_id,size,resolution)
+        blf.color(font_id, rgb[0], rgb[1], rgb[2], rgb[3])
+        blf.size(font_id, size, resolution)
         
-        #Calculate Optimal Dimensions for Text Texture.
-        fheight = blf.dimensions(font_id,'fp')[1]
-        fwidth = blf.dimensions(font_id,text)[0]
+        # Calculate Optimal Dimensions for Text Texture.
+        fheight = blf.dimensions(font_id, 'fp')[1]
+        fwidth = blf.dimensions(font_id, text)[0]
         width = math.ceil(fwidth)
         height = math.ceil(fheight+4)
-        blf.position(font_id,0,height/4,0)
+        blf.position(font_id, 0, height/4, 0)
 
-        #Save Texture size to textobj Properties
+        # Save Texture size to textobj Properties
         textobj.textHeight = height
         textobj.textWidth = width
 
         # Start Offscreen Draw
         if width != 0 and height != 0:
-            textOffscreen = gpu.types.GPUOffScreen(width,height)
+            textOffscreen = gpu.types.GPUOffScreen(width, height)
             texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
             
             with textOffscreen.bind():
                 # Clear Past Draw and Set 2D View matrix
-                bgl.glClearColor(rgb[0],rgb[1],rgb[2],0)
+                bgl.glClearColor(rgb[0], rgb[1], rgb[2], 0)
                 bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
                 
                 view_matrix = Matrix([
-                [2 / width, 0, 0, -1],
-                [0, 2 / height, 0, -1],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1]])
+                    [2 / width, 0, 0, -1],
+                    [0, 2 / height, 0, -1],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1]])
                 
                 gpu.matrix.reset()
                 gpu.matrix.load_matrix(view_matrix)
                 gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-                blf.draw(font_id,text)
+                blf.draw(font_id, text)
                 
                 # Read Offscreen To Texture Buffer
                 bgl.glReadBuffer(bgl.GL_BACK)
@@ -147,15 +147,15 @@ def update_text(textobj, props, context):
                 textobj.text_updated = False
                 textobj.texture_updated = True
             
-
-        #generate image datablock from buffer for debug preview
-        #ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
+        # generate image datablock from buffer for debug preview
+        # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
         if context.scene.measureit_arch_debug_text:
             if not str('test') in bpy.data.images:
                 bpy.data.images.new(str('test'), width, height)
             image = bpy.data.images[str('test')]
             image.scale(width, height)
             image.pixels = [v / 255 for v in texture_buffer]
+
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     # GL Settings
@@ -172,7 +172,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
                 dimProps = alignedDimStyle
 
     lineWeight = dimProps.lineWeight
-    #check all visibility conditions
+    # check all visibility conditions
     if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
         inView = True        
     else:
@@ -180,9 +180,9 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     if dim.visible and dimProps.visible and inView:
 
         if context.scene.measureit_arch_is_render_draw:
-            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+            viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
         else:
-            viewport = [context.area.width,context.area.height]
+            viewport = [context.area.width, context.area.height]
 
         # Obj Properties
         obvertA = dim.dimObjectA['obverts']
@@ -191,7 +191,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
         
         # Define Caps as a tuple of capA and capB to reduce code duplications
         caps = (dimProps.endcapA, dimProps.endcapB)
@@ -204,23 +204,23 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         aMatrix = mat
         bMatrix = mat
         if dim.dimObjectB != dim.dimObjectA:
-            bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat 
-    
+            bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat\
+
         # get points positions from indicies
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
         else:
-            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA,aMatrix)
-        
+            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA, aMatrix)
+
         if dim.dimPointB == 9999999:
             p2 = dim.dimObjectB.location
         else:
-            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB,bMatrix)
-        
-        
+            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB, bMatrix)
+
+
 
         #check dominant Axis
-        sortedPoints = sortPoints(p1,p2)
+        sortedPoints = sortPoints(p1, p2)
         p1 = sortedPoints[0]
         p2 = sortedPoints[1]
     
@@ -234,8 +234,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
 
 
         # Compute offset vector from face normal and user input
-        rotationMatrix = Matrix.Rotation(dim.dimRotation,4,normDistVector)
-        selectedNormal = Vector(select_normal(myobj,dim,normDistVector,midpoint,dimProps))
+        rotationMatrix = Matrix.Rotation(dim.dimRotation, 4, normDistVector)
+        selectedNormal = Vector(select_normal(myobj, dim, normDistVector, midpoint, dimProps))
         if dim.dimFlip is True:
             selectedNormal.negate()
         
