@@ -43,7 +43,7 @@ import time
 import numpy as np
 from array import array
 
-#define Shaders
+# define Shaders
 shader = gpu.types.GPUShader(
     Base_Shader_2D.vertex_shader,
     Base_Shader_2D.fragment_shader)
@@ -74,16 +74,15 @@ textShader = gpu.types.GPUShader(
 fontSizeMult = 6
 
 
-
-def update_text(textobj,props,context):
+def update_text(textobj, props, context):
     if textobj.text_updated is True or props.text_updated is True:
-        #Get textitem Properties
+        # Get textitem Properties
         rawRGB = props.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         size = 20
         resolution = props.textResolution
 
-        #Get Font Id
+        # Get Font Id
         badfonts=[None]
         if 'Bfont' in bpy.data.fonts:
             badfonts.append(bpy.data.fonts['Bfont'])
@@ -341,7 +340,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
 def draw_axisDimension(context, myobj, measureGen,dim, mat):
     # GL Settings
 
-    start = time.perf_counter()
+    #start = time.perf_counter()
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
@@ -565,10 +564,10 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
         
 
-        end = time.perf_counter()
-        print(("calc time: "+ "%.3f"%((end-start)*1000)) + ' ms')  
+       # end = time.perf_counter()
+        #print(("calc time: "+ "%.3f"%((end-start)*1000)) + ' ms')  
 
-        start = time.perf_counter()
+        #start = time.perf_counter()
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim,myobj,square)
         
@@ -619,8 +618,8 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
 
-        end = time.perf_counter()
-        print(("draw time: "+ "%.3f"%((end-start)*1000)) + ' ms')  
+        #end = time.perf_counter()
+        #print(("draw time: "+ "%.3f"%((end-start)*1000)) + ' ms')  
 
 def draw_angleDimension(context, myobj, DimGen, dim,mat):
     dimProps = dim

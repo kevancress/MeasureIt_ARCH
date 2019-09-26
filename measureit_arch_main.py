@@ -65,7 +65,7 @@ def save_handler(dummy):
             objlist.append(obj.name)
 
     for obj in bpy.context.blend_data.objects:
-        if obj.name in objlist:
+        if obj.name in objlist or obj is None:
             pass
         else:
             print (str(obj.name) + ' Data Removed')

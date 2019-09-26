@@ -187,6 +187,7 @@ class AddLineButton(Operator):
 
         return {'CANCELLED'}
 
+
 class M_ARCH_UL_lines_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
         scene = bpy.context.scene
@@ -194,7 +195,7 @@ class M_ARCH_UL_lines_list(UIList):
         if 'StyleGenerator' in scene:
             StyleGen = scene.StyleGenerator[0]
             hasGen = True
-        
+            
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             line = item
             layout.use_property_decorate = False
@@ -387,10 +388,27 @@ class AddToLineGroup(Operator):
 class AddLineByProperty(Operator):   
     bl_idname = "measureit_arch.addlinebyproperty"
     bl_label = "Add Lines By Crease"
-    bl_description = "Add Lines to Edges sharper than the specified angle (uses Autosmooth Angle)"
+    bl_description = "Add Lines to Edges sharper than the specified angle (uses Autosmooth Angle) OBJECT MODE ONLY"
     bl_category = 'MeasureitArch'
     tag= IntProperty()
     calledFromGroup= BoolProperty(default=False)
+
+    # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        o = context.object
+        if o is None:
+            return False
+        else:
+            if o.type == "MESH":
+                if bpy.context.mode == 'OBJECT':
+                    return True
+                else:
+                    return False
+            else:
+                return False
 
 
     # ------------------------------
