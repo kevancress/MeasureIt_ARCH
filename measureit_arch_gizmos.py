@@ -45,10 +45,11 @@ class mArchGizmoGroup(GizmoGroup):
         obj = context.object
         scene = context.scene
         if scene.measureit_arch_show_gizmos and context.window_manager.measureit_arch_run_opengl:
-            if 'DimensionGenerator' in obj:
-                return (obj)
-            if 'AnnotationGenerator' in obj:
-                return (obj)
+            if obj is not None:
+                if 'DimensionGenerator' in obj:
+                    return (obj)
+                if 'AnnotationGenerator' in obj:
+                    return (obj)
 
     def createGiz(self,obj):
         objIndex = 0
