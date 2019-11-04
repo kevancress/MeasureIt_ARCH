@@ -126,7 +126,7 @@ class AddAnnotationButton(Operator):
             return True
         elif obj.type == "EMPTY" or obj.type == "CAMERA" or obj.type == "LIGHT":
             return True
-        elif o.type == "MESH" and  bpy.context.mode == 'EDIT_MESH':
+        elif obj.type == "MESH" and  bpy.context.mode == 'EDIT_MESH':
             return True
         else:
             return False
@@ -157,7 +157,7 @@ class AddAnnotationButton(Operator):
                     newAnnotation.annotationAnchor = mylist[0]
                     
                     context.area.tag_redraw()  
-                    update_custom_props(newAnnotation,context)
+                    update_custom_props(newAnnotation, context)
                 else:
                     self.report({'ERROR'},
                                 "MeasureIt-ARCH: Select one vertex for creating measure label")
