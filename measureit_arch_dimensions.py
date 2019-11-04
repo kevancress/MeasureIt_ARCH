@@ -73,9 +73,6 @@ class AlignedDimensionProperties(BaseWithText,PropertyGroup):
     
     dimVisibleInView: PointerProperty(type= bpy.types.Camera)
 
-    dimFlip: BoolProperty(name='Flip Dimension',
-                    description= 'Flip The Dimension Normal',
-                    default=False)
 
     dimViewPlane: EnumProperty(
                     items=(('99', "None", "None",'EMPTY_AXIS',0),
@@ -131,9 +128,6 @@ class AxisDimensionProperties(BaseWithText,PropertyGroup):
     
     dimVisibleInView: PointerProperty(type= bpy.types.Camera)
 
-    dimFlip: BoolProperty(name='Flip Dimension',
-                    description= 'Flip The Dimension Normal',
-                    default=False)
 
     dimViewPlane: EnumProperty(
                     items=(('99', "None", "None",'EMPTY_AXIS',0),
@@ -1101,11 +1095,6 @@ class M_ARCH_UL_dimension_list(UIList):
                 row.prop_search(dim,'style', StyleGen,'alignedDimensions',text="", icon='COLOR')
                 row.separator()
 
-            subrow = row.row(align=True)
-            if item.itemType == 'D-ALIGNED' or item.itemType == 'D-AXIS':
-                if dim.dimFlip: flipIcon ='BACK'
-                else: flipIcon = 'FORWARD'
-                subrow.prop(dim, 'dimFlip',text='',toggle=True, icon=flipIcon,emboss=False)
             
             if hasGen:
                 row = row.row(align=True)

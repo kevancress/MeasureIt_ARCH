@@ -236,12 +236,14 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         # Compute offset vector from face normal and user input
         rotationMatrix = Matrix.Rotation(dim.dimRotation, 4, normDistVector)
         selectedNormal = Vector(select_normal(myobj, dim, normDistVector, midpoint, dimProps))
-        if dim.dimFlip is True:
-            selectedNormal.negate()
         
         userOffsetVector = rotationMatrix@selectedNormal
         offsetDistance = userOffsetVector*offset
-        geoOffsetDistance = userOffsetVector*geoOffset
+        geoOffsetDistance = offsetDistance.normalized()*geoOffset
+
+        if offsetDistance < geoOffsetDistance:
+            offsetDistance = geoOffsetDistance
+
 
         #Set Gizmo Props
         dim.gizLoc = midpoint
@@ -249,11 +251,13 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         
         # Define Lines
         leadStartA = Vector(p1) + geoOffsetDistance
-        leadEndA = Vector(p1) + offsetDistance
+        leadEndA = Vector(p1) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
+
         leadStartB = Vector(p2) + geoOffsetDistance
-        leadEndB = Vector(p2)+offsetDistance
-        dimLineStart = Vector(p1)+(offsetDistance-(userOffsetVector*0.005*capSize))
-        dimLineEnd = Vector(p2)+(offsetDistance-(userOffsetVector*0.005*capSize))
+        leadEndB = Vector(p2) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
+
+        dimLineStart = Vector(p1)+offsetDistance
+        dimLineEnd = Vector(p2)+offsetDistance
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
         #i,j,k as card axis
@@ -490,13 +494,12 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             dirVector.negate()
         selectedNormal = dirVector.normalized()
 
-        if dim.dimFlip is True:
-            selectedNormal.negate()
-
         userOffsetVector = rotationMatrix@selectedNormal
         offsetDistance = userOffsetVector*offset
-        geoOffsetDistance = userOffsetVector*geoOffset
+        geoOffsetDistance = offsetDistance.normalized()*geoOffset
         
+        if offsetDistance < geoOffsetDistance:
+            offsetDistance = geoOffsetDistance
    
         #Set Gizmo Props
         dim.gizLoc = midpoint
@@ -529,14 +532,18 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         
         dim.gizRotAxis = alignedDistVector
 
+        #Lines
         leadStartA = Vector(basePoint) + geoOffsetDistance
         leadEndA = Vector(basePoint)  + offsetDistance
+
         leadEndB =  leadEndA - Vector(secondPointAxis)
         leadStartB = Vector(secondPoint) - viewAxisDiff + geoOffsetDistance
+
         viewDiffStartB = leadStartB
         viewDiffEndB = leadStartB + viewAxisDiff
-        dimLineStart = leadEndA -(userOffsetVector*0.05)
-        dimLineEnd = leadEndB-(userOffsetVector*0.05)
+
+        dimLineStart = leadEndA -(offsetDistance.normalized()*0.05)
+        dimLineEnd = leadEndB-(offsetDistance.normalized()*0.05)
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
         #format text and update if necessary
