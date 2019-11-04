@@ -546,35 +546,35 @@ class RemoveFromLineGroup(Operator):
                         context.area.tag_redraw()
                         return {'FINISHED'}
 
-class UseLineTexture(Operator):
-    bl_idname = "measureit_arch.uselinetexture"
-    bl_label = "Create a Line Texture to Use"
-    bl_description = "Create a Line Texture to Use"
-    bl_category = 'MeasureitArch'
-    tag = IntProperty()
-    is_style= BoolProperty()
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        mainObj = context.object
+# class UseLineTexture(Operator):
+#     bl_idname = "measureit_arch.uselinetexture"
+#     bl_label = "Create a Line Texture to Use"
+#     bl_description = "Create a Line Texture to Use"
+#     bl_category = 'MeasureitArch'
+#     tag = IntProperty()
+#     is_style= BoolProperty()
+#     # ------------------------------
+#     # Execute button action
+#     # ------------------------------
+#     def execute(self, context):
+#         mainObj = context.object
 
-        if self.is_style is True:
-            Generator = context.scene.StyleGenerator[0]
-        else:
-            Generator = mainObj.LineGenerator[0]
-        line = Generator.line_groups[self.tag]
+#         if self.is_style is True:
+#             Generator = context.scene.StyleGenerator[0]
+#         else:
+#             Generator = mainObj.LineGenerator[0]
+#         line = Generator.line_groups[self.tag]
 
-        if 'Line Texture' not in bpy.data.textures:
-            texture = bpy.data.textures.new("Line Texture", type='NONE')
-            texture.use_nodes = True
-            nodes = texture.node_tree.nodes
-            nodes.clear()
-            node = nodes.new('TextureNodeCurveTime')
-            node.location = (100,100)
-        line.useLineTexture = True
+#         if 'Line Texture' not in bpy.data.textures:
+#             texture = bpy.data.textures.new("Line Texture", type='NONE')
+#             texture.use_nodes = True
+#             nodes = texture.node_tree.nodes
+#             nodes.clear()
+#             node = nodes.new('TextureNodeCurveTime')
+#             node.location = (100,100)
+#         line.useLineTexture = True
 
-        return {'FINISHED'}
+#         return {'FINISHED'}
 
 def sLineExists(sLine,a,b):
     if (sLine.pointA == a and sLine.pointB == b):
