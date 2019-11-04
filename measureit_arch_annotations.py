@@ -122,7 +122,7 @@ class AddAnnotationButton(Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        if obj is None:
+        if obj is None or len(context.selected_objects) == 0:
             return True
         elif obj.type == "EMPTY" or obj.type == "CAMERA" or obj.type == "LIGHT":
             return True
