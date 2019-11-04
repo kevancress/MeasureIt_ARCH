@@ -121,16 +121,15 @@ class AddAnnotationButton(Operator):
     # ------------------------------
     @classmethod
     def poll(cls, context):
-        o = context.object
-        if o is None:
-            return False
+        obj = context.object
+        if obj is None:
+            return True
+        elif obj.type == "EMPTY" or obj.type == "CAMERA" or obj.type == "LIGHT":
+            return True
+        elif o.type == "MESH" and  bpy.context.mode == 'EDIT_MESH':
+            return True
         else:
-            if o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
-                return True
-            elif o.type == "MESH" and  bpy.context.mode == 'EDIT_MESH':
-                return True
-            else:
-                return False
+            return False
 
     # ------------------------------
     # Execute button action
@@ -140,6 +139,11 @@ class AddAnnotationButton(Operator):
             scene = context.scene
             # Add properties
             mainobject = context.object
+            if len(context.selected_objects) == 0:
+                cursorLoc = bpy.context.scene.cursor.location
+                newEmpty = bpy.ops.object.empty_add(type='SPHERE', radius=0.05, location=cursorLoc)
+                mainobject = context.object
+
             if 'AnnotationGenerator' not in mainobject:
                 mainobject.AnnotationGenerator.add()
 
