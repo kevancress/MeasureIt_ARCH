@@ -179,6 +179,10 @@ class AddAnnotationButton(Operator):
                 newAnnotation.uses_style = False
 
             newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
+            field = newAnnotation.textField.add()
+            field.text = ("Annotation " + str(annotationGen.num_annotations))
+            field2 = newAnnotation.textField.add()
+            field2.text = ("Wow another text field ")
 
             newAnnotation.lineWeight = 1
             newAnnotation.color = (0,0,0,1)
@@ -287,6 +291,13 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col.label(text='Font')
                             col = split.column(align=True)
                             col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
+
+                            fieldIdx = 1
+                            col = box.column(align=True)
+                            for textField in annotation.textField:
+                                col.prop(textField, 'text', text ='Text Field ' + str(fieldIdx))
+                                fieldIdx += 1
+                                
 
                             col = box.column(align=True)
                             col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")

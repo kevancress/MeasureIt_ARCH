@@ -21,10 +21,6 @@ class BaseProp:
                 default=False,
                 update = update_flag)
 
-    text_updated: BoolProperty(name='text_updated',
-                description= 'flag when text need to be redrawn',
-                default = False)
-
     style: StringProperty(name="Style Name",
             description="Item Name",
             default="",
@@ -66,12 +62,34 @@ class BaseProp:
     gizRotDir: FloatVectorProperty(name="Gizmo Rotation Direction",
                 description= "Default Rot Direction for item Gizmo",
                 subtype='TRANSLATION')
-    
-class BaseWithText(BaseProp):  
+
+class TextField(PropertyGroup):
+    text_updated: BoolProperty(name='text_updated',
+                description= 'flag when text needs to be redrawn',
+                default = False)
+
     text: StringProperty(name="Text",
                 description="Text Associated With Item",
                 default="",
                 update= update_flag)
+
+    textSource: StringProperty(name='annotationTextSource',
+                description="Text Source",
+                update=update_flag)
+
+bpy.utils.register_class(TextField)
+
+class BaseWithText(BaseProp):
+    text_updated: BoolProperty(name='text_updated',
+                description= 'flag when text needs to be redrawn',
+                default = False)
+
+    text: StringProperty(name="Text",
+                description="Text Associated With Item",
+                default="",
+                update= update_flag)
+
+    textField: CollectionProperty(type=TextField)
 
     textAlignment:EnumProperty(
                 items=(('L', "Left", "",'ALIGN_LEFT',1),

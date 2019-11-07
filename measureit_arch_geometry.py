@@ -75,7 +75,12 @@ fontSizeMult = 6
 
 
 def update_text(textobj, props, context):
-    if textobj.text_updated is True or props.text_updated is True:
+    update_flag = False
+    for textField in textobj.textField:
+        if textField.text_updated:
+            update_flag = True
+            
+    if textobj.text_updated is True or props.text_updated is True or update_flag:
         # Get textitem Properties
         rawRGB = props.color
         rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
@@ -94,20 +99,28 @@ def update_text(textobj, props, context):
             font_id = 0
 
         # Get Text
-        text = str(textobj.text)
-        if text == "":
-            text = " "
+        text = ""
+        numlines = 0
+        if len(textobj.textField)>0:
+            for textField in textobj.textField:
+                text += textField.text
+                numlines += 1
+        else:
+            text += str(textobj.text)
+            numlines += 1
+            if text == "":
+                text = " "
 
         # Set BLF font Properties
         blf.color(font_id, rgb[0], rgb[1], rgb[2], rgb[3])
         blf.size(font_id, size, resolution)
         
         # Calculate Optimal Dimensions for Text Texture.
-        fheight = blf.dimensions(font_id, 'fp')[1]
+        fheight = blf.dimensions(font_id, 'Tp')[1]
         fwidth = blf.dimensions(font_id, text)[0]
         width = math.ceil(fwidth)
-        height = math.ceil(fheight+4)
-        blf.position(font_id, 0, height/4, 0)
+        height = math.ceil(fheight)
+        
 
         # Save Texture size to textobj Properties
         textobj.textHeight = height
@@ -133,6 +146,7 @@ def update_text(textobj, props, context):
                 gpu.matrix.load_matrix(view_matrix)
                 gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
+                blf.position(font_id, 0, height/5, 0)
                 blf.draw(font_id, text)
                 
                 # Read Offscreen To Texture Buffer
