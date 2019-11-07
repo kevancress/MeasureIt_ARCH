@@ -101,10 +101,15 @@ def update_text(textobj, props, context):
         # Get Text
         text = ""
         numlines = 0
-        if len(textobj.textField)>0:
+        if len(textobj.textField) > 0:
+            maxDim = 0
             for textField in textobj.textField:
-                text += textField.text
-                numlines += 1
+                if blf.dimensions(font_id, textField.text)[0] > maxDim:
+                    maxDim = blf.dimensions(font_id, textField.text)[0]
+                    text = textField.text
+                if textField.text != "":
+                    numlines += 1
+        
         else:
             text += str(textobj.text)
             numlines += 1
@@ -119,7 +124,8 @@ def update_text(textobj, props, context):
         fheight = blf.dimensions(font_id, 'Tp')[1]
         fwidth = blf.dimensions(font_id, text)[0]
         width = math.ceil(fwidth)
-        height = math.ceil(fheight)
+        lineHeight = math.ceil(fheight)
+        height = lineHeight * numlines
         
 
         # Save Texture size to textobj Properties
@@ -146,8 +152,17 @@ def update_text(textobj, props, context):
                 gpu.matrix.load_matrix(view_matrix)
                 gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-                blf.position(font_id, 0, height/5, 0)
-                blf.draw(font_id, text)
+                if len(textobj.textField) > 0:
+                    linenum = 1
+                    for textField in textobj.textField:
+                        ypos = height - (lineHeight*linenum) + lineHeight/5
+                        blf.position(font_id, 0, ypos, 0)
+                        blf.draw(font_id, textField.text)
+                        linenum += 1
+
+                else:        
+                    blf.position(font_id, 0, height/5, 0)
+                    blf.draw(font_id, text)
                 
                 # Read Offscreen To Texture Buffer
                 bgl.glReadBuffer(bgl.GL_BACK)
