@@ -182,7 +182,7 @@ class AddAnnotationButton(Operator):
             field = newAnnotation.textField.add()
             field.text = ("Annotation " + str(annotationGen.num_annotations))
             field2 = newAnnotation.textField.add()
-            field2.text = ("Wow another text field ")
+            field2.text = ("")
 
             newAnnotation.lineWeight = 1
             newAnnotation.color = (0,0,0,1)
