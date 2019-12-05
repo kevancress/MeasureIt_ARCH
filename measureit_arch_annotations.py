@@ -284,20 +284,20 @@ class OBJECT_PT_UIAnnotations(Panel):
                     row.label(text= annotation.text + ' Settings:')
 
                     if annoGen.show_anotation_settings:
+                    
+                        fieldIdx = 1
+                        col = box.column(align=True)
+                        for textField in annotation.textField:
+                            col.prop(textField, 'text', text ='Text Field ' + str(fieldIdx))
+                            fieldIdx += 1
+                            
                         if not annotation.uses_style:
                             split = box.split(factor=0.485)
                             col = split.column()
                             col.alignment ='RIGHT'
                             col.label(text='Font')
                             col = split.column(align=True)
-                            col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
-
-                            fieldIdx = 1
-                            col = box.column(align=True)
-                            for textField in annotation.textField:
-                                col.prop(textField, 'text', text ='Text Field ' + str(fieldIdx))
-                                fieldIdx += 1
-                                
+                            col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")                            
 
                             col = box.column(align=True)
                             col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
