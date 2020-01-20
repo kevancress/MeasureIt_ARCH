@@ -166,9 +166,9 @@ class DeletePropButton(Operator):
     bl_description = "Delete a property"
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'} 
-    tag= IntProperty()
-    item_type= StringProperty()
-    is_style= BoolProperty()
+    tag: IntProperty()
+    item_type: StringProperty()
+    is_style: BoolProperty()
 
     # ------------------------------
     # Execute button action

@@ -330,7 +330,7 @@ class AddToLineGroup(Operator):
     bl_label = "Add Selection to Line Group"
     bl_description = "(EDIT MODE) Adds the current selection to the active Line Group"
     bl_category = 'MeasureitArch'
-    tag= IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Poll
@@ -390,8 +390,8 @@ class AddLineByProperty(Operator):
     bl_label = "Add Lines By Crease"
     bl_description = "Add Lines to Edges sharper than the specified angle (uses Autosmooth Angle) OBJECT MODE ONLY"
     bl_category = 'MeasureitArch'
-    tag= IntProperty()
-    calledFromGroup= BoolProperty(default=False)
+    tag: IntProperty()
+    calledFromGroup: BoolProperty(default=False)
 
     # ------------------------------
     # Poll
@@ -491,7 +491,7 @@ class RemoveFromLineGroup(Operator):
     bl_label = "Remove Selection from Line Group"
     bl_description = "(EDIT MODE) Removes the current selection from the active Line Group"
     bl_category = 'MeasureitArch'
-    tag= IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Poll

@@ -90,6 +90,7 @@ auto_load.init()
 # Add-ons Preferences Update Panel
 
 # Define Panel classes for updating
+
 panels = (
         measureit_arch_main.SCENE_PT_MARCH_Settings,
         measureit_arch_main.MeasureitArchMainPanel,

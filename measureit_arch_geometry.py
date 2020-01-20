@@ -233,7 +233,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         aMatrix = mat
         bMatrix = mat
         if dim.dimObjectB != dim.dimObjectA:
-            bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat\
+            bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat
 
         # get points positions from indicies
         if dim.dimPointA == 9999999:

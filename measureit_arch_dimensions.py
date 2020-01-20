@@ -34,7 +34,7 @@ from .measureit_arch_baseclass import BaseWithText
 # Define property group class for measureit_arch faces index
 # ------------------------------------------------------------------
 class MeasureitArchIndex(PropertyGroup):
-    glidx = IntProperty(name="index",
+    glidx: IntProperty(name="index",
                         description="vertex index")
 
 bpy.utils.register_class(MeasureitArchIndex)
@@ -43,7 +43,7 @@ bpy.utils.register_class(MeasureitArchIndex)
 # Define property group class for measureit_arch faces
 # ------------------------------------------------------------------
 class MeasureitArchFaces(PropertyGroup):
-    glface = IntProperty(name="glface",
+    glface: IntProperty(name="glface",
                          description="Face number")
     # Array of index
     measureit_arch_index: CollectionProperty(type=MeasureitArchIndex)
@@ -648,7 +648,7 @@ class AddAreaButton(Operator): # LEGACY
     bl_description = "(EDITMODE only) Add a new measure segment from vertex to object origin for one " \
                      "axis (select 1 vertex)"
     bl_category = 'MeasureitArch'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Poll
@@ -987,7 +987,7 @@ class AddArcButton(Operator): #LEGACY
     bl_label = "Note"
     bl_description = "(OBJECT mode only) Add a new note"
     bl_category = 'MeasureitArch'
-    tag= IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Poll

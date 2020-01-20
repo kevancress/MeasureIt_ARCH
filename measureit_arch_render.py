@@ -95,7 +95,7 @@ class RenderSegmentButton(Operator):
     bl_label = "Render"
     bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
     bl_category = 'MeasureitArch'
-    tag = IntProperty()
+    tag: IntProperty()
 
     # ------------------------------
     # Execute button action
