@@ -162,9 +162,17 @@ class MeasureitArchMainPanel(Panel):
 
         col = box.column(align=True)
         col.operator("measureit_arch.addaligneddimensionbutton", text="Aligned", icon="DRIVER_DISTANCE")
-        split = col.split(factor=0.8,align=True)
+        split = col.split(factor=0.7,align=True)
         split.operator("measureit_arch.addaxisdimensionbutton", text="Axis", icon="TRACKING_FORWARDS_SINGLE")
         split.prop(scene,'measureit_arch_dim_axis',text="")
+
+        split = col.split(factor=0.7,align=True)
+        split.operator("measureit_arch.addboundingdimensionbutton", text="Bounds", icon="SHADING_BBOX")
+        row = split.row(align=True)
+        row.prop(scene,'measureit_arch_bound_x',text="X", toggle = 1)
+        row.prop(scene,'measureit_arch_bound_y',text="Y", toggle = 1)
+        row.prop(scene,'measureit_arch_bound_z',text="Z", toggle = 1)
+
         col.operator("measureit_arch.addanglebutton", text="Angle", icon="DRIVER_ROTATIONAL_DIFFERENCE")
         #col.operator("measureit_arch.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
         #col = box.column()

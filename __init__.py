@@ -175,6 +175,11 @@ def register():
     Scene.measureit_arch_show_gizmos = BoolProperty(name="Show Gizmos",
                                         description="(EXPERIMENTAL) Display Measureit-ARCH Gizmos",
                                         default=False)
+    
+    Scene.measureit_arch_bound_x = BoolProperty()
+    Scene.measureit_arch_bound_y = BoolProperty()
+    Scene.measureit_arch_bound_z = BoolProperty()
+    
     Scene.measureit_arch_dim_axis = EnumProperty(
                     items=(('X', "X", "X Axis"),
                            ('Y', "Y", "Y Axis"),

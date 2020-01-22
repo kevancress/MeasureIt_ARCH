@@ -33,6 +33,8 @@ from .measureit_arch_baseclass import BaseWithText , BaseDim
 # ------------------------------------------------------------------
 # Define property group class for measureit_arch faces index
 # ------------------------------------------------------------------
+
+
 class MeasureitArchIndex(PropertyGroup):
     glidx: IntProperty(name="index",
                         description="vertex index")
@@ -42,6 +44,8 @@ bpy.utils.register_class(MeasureitArchIndex)
 # ------------------------------------------------------------------
 # Define property group class for measureit_arch faces
 # ------------------------------------------------------------------
+
+
 class MeasureitArchFaces(PropertyGroup):
     glface: IntProperty(name="glface",
                          description="Face number")
@@ -50,7 +54,8 @@ class MeasureitArchFaces(PropertyGroup):
 
 bpy.utils.register_class(MeasureitArchFaces)
 
-class AlignedDimensionProperties(BaseDim,PropertyGroup):
+
+class AlignedDimensionProperties(BaseDim, PropertyGroup):
 
     dimObjectA: PointerProperty(type=Object)
 
@@ -58,7 +63,8 @@ class AlignedDimensionProperties(BaseDim,PropertyGroup):
 
 bpy.utils.register_class(AlignedDimensionProperties)
 
-class AxisDimensionProperties(BaseDim,PropertyGroup):
+
+class AxisDimensionProperties(BaseDim, PropertyGroup):
 
     dimObjectA: PointerProperty(type=Object)
 
@@ -74,7 +80,23 @@ class AxisDimensionProperties(BaseDim,PropertyGroup):
 bpy.utils.register_class(AxisDimensionProperties)
 
 
-class AngleDimensionProperties(BaseDim,PropertyGroup):
+class BoundingDimensionProperties(BaseDim, PropertyGroup):
+    drawX: BoolProperty(name= "Draw X",
+                description= "Draw X Dimension of Bounding Box",
+                default=False)
+    
+    drawY: BoolProperty(name= "Draw Y",
+                description= "Draw Y Dimension of Bounding Box",
+                default=False) 
+
+    drawZ: BoolProperty(name= "Draw Z",
+                description= "Draw Z Dimension of Bounding Box",
+                default=False) 
+
+bpy.utils.register_class(BoundingDimensionProperties)
+    
+
+class AngleDimensionProperties(BaseDim, PropertyGroup):
 
     dimPointC: IntProperty(name='dimPointC',
                     description="Angle End Vertex Index")
@@ -133,6 +155,7 @@ class DimensionContainer(PropertyGroup):
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
     angleDimensions: CollectionProperty(type=AngleDimensionProperties)
     axisDimensions: CollectionProperty(type=AxisDimensionProperties)
+    boundsDimensions: CollectionProperty(type=AxisDimensionProperties)
 
     wrappedDimensions: CollectionProperty(type=DimensionWrapper)
 
@@ -298,6 +321,90 @@ class AddAlignedDimensionButton(Operator):
                         "View3D not found, cannot run operator")
 
             return {'CANCELLED'}
+
+
+class AddBoundingDimensionButton(Operator):
+    bl_idname = "measureit_arch.addboundingdimensionbutton"
+    bl_label = "Bounding"
+    bl_description = "Add a Bounding Box Dimension (Dimension Properties can be edited in the Object Properties)"
+    bl_category = 'MeasureitArch'
+
+    # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        o = context.object
+        if o is None:
+            return False
+        else:
+            if o.type == "MESH":
+                return True
+            else:
+                return False
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        if context.area.type == 'VIEW_3D':
+            # get selected
+            scene = context.scene
+        
+            newDimensions = []
+
+            # Object Context
+            if bpy.context.mode == 'OBJECT':
+                mainobject = context.object
+                if len(context.selected_objects) > 1:
+                    self.report({'ERROR'},
+                            "MeasureIt-ARCH: Select one object only")
+                    return {'FINISHED'}
+
+                # Check Generators
+                if 'DimensionGenerator' not in mainobject:
+                    mainobject.DimensionGenerator.add()
+                if 'StyleGenerator' not in scene:
+                    scene.StyleGenerator.add()
+
+
+                # Basically I dont need to do anything here, I want to handle the measureing and the selection of which bounding box
+                # verts to anchor to in the draw method, so that the most visible verts can be selected depending on the current view.
+                # all we need to do is to create a dummy Bounds dimension and set its defualt props. We do the tricky part in the draw.
+                
+                # Maybe we dont even bother to set axis on creation. Maybe its just a single dim object with toggles for each axis... keep it simple, avoid clutter.
+
+                # Add Bounds Dim with Axis
+                DimGen = mainobject.DimensionGenerator[0]
+                newBoundsDimension = DimGen.boundsDimensions.add()
+
+                if scene.measureit_arch_bound_x:
+                    newBoundsDimension.drawX = True
+                if scene.measureit_arch_bound_y:
+                    newBoundsDimension.drawY = True
+                if scene.measureit_arch_bound_z:
+                    newBoundsDimension.drawZ = True
+
+                newBoundsDimension.name = 'Bounding Box Dimension'
+
+                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper.itemType = 'D-BOUNDS'
+
+
+                # redraw
+                recalc_dimWrapper_index(self,context)
+                context.area.tag_redraw()
+
+            
+                
+            return{'FINISHED'}
+        else:
+            self.report({'WARNING'},
+                        "View3D not found, cannot run operator")
+
+            return {'CANCELLED'}
+
+
 
 class AddAxisDimensionButton(Operator):
     bl_idname = "measureit_arch.addaxisdimensionbutton"
@@ -953,13 +1060,17 @@ class M_ARCH_UL_dimension_list(UIList):
         angleDim = dimGen.angleDimensions
         alignedDim = dimGen.alignedDimensions
         axisDim =  dimGen.axisDimensions
+        boundsDim = dimGen.boundsDimensions
 
         scene = bpy.context.scene
         hasGen = False
         if 'StyleGenerator' in scene:
             StyleGen = scene.StyleGenerator[0]
             hasGen = True
-    
+        
+        # I should define this in the dimension container itself so that I dont have to edit this each time I define a new dimension type...
+        #
+
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.use_property_decorate = False
             # Get correct item and icon
@@ -974,6 +1085,10 @@ class M_ARCH_UL_dimension_list(UIList):
             elif item.itemType == 'D-AXIS':
                 dim = axisDim[item.itemIndex]
                 nameIcon = 'TRACKING_FORWARDS_SINGLE'
+            
+            elif item.itemType == 'D-BOUNDS':
+                dim = boundsDim[item.itemIndex]
+                nameIcon = 'SHADING_BBOX'
 
 
             row = layout.row(align=True)
