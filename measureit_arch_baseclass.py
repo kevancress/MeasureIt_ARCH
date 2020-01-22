@@ -160,6 +160,55 @@ class BaseWithText(BaseProp):
                 name="B end",
                 description="Add arrows to point A")        
 
+
+class BaseDim(BaseWithText):
+    dimPointA: IntProperty(name='dimPointA',
+                    description="Dimension Start Vertex Index")
+    
+    dimPointB: IntProperty(name='dimPointB',
+                    description="Dimension End Vertex Index")
+
+    dimOffset: FloatProperty(name='Dimension Offset',
+                    description='Offset for Dimension',
+                    default= (0.5),
+                    subtype='DISTANCE')
+
+    dimLeaderOffset: FloatProperty(name='Dimension Offset',
+                    description='Offset for Dimension',
+                    default= (0.05),
+                    subtype='DISTANCE')
+
+    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
+
+    dimViewPlane: EnumProperty(
+                    items=(('99', "None", "None",'EMPTY_AXIS',0),
+                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
+                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
+                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
+                    name="B end",
+                    description="Add arrows to point A")   
+
+    endcapA: EnumProperty(
+                    items=(('99', "--", "No Cap"),
+                           ('L', "Arrow", "Arrow"),
+                           ('T', "Triangle", "Triangle"),
+                           ('D', "Dashed", "Dashed")),
+                    name="A end",
+                    description="Add arrows to point A")
+
+    endcapB: EnumProperty(
+                    items=(('99', "--", "No Cap"),
+                           ('L', "Arrow", "Arrow"),
+                           ('T', "Triangle", "Triangle"),
+                           ('D', "Dashed", "Dashed")),
+                    name="B end",
+                    description="Add arrows to point A")   
+
+    dimRotation:FloatProperty(name='annotationOffset',
+                            description='Rotation for Dimension',
+                            default= 0.0,
+                            subtype='ANGLE')
+
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"
     bl_label = "Delete property"

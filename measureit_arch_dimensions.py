@@ -28,7 +28,7 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UILis
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty, PointerProperty
 from .measureit_arch_main import *
-from .measureit_arch_baseclass import BaseWithText
+from .measureit_arch_baseclass import BaseWithText , BaseDim
 
 # ------------------------------------------------------------------
 # Define property group class for measureit_arch faces index
@@ -50,135 +50,34 @@ class MeasureitArchFaces(PropertyGroup):
 
 bpy.utils.register_class(MeasureitArchFaces)
 
-class AlignedDimensionProperties(BaseWithText,PropertyGroup):
-    dimPointA: IntProperty(name='dimPointA',
-                    description="Dimension Start Vertex Index")
+class AlignedDimensionProperties(BaseDim,PropertyGroup):
 
     dimObjectA: PointerProperty(type=Object)
 
-    dimPointB: IntProperty(name='dimPointB',
-                    description="Dimension End Vertex Index")
-
-    dimObjectB: PointerProperty(type=Object)
-
-    dimOffset: FloatProperty(name='Dimension Offset',
-                    description='Offset for Dimension',
-                    default= (0.5),
-                    subtype='DISTANCE')
-
-    dimLeaderOffset: FloatProperty(name='Dimension Offset',
-                    description='Offset for Dimension',
-                    default= (0.05),
-                    subtype='DISTANCE')
-    
-    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
-
-
-    dimViewPlane: EnumProperty(
-                    items=(('99', "None", "None",'EMPTY_AXIS',0),
-                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
-                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
-                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
-                    name="B end",
-                    description="Add arrows to point A")   
-
-    endcapA: EnumProperty(
-                    items=(('99', "--", "No Cap"),
-                           ('L', "Arrow", "Arrow"),
-                           ('T', "Triangle", "Triangle"),
-                           ('D', "Dashed", "Dashed")),
-                    name="A end",
-                    description="Add arrows to point A")
-
-    endcapB: EnumProperty(
-                    items=(('99', "--", "No Cap"),
-                           ('L', "Arrow", "Arrow"),
-                           ('T', "Triangle", "Triangle"),
-                           ('D', "Dashed", "Dashed")),
-                    name="B end",
-                    description="Add arrows to point A")     
-
-    dimRotation:FloatProperty(name='annotationOffset',
-                            description='Rotation for Annotation',
-                            default= 0.0,
-                            subtype='ANGLE')
+    dimObjectB: PointerProperty(type=Object) 
 
 bpy.utils.register_class(AlignedDimensionProperties)
 
-class AxisDimensionProperties(BaseWithText,PropertyGroup):
-    dimPointA: IntProperty(name='dimPointA',
-                    description="Dimension Start Vertex Index")
+class AxisDimensionProperties(BaseDim,PropertyGroup):
 
     dimObjectA: PointerProperty(type=Object)
 
-    dimPointB: IntProperty(name='dimPointB',
-                    description="Dimension End Vertex Index")
-
     dimObjectB: PointerProperty(type=Object)
-
-    dimOffset: FloatProperty(name='Dimension Offset',
-                    description='Offset for Dimension',
-                    default= (0.5),
-                    subtype='DISTANCE')
-
-    dimLeaderOffset: FloatProperty(name='Dimension Offset',
-                    description='Offset for Dimension',
-                    default= (0.05),
-                    subtype='DISTANCE')
-    
-    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
-
-
-    dimViewPlane: EnumProperty(
-                    items=(('99', "None", "None",'EMPTY_AXIS',0),
-                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
-                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
-                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
-                    name="B end",
-                    description="Add arrows to point A")   
 
     dimAxis: EnumProperty(
                     items=(('X', "X Axis", "Measure only the X Axis"),
                            ('Y', "Y Axis", "Measure only the Y Axis"),
                            ('Z', "Z Axis", "Measure only the Z Axis")),
                     name="Measurement Axis",
-                    description="Measurement Axis")   
-
-    endcapA: EnumProperty(
-                    items=(('99', "--", "No Cap"),
-                           ('L', "Arrow", "Arrow"),
-                           ('T', "Triangle", "Triangle"),
-                           ('D', "Dashed", "Dashed")),
-                    name="A end",
-                    description="Add arrows to point A")
-
-    endcapB: EnumProperty(
-                    items=(('99', "--", "No Cap"),
-                           ('L', "Arrow", "Arrow"),
-                           ('T', "Triangle", "Triangle"),
-                           ('D', "Dashed", "Dashed")),
-                    name="B end",
-                    description="Add arrows to point A")     
-
-    dimRotation:FloatProperty(name='annotationOffset',
-                            description='Rotation for Annotation',
-                            default= 0.0,
-                            subtype='ANGLE')
+                    description="Measurement Axis")       
 
 bpy.utils.register_class(AxisDimensionProperties)
 
 
-class AngleDimensionProperties(BaseWithText,PropertyGroup):
-    dimPointA: IntProperty(name='dimPointA',
-                    description="Angle Start Vertex Index")
+class AngleDimensionProperties(BaseDim,PropertyGroup):
 
-    dimPointB: IntProperty(name='dimPointB',
-                    description="Angle Middle Vertex Index")
-    
     dimPointC: IntProperty(name='dimPointC',
                     description="Angle End Vertex Index")
-
-    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
 
     dimRadius: FloatProperty(name='Dimension Radius',
                     description='Radius Dimension',
@@ -212,7 +111,8 @@ class DimensionWrapper(PropertyGroup):
     itemType: EnumProperty(
                 items=(('D-ALIGNED', "Aligned Dimension", ""),
                         ('D-ANGLE', "Angle Dimension", ""),
-                        ('D-AXIS', "Axisi Dimension", "")),
+                        ('D-AXIS', "Axis Dimension", ""),
+                        ('D-BOUNDS', "Bounding Box Dimension","")),
                 name="Dimension Item Type",
                 update=recalc_dimWrapper_index)
 
