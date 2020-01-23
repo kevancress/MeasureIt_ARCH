@@ -80,7 +80,7 @@ class AxisDimensionProperties(BaseDim, PropertyGroup):
 bpy.utils.register_class(AxisDimensionProperties)
 
 
-class BoundingDimensionProperties(BaseDim, PropertyGroup):
+class BoundsDimensionProperties(BaseDim, PropertyGroup):
     drawX: BoolProperty(name= "Draw X",
                 description= "Draw X Dimension of Bounding Box",
                 default=False)
@@ -93,7 +93,7 @@ class BoundingDimensionProperties(BaseDim, PropertyGroup):
                 description= "Draw Z Dimension of Bounding Box",
                 default=False) 
 
-bpy.utils.register_class(BoundingDimensionProperties)
+bpy.utils.register_class(BoundsDimensionProperties)
     
 
 class AngleDimensionProperties(BaseDim, PropertyGroup):
@@ -155,7 +155,7 @@ class DimensionContainer(PropertyGroup):
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
     angleDimensions: CollectionProperty(type=AngleDimensionProperties)
     axisDimensions: CollectionProperty(type=AxisDimensionProperties)
-    boundsDimensions: CollectionProperty(type=AxisDimensionProperties)
+    boundsDimensions: CollectionProperty(type=BoundsDimensionProperties)
 
     wrappedDimensions: CollectionProperty(type=DimensionWrapper)
 
@@ -386,6 +386,9 @@ class AddBoundingDimensionButton(Operator):
                     newBoundsDimension.drawZ = True
 
                 newBoundsDimension.name = 'Bounding Box Dimension'
+                newBoundsDimension.drawX = scene.measureit_arch_bound_x
+                newBoundsDimension.drawY = scene.measureit_arch_bound_y
+                newBoundsDimension.drawZ = scene.measureit_arch_bound_z
 
                 newWrapper = DimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-BOUNDS'
@@ -1259,10 +1262,15 @@ def draw_bounds_dimension_settings(dim,layout):
         col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
         col.prop(dim,'lineWeight',text='Line Weight')
 
-    col = layout.column(align=True)
-    row = col.row(align=True)
-    col.prop(dim, "drawX", text="", toggle=True)
+    split = layout.split(factor=0.49)
+    row = split.row(align=True)
+    row.alignment ='RIGHT'
+    row.label(text='Axis')
+    row = split.row(align=True)
 
+    row.prop(dim, "drawX", text="X",toggle=True)
+    row.prop(dim, "drawY", text="Y",toggle=True)
+    row.prop(dim, "drawZ", text="Z",toggle=True)
 
 
     col = layout.column(align=True)

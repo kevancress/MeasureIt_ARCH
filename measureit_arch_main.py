@@ -35,7 +35,7 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
-from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension
+from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension
 
 # ------------------------------------------------------
 # Handler to detect new Blend load
@@ -81,6 +81,10 @@ def save_handler(dummy):
                         obj.DimensionGenerator[0].measureit_arch_num = 0
                 if 'axisDimensions' in dimgen:
                     for axisDim in obj.DimensionGenerator[0].axisDimensions:
+                        obj.DimensionGenerator[0].boundsDimensions.remove(0)
+                        obj.DimensionGenerator[0].measureit_arch_num = 0
+                if 'boundsDimensions' in dimgen:
+                    for boundsDim in obj.DimensionGenerator[0].boundsDimensions:
                         obj.DimensionGenerator[0].axisDimensions.remove(0)
                         obj.DimensionGenerator[0].measureit_arch_num = 0
                 if 'wrappedDimensions' in dimgen:
@@ -514,6 +518,14 @@ def draw_main(context):
                             if dimStyle.name == axisDim.style:
                                 dimProps= dimStyle
                     update_text(textobj=axisDim,props=dimProps,context=context)
+
+                for boundsDim in DimGen.boundsDimensions: 
+                    dimProps = boundsDim
+                    if boundsDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+                            if dimStyle.name == boundsDim.style:
+                                dimProps= dimStyle
+                    update_text(textobj=boundsDim,props=dimProps,context=context)
             
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
@@ -576,6 +588,9 @@ def draw_main_3d (context):
 
                 for axisDim in DimGen.axisDimensions:
                     draw_axisDimension(context,myobj,DimGen,axisDim,mat)
+                
+                for boundsDim in DimGen.boundsDimensions:
+                    draw_boundsDimension(context,myobj,DimGen,boundsDim,mat)
 
     # Draw Instanced Objects
     draw_instanced = True
