@@ -1012,12 +1012,12 @@ def draw_line_group(context, myobj, lineGen, mat):
                     point = a_p1.copy()
                     pointcoord.append(point)
 
-                    if lineGroup.lineOverExtension != 0:
+                    if lineProps.lineOverExtension != 0:
                         norm = (Vector(a_p1) - Vector(b_p1)).normalized()
-                        random.seed(lineGroup.randomSeed)
-                        a_p1 += norm * (lineGroup.lineOverExtension * (random.randrange(50,100,1)/100))
-                        b_p1 -= norm * (lineGroup.lineOverExtension * (random.randrange(50,100,1)/100))
-                        pointShader.uniform_float("thickness", lineWeight + (lineGroup.lineOverExtension * (random.randrange(50,100,1)/5)))
+                        random.seed(lineProps.randomSeed)
+                        a_p1 += norm * (lineProps.lineOverExtension * (random.randrange(50,100,1)/100))
+                        b_p1 -= norm * (lineProps.lineOverExtension * (random.randrange(50,100,1)/100))
+                        pointShader.uniform_float("thickness", lineWeight + (lineProps.lineOverExtension * (random.randrange(50,100,1)/8)))
                     else:
                         pointShader.uniform_float("thickness", lineWeight)
 

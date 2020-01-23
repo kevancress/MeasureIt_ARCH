@@ -338,12 +338,17 @@ def draw_line_style_settings(line,layout):
     col.prop(line, 'lineWeight', text="Lineweight" )
     col.prop(line, 'lineDepthOffset', text="Z Offset")
 
+    col=layout.column(align=True)
+    col.prop(line, 'lineOverExtension', text="Extension" )
+    col.prop(line, 'randomSeed', text="Seed" )
     
     col = layout.column(align=True)
     if line.lineDrawHidden is True: col.enabled = True
     else: col.enabled = False
     col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
     col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
+
+
 
     col = layout.column(align=True)
     if line.lineDrawDashed or line.lineDrawHidden: col.enabled = True
