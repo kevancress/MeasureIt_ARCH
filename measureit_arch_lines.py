@@ -45,6 +45,7 @@ class SingleLineProperties(PropertyGroup):
                         
     pointB: IntProperty(name = "pointB",
                         description = "Second vertex index of the line")
+
 bpy.utils.register_class(SingleLineProperties)
 
 class LineProperties(BaseProp, PropertyGroup):
@@ -94,6 +95,10 @@ class LineProperties(BaseProp, PropertyGroup):
     lineDepthOffset: FloatProperty(name= "Line Depth Offset",
                         description= "Z buffer Offset tweak for clean rendering, TEMP",
                         default = 0.0)
+
+    lineOverExtension: FloatProperty(name="Line Over Extension",
+                                    default=0.0)
+    randomSeed: IntProperty() 
     #collection of individual line segments                        
     singleLine: CollectionProperty(type=SingleLineProperties)
 bpy.utils.register_class(LineProperties)
@@ -290,6 +295,10 @@ class OBJECT_PT_UILines(Panel):
                         if not line.uses_style:
                             col.prop(line, 'lineWeight', text="Lineweight" )
                             col.prop(line, 'lineDepthOffset', text="Z Offset")
+
+                            col = box.column(align=True)
+                            col.prop(line, 'lineOverExtension', text="Extension" )
+                            col.prop(line, 'randomSeed', text="Seed" )
                         
                             col = box.column(align=True)
                             if line.lineDrawHidden: col.enabled = True

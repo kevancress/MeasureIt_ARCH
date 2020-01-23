@@ -42,6 +42,7 @@ import math
 import time
 import numpy as np
 from array import array
+import random
 
 # define Shaders
 shader = gpu.types.GPUShader(
@@ -990,13 +991,9 @@ def draw_line_group(context, myobj, lineGen, mat):
             pointShader.uniform_float("Viewport",viewport)
             pointShader.uniform_float("thickness", lineWeight)
             pointShader.uniform_float("offset", -offset)
-            gpu.shader.unbind()
+            
 
-            lineShader.bind()
-            lineShader.uniform_float("Viewport",viewport)
-            lineShader.uniform_float("thickness",lineWeight)
-            lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            lineShader.uniform_float("offset", -offset)
+            
            
             
             #Get line data to be drawn
@@ -1007,21 +1004,41 @@ def draw_line_group(context, myobj, lineGen, mat):
                 sLine = lineGroup.singleLine[x]
                 
                 if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
-                    a_p1 = get_point(obverts[sLine.pointA], myobj,mat)
-                    b_p1 = get_point(obverts[sLine.pointB], myobj,mat)
+                    a_p1 = Vector(get_point(obverts[sLine.pointA], myobj,mat))
+                    b_p1 = Vector(get_point(obverts[sLine.pointB], myobj,mat))
 
                 if  a_p1 is not None and b_p1 is not None:
-                    coords.append(a_p1)
-                    pointcoord.append(a_p1)
-                    arclengths.append(0)
                     
+                    point = a_p1.copy()
+                    pointcoord.append(point)
+
+                    if lineGroup.lineOverExtension != 0:
+                        norm = (Vector(a_p1) - Vector(b_p1)).normalized()
+                        random.seed(lineGroup.randomSeed)
+                        a_p1 += norm * (lineGroup.lineOverExtension * (random.randrange(50,100,1)/100))
+                        b_p1 -= norm * (lineGroup.lineOverExtension * (random.randrange(50,100,1)/100))
+                        pointShader.uniform_float("thickness", lineWeight + (lineGroup.lineOverExtension * (random.randrange(50,100,1)/5)))
+                    else:
+                        pointShader.uniform_float("thickness", lineWeight)
+
+
+                    arclengths.append(0)
+                    coords.append(a_p1)
                     coords.append(b_p1)
                     arclengths.append((Vector(a_p1)-Vector(b_p1)).length)
                     
             #Draw Point Pass for Clean Corners
+            gpu.shader.unbind()
             batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoord})
             batch3d.program_set(pointShader)
             batch3d.draw()
+
+
+            lineShader.bind()
+            lineShader.uniform_float("Viewport",viewport)
+            lineShader.uniform_float("thickness",lineWeight)
+            lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            lineShader.uniform_float("offset", -offset)
 
             if drawHidden == True:
                 # Invert The Depth test for hidden lines

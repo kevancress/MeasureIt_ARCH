@@ -1163,6 +1163,8 @@ class OBJECT_PT_UIDimensions(Panel):
                     item = dimGen.angleDimensions[activeWrapperItem.itemIndex]
                 if activeWrapperItem.itemType == 'D-AXIS':
                     item = dimGen.axisDimensions[activeWrapperItem.itemIndex]
+                if activeWrapperItem.itemType == 'D-BOUNDS':
+                    item = dimGen.boundsDimensions[activeWrapperItem.itemIndex]
 
                 if dimGen.show_dimension_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                 else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
@@ -1180,6 +1182,8 @@ class OBJECT_PT_UIDimensions(Panel):
                         draw_angle_dimension_settings(item,box)
                     if activeWrapperItem.itemType == 'D-AXIS':
                         draw_axis_dimension_settings(item,box)
+                    if activeWrapperItem.itemType == 'D-BOUNDS':
+                        draw_bounds_dimension_settings(item,box)
 
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
@@ -1211,6 +1215,55 @@ def draw_aligned_dimension_settings(dim,layout):
     if dim.uses_style is False:
         col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
         col.prop(dim,'lineWeight',text='Line Weight')
+
+    col = layout.column(align=True)
+    col.prop(dim,'dimOffset',text='Distance')
+    col.prop(dim,'dimLeaderOffset',text='Offset')
+    col.prop(dim, 'dimRotation', text='Rotation')
+    
+    if dim.uses_style is False:
+        col = layout.column(align=True)
+        col.prop(dim,'fontSize',text='Font Size')
+        col.prop(dim,'textResolution',text='Resolution')
+        col.prop(dim,'textAlignment',text='Alignment')
+        #col.prop(dim,'textPosition',text='Position')
+
+        col = layout.column(align=True)
+        col.prop(dim,'endcapA', text='Arrow Start')
+        col.prop(dim,'endcapB', text='End')
+        col.prop(dim,'endcapSize', text='Arrow Size')
+        col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
+
+
+    col.prop(dim,'textFlippedX',text='Flip Text X')
+    col.prop(dim,'textFlippedY',text='Flip Text Y')
+
+def draw_bounds_dimension_settings(dim,layout):
+    col = layout.column()    
+
+    if dim.uses_style is False:
+        split = layout.split(factor=0.485)
+        col = split.column()
+        col.alignment ='RIGHT'
+        col.label(text='Font')
+        col = split.column()
+
+        col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
+
+        col = layout.column(align=True)
+        col.prop(dim,'dimViewPlane', text='View Plane')
+    else:
+        col.prop(dim,'dimViewPlane', text='View Plane Overide')
+
+    if dim.uses_style is False:
+        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop(dim,'lineWeight',text='Line Weight')
+
+    col = layout.column(align=True)
+    row = col.row(align=True)
+    col.prop(dim, "drawX", text="", toggle=True)
+
+
 
     col = layout.column(align=True)
     col.prop(dim,'dimOffset',text='Distance')
