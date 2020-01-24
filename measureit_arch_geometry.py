@@ -264,20 +264,25 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         dimLineEnd = Vector(p2)+offsetDistance
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
-        #i,j,k as card axis
+        # i,j,k as card axis
         i = Vector((1,0,0))
         j = Vector((0,1,0))
         k = Vector((0,0,1))
 
+        # Check for text field
+        if len(dim.textFields) == 0:
+            dim.textFields.add()
 
-        #format text and update if necessary
+        dimText = dim.textFields[0]
+
+        # format text and update if necessary
         distanceText = str(format_distance(textFormat,dist))
-        if dim.text != str(distanceText):
-            dim.text = str(distanceText)
-            dim.text_updated = True
+        if dimText.text != str(distanceText):
+            dimText.text = str(distanceText)
+            dimText.text_updated = True
         
-        width = dim.textWidth
-        height = dim.textHeight 
+        width = dimText.textWidth
+        height = dimText.textHeight 
         
 
         resolution = dimProps.textResolution
@@ -295,7 +300,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
         if scene.measureit_arch_gl_show_d:
-            draw_text_3D(context,dim,myobj,square)
+            draw_text_3D(context,dimText,dimProps,myobj,square)
 
     
 
@@ -780,15 +785,22 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         dimLineStart = leadEndA -(offsetDistance.normalized()*0.05)
         dimLineEnd = leadEndB-(offsetDistance.normalized()*0.05)
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
+       
+       # Check for text field
+        if len(dim.textFields) == 0:
+            dim.textFields.add()
 
-        #format text and update if necessary
+        dimText = dim.textFields[0]
+
+        # format text and update if necessary
         distanceText = str(format_distance(textFormat,dist))
-        if dim.text != str(distanceText):
-            dim.text = str(distanceText)
-            dim.text_updated = True
+        if dimText.text != str(distanceText):
+            dimText.text = str(distanceText)
+            dimText.text_updated = True
         
-        width = dim.textWidth
-        height = dim.textHeight 
+        width = dimText.textWidth
+        height = dimText.textHeight 
+
         resolution = dimProps.textResolution
         size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
@@ -811,7 +823,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
         #start = time.perf_counter()
         if scene.measureit_arch_gl_show_d:
-            draw_text_3D(context,dim,myobj,square)
+            draw_text_3D(context,dimText,dimProps,myobj,square)
         
         
 
@@ -1392,6 +1404,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 coords.append(lineEnd)
                 coords.append(p2)
                 coords.append(p2)
+
                 #if annotation.textPosition == 'T':
                 #    coords.append(textcard[3])
                 #    pointcoords = [p2]
