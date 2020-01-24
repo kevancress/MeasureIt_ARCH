@@ -415,6 +415,56 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
         offset = dim.dimOffset
         geoOffset = dim.dimLeaderOffset
+        
+        # get view vector
+        i = Vector((1,0,0)) # X Unit Vector
+        j = Vector((0,1,0)) # Y Unit Vector
+        k = Vector((0,0,1)) # Z Unit Vector
+
+        if context.scene.measureit_arch_is_render_draw:
+            cameraLoc = context.scene.camera.location.normalized()
+            viewAxis = cameraLoc
+        else:
+            viewRot = context.area.spaces[0].region_3d.view_rotation
+            viewVec = k.copy()
+            viewVec.rotate(viewRot)
+            viewAxis = viewVec
+
+        # identify axis pairs
+        zpairs = [[0,1],
+                  [2,3],
+                  [4,5],
+                  [6,7]]
+        
+        xpairs = [[0,4],
+                  [1,5],
+                  [2,6],
+                  [3,7]]
+
+        ypairs = [[0,3],
+                  [1,2],
+                  [4,7],
+                  [5,6]]
+
+        #draw points for debug
+        if True:
+            pointShader.bind()
+            pointShader.uniform_float("Viewport",viewport)
+            pointShader.uniform_float("thickness", 5)
+            pointShader.uniform_float("offset", 0)
+
+            idx = 0
+            for bound in bounds:
+                point = []
+                point.append(myobj.matrix_world @ Vector(bound))
+                pointShader.uniform_float("finalColor", (idx,1-idx,0,1))
+
+                batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": point})
+                batch3d.program_set(pointShader)
+                batch3d.draw()
+                idx += (1/8)
+            
+            gpu.shader.unbind()
 
         # establish measure loop
         if dim.drawX: measureAxis.append(0)
@@ -423,131 +473,133 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
         if len(measureAxis)>0:
             for axis in measureAxis:
-                print (axis)
-
-        # get points 
-        p1 = myobj.matrix_world @ Vector(bounds[6])
-        p2 = myobj.matrix_world @ Vector(bounds[7])
-
-
-
-        #check dominant Axis
-        sortedPoints = sortPoints(p1, p2)
-        p1 = sortedPoints[0]
-        p2 = sortedPoints[1]
-    
-        
-        #calculate distance & MidpointGY
-        distVector = Vector(p1)-Vector(p2)
-        dist = distVector.length
-        midpoint = interpolate3d(p1, p2, fabs(dist / 2))
-        normDistVector = distVector.normalized()
-        absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
+                if axis == 0: pairs = xpairs
+                elif axis == 1: pairs = ypairs
+                elif axis == 2: pairs = zpairs
+                # get points 
+                
+                p1 = myobj.matrix_world @ Vector(bounds[pairs[0][0]])
+                p2 = myobj.matrix_world @ Vector(bounds[pairs[0][1]])
 
 
-        # Compute offset vector from face normal and user input
-        rotationMatrix = Matrix.Rotation(dim.dimRotation, 4, normDistVector)
-        selectedNormal = Vector(select_normal(myobj, dim, normDistVector, midpoint, dimProps))
-        
-        userOffsetVector = rotationMatrix@selectedNormal
-        offsetDistance = userOffsetVector*offset
-        geoOffsetDistance = offsetDistance.normalized()*geoOffset
 
-        if offsetDistance < geoOffsetDistance:
-            offsetDistance = geoOffsetDistance
-
-
-        #Set Gizmo Props
-        dim.gizLoc = midpoint
-        dim.gizRotDir = userOffsetVector
-        
-        # Define Lines
-        leadStartA = Vector(p1) + geoOffsetDistance
-        leadEndA = Vector(p1) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
-
-        leadStartB = Vector(p2) + geoOffsetDistance
-        leadEndB = Vector(p2) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
-
-        dimLineStart = Vector(p1)+offsetDistance
-        dimLineEnd = Vector(p2)+offsetDistance
-        textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
-
-        #i,j,k as card axis
-        i = Vector((1,0,0))
-        j = Vector((0,1,0))
-        k = Vector((0,0,1))
+                #check dominant Axis
+                sortedPoints = sortPoints(p1, p2)
+                p1 = sortedPoints[0]
+                p2 = sortedPoints[1]
+            
+                
+                #calculate distance & MidpointGY
+                distVector = Vector(p1)-Vector(p2)
+                dist = distVector.length
+                midpoint = interpolate3d(p1, p2, fabs(dist / 2))
+                normDistVector = distVector.normalized()
+                absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
 
 
-        #format text and update if necessary
-        distanceText = str(format_distance(textFormat,dist))
-        if dim.text != str(distanceText):
-            dim.text = str(distanceText)
-            dim.text_updated = True
-        
-        width = dim.textWidth
-        height = dim.textHeight 
-        
+                # Compute offset vector from face normal and user input
+                rotationMatrix = Matrix.Rotation(dim.dimRotation, 4, normDistVector)
+                selectedNormal = Vector(select_normal(myobj, dim, normDistVector, midpoint, dimProps))
+                
+                userOffsetVector = rotationMatrix@selectedNormal
+                offsetDistance = userOffsetVector*offset
+                geoOffsetDistance = offsetDistance.normalized()*geoOffset
 
-        resolution = dimProps.textResolution
-        size = dimProps.fontSize/fontSizeMult
-        sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.1*size
-        origin = Vector(textLoc)
-        cardX = normDistVector.normalized() * sx
-        cardY = userOffsetVector.normalized() *sy
+                if offsetDistance < geoOffsetDistance:
+                    offsetDistance = geoOffsetDistance
 
-        flipCaps = False
-        if (cardX.length + capSize/100) > dist:
-            flipCaps=True
-            origin = Vector(dimLineEnd) - Vector(cardX/2 + cardX.normalized()*capSize/100) -Vector(cardY/2)
-        
-        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
-        if scene.measureit_arch_gl_show_d:
-            draw_text_3D(context,dim,myobj,square)
 
-    
+                #Set Gizmo Props
+                dim.gizLoc = midpoint
+                dim.gizRotDir = userOffsetVector
+                
+                # Define Lines
+                leadStartA = Vector(p1) + geoOffsetDistance
+                leadEndA = Vector(p1) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
 
-        #Collect coords and endcaps
-        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
-        filledCoords = []
-        pos = (dimLineStart,dimLineEnd)
-        i=0
-        for cap in caps:
-            capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],userOffsetVector,textLoc,i,flipCaps)
-            i += 1 
-            for coord in capCoords[0]:
-                coords.append(coord)
-            for filledCoord in capCoords[1]:
-                filledCoords.append(filledCoord)
+                leadStartB = Vector(p2) + geoOffsetDistance
+                leadEndB = Vector(p2) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
 
-        
-        # Keep this out of the loop to avoid extra draw calls 
-        if len(filledCoords) != 0:
-            #bind shader
-            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-            triShader.bind()
-            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", 0)
+                dimLineStart = Vector(p1)+offsetDistance
+                dimLineEnd = Vector(p2)+offsetDistance
+                textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
-            batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
-            batch.program_set(triShader)
-            batch.draw()
-            gpu.shader.unbind()
-            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-        
-        #bind shader
-        
-        lineShader.bind()
-        lineShader.uniform_float("Viewport",viewport)
-        lineShader.uniform_float("thickness",lineWeight)
-        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", 0)
+                #i,j,k as card axis
+                i = Vector((1,0,0))
+                j = Vector((0,1,0))
+                k = Vector((0,0,1))
 
-        # batch & Draw Shader   
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-        batch.program_set(lineShader)
-        batch.draw()
-        gpu.shader.unbind()
+
+                #format text and update if necessary
+                distanceText = str(format_distance(textFormat,dist))
+                if dim.text != str(distanceText):
+                    dim.text = str(distanceText)
+                    dim.text_updated = True
+                
+                width = dim.textWidth
+                height = dim.textHeight 
+                
+
+                resolution = dimProps.textResolution
+                size = dimProps.fontSize/fontSizeMult
+                sx = (width/resolution)*0.1*size
+                sy = (height/resolution)*0.1*size
+                origin = Vector(textLoc)
+                cardX = normDistVector.normalized() * sx
+                cardY = userOffsetVector.normalized() *sy
+
+                flipCaps = False
+                if (cardX.length + capSize/100) > dist:
+                    flipCaps=True
+                    origin = Vector(dimLineEnd) - Vector(cardX/2 + cardX.normalized()*capSize/100) -Vector(cardY/2)
+                
+                square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
+                if scene.measureit_arch_gl_show_d:
+                    draw_text_3D(context,dim,myobj,square)
+
+            
+
+                #Collect coords and endcaps
+                coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
+                filledCoords = []
+                pos = (dimLineStart,dimLineEnd)
+                i=0
+                for cap in caps:
+                    capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],userOffsetVector,textLoc,i,flipCaps)
+                    i += 1 
+                    for coord in capCoords[0]:
+                        coords.append(coord)
+                    for filledCoord in capCoords[1]:
+                        filledCoords.append(filledCoord)
+
+                
+                # Keep this out of the loop to avoid extra draw calls 
+                if len(filledCoords) != 0:
+                    #bind shader
+                    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+                    triShader.bind()
+                    triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                    triShader.uniform_float("offset", 0)
+
+                    batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
+                    batch.program_set(triShader)
+                    batch.draw()
+                    gpu.shader.unbind()
+                    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+                
+                #bind shader
+                
+                lineShader.bind()
+                lineShader.uniform_float("Viewport",viewport)
+                lineShader.uniform_float("thickness",lineWeight)
+                lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                lineShader.uniform_float("offset", 0)
+
+                # batch & Draw Shader   
+                batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+                batch.program_set(lineShader)
+                batch.draw()
+                gpu.shader.unbind()
         
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
