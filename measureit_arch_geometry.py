@@ -394,20 +394,6 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
         offset = dim.dimOffset
         geoOffset = dim.dimLeaderOffset
-        
-        # get view vector
-        i = Vector((1,0,0)) # X Unit Vector
-        j = Vector((0,1,0)) # Y Unit Vector
-        k = Vector((0,0,1)) # Z Unit Vector
-
-        if context.scene.measureit_arch_is_render_draw:
-            cameraLoc = context.scene.camera.location.normalized()
-            viewAxis = cameraLoc
-        else:
-            viewRot = context.area.spaces[0].region_3d.view_rotation
-            viewVec = k.copy()
-            viewVec.rotate(viewRot)
-            viewAxis = viewVec
 
         # identify axis pairs
         zpairs = [[0,1],
@@ -425,6 +411,29 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                   [4,7],
                   [5,6]]
 
+        ## Select Best Pairs
+
+        diagonalPair = [2,4]
+        dp1 = myobj.matrix_world @ Vector(bounds[2])
+        dp2 = myobj.matrix_world @ Vector(bounds[4])
+        dplength = Vector(dp1 - dp2).length
+        centerpoint = interpolate3d(dp1,dp2,dplength/2)
+
+        # get view vector
+        i = Vector((1,0,0)) # X Unit Vector
+        j = Vector((0,1,0)) # Y Unit Vector
+        k = Vector((0,0,1)) # Z Unit Vector
+
+        if context.scene.measureit_arch_is_render_draw:
+            cameraLoc = context.scene.camera.location.normalized()
+            viewAxis = cameraLoc
+        else:
+            viewRot = context.area.spaces[0].region_3d.view_rotation
+            viewVec = k.copy()
+            viewVec.rotate(viewRot)
+            viewAxis = viewVec
+
+        bestPairs = [xpairs[2],ypairs[1],zpairs[0]]
         pairs = [xpairs,ypairs,zpairs]
         #draw points for debug
         if True:
@@ -433,29 +442,17 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
             pointShader.uniform_float("thickness", 5)
             pointShader.uniform_float("offset", 0)
 
-            idx = 0
-            for bound in bounds:
-                point = []
-                point.append(myobj.matrix_world @ Vector(bound))
-                pointShader.uniform_float("finalColor", (idx,1-idx,0,1))
-
-                batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": point})
-                batch3d.program_set(pointShader)
-                batch3d.draw()
-                idx += (1/8)
-            
-            gpu.shader.unbind()
-
+    
         # establish measure loop
         idx = 0
+        selectionVectors = [k,i,j]
         for axis in dim.drawAxis:
             if axis:
                 # get points 
-                
-                p1 = myobj.matrix_world @ Vector(bounds[pairs[idx][idx][0]])
-                p2 = myobj.matrix_world @ Vector(bounds[pairs[idx][idx][1]])
-
-
+                axisViewVec = viewVec.copy()
+                axisViewVec[idx] = 0
+                p1 = myobj.matrix_world @ Vector(bounds[bestPairs[idx][0]])
+                p2 = myobj.matrix_world @ Vector(bounds[bestPairs[idx][1]])
 
                 #check dominant Axis
                 sortedPoints = sortPoints(p1, p2)
@@ -473,7 +470,18 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
                 # Compute offset vector from face normal and user input
                 rotationMatrix = Matrix.Rotation(dim.dimRotation, 4, normDistVector)
-                selectedNormal = Vector(select_normal(myobj, dim, normDistVector, midpoint, dimProps))
+
+                selectedNormal = -absNormDisVector.cross(axisViewVec).normalized()
+
+                print(str(idx) + " " + str(abs(selectedNormal.dot(selectionVectors[idx]))))
+
+                if abs(selectedNormal.dot(selectionVectors[idx])) > 0.8:
+                    selectedNormal = selectionVectors[idx]
+                else:
+                    selectedNormal = -absNormDisVector.cross(selectionVectors[idx]).normalized()
+                
+                if selectedNormal.dot((Vector(midpoint)-Vector(centerpoint)).normalized())<0:
+                    selectedNormal = -selectedNormal
                 
                 userOffsetVector = rotationMatrix@selectedNormal
                 offsetDistance = userOffsetVector*offset
@@ -538,6 +546,8 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
                 #Collect coords and endcaps
                 coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
+                coords.append((0,0,0))
+                coords.append(axisViewVec)
                 filledCoords = []
                 pos = (dimLineStart,dimLineEnd)
                 i=0
