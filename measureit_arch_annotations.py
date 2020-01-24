@@ -47,8 +47,9 @@ from mathutils import Vector, Matrix
 import math
 
 def annotation_update_flag(self,context):
-    self.text_updated = True
-    update_custom_props(self,context)
+    for textField in self.textFields:
+        textField.text_updated = True
+        update_custom_props(self,context)
 
 def update_custom_props(self,context):
     ignoredProps = ['AnnotationGenerator','DimensionGenerator','LineGenerator','_RNA_UI','cycles','cycles_visibility','obverts']
@@ -178,10 +179,10 @@ class AddAnnotationButton(Operator):
             else:
                 newAnnotation.uses_style = False
 
-            newAnnotation.text = ("Annotation " + str(annotationGen.num_annotations))
-            field = newAnnotation.textField.add()
+            newAnnotation.name = ("Annotation " + str(annotationGen.num_annotations))
+            field = newAnnotation.textFields.add()
             field.text = ("Annotation " + str(annotationGen.num_annotations))
-            field2 = newAnnotation.textField.add()
+            field2 = newAnnotation.textFields.add()
             field2.text = ("")
 
             newAnnotation.lineWeight = 1
@@ -207,7 +208,7 @@ class M_ARCH_UL_annotations_list(UIList):
             layout.use_property_decorate = False
             row = layout.row(align=True)
             subrow = row.row()
-            subrow.prop(annotation, "text", text="",emboss=False,icon='FONT_DATA')
+            subrow.prop(annotation, "name", text="",emboss=False,icon='FONT_DATA')
             
             if annotation.visible: visIcon = 'HIDE_OFF'
             else: visIcon = 'HIDE_ON'
@@ -281,13 +282,13 @@ class OBJECT_PT_UIAnnotations(Panel):
                     col = box.column()
                     row = col.row()
                     row.prop(annoGen, 'show_anotation_settings', text="", icon=settingsIcon,emboss=False)
-                    row.label(text= annotation.text + ' Settings:')
+                    row.label(text= annotation.name + ' Settings:')
 
                     if annoGen.show_anotation_settings:
                     
                         fieldIdx = 1
                         col = box.column(align=True)
-                        for textField in annotation.textField:
+                        for textField in annotation.textFields:
                             col.prop(textField, 'text', text ='Text Field ' + str(fieldIdx))
                             fieldIdx += 1
                             

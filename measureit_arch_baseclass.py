@@ -77,19 +77,25 @@ class TextField(PropertyGroup):
                 description="Text Source",
                 update=update_flag)
 
+    textWidth: IntProperty(name='annotationWidth',
+                description= 'Width of annotation')
+        
+    textHeight: IntProperty(name='annotationHeight',
+                description= 'Height of annotation')
+
+    texture_updated: BoolProperty(name='text_updated',
+            description= 'flag when text texture need to be redrawn',
+            default = False)
+
 bpy.utils.register_class(TextField)
 
 class BaseWithText(BaseProp):
+
     text_updated: BoolProperty(name='text_updated',
                 description= 'flag when text needs to be redrawn',
                 default = False)
 
-    text: StringProperty(name="Text",
-                description="Text Associated With Item",
-                default="",
-                update= update_flag)
-
-    textField: CollectionProperty(type=TextField)
+    textFields: CollectionProperty(type=TextField)
 
     textAlignment:EnumProperty(
                 items=(('L', "Left", "",'ALIGN_LEFT',1),
@@ -124,17 +130,7 @@ class BaseWithText(BaseProp):
                 default = False)
     textFlippedY: BoolProperty(name='textFlippedY', 
                 description= 'Flip Text Y',
-                default = False)
-    
-    texture_updated: BoolProperty(name='text_updated',
-            description= 'flag when text texture need to be redrawn',
-            default = False)
-
-    textWidth: IntProperty(name='annotationWidth',
-                description= 'Width of annotation')
-        
-    textHeight: IntProperty(name='annotationHeight',
-                description= 'Height of annotation')
+                default = False)\
 
     # endcap properties are defined here to ensure compatiblity but the enumProps are overwritten in child property groups
     endcapSize: IntProperty(name="dimEndcapSize",

@@ -77,114 +77,88 @@ fontSizeMult = 6
 
 def update_text(textobj, props, context):
     update_flag = False
-    for textField in textobj.textField:
+    for textField in textobj.textFields:
         if textField.text_updated:
             update_flag = True
             
-    if textobj.text_updated is True or props.text_updated is True or update_flag:
-        # Get textitem Properties
-        rawRGB = props.color
-        rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
-        size = 20
-        resolution = props.textResolution
+        if textobj.text_updated or textField.text_updated or props.text_updated or update_flag:
+            # Get textitem Properties
+            rawRGB = props.color
+            rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
+            size = 20
+            resolution = props.textResolution
 
-        # Get Font Id
-        badfonts = [None]
-        if 'Bfont' in bpy.data.fonts:
-            badfonts.append(bpy.data.fonts['Bfont'])
-        if props.font not in badfonts:
-            vecFont = props.font
-            fontPath = vecFont.filepath
-            font_id = blf.load(fontPath)
-        else:
-            font_id = 0
+            # Get Font Id
+            badfonts = [None]
+            if 'Bfont' in bpy.data.fonts:
+                badfonts.append(bpy.data.fonts['Bfont'])
+            if props.font not in badfonts:
+                vecFont = props.font
+                fontPath = vecFont.filepath
+                font_id = blf.load(fontPath)
+            else:
+                font_id = 0
 
-        # Get Text
-        text = ""
-        numlines = 0
-        if len(textobj.textField) > 0:
-            maxDim = 0
-            for textField in textobj.textField:
-                if blf.dimensions(font_id, textField.text)[0] > maxDim:
-                    maxDim = blf.dimensions(font_id, textField.text)[0]
-                    text = textField.text
-                if textField.text != "":
-                    numlines += 1
-        
-        else:
-            text += str(textobj.text)
-            numlines += 1
-            if text == "":
-                text = " "
-
-        # Set BLF font Properties
-        blf.color(font_id, rgb[0], rgb[1], rgb[2], rgb[3])
-        blf.size(font_id, size, resolution)
-        
-        # Calculate Optimal Dimensions for Text Texture.
-        fheight = blf.dimensions(font_id, 'Tp')[1]
-        fwidth = blf.dimensions(font_id, text)[0]
-        width = math.ceil(fwidth)
-        lineHeight = math.ceil(fheight)
-        height = lineHeight * numlines
-        
-
-        # Save Texture size to textobj Properties
-        textobj.textHeight = height
-        textobj.textWidth = width
-
-        # Start Offscreen Draw
-        if width != 0 and height != 0:
-            textOffscreen = gpu.types.GPUOffScreen(width, height)
-            texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+            # Set BLF font Properties
+            blf.color(font_id, rgb[0], rgb[1], rgb[2], rgb[3])
+            blf.size(font_id, size, resolution)
             
-            with textOffscreen.bind():
-                # Clear Past Draw and Set 2D View matrix
-                bgl.glClearColor(rgb[0], rgb[1], rgb[2], 0)
-                bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
-                
-                view_matrix = Matrix([
-                    [2 / width, 0, 0, -1],
-                    [0, 2 / height, 0, -1],
-                    [0, 0, 1, 0],
-                    [0, 0, 0, 1]])
-                
-                gpu.matrix.reset()
-                gpu.matrix.load_matrix(view_matrix)
-                gpu.matrix.load_projection_matrix(Matrix.Identity(4))
+            text = textField.text
 
-                if len(textobj.textField) > 0:
-                    linenum = 1
-                    for textField in textobj.textField:
-                        ypos = height - (lineHeight*linenum) + lineHeight/5
-                        blf.position(font_id, 0, ypos, 0)
-                        blf.draw(font_id, textField.text)
-                        linenum += 1
+            # Calculate Optimal Dimensions for Text Texture.
+            fheight = blf.dimensions(font_id, 'Tp')[1]
+            fwidth = blf.dimensions(font_id, text)[0]
+            width = math.ceil(fwidth)
+            height = math.ceil(fheight)
+            
 
-                else:        
+            # Save Texture size to textobj Properties
+            textField.textHeight = height
+            textField.textWidth = width
+
+            # Start Offscreen Draw
+            if width != 0 and height != 0:
+                textOffscreen = gpu.types.GPUOffScreen(width, height)
+                texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+                
+                with textOffscreen.bind():
+                    # Clear Past Draw and Set 2D View matrix
+                    bgl.glClearColor(rgb[0], rgb[1], rgb[2], 0)
+                    bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+                    
+                    view_matrix = Matrix([
+                        [2 / width, 0, 0, -1],
+                        [0, 2 / height, 0, -1],
+                        [0, 0, 1, 0],
+                        [0, 0, 0, 1]])
+                    
+                    gpu.matrix.reset()
+                    gpu.matrix.load_matrix(view_matrix)
+                    gpu.matrix.load_projection_matrix(Matrix.Identity(4))
+
                     blf.position(font_id, 0, height/5, 0)
                     blf.draw(font_id, text)
-                
-                # Read Offscreen To Texture Buffer
-                bgl.glReadBuffer(bgl.GL_BACK)
-                bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
-                
-                # Write Texture Buffer to ID Property as List
-                if 'texture' in textobj:
-                    del textobj['texture']
-                textobj['texture'] = texture_buffer
-                textOffscreen.free()
-                textobj.text_updated = False
-                textobj.texture_updated = True
+                    
+                    # Read Offscreen To Texture Buffer
+                    bgl.glReadBuffer(bgl.GL_BACK)
+                    bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
+                    
+                    # Write Texture Buffer to ID Property as List
+                    if 'texture' in textField:
+                        del textField['texture']
+                    textField['texture'] = texture_buffer
+                    textOffscreen.free()
+                    textField.text_updated = False
+                    textField.texture_updated = True
             
-        # generate image datablock from buffer for debug preview
-        # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
-        if context.scene.measureit_arch_debug_text:
-            if not str('test') in bpy.data.images:
-                bpy.data.images.new(str('test'), width, height)
-            image = bpy.data.images[str('test')]
-            image.scale(width, height)
-            image.pixels = [v / 255 for v in texture_buffer]
+            # generate image datablock from buffer for debug preview
+            # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
+            if context.scene.measureit_arch_debug_text:
+                if not str('test') in bpy.data.images:
+                    bpy.data.images.new(str('test'), width, height)
+                image = bpy.data.images[str('test')]
+                image.scale(width, height)
+                image.pixels = [v / 255 for v in texture_buffer]
 
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat):
@@ -1374,7 +1348,6 @@ def draw_annotation(context, myobj, annotationGen, mat):
             offset = annotation.annotationOffset
             
             p2 =  Vector(offset)
-            textcard = generate_text_card(context,annotation,annotationProps,annotation.annotationRotation,(0,0,0))
 
             #Get local Rotation and Translation
             rot = mat.to_quaternion()
@@ -1387,13 +1360,21 @@ def draw_annotation(context, myobj, annotationGen, mat):
             locMatrix = Matrix.Translation(loc)
             rotLocMatrix = locMatrix @ rotMatrix
 
-            # Transform offset and Text Card with Composed Matrix
+            # Transform offset with Composed Matrix
             p2 = rotLocMatrix @ Vector(p2) + diff
-            textcard[0] = rotLocMatrix @ (textcard[0] + offset) + diff
-            textcard[1] = rotLocMatrix @ (textcard[1] + offset) + diff
-            textcard[2] = rotLocMatrix @ (textcard[2] + offset) + diff
-            textcard[3] = rotLocMatrix @ (textcard[3] + offset) + diff
 
+            fieldIdx = 0
+            for textField in annotation.textFields:
+                textcard = generate_text_card(context,textField,annotationProps,annotation.annotationRotation,(0,0,0))
+                heightOffset = textcard[1] - textcard[0]
+                # Transform Text Card with Composed Matrix
+                textcard[0] = rotLocMatrix @ (textcard[0] + offset - (heightOffset*fieldIdx)) + diff
+                textcard[1] = rotLocMatrix @ (textcard[1] + offset - (heightOffset*fieldIdx)) + diff
+                textcard[2] = rotLocMatrix @ (textcard[2] + offset - (heightOffset*fieldIdx)) + diff
+                textcard[3] = rotLocMatrix @ (textcard[3] + offset - (heightOffset*fieldIdx)) + diff
+
+                textField['textcard'] = textcard
+                fieldIdx += 1
             # Set Gizmo Properties
             annotation.gizLoc = p2
 
@@ -1411,12 +1392,12 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 coords.append(lineEnd)
                 coords.append(p2)
                 coords.append(p2)
-                if annotation.textPosition == 'T':
-                    coords.append(textcard[3])
-                    pointcoords = [p2]
-                elif annotation.textPosition == 'B':
-                    coords.append(textcard[2])
-                    pointcoords = [p2]
+                #if annotation.textPosition == 'T':
+                #    coords.append(textcard[3])
+                #    pointcoords = [p2]
+                #elif annotation.textPosition == 'B':
+                #    coords.append(textcard[2])
+                #    pointcoords = [p2]
 
                 batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
                 batch3d.program_set(lineShader)
@@ -1425,10 +1406,10 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 
                 # Again This is Super Lazy, gotta write up a shader that handles
                 # Mitered thick lines, but for now this works.
-                if annotation.textPosition == 'T' or annotation.textPosition == 'B':
-                    batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoords})
-                    batch3d.program_set(pointShader)
-                    batch3d.draw()
+                #if annotation.textPosition == 'T' or annotation.textPosition == 'B':
+                #    batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoords})
+                #    batch3d.program_set(pointShader)
+                #    batch3d.draw()
             
             # Draw Line Endcaps
             if endcap == 'D':
@@ -1470,7 +1451,9 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
             if scene.measureit_arch_gl_show_d:
-                draw_text_3D(context,annotation,myobj,textcard)                
+                for textField in annotation.textFields:
+                    textcard = textField['textcard']
+                    draw_text_3D(context,textField,annotationProps,myobj,textcard)                
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
@@ -1511,8 +1494,12 @@ def draw_arc(basis,init_angle,current_angle):
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
-def draw_text_3D(context,textobj,myobj,card):
+def draw_text_3D(context,textobj,textprops,myobj,card):
     #get props
+    card[0] = Vector(card[0])
+    card[1] = Vector(card[1])
+    card[2] = Vector(card[2])
+    card[3] = Vector(card[3])
     normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
 
     #i,j,k Basis Vectors
@@ -1618,7 +1605,7 @@ def draw_text_3D(context,textobj,myobj,card):
         print ("Y dot: " + str(cardDirY.dot(viewAxisY)))
 
     # Flip UV's if user selected
-    if textobj.textFlippedX is True or textobj.textFlippedY is True:
+    if textprops.textFlippedX is True or textprops.textFlippedY is True:
         flippedUVs = []
         for uv in normalizedDeviceUVs:
             if textobj.textFlippedX is True:
@@ -1647,7 +1634,7 @@ def draw_text_3D(context,textobj,myobj,card):
     height = textobj.textHeight 
     dim = width * height * 4
 
-    if 'texture' in textobj:
+    if 'texture' in textobj and textobj.text != "":
         # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
         buffer = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(textobj['texture'], dtype=np.uint8))
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width, height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
@@ -1739,7 +1726,7 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
 def generate_text_card(context,textobj,textProps,rotation,basePoint): 
     width = textobj.textWidth
     height = textobj.textHeight
-    resolution = textobj.textResolution
+    resolution = textProps.textResolution
     size = textProps.fontSize/fontSizeMult
     #Define annotation Card Geometry
     square = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
@@ -1823,7 +1810,8 @@ def generate_text_card(context,textobj,textProps,rotation,basePoint):
         coord = translateMatrix@Vector(coord)
         coords.append(coord)
 
-    return coords
+    
+    return (coords)
 
 def sortPoints (p1, p2):
     tempDirVec = Vector(p1)-Vector(p2)
