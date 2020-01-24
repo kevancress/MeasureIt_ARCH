@@ -378,6 +378,9 @@ class AddBoundingDimensionButton(Operator):
                 newBoundsDimension.drawAxis[1] = scene.measureit_arch_bound_y
                 newBoundsDimension.drawAxis[2] = scene.measureit_arch_bound_z
 
+                newBoundsDimension.fontSize = 24
+                newBoundsDimension.lineWeight = 1
+
                 #Add Text Field for each Axis
                 newBoundsDimension.textFields.add()
                 newBoundsDimension.textFields.add()

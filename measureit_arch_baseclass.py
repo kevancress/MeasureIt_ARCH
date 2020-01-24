@@ -246,7 +246,7 @@ class DeletePropButton(Operator):
         elif self.item_type == 'D-AXIS':
             itemGroup = Generator.axisDimensions
         elif self.item_type == 'D-BOUNDS':
-            itemGroup = Generator.axisDimensions
+            itemGroup = Generator.boundsDimensions
         elif 'D' in self.item_type:
             itemGroup = Generator.alignedDimensions
             
