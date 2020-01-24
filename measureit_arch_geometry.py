@@ -503,15 +503,18 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 j = Vector((0,1,0))
                 k = Vector((0,0,1))
 
+                # Check for text field
+                #print (len(dim.textFields))
+                dimText = dim.textFields[idx]
 
-                #format text and update if necessary
+                # format text and update if necessary
                 distanceText = str(format_distance(textFormat,dist))
-                if dim.text != str(distanceText):
-                    dim.text = str(distanceText)
-                    dim.text_updated = True
+                if dimText.text != str(distanceText):
+                    dimText.text = str(distanceText)
+                    dimText.text_updated = True
                 
-                width = dim.textWidth
-                height = dim.textHeight 
+                width = dimText.textWidth
+                height = dimText.textHeight 
                 
 
                 resolution = dimProps.textResolution
@@ -529,7 +532,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 
                 square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
                 if scene.measureit_arch_gl_show_d:
-                    draw_text_3D(context,dim,myobj,square)
+                    draw_text_3D(context,dimText,dimProps,myobj,square)
 
             
 

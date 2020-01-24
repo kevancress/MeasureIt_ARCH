@@ -81,20 +81,10 @@ bpy.utils.register_class(AxisDimensionProperties)
 
 
 class BoundsDimensionProperties(BaseDim, PropertyGroup):
-    def updateTextFields(self,context):
-        print('updating text fields')
-        for textField in self.textField:
-            self.textField.remove(0)
-        for axis in self.drawAxis:
-            if axis:
-                self.textField.add()
-
-
     drawAxis: BoolVectorProperty(name= "Draw Axis",
                 description= "Axis to Dimension for Bounding Box",
                 default= (False,False,False),
-                subtype= 'XYZ',
-                update= updateTextFields)
+                subtype= 'XYZ')
     
     
 
@@ -383,17 +373,15 @@ class AddBoundingDimensionButton(Operator):
                 DimGen = mainobject.DimensionGenerator[0]
                 newBoundsDimension = DimGen.boundsDimensions.add()
 
-                if scene.measureit_arch_bound_x:
-                    newBoundsDimension.drawX = True
-                if scene.measureit_arch_bound_y:
-                    newBoundsDimension.drawY = True
-                if scene.measureit_arch_bound_z:
-                    newBoundsDimension.drawZ = True
-
                 newBoundsDimension.name = 'Bounding Box Dimension'
                 newBoundsDimension.drawAxis[0] = scene.measureit_arch_bound_x
                 newBoundsDimension.drawAxis[1] = scene.measureit_arch_bound_y
                 newBoundsDimension.drawAxis[2] = scene.measureit_arch_bound_z
+
+                #Add Text Field for each Axis
+                newBoundsDimension.textFields.add()
+                newBoundsDimension.textFields.add()
+                newBoundsDimension.textFields.add()
 
                 newWrapper = DimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-BOUNDS'
