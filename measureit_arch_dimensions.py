@@ -26,7 +26,7 @@
 import bpy
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-                      FloatProperty, EnumProperty, PointerProperty
+                      FloatProperty, EnumProperty, PointerProperty, BoolVectorProperty
 from .measureit_arch_main import *
 from .measureit_arch_baseclass import BaseWithText , BaseDim
 
@@ -81,17 +81,22 @@ bpy.utils.register_class(AxisDimensionProperties)
 
 
 class BoundsDimensionProperties(BaseDim, PropertyGroup):
-    drawX: BoolProperty(name= "Draw X",
-                description= "Draw X Dimension of Bounding Box",
-                default=False)
-    
-    drawY: BoolProperty(name= "Draw Y",
-                description= "Draw Y Dimension of Bounding Box",
-                default=False) 
+    def updateTextFields(self,context):
+        print('updating text fields')
+        for textField in self.textField:
+            self.textField.remove(0)
+        for axis in self.drawAxis:
+            if axis:
+                self.textField.add()
 
-    drawZ: BoolProperty(name= "Draw Z",
-                description= "Draw Z Dimension of Bounding Box",
-                default=False) 
+
+    drawAxis: BoolVectorProperty(name= "Draw Axis",
+                description= "Axis to Dimension for Bounding Box",
+                default= (False,False,False),
+                subtype= 'XYZ',
+                update= updateTextFields)
+    
+    
 
 bpy.utils.register_class(BoundsDimensionProperties)
     
@@ -386,9 +391,9 @@ class AddBoundingDimensionButton(Operator):
                     newBoundsDimension.drawZ = True
 
                 newBoundsDimension.name = 'Bounding Box Dimension'
-                newBoundsDimension.drawX = scene.measureit_arch_bound_x
-                newBoundsDimension.drawY = scene.measureit_arch_bound_y
-                newBoundsDimension.drawZ = scene.measureit_arch_bound_z
+                newBoundsDimension.drawAxis[0] = scene.measureit_arch_bound_x
+                newBoundsDimension.drawAxis[1] = scene.measureit_arch_bound_y
+                newBoundsDimension.drawAxis[2] = scene.measureit_arch_bound_z
 
                 newWrapper = DimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-BOUNDS'
@@ -1268,9 +1273,7 @@ def draw_bounds_dimension_settings(dim,layout):
     row.label(text='Axis')
     row = split.row(align=True)
 
-    row.prop(dim, "drawX", text="X",toggle=True)
-    row.prop(dim, "drawY", text="Y",toggle=True)
-    row.prop(dim, "drawZ", text="Z",toggle=True)
+    row.prop(dim, "drawAxis", text="", toggle=True)
 
 
     col = layout.column(align=True)

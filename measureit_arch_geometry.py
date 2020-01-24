@@ -446,6 +446,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                   [4,7],
                   [5,6]]
 
+        pairs = [xpairs,ypairs,zpairs]
         #draw points for debug
         if True:
             pointShader.bind()
@@ -467,19 +468,13 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
             gpu.shader.unbind()
 
         # establish measure loop
-        if dim.drawX: measureAxis.append(0)
-        if dim.drawY: measureAxis.append(1)
-        if dim.drawZ: measureAxis.append(2)
-
-        if len(measureAxis)>0:
-            for axis in measureAxis:
-                if axis == 0: pairs = xpairs
-                elif axis == 1: pairs = ypairs
-                elif axis == 2: pairs = zpairs
+        idx = 0
+        for axis in dim.drawAxis:
+            if axis:
                 # get points 
                 
-                p1 = myobj.matrix_world @ Vector(bounds[pairs[0][0]])
-                p2 = myobj.matrix_world @ Vector(bounds[pairs[0][1]])
+                p1 = myobj.matrix_world @ Vector(bounds[pairs[idx][idx][0]])
+                p2 = myobj.matrix_world @ Vector(bounds[pairs[idx][idx][1]])
 
 
 
@@ -600,7 +595,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 batch.program_set(lineShader)
                 batch.draw()
                 gpu.shader.unbind()
-        
+            idx+=1
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
