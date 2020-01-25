@@ -968,14 +968,17 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
             angleText += a_code
         # Update if Necessary
-        if dim.text != str(angleText):
-            dim.text = str(angleText)
-            dim.text_updated = True
+        if len(dim.textFields) == 0:
+            dim.textFields.add()
+
+        if dim.textFields[0].text != str(angleText):
+            dim.textFields[0].text = str(angleText)
+            dim.textFields[0].text_updated = True
         
         #make text card
         vecX = vecB-vecA
-        width = dim.textWidth
-        height = dim.textHeight 
+        width = dim.textFields[0].textWidth
+        height = dim.textFields[0].textHeight 
         resolution = dimProps.textResolution
         size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
@@ -986,7 +989,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
 
         if scene.measureit_arch_gl_show_d:
-            draw_text_3D(context,dim,myobj,square)
+            draw_text_3D(context,dim.textFields[0],dimProps,myobj,square)
 
 
 
