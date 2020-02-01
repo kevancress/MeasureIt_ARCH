@@ -436,7 +436,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
         bestPairs = [xpairs[2],ypairs[1],zpairs[0]]
         pairs = [xpairs,ypairs,zpairs]
         #draw points for debug
-        if True:
+        if False:
             pointShader.bind()
             pointShader.uniform_float("Viewport",viewport)
             pointShader.uniform_float("thickness", 5)
@@ -473,7 +473,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
                 selectedNormal = -absNormDisVector.cross(axisViewVec).normalized()
 
-                print(str(idx) + " " + str(abs(selectedNormal.dot(selectionVectors[idx]))))
+                #print(str(idx) + " " + str(abs(selectedNormal.dot(selectionVectors[idx]))))
 
                 if abs(selectedNormal.dot(selectionVectors[idx])) > 0.8:
                     selectedNormal = selectionVectors[idx]
@@ -546,8 +546,8 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
                 #Collect coords and endcaps
                 coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
-                coords.append((0,0,0))
-                coords.append(axisViewVec)
+                #coords.append((0,0,0))
+                #coords.append(axisViewVec)
                 filledCoords = []
                 pos = (dimLineStart,dimLineEnd)
                 i=0
