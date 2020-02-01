@@ -1226,15 +1226,14 @@ def draw_line_group(context, myobj, lineGen, mat):
             pointShader.uniform_float("offset", -offset)
             
 
-            
-           
-            
             #Get line data to be drawn
             coords =[]
             pointcoord =[]
             arclengths = []
             for x in range(0,lineGroup.numLines):
                 sLine = lineGroup.singleLine[x]
+                a_p1 = None
+                b_p1 = None
                 
                 if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
                     a_p1 = Vector(get_point(obverts[sLine.pointA], myobj,mat))
