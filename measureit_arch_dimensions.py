@@ -1234,9 +1234,6 @@ def draw_aligned_dimension_settings(dim,layout):
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
 
 
-    col.prop(dim,'textFlippedX',text='Flip Text X')
-    col.prop(dim,'textFlippedY',text='Flip Text Y')
-
 def draw_bounds_dimension_settings(dim,layout):
     col = layout.column()    
 
@@ -1286,9 +1283,6 @@ def draw_bounds_dimension_settings(dim,layout):
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
 
 
-    col.prop(dim,'textFlippedX',text='Flip Text X')
-    col.prop(dim,'textFlippedY',text='Flip Text Y')
-
 def draw_axis_dimension_settings(dim,layout):
     col = layout.column()    
 
@@ -1329,8 +1323,6 @@ def draw_axis_dimension_settings(dim,layout):
         col.prop(dim,'endcapSize', text='Arrow Size')
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
 
-    col.prop(dim,'textFlippedX',text='Flip Text X')
-    col.prop(dim,'textFlippedY',text='Flip Text Y')
 
 def draw_angle_dimension_settings(dim,layout):
         col = layout.column()
@@ -1360,5 +1352,3 @@ def draw_angle_dimension_settings(dim,layout):
             #col.prop(dim,'textPosition',text='Position')
 
         col = layout.column(align=True)
-        col.prop(dim,'textFlippedX',text='Flip Text X')
-        col.prop(dim,'textFlippedY',text='Flip Text Y')
