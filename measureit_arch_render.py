@@ -293,6 +293,9 @@ def render_main(self, context, animation=False):
                     if 'axisDimensions' in measureGen:
                         for dim in measureGen.axisDimensions:
                             draw_axisDimension(context, myobj, measureGen,dim,mat)
+                    if 'boundsDimensions' in measureGen:
+                        for dim in measureGen.boundsDimensions:
+                            draw_boundsDimension(context, myobj, measureGen,dim,mat)
 
                 if 'LineGenerator' in myobj:
                     # Set 3D Projection Martix
