@@ -424,6 +424,8 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
         j = Vector((0,1,0)) # Y Unit Vector
         k = Vector((0,0,1)) # Z Unit Vector
 
+        viewVec = Vector((0,0,0)) # dummy vector to avoid errors
+
         if context.scene.measureit_arch_is_render_draw:
             cameraLoc = context.scene.camera.location.normalized()
             viewAxis = cameraLoc
