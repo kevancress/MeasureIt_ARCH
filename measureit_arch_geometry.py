@@ -787,7 +787,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
         #Lines
         leadStartA = Vector(basePoint) + geoOffsetDistance
-        leadEndA = Vector(basePoint)  + offsetDistance
+        leadEndA = Vector(basePoint) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
 
         leadEndB =  leadEndA - Vector(secondPointAxis)
         leadStartB = Vector(secondPoint) - viewAxisDiff + geoOffsetDistance
@@ -795,8 +795,10 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         viewDiffStartB = leadStartB
         viewDiffEndB = leadStartB + viewAxisDiff
 
-        dimLineStart = leadEndA -(offsetDistance.normalized()*0.05)
-        dimLineEnd = leadEndB-(offsetDistance.normalized()*0.05)
+        
+
+        dimLineStart = Vector(basePoint) + offsetDistance
+        dimLineEnd = dimLineStart -Vector(secondPointAxis)
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
        
        # Check for text field
