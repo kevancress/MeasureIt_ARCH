@@ -190,6 +190,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
 
         # Obj Properties
         obvertA = dim.dimObjectA['obverts']
+        if 'obverts' not in dim.dimObjectB:
+            dim.dimObjectB['obverts'] = get_mesh_vertices(dim.dimObjectB)
         obvertB = dim.dimObjectB['obverts']
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
@@ -631,6 +633,8 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
         # Obj Properties
         obvertA = dim.dimObjectA['obverts']
+        if 'obverts' not in dim.dimObjectB:
+            dim.dimObjectB['obverts'] = get_mesh_vertices(dim.dimObjectB)
         obvertB = dim.dimObjectB['obverts']
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
@@ -1636,17 +1640,6 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
         print ("X dot: " + str(cardDirX.dot(viewAxisX)))
         print ("Y dot: " + str(cardDirY.dot(viewAxisY)))
 
-    # Flip UV's if user selected
-    if textprops.textFlippedX is True or textprops.textFlippedY is True:
-        flippedUVs = []
-        for uv in normalizedDeviceUVs:
-            if textobj.textFlippedX is True:
-                uv = flipMatrixX@Vector(uv)
-            if textobj.textFlippedY is True:
-                uv = flipMatrixY@Vector(uv)
-            flippedUVs.append(uv)
-        normalizedDeviceUVs = flippedUVs
-        
     uvs = []
     for normUV in normalizedDeviceUVs:
         uv = (Vector(normUV) + Vector((1,1)))*0.5
@@ -2331,3 +2324,48 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
     return maxwidth, maxheight
 
 
+# --------------------------------------------------------------------
+# Get vertex data
+# mainobject
+# --------------------------------------------------------------------
+def get_mesh_vertices(myobj):
+    try:
+        obverts = []
+        verts=[]
+        if myobj.type == 'MESH':
+            if myobj.mode == 'EDIT':
+                bm = bmesh.from_edit_mesh(myobj.data)
+                verts = bm.verts
+            else:
+                eval_res = bpy.context.scene.measureit_arch_eval_mods
+                if eval_res or check_mods(myobj):
+                    deps = bpy.context.view_layer.depsgraph
+                    obj_eval = myobj.evaluated_get(deps)
+                    mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
+                    verts = mesh.vertices
+                else:
+                    verts = myobj.data.vertices
+            for vert in verts:
+                obverts.append(vert.co)
+            return obverts
+        else: return None 
+    except AttributeError:
+        return None
+
+def check_mods(myobj):
+    goodMods = ["DATA_TRANSFER ", "NORMAL_EDIT", "WEIGHTED_NORMAL",
+                'UV_PROJECT', 'UV_WARP', 'ARRAY', 'DECIMATE', 
+                'EDGE_SPLIT', 'MASK', 'MIRROR', 'MULTIRES', 'SCREW',
+                'SOLIDIFY', 'SUBSURF', 'TRIANGULATE', 'ARMATURE', 
+                'CAST', 'CURVE', 'DISPLACE', 'HOOK', 'LAPLACIANDEFORM',
+                'LATTICE', 'MESH_DEFORM', 'SHRINKWRAP', 'SIMPLE_DEFORM',
+                'SMOOTH', 'CORRECTIVE_SMOOTH', 'LAPLACIANSMOOTH',
+                'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH', 'COLLISION', 
+                'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
+                'SMOKE', 'SOFT_BODY', 'SURFACE','SOLIDIFY']
+    if myobj.modifiers == None:
+        return False
+    for mod in myobj.modifiers:
+        if mod.type not in goodMods:
+            return False
+    return True

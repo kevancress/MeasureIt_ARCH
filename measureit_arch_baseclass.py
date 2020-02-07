@@ -32,15 +32,16 @@ class BaseProp:
 
     color: FloatVectorProperty(name="Color",
                 description="Color for the Item",
-                default=(0.0,0.0,0.0, 1.0),
+                default= (0.0,0.0,0.0, 1.0),
                 min=0,
                 max=1,
                 subtype='COLOR',
                 size=4,
-                update= update_flag)
+                update = update_flag)
 
     lineWeight: IntProperty(name="Line Weight",
                 description="Lineweight",
+                default = 1,
                 min = 1)
 
     free: BoolProperty(name="Free",
@@ -125,13 +126,6 @@ class BaseWithText(BaseProp):
     font: PointerProperty(type= bpy.types.VectorFont,
                 update = update_flag)
 
-    textFlippedX: BoolProperty(name='textFlippedX', 
-                description= 'Flip Text X',
-                default = False)
-    textFlippedY: BoolProperty(name='textFlippedY', 
-                description= 'Flip Text Y',
-                default = False)\
-
     # endcap properties are defined here to ensure compatiblity but the enumProps are overwritten in child property groups
     endcapSize: IntProperty(name="dimEndcapSize",
                 description="End Cap size",
@@ -139,7 +133,7 @@ class BaseWithText(BaseProp):
     
     endcapArrowAngle: FloatProperty(name="endcapArrowAngle",
                 description="End Cap Arrow Angle",
-                default = math.radians(25),
+                default = math.radians(15),
                 soft_min = math.radians(15),
                 soft_max = math.radians(45),
                 subtype = 'ANGLE')
@@ -181,14 +175,15 @@ class BaseDim(BaseWithText):
                            ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
                            ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
                            ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
-                    name="B end",
-                    description="Add arrows to point A")   
+                    name="View Plane",
+                    description="Dimension View Plane")   
 
     endcapA: EnumProperty(
                     items=(('99', "--", "No Cap"),
                            ('L', "Arrow", "Arrow"),
                            ('T', "Triangle", "Triangle"),
                            ('D', "Dashed", "Dashed")),
+                    default ='T',
                     name="A end",
                     description="Add arrows to point A")
 
@@ -198,6 +193,7 @@ class BaseDim(BaseWithText):
                            ('T', "Triangle", "Triangle"),
                            ('D', "Dashed", "Dashed")),
                     name="B end",
+                    default ='T',
                     description="Add arrows to point A")   
 
     dimRotation:FloatProperty(name='annotationOffset',

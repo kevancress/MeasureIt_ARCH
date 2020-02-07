@@ -29,7 +29,8 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
                       FloatProperty, EnumProperty, PointerProperty, BoolVectorProperty
 from .measureit_arch_main import *
 from .measureit_arch_baseclass import BaseWithText , BaseDim
-
+from mathutils import Vector, Matrix, Euler, Quaternion
+import math
 # ------------------------------------------------------------------
 # Define property group class for measureit_arch faces index
 # ------------------------------------------------------------------
@@ -209,6 +210,23 @@ class AddAlignedDimensionButton(Operator):
                                 newDimension.dimObjectB = mainobject
                                 newDimension.dimPointB = mylist[x]
                                 newDimension.dimPointA = mylist[x + 1]
+
+
+                                # Set Distance Dependant Properties
+                                idxA = mylist[x+1]
+                                idxB = mylist[x]
+                                p1 = Vector(mainobject.data.vertices[idxA].co)
+                                p2 = Vector(mainobject.data.vertices[idxB].co)
+                                distVector = Vector(p1)-Vector(p2)
+                                dist = distVector.length
+                                print(dist)
+
+                                newDimension.endcapSize= math.ceil(dist*3)
+                                newDimension.fontSize= math.ceil(dist*15)
+                                newDimension.dimOffset = dist/4
+                                newDimension.dimLeaderOffset = dist/30
+
+
                                 newDimension.name = 'Dimension ' + str(len(DimGen.alignedDimensions))
                                 newDimensions.append(newDimension)
 
@@ -274,11 +292,24 @@ class AddAlignedDimensionButton(Operator):
                 newDimension.dimObjectB = linkobject
                 newDimension.dimPointB = mylinkvertex[0]
                 newDimension.name = 'Dimension ' + str(len(DimGen.alignedDimensions))
-                newDimensions.append(newDimension)
+
+                # Set Distance Dependant Properties
+                p1 = Vector(mainobject.location)
+                p2 = Vector(linkobject.location)
+                distVector = Vector(p1)-Vector(p2)
+                dist = distVector.length
+
+                newDimension.endcapSize= math.ceil(dist*3)
+                newDimension.fontSize= math.ceil(dist*15)
+                newDimension.dimOffset = dist/4
+                newDimension.dimLeaderOffset = dist/30
+
+
+
                 newWrapper = DimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-ALIGNED'
                 recalc_dimWrapper_index(self,context)
-
+                newDimensions.append(newDimension)
                 context.area.tag_redraw()
 
             # Set Common Values
@@ -295,20 +326,9 @@ class AddAlignedDimensionButton(Operator):
                     newDimension.dimVisibleInView = scene.camera.data
                 newDimension.dimViewPlane = scene.viewPlane
 
-                newDimension.endcapA= scene.measureit_arch_glarrow_a
-                newDimension.endcapB = scene.measureit_arch_glarrow_b
-                newDimension.endcapSize= 8
-                # color
-                newDimension.color = scene.measureit_arch_default_color
-                # dist
-                newDimension.dimOffset = 0.3
-                newDimension.dimLeaderOffset = 0.05
                 # text
-                newDimension.text = scene.measureit_arch_gl_txt
-                newDimension.fontSize = 24
-                newDimension.textResolution = 150
                 newDimension.textAlignment = 'C'
-                # Sum group
+
                 DimGen.measureit_arch_num += 1 
             return{'FINISHED'}
         else:
@@ -377,9 +397,6 @@ class AddBoundingDimensionButton(Operator):
                 newBoundsDimension.drawAxis[0] = scene.measureit_arch_bound_x
                 newBoundsDimension.drawAxis[1] = scene.measureit_arch_bound_y
                 newBoundsDimension.drawAxis[2] = scene.measureit_arch_bound_z
-
-                newBoundsDimension.fontSize = 24
-                newBoundsDimension.lineWeight = 1
 
                 #Add Text Field for each Axis
                 newBoundsDimension.textFields.add()
@@ -452,12 +469,26 @@ class AddAxisDimensionButton(Operator):
 
                         for x in range(0, len(mylist) - 1, 2):
                             if exist_segment(DimGen, mylist[x], mylist[x + 1]) is False:
+
                                 newDimension = DimGen.axisDimensions.add()
                                 newDimension.dimObjectA = mainobject
                                 newDimension.dimObjectB = mainobject
                                 newDimension.dimPointB = mylist[x]
                                 newDimension.dimPointA = mylist[x + 1]
                                 newDimension.name = 'Axis ' + str(len(DimGen.axisDimensions))
+
+                                # Set Distance Dependant Properties
+                                idxA = mylist[x+1]
+                                idxB = mylist[x]
+                                p1 = Vector(mainobject.data.vertices[idxA].co)
+                                p2 = Vector(mainobject.data.vertices[idxB].co)
+                                distVector = Vector(p1)-Vector(p2)
+                                dist = distVector.length
+
+                                newDimension.endcapSize= math.ceil(dist*3)
+                                newDimension.fontSize= math.ceil(dist*15)
+                                newDimension.dimOffset = dist/4
+                                newDimension.dimLeaderOffset = dist/30
                                 newDimensions.append(newDimension)
 
                                 newWrapper = DimGen.wrappedDimensions.add()
@@ -524,6 +555,26 @@ class AddAxisDimensionButton(Operator):
                 newDimension.name = 'Axis ' + str(len(DimGen.axisDimensions))
                 newDimensions.append(newDimension)
                 newWrapper = DimGen.wrappedDimensions.add()
+
+                 # Set Distance Dependant Properties
+                idxA = myobjvertex[0]
+                idxB = mylinkvertex[0]
+
+                # Just use the relative locations of the objects
+                ## I should really use the selected verts with
+                ## the correct transform matrix but this is okay for now
+                p1 = Vector(mainobject.location)
+                p2 = Vector(linkobject.location)
+
+                distVector = Vector(p1)-Vector(p2)
+                dist = distVector.length
+
+                newDimension.endcapSize= math.ceil(dist*3)
+                newDimension.fontSize= math.ceil(dist*15)
+                newDimension.dimOffset = dist/4
+                newDimension.dimLeaderOffset = dist/30
+                newDimensions.append(newDimension)
+
                 newWrapper.itemType = 'D-AXIS'
                 recalc_dimWrapper_index(self,context)
 
@@ -537,26 +588,14 @@ class AddAxisDimensionButton(Operator):
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
-                
-                newDimension.lineWeight = 1
+
                 if 'camera' in scene:
                     newDimension.dimVisibleInView = scene.camera.data
                 newDimension.dimViewPlane = scene.viewPlane
 
-                newDimension.endcapA= scene.measureit_arch_glarrow_a
-                newDimension.endcapB = scene.measureit_arch_glarrow_b
-                newDimension.endcapSize= 8
                 newDimension.dimAxis = scene.measureit_arch_dim_axis
-                # color
-                newDimension.color = scene.measureit_arch_default_color
-                # dist
-                newDimension.dimOffset = 0.3
-                newDimension.dimLeaderOffset = 0.05
-                # text
-                newDimension.text = scene.measureit_arch_gl_txt
-                newDimension.fontSize = 24
-                newDimension.textResolution = 150
                 newDimension.textAlignment = 'C'
+                
                 # Sum group
                 DimGen.measureit_arch_num += 1 
             return{'FINISHED'}

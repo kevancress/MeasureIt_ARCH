@@ -35,7 +35,7 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
-from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension
+from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, get_mesh_vertices
 
 # ------------------------------------------------------
 # Handler to detect new Blend load
@@ -403,51 +403,9 @@ class ShowHideViewportButton(Operator):
         return {'CANCELLED'}
 
 
-# --------------------------------------------------------------------
-# Get vertex data
-# mainobject
-# --------------------------------------------------------------------
-def get_mesh_vertices(myobj):
-    try:
-        obverts = []
-        verts=[]
-        if myobj.type == 'MESH':
-            if myobj.mode == 'EDIT':
-                bm = bmesh.from_edit_mesh(myobj.data)
-                verts = bm.verts
-            else:
-                eval_res = bpy.context.scene.measureit_arch_eval_mods
-                if eval_res or check_mods(myobj):
-                    deps = bpy.context.view_layer.depsgraph
-                    obj_eval = myobj.evaluated_get(deps)
-                    mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
-                    verts = mesh.vertices
-                else:
-                    verts = myobj.data.vertices
-            for vert in verts:
-                obverts.append(vert.co)
-            return obverts
-        else: return None 
-    except AttributeError:
-        return None
 
-def check_mods(myobj):
-    goodMods = ["DATA_TRANSFER ", "NORMAL_EDIT", "WEIGHTED_NORMAL",
-                'UV_PROJECT', 'UV_WARP', 'ARRAY', 'DECIMATE', 
-                'EDGE_SPLIT', 'MASK', 'MIRROR', 'MULTIRES', 'SCREW',
-                'SOLIDIFY', 'SUBSURF', 'TRIANGULATE', 'ARMATURE', 
-                'CAST', 'CURVE', 'DISPLACE', 'HOOK', 'LAPLACIANDEFORM',
-                'LATTICE', 'MESH_DEFORM', 'SHRINKWRAP', 'SIMPLE_DEFORM',
-                'SMOOTH', 'CORRECTIVE_SMOOTH', 'LAPLACIANSMOOTH',
-                'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH', 'COLLISION', 
-                'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
-                'SMOKE', 'SOFT_BODY', 'SURFACE','SOLIDIFY']
-    if myobj.modifiers == None:
-        return False
-    for mod in myobj.modifiers:
-        if mod.type not in goodMods:
-            return False
-    return True
+
+
 
 
 # -------------------------------------------------------------
