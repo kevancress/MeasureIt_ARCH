@@ -219,7 +219,6 @@ class AddAlignedDimensionButton(Operator):
                                 p2 = Vector(mainobject.data.vertices[idxB].co)
                                 distVector = Vector(p1)-Vector(p2)
                                 dist = distVector.length
-                                print(dist)
 
                                 newDimension.endcapSize= math.ceil(dist*3)
                                 newDimension.fontSize= math.ceil(dist*15)

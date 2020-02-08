@@ -1295,7 +1295,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("thickness",hiddenLineWeight)
                 dashedLineShader.uniform_float("screenSpaceDash",lineProps.screenSpaceDashes)
                 dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
-   
+                dashedLineShader.uniform_float("offset", -offset)
             
                 batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
                 batchHidden.program_set(dashedLineShader)
@@ -1311,7 +1311,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("thickness",lineWeight)
                 dashedLineShader.uniform_float("screenSpaceDash",lineProps.screenSpaceDashes)
                 dashedLineShader.uniform_float("finalColor",  (rgb[0], rgb[1], rgb[2], rgb[3]))
-               
+                dashedLineShader.uniform_float("offset", -offset)
             
                 batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
                 batchHidden.program_set(dashedLineShader)

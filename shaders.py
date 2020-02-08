@@ -107,7 +107,7 @@ class Line_Shader_3D ():
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
 
-            // get offset factor from normal and user input thicknes
+            // get offset factor from normal and user input thickness
             vec2 offset = vec2(normal * width);
             offset.x /= aspect;
             
@@ -167,6 +167,7 @@ class Dashed_Shader_3D ():
 
     vertex_shader = '''
         uniform mat4 ModelViewProjectionMatrix;
+        uniform float offset;
 
         in vec3 pos;
         in float arcLength;    
@@ -174,12 +175,12 @@ class Dashed_Shader_3D ():
         out float v_ArcLength;
 
         vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0f);
-        vec4 offset = vec4(0,0,0,0);
+        vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
 
         void main()
         {
             v_ArcLength = arcLength;
-            gl_Position = project + offset;
+            gl_Position = project + vecOffset;
         }
     '''
     geometry_shader = '''
