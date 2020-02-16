@@ -835,10 +835,8 @@ class AddAngleButton(Operator):
                 newDimension.dimPointC = mylist[2]
                 newDimension.dimRadius = 0.25
                 newDimension.lineWeight = 1
-                newDimension.color = scene.measureit_arch_default_color
                 
                 # text
-                newDimension.text = scene.measureit_arch_gl_txt
                 newDimension.fontSize = 7
                 newDimension.textResolution = 72
                 newDimension.textAlignment = 'C'
@@ -1270,6 +1268,7 @@ def draw_aligned_dimension_settings(dim,layout):
         col.prop(dim,'endcapB', text='End')
         col.prop(dim,'endcapSize', text='Arrow Size')
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
+        col.prop(dim,'inFront', text='Draw in Front')
 
 
 def draw_bounds_dimension_settings(dim,layout):
@@ -1319,6 +1318,8 @@ def draw_bounds_dimension_settings(dim,layout):
         col.prop(dim,'endcapB', text='End')
         col.prop(dim,'endcapSize', text='Arrow Size')
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
+        col.prop(dim,'inFront', text='Draw in Front')
+
 
 
 def draw_axis_dimension_settings(dim,layout):
@@ -1360,6 +1361,8 @@ def draw_axis_dimension_settings(dim,layout):
         col.prop(dim,'endcapB', text='End')
         col.prop(dim,'endcapSize', text='Arrow Size')
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
+        col.prop(dim,'inFront', text='Draw in Front')
+
 
 
 def draw_angle_dimension_settings(dim,layout):
@@ -1387,6 +1390,8 @@ def draw_angle_dimension_settings(dim,layout):
             col.prop(dim,'fontSize',text='Font Size')
             col.prop(dim,'textResolution',text='Resolution')
             col.prop(dim,'textAlignment',text='Alignment')
+            col.prop(dim,'inFront', text='Draw in Front')
+
             #col.prop(dim,'textPosition',text='Position')
 
         col = layout.column(align=True)

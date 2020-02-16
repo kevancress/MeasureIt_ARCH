@@ -149,6 +149,11 @@ class BaseWithText(BaseProp):
                         ('1', "Line", "The point of the arrow are lines")),
                 name="B end",
                 description="Add arrows to point A")        
+    
+    inFront: BoolProperty(name='inFront',
+                description= 'Draw this element In front of other objects',
+                default = False)
+
 
 
 class BaseDim(BaseWithText):

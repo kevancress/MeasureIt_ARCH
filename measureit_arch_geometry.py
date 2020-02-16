@@ -166,6 +166,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
+    if dim.inFront:
+         bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glDepthMask(False)
 
@@ -304,8 +306,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dimText,dimProps,myobj,square)
 
-    
-
         #Collect coords and endcaps
         coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
         filledCoords = []
@@ -358,6 +358,8 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
+    if dim.inFront:
+         bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glDepthMask(False)
 
@@ -605,6 +607,8 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
+    if dim.inFront:
+         bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glDepthMask(False)
 
@@ -913,6 +917,8 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
+        if dim.inFront:
+         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
 
         lineWeight = dimProps.lineWeight
@@ -1332,7 +1338,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
     scene = context.scene
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
+
     bgl.glDepthMask(False)
 
     if context.scene.measureit_arch_is_render_draw:
@@ -1344,7 +1350,10 @@ def draw_annotation(context, myobj, annotationGen, mat):
     for idx in range(0, annotationGen.num_annotations):
         annotation = annotationGen.annotations[idx]
         annotationProps = annotation
-        
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        if annotation.inFront:
+            bgl.glDisable(bgl.GL_DEPTH_TEST)
+
         if annotation.uses_style:
             for annotationStyle in context.scene.StyleGenerator[0].annotations:
                 if annotationStyle.name == annotation.style:
@@ -1399,6 +1408,8 @@ def draw_annotation(context, myobj, annotationGen, mat):
             p2 = rotLocMatrix @ Vector(p2) + diff
 
             fieldIdx = 0
+            if 'textFields' not in annotation:
+                annotation.textFields.add()
             for textField in annotation.textFields:
                 textcard = generate_text_card(context,textField,annotationProps,annotation.annotationRotation,(0,0,0))
                 heightOffset = textcard[1] - textcard[0]
@@ -2345,8 +2356,13 @@ def get_mesh_vertices(myobj):
                     verts = mesh.vertices
                 else:
                     verts = myobj.data.vertices
+
+            # We're going through every Vertex in the object here
+            # probably excessive, should figure out a better way to
+            # link dims to verts...
             for vert in verts:
                 obverts.append(vert.co)
+                
             return obverts
         else: return None 
     except AttributeError:

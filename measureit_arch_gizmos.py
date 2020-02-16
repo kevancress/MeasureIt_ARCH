@@ -71,7 +71,6 @@ class mArchGizmoGroup(GizmoGroup):
         self.createGiz(obj)
 
     def refresh(self, context):
-        print(self.bl_owner_id)
         obj = context.object
         self.gizmos.clear()
         self.createGiz(obj)
@@ -86,7 +85,7 @@ def createDimOffsetGiz(group,dim,objIndex):
     rotMatrix = rot.to_matrix()
     rotMatrix.resize_4x4()
     basisMatrix = basisMatrix @ rotMatrix
-    basisMatrix.translation = Vector(dim.gizLoc)+(Vector(dim.gizRotDir)*0.1)
+    basisMatrix.translation = Vector(dim.gizLoc)+(Vector(dim.gizRotDir)*0.2)
     
     #Offset Gizmo
     dimOffsetGiz = group.gizmos.new("GIZMO_GT_arrow_3d")
@@ -95,13 +94,15 @@ def createDimOffsetGiz(group,dim,objIndex):
 
     dimOffsetGiz.length = 0
     dimOffsetGiz.matrix_basis = basisMatrix
+    dimOffsetGiz.use_draw_value = True
 
-    dimOffsetGiz.scale_basis = 0.8
+    dimOffsetGiz.scale_basis = 1
     dimOffsetGiz.color = (pow(dim.color[0],(1/2.2)),pow(dim.color[1],(1/2.2)),pow(dim.color[2],(1/2.2)))
     dimOffsetGiz.alpha = 0.3
 
     dimOffsetGiz.color_highlight = (pow(dim.color[0],(1/2.2)),pow(dim.color[1],(1/2.2)),pow(dim.color[2],(1/2.2)))
     dimOffsetGiz.alpha_highlight = 1
+    
 
     #Button Gizmo
     #dimButton = group.gizmos.new("GIZMO_GT_button_2d")
@@ -142,6 +143,7 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         annotationMove.line_width = lineweight
         annotationMove.color = 0.8, 0.8, 0.8
         annotationMove.alpha = 0.5
+        annotationMove.use_draw_modal = True 
 
         annotationMove.color_highlight = 1.0, 1.0, 1.0
         annotationMove.alpha_highlight = 1
