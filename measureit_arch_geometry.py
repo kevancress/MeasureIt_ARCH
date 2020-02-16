@@ -1439,12 +1439,13 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 coords.append(p2)
                 coords.append(p2)
 
-                #if annotation.textPosition == 'T':
-                #    coords.append(textcard[3])
-                #    pointcoords = [p2]
-                #elif annotation.textPosition == 'B':
-                #    coords.append(textcard[2])
-                #    pointcoords = [p2]
+                textcard = annotation.textFields[0]['textcard']
+                if annotation.textPosition == 'T':
+                    coords.append(textcard[3])
+                    pointcoords = [p2]
+                elif annotation.textPosition == 'B':
+                    coords.append(textcard[2])
+                    pointcoords = [p2]
 
                 batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
                 batch3d.program_set(lineShader)
