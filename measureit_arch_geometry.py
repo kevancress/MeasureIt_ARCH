@@ -786,6 +786,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             secondPointAxis = Vector(p2axis) - Vector(p1axis)
             alignedDistVector = Vector(p1)-Vector(p2)
 
+
         # get the difference between the points in the view axis
         if viewPlane == '99':
             viewAxis = Vector(viewSector)
@@ -808,7 +809,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         
 
         dimLineStart = Vector(basePoint) + offsetDistance
-        dimLineEnd = dimLineStart -Vector(secondPointAxis)
+        dimLineEnd = dimLineStart - Vector(secondPointAxis)
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
        
        # Check for text field
@@ -855,7 +856,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         elif dim.textAlignment == 'R':
             flipCaps=True
             dimLineExtension = capSize/50
-            origin a+= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* distVector.normalized()) - Vector(cardY/2)
+            origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* distVector.normalized()) - Vector(cardY/2)
              
         elif tempExtFlag:
             flipCaps=True
@@ -868,8 +869,8 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             
 
         # Add the Extension to the dimension line
-        dimLineEndCoord = dimLineEnd + dimLineExtension * distVector.normalized()
-        dimLineStartCoord = dimLineStart - dimLineExtension * distVector.normalized()
+        dimLineEndCoord = dimLineEnd - dimLineExtension * secondPointAxis.normalized()
+        dimLineStartCoord = dimLineStart + dimLineExtension * secondPointAxis.normalized()
         
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
         
