@@ -769,7 +769,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         dim.gizRotDir = userOffsetVector
 
         # Define Lines
-        # get the components of p1 & p1 in the direction vector
+        # get the components of p1 & p1 in the direction zvector
         p1Dir = Vector((p1[0]*dirVector[0],p1[1]*dirVector[1],p1[2]*dirVector[2]))
         p2Dir = Vector((p2[0]*dirVector[0],p2[1]*dirVector[1],p2[2]*dirVector[2]))
         
@@ -834,12 +834,43 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         cardX = Vector((abs(normDistVector[0]),-abs(normDistVector[1]),-abs(normDistVector[2]))) * sx
         cardY = userOffsetVector *sy
 
+        # Flip endcaps if they're going to overlap the dim
         flipCaps = False
-        if (cardX.length + capSize/100) > dist:
+        if (cardX.length + capSize/80) > dist:
             flipCaps=True
-            origin = Vector(dimLineEnd) - Vector(cardX/2 + cardX.normalized()*capSize/100) - Vector(cardY/2)
 
+        # Move dim to ext temporarily if the text is wider than the dimension line
+        tempExtFlag = False
+        if (cardX.length) > dist:
+            if dim.textAlignment == 'C':
+                tempExtFlag = True
 
+        # Set Text Alignment 
+        dimLineExtension = 0 # add some extension to the line if the dimension is ext
+        if dim.textAlignment == 'L' :
+            flipCaps=True
+            dimLineExtension = capSize/50
+            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* distVector.normalized()) + Vector(cardY/2)
+            
+        elif dim.textAlignment == 'R':
+            flipCaps=True
+            dimLineExtension = capSize/50
+            origin a+= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* distVector.normalized()) - Vector(cardY/2)
+             
+        elif tempExtFlag:
+            flipCaps=True
+            dimLineExtension = capSize/50
+            origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* distVector.normalized()) - Vector(cardY/2)
+
+        if flipCaps:
+            dimLineExtension = capSize/50
+
+            
+
+        # Add the Extension to the dimension line
+        dimLineEndCoord = dimLineEnd + dimLineExtension * distVector.normalized()
+        dimLineStartCoord = dimLineStart - dimLineExtension * distVector.normalized()
+        
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
         
 
@@ -853,7 +884,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         
 
         #Collect coords and endcaps
-        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd,viewDiffStartB,viewDiffEndB]
+        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStartCoord,dimLineEndCoord,viewDiffStartB,viewDiffEndB]
         filledCoords = []
         pos = (dimLineStart,dimLineEnd)
         i=0
@@ -918,7 +949,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         if dim.inFront:
-         bgl.glDisable(bgl.GL_DEPTH_TEST)
+            bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
 
         lineWeight = dimProps.lineWeight
