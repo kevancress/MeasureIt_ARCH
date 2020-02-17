@@ -11,6 +11,24 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 def update_flag(self,context):
     self.text_updated = True
 
+def update_active_dim(self,context):
+    dimGen = context.object.DimensionGenerator[0]
+    print(self)
+    itemType = self.itemType
+    idx = 0
+    for wrap in dimGen.wrappedDimensions:
+        if itemType == wrap.itemType:
+            if itemType == 'D-ALIGNED':
+                if self == dimGen.alignedDimensions[wrap.itemIndex]:
+                    dimGen.active_dimension_index = idx
+                    return
+            elif itemType == 'D-AXIS':
+                if self == dimGen.axisDimensions[wrap.itemIndex]:
+                    dimGen.active_dimension_index = idx
+                    return
+        idx += 1
+    
+
 class BaseProp:
     is_style: BoolProperty(name= "is Style",
                 description= "This property Group is a Style",
@@ -164,7 +182,8 @@ class BaseDim(BaseWithText):
     dimOffset: FloatProperty(name='Dimension Offset',
                     description='Offset for Dimension',
                     default= (0.5),
-                    subtype='DISTANCE')
+                    subtype='DISTANCE',
+                    update= update_active_dim)
 
     dimLeaderOffset: FloatProperty(name='Dimension Offset',
                     description='Offset for Dimension',
