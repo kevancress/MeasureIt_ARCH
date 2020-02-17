@@ -154,8 +154,6 @@ class BaseWithText(BaseProp):
                 description= 'Draw this element In front of other objects',
                 default = False)
 
-
-
 class BaseDim(BaseWithText):
     dimPointA: IntProperty(name='dimPointA',
                     description="Dimension Start Vertex Index")
