@@ -78,6 +78,14 @@ class mArchGizmoGroup(GizmoGroup):
 bpy.utils.register_class(mArchGizmoGroup)
 
 def createDimOffsetGiz(group,dim,objIndex):
+    context = bpy.context
+    dimProps = dim
+    if dim.uses_style:
+        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+            if alignedDimStyle.name == dim.style:
+                dimProps = alignedDimStyle
+
+
     #Set Matrix
     k = Vector((0,0,1))
     basisMatrix = Matrix.Translation(Vector((0,0,0)))
@@ -97,10 +105,10 @@ def createDimOffsetGiz(group,dim,objIndex):
     dimOffsetGiz.use_draw_value = True
 
     dimOffsetGiz.scale_basis = 1
-    dimOffsetGiz.color = (pow(dim.color[0],(1/2.2)),pow(dim.color[1],(1/2.2)),pow(dim.color[2],(1/2.2)))
+    dimOffsetGiz.color = (pow(dimProps.color[0],(1/2.2)),pow(dimProps.color[1],(1/2.2)),pow(dimProps.color[2],(1/2.2)))
     dimOffsetGiz.alpha = 0.3
 
-    dimOffsetGiz.color_highlight = (pow(dim.color[0],(1/2.2)),pow(dim.color[1],(1/2.2)),pow(dim.color[2],(1/2.2)))
+    dimOffsetGiz.color_highlight = (pow(dimProps.color[0],(1/2.2)),pow(dimProps.color[1],(1/2.2)),pow(dimProps.color[2],(1/2.2)))
     dimOffsetGiz.alpha_highlight = 1
     
 
