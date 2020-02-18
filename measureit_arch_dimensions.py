@@ -1347,7 +1347,6 @@ def draw_axis_dimension_settings(dim,layout):
     col = layout.column(align=True)
     col.prop(dim,'dimOffset',text='Distance')
     col.prop(dim,'dimLeaderOffset',text='Offset')
-    col.prop(dim, 'dimRotation', text='Rotation')
     
     if dim.uses_style is False:
         col = layout.column(align=True)
