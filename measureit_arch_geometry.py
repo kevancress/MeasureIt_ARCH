@@ -165,9 +165,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    if dim.inFront:
-         bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glDepthMask(False)
 
@@ -176,6 +173,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
+
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    if dimProps.inFront:
+         bgl.glDisable(bgl.GL_DEPTH_TEST)
 
     lineWeight = dimProps.lineWeight
     # check all visibility conditions
@@ -357,9 +358,6 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    if dim.inFront:
-         bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glDepthMask(False)
 
@@ -368,6 +366,10 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
+
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    if dim.inFront:
+         bgl.glDisable(bgl.GL_DEPTH_TEST)
 
     lineWeight = dimProps.lineWeight
     # check all visibility conditions
@@ -606,9 +608,6 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
     #start = time.perf_counter()
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    if dim.inFront:
-         bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glDepthMask(False)
 
@@ -617,6 +616,10 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
+
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    if dimProps.inFront:
+         bgl.glDisable(bgl.GL_DEPTH_TEST)
 
     lineWeight = dimProps.lineWeight
     #check all visibility conditions
@@ -949,7 +952,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        if dim.inFront:
+        if dimProps.inFront:
             bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(False)
 
@@ -1210,7 +1213,11 @@ def draw_line_group(context, myobj, lineGen, mat):
                     lineProps= lineStyle
             
         if lineGroup.visible and lineProps.visible:
-            
+            bgl.glEnable(bgl.GL_DEPTH_TEST)
+            if lineProps.inFront:
+                bgl.glDisable(bgl.GL_DEPTH_TEST)
+
+
             rawRGB = lineProps.color        
             alpha = 1.0   
             if bpy.context.mode == 'EDIT_MESH':
@@ -1382,14 +1389,14 @@ def draw_annotation(context, myobj, annotationGen, mat):
     for idx in range(0, annotationGen.num_annotations):
         annotation = annotationGen.annotations[idx]
         annotationProps = annotation
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        if annotation.inFront:
-            bgl.glDisable(bgl.GL_DEPTH_TEST)
-
         if annotation.uses_style:
             for annotationStyle in context.scene.StyleGenerator[0].annotations:
                 if annotationStyle.name == annotation.style:
                     annotationProps= annotationStyle
+
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        if annotationProps.inFront:
+            bgl.glDisable(bgl.GL_DEPTH_TEST)
 
         endcap = annotationProps.endcapA
         endcapSize = annotationProps.endcapSize

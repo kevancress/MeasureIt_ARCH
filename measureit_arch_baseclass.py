@@ -30,6 +30,11 @@ def update_active_dim(self,context):
     
 
 class BaseProp:
+    inFront: BoolProperty(name='inFront',
+                description= 'Draw this element In front of other objects',
+                default = False)
+
+
     is_style: BoolProperty(name= "is Style",
                 description= "This property Group is a Style",
                 default=False)
@@ -168,10 +173,6 @@ class BaseWithText(BaseProp):
                 name="B end",
                 description="Add arrows to point A")        
     
-    inFront: BoolProperty(name='inFront',
-                description= 'Draw this element In front of other objects',
-                default = False)
-
 class BaseDim(BaseWithText):
     dimPointA: IntProperty(name='dimPointA',
                     description="Dimension Start Vertex Index")
