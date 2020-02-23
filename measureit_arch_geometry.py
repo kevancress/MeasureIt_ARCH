@@ -992,7 +992,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         distVector = vecA-vecB
         dist = distVector.length
         angle = vecA.angle(vecB)
-        numCircleVerts = math.ceil(radius/.4)+ int((degrees(angle))/10)
+        numCircleVerts = math.ceil(radius/.2)+ int((degrees(angle))/2)
         verts = []
         for idx in range (numCircleVerts+1):
             rotangle= (angle/(numCircleVerts+1))*idx
@@ -1025,7 +1025,8 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
             dim.textFields[0].text_updated = True
         
         #make text card
-        vecX = vecB-vecA
+        normVec = vecA.cross(vecB).normalized()
+        vecX = midVec.cross(normVec).normalized()
         width = dim.textFields[0].textWidth
         height = dim.textFields[0].textHeight 
         resolution = dimProps.textResolution
