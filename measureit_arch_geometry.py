@@ -982,33 +982,41 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         vecA.normalize()
         vecB = (p3-p2)
         vecB.normalize()
-        norm = vecA.cross(vecB)
+        norm = vecA.cross(vecB).normalized()
 
-        #endpoints
-        endpointA = (vecA*radius)+p2
-        endpointB = (vecB*radius)+p2
 
-        #making it a circle
         distVector = vecA-vecB
         dist = distVector.length
         angle = vecA.angle(vecB)
-        numCircleVerts = math.ceil(radius/.2)+ int((degrees(angle))/2)
+        startVec = vecA.copy()
+        endVec = vecB.copy()
+
+        #get Midpoint for Text Placement
+        midVec = Vector(interpolate3d(vecA, vecB, (dist/2)))
+        midVec.normalize()
+        midPoint = (midVec*radius*1.05) + p2
+
+        # Check use reflex Angle (reflex angle is an angle between 180 and 360 degrees)
+        if dim.reflexAngle:
+            angle = radians(360) - angle
+            startVec = vecB.copy()
+            endVec = vecA.copy()
+            midVec.rotate(Quaternion(norm,radians(180)))
+            midPoint = (midVec*radius*1.05) + p2
+
+        #making it a circle
+        numCircleVerts = math.ceil(radius/.2)+ int((degrees(angle))/5)
         verts = []
         for idx in range (numCircleVerts+1):
             rotangle= (angle/(numCircleVerts+1))*idx
-            point = Vector((vecA[0],vecA[1],vecA[2]))
+            point = startVec.copy()
             point.rotate(Quaternion(norm,rotangle))
             #point.normalize()
             verts.append(point)
 
 
-        #get Midpoint for Text Placement
-        midVec = Vector(interpolate3d(vecA, vecB, (dist/2)))
-        midVec.normalize()
-        midPoint = (midVec*radius) + p2
         
-        #calculate angle
-        angle = vecA.angle(vecB)
+        #Format Angle
         if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
             angle = degrees(angle)
         # format text
@@ -1025,8 +1033,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
             dim.textFields[0].text_updated = True
         
         #make text card
-        normVec = vecA.cross(vecB).normalized()
-        vecX = midVec.cross(normVec).normalized()
+        vecX = midVec.cross(norm).normalized()
         width = dim.textFields[0].textWidth
         height = dim.textFields[0].textHeight 
         resolution = dimProps.textResolution
@@ -1060,21 +1067,21 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         # I'm being lazy here, should do a proper lineadjacency
         # with miters and do this in one pass
         pointCoords = []
-        pointCoords.append(endpointA)
+        pointCoords.append(startVec)
         for vert in verts:
             pointCoords.append((vert*radius)+p2)
-        pointCoords.append(endpointB)
+        pointCoords.append(endVec)
         batch3d = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
         batch3d.program_set(pointShader)
         batch3d.draw()
 
         # batch & Draw Shader
         coords = []
-        coords.append(endpointA)
+        coords.append((startVec*radius)+p2)
         for vert in verts:
             coords.append((vert*radius)+p2)
             coords.append((vert*radius)+p2)
-        coords.append(endpointB)
+        coords.append((endVec*radius)+p2)
 
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
         batch.program_set(lineShader)

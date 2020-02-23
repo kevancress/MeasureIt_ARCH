@@ -102,6 +102,11 @@ class AngleDimensionProperties(BaseDim, PropertyGroup):
                     default= (0.05),
                     subtype='DISTANCE')
 
+    reflexAngle: BoolProperty(name='Exterior Angle',
+                    description='Displays the Reflex Angle (Greater then 180 Degrees)',
+                    default = False)
+
+
 bpy.utils.register_class(AngleDimensionProperties)
 
 
@@ -1390,7 +1395,7 @@ def draw_angle_dimension_settings(dim,layout):
             col.prop(dim,'textResolution',text='Resolution')
             col.prop(dim,'textAlignment',text='Alignment')
             col.prop(dim,'inFront', text='Draw in Front')
-
+        col.prop(dim,'reflexAngle', text='Use Reflex Angle')
             #col.prop(dim,'textPosition',text='Position')
 
         col = layout.column(align=True)
