@@ -1067,10 +1067,10 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         # I'm being lazy here, should do a proper lineadjacency
         # with miters and do this in one pass
         pointCoords = []
-        pointCoords.append(startVec)
+        pointCoords.append((startVec*radius)+p2)
         for vert in verts:
             pointCoords.append((vert*radius)+p2)
-        pointCoords.append(endVec)
+        pointCoords.append((endVec*radius)+p2)
         batch3d = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
         batch3d.program_set(pointShader)
         batch3d.draw()
