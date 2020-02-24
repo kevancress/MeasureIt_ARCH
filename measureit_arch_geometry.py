@@ -1005,7 +1005,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
             midPoint = (midVec*radius*1.05) + p2
 
         #making it a circle
-        numCircleVerts = math.ceil(radius/.2)+ int((degrees(angle))/5)
+        numCircleVerts = math.ceil(radius/.2)+ int((degrees(angle))/2)
         verts = []
         for idx in range (numCircleVerts+1):
             rotangle= (angle/(numCircleVerts+1))*idx
@@ -1090,7 +1090,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         capSize = dimProps.endcapSize
         pos = ((startVec*radius)+p2,(endVec*radius)+p2)
         arrowoffset =  int(max(0, min(capSize, len(coords)/4))) #Clamp capsize between 0 and the length of the coords
-        mids = (coords[arrowoffset+2], coords[len(coords)-arrowoffset-1]) #offset the arrow direction as arrow size increases
+        mids = (coords[arrowoffset+1], coords[len(coords)-arrowoffset-1]) #offset the arrow direction as arrow size increases
         i=0
         for cap in caps:
             #def        generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
