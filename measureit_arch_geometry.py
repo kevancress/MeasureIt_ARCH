@@ -1075,6 +1075,8 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         batch3d.program_set(pointShader)
         batch3d.draw()
 
+        
+
         # batch & Draw Shader
         coords = []
         coords.append((startVec*radius)+p2)
@@ -1082,6 +1084,36 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
             coords.append((vert*radius)+p2)
             coords.append((vert*radius)+p2)
         coords.append((endVec*radius)+p2)
+
+        filledCoords = []
+        caps = (dimProps.endcapA,dimProps.endcapB)
+        capSize = dimProps.endcapSize
+        pos = ((startVec*radius)+p2,(endVec*radius)+p2)
+        arrowoffset =  int(max(0, min(capSize, len(coords)/4))) #Clamp capsize between 0 and the length of the coords
+        mids = (coords[arrowoffset+2], coords[len(coords)-arrowoffset-1]) #offset the arrow direction as arrow size increases
+        i=0
+        for cap in caps:
+            #def        generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
+            capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],midVec,mids[i],i,False)
+            i += 1 
+            for coord in capCoords[0]:
+                coords.append(coord)
+            for filledCoord in capCoords[1]:
+                filledCoords.append(filledCoord)
+
+       
+        if len(filledCoords) != 0:
+            #bind shader
+            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+            triShader.bind()
+            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            triShader.uniform_float("offset", -offset) #z offset this a little to avoid zbuffering
+
+            batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
+            batch.program_set(triShader)
+            batch.draw()
+            gpu.shader.unbind()
+            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
         batch.program_set(lineShader)
