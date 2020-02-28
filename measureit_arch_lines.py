@@ -170,11 +170,6 @@ class AddLineButton(Operator):
                 lGroup.lineColor = scene.measureit_arch_default_color
                 lGroup.name = 'Line ' + str(len(lineGen.line_groups))
                 
-                for x in range (0, len(mylist)-1, 2):
-                    sLine = lGroup.singleLine.add()
-                    sLine.pointA = mylist[x]
-                    sLine.pointB = mylist[x+1]
-                    lGroup.numLines +=1
 
                 lGroup['lineBuffer'] = mylist
                 lineGen.line_num += 1
@@ -449,7 +444,7 @@ class AddLineByProperty(Operator):
                         lGroup.lineColor = scene.measureit_arch_default_color
                         lGroup.name = 'Line ' + str(len(lineGen.line_groups))
                         angle = obj.data.auto_smooth_angle
-                        edgesToAdd = []
+                        vertsToAdd=[]
 
                         for edge in obj.data.edges:
                             pointA = edge.vertices[0]
@@ -466,16 +461,14 @@ class AddLineByProperty(Operator):
                                 if dotProd >= -1 and dotProd <= 1:
                                     creaseAngle = math.acos(dotProd)
                                     if creaseAngle > angle:
-                                        edgesToAdd.append(edge)
+                                        vertsToAdd.append(pointA)
+                                        vertsToAdd.append(pointB)
                             else:
-                                edgesToAdd.append(edge)
+                                vertsToAdd.append(pointA)
+                                vertsToAdd.append(pointB)
                         
-                        for edge in edgesToAdd:
-                            sLine = lGroup.singleLine.add()
-                            sLine.pointA = edge.vertices[0]
-                            sLine.pointB = edge.vertices[1]
-                            lGroup.numLines +=1
 
+                        lGroup['lineBuffer'] = vertsToAdd
                         lineGen.line_num += 1
 
                     return {'FINISHED'}
