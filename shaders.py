@@ -170,23 +170,21 @@ class Dashed_Shader_3D ():
         uniform float offset;
 
         in vec3 pos;
-        in float arcLength;    
-        
-        out float v_ArcLength;
+        out vec3 v_arcpos;
 
         vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0f);
         vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
 
         void main()
         {
-            v_ArcLength = arcLength;
             gl_Position = project + vecOffset;
+            v_arcpos = pos;
         }
     '''
     geometry_shader = '''
         layout(lines) in;
         layout(triangle_strip, max_vertices = 10) out;
-        in float v_ArcLength[];
+        in vec3 v_arcpos[];
         out float g_ArcLength;
 
         uniform mat4 ModelViewProjectionMatrix;
@@ -232,16 +230,16 @@ class Dashed_Shader_3D ():
 
             
             float arcLengths[4];
-            arcLengths[0] = v_ArcLength[0];
-            arcLengths[1] = v_ArcLength[0];
+            arcLengths[0] = 0;
+            arcLengths[1] = 0;
             
             if (screenSpaceDash){
                 arcLengths[2] = length(ssp2-ssp1) * 20;
                 arcLengths[3] = length(ssp2-ssp1) * 20;
             }
             else{
-                arcLengths[2] =  v_ArcLength[1];
-                arcLengths[3] =  v_ArcLength[1];
+                arcLengths[2] = length(v_arcpos[1]-v_arcpos[0])*2;
+                arcLengths[3] = length(v_arcpos[1]-v_arcpos[0])*2;
             }
 
             for (int i = 0; i < 4; ++i) {

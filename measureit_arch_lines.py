@@ -176,6 +176,7 @@ class AddLineButton(Operator):
                     sLine.pointB = mylist[x+1]
                     lGroup.numLines +=1
 
+                lGroup['lineBuffer'] = mylist
                 lineGen.line_num += 1
 
 

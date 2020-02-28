@@ -1321,31 +1321,17 @@ def draw_line_group(context, myobj, lineGen, mat):
 
             #Get line data to be drawn
             coords =[]
-            pointcoord =[]
-            arclengths = []
-            pointAppend = pointcoord.append
-            coordAppend = coords.append
-            arcAppend = arclengths.append
+            pointcoord = []
             start = time.time ()
-            for sLine in lineGroup.singleLine:
-                a_p1 = Vector(get_point(get_mesh_vertex(myobj,sLine.pointA,lineProps.evalMods), myobj,mat))
-                b_p1 = Vector(get_point(get_mesh_vertex(myobj,sLine.pointB,lineProps.evalMods), myobj,mat))
 
-            
-                pointAppend(a_p1)
+            evalMods = lineProps.evalMods
+            pointcoord = [get_point(get_mesh_vertex(myobj,idx,evalMods), myobj,mat) for idx in lineGroup['lineBuffer']]
+            coords = pointcoord
 
-                if lineProps.lineOverExtension != 0:
-                    norm = (Vector(a_p1) - Vector(b_p1)).normalized()
-                    random.seed(lineProps.randomSeed)
-                    a_p1 += norm * (lineProps.lineOverExtension * (random.randrange(50,100,1)/100))
-                    b_p1 -= norm * (lineProps.lineOverExtension * (random.randrange(50,100,1)/100))
-                    
-                arcAppend(0)
-                coordAppend(a_p1)
-                coordAppend(b_p1)
-                arcAppend((a_p1-b_p1).length)
-        
-   
+
+            end= time.time()
+            post = ' for ' + str(lineGroup.numLines) + ' line segemtns In Loop'
+            printTime(start,end,post)
 
             #Draw Point Pass for Clean Corners
             gpu.shader.unbind()
@@ -1379,7 +1365,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
                 dashedLineShader.uniform_float("offset", -offset)
             
-                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
+                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
                 batchHidden.program_set(dashedLineShader)
                 batchHidden.draw()
                 bgl.glDepthFunc(bgl.GL_LESS)
@@ -1395,7 +1381,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("finalColor",  (rgb[0], rgb[1], rgb[2], rgb[3]))
                 dashedLineShader.uniform_float("offset", -offset)
             
-                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords,"arcLength":arclengths}) 
+                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
                 batchHidden.program_set(dashedLineShader)
                 batchHidden.draw()
 
@@ -1404,10 +1390,10 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batch3d.program_set(lineShader)
                 batch3d.draw()
                 gpu.shader.unbind()
+    
     end= time.time()
-    post = ' for ' + str(lineGroup.numLines) + ' line segemtns'
+    post = ' for ' + str(lineGroup.numLines) + ' line segemtns Total'
     printTime(start,end,post)
-
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
