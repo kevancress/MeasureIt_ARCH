@@ -4,7 +4,7 @@ import blf
 import gpu
 import math
 from mathutils import Matrix
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                 FloatProperty, EnumProperty, PointerProperty
 
@@ -227,6 +227,38 @@ class BaseDim(BaseWithText):
                             default= 0.0,
                             subtype='ANGLE')
 
+
+class MeasureItARCHSceneProps(PropertyGroup):
+    
+    debug_flip_text: BoolProperty(name="Debug Text Flip Vectors",
+                                description="Displys Text Card and View Vectors used to Flip Text",
+                                default=False)
+
+    instance_dims: BoolProperty(name="Instance Dimensions",
+                                description="NOTE: Instanced Dimensions text will not adapt to local changes in scale or rotation",
+                                default=False)
+
+    eval_mods: BoolProperty(name="Evaluate Modifiers",
+                                description="MeasureIt-ARCH will attempt to evaluate Modifiers before drawing, May make dimensions and linework unstable",
+                                default=False)
+
+    is_render_draw: BoolProperty(name="Is Render",
+                                description="Flag to use render size for draw aspect ratio",
+                                default=False)
+
+    show_gizmos: BoolProperty(name="Show Gizmos",
+                                description="(EXPERIMENTAL) Display Measureit-ARCH Gizmos",
+                                default=False)
+
+    
+
+bpy.utils.register_class(MeasureItARCHSceneProps)
+Scene.MeasureItArchProps = bpy.props.PointerProperty(type=MeasureItARCHSceneProps)
+
+
+
+
+
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"
     bl_label = "Delete property"
@@ -245,7 +277,7 @@ class DeletePropButton(Operator):
         mainObj = context.object
         
         if self.is_style is True:
-            Generator = context.scene.StyleGenerator[0]
+            Generator = context.scene.StyleGenerator
         else:
             if self.item_type == 'A':
                 Generator = mainObj.AnnotationGenerator[0]
@@ -306,7 +338,7 @@ class DeleteAllItemsButton(Operator):
         scene = context.scene
 
         if self.is_style:
-            StyleGen = scene.StyleGenerator[0]
+            StyleGen = scene.StyleGenerator
 
             for alignedDim in StyleGen.alignedDimensions:
                 StyleGen.alignedDimensions.remove(0)

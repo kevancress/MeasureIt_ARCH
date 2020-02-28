@@ -225,7 +225,8 @@ def render_main(self, context, animation=False):
 
     # Save old info
     scene = context.scene
-    scene.measureit_arch_is_render_draw = True
+    sceneProps= scene.MeasureItArchProps
+    sceneProps.is_render_draw = True
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     settings = bpy.context.scene.render.image_settings
     depth = settings.color_depth
@@ -328,7 +329,7 @@ def render_main(self, context, animation=False):
                     lineGen = myobj.LineGenerator[0]
                     draw_line_group(context,myobj,lineGen,mat)
                 
-                if scene.measureit_arch_inst_dims:
+                if sceneProps.instance_dims:
                     if 'AnnotationGenerator' in myobj:
                         annotationGen = myobj.AnnotationGenerator[0]
                         draw_annotation(context,myobj,annotationGen,mat)
@@ -384,7 +385,7 @@ def render_main(self, context, animation=False):
 
     # restore default value
     settings.color_depth = depth
-    scene.measureit_arch_is_render_draw = False
+    sceneProps.is_render_draw = False
 
 # -------------------------------------
 # Save image to file

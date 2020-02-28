@@ -44,7 +44,7 @@ from .measureit_arch_lines import LineProperties
 
 def recalc_index(self,context):
     #ensure index's are accurate
-    StyleGen = context.scene.StyleGenerator[0]
+    StyleGen = context.scene.StyleGenerator
     wrappedStyles = StyleGen.wrappedStyles
     id_l = 0
     id_a = 0
@@ -89,11 +89,11 @@ class StyleContainer(PropertyGroup):
     wrappedStyles: CollectionProperty(type=StyleWrapper) 
 
 bpy.utils.register_class(StyleContainer)
-Scene.StyleGenerator = CollectionProperty(type=StyleContainer)
+Scene.StyleGenerator = bpy.props.PointerProperty(type=StyleContainer)
 
 class M_ARCH_UL_styles_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        StyleGen = bpy.context.scene.StyleGenerator[0]
+        StyleGen = bpy.context.scene.StyleGenerator
         lineStyles = StyleGen.line_groups
         annotationStyles = StyleGen.annotations
         dimensionStyles= StyleGen.alignedDimensions
@@ -131,60 +131,57 @@ class SCENE_PT_UIStyles(Panel):
         layout.use_property_decorate = False
         
         obj = context.object
-        if 'StyleGenerator' in context.scene:     
-            scene = context.scene
-            StyleGen = scene.StyleGenerator[0]
 
-            row = layout.row()
+        scene = context.scene
+        StyleGen = scene.StyleGenerator
+
+        row = layout.row()
+        
+        # Draw The UI List
+        row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "wrappedStyles", StyleGen, "active_style_index",rows=2, type='DEFAULT')
+        
+        # Operators Next to List
+        col = row.column(align=True)
+        col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
+        op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
+        op.tag = StyleGen.active_style_index  # saves internal data
+        op.is_style = True
+
+        col.separator()
+        col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+
+        
+        # Settings Below List
+        if len(StyleGen.wrappedStyles) > 0 and  StyleGen.active_style_index < len(StyleGen.wrappedStyles):
+            activeWrapperItem = StyleGen.wrappedStyles[StyleGen.active_style_index]
+
+            if activeWrapperItem.itemType == 'L':
+                item = StyleGen.line_groups[activeWrapperItem.itemIndex]
+            if activeWrapperItem.itemType == 'A':
+                item = StyleGen.annotations[activeWrapperItem.itemIndex]
+            if activeWrapperItem.itemType == 'D':
+                item = StyleGen.alignedDimensions[activeWrapperItem.itemIndex]
+
+            if StyleGen.show_style_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
+            else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
             
-            # Draw The UI List
-            row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "wrappedStyles", StyleGen, "active_style_index",rows=2, type='DEFAULT')
-            
-            # Operators Next to List
-            col = row.column(align=True)
-            col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
-            op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
-            op.tag = StyleGen.active_style_index  # saves internal data
-            op.is_style = True
+            box = layout.box()
+            col = box.column()
+            row = col.row()
+            row.prop(StyleGen, 'show_style_settings', text="", icon=settingsIcon,emboss=False)
 
-            col.separator()
-            col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
-
-            
-            # Settings Below List
-            if len(StyleGen.wrappedStyles) > 0 and  StyleGen.active_style_index < len(StyleGen.wrappedStyles):
-                activeWrapperItem = StyleGen.wrappedStyles[StyleGen.active_style_index]
-
+            row.label(text= item.name + ' Settings:')
+            if StyleGen.show_style_settings:
+                
+                # Show Line Settings
                 if activeWrapperItem.itemType == 'L':
-                    item = StyleGen.line_groups[activeWrapperItem.itemIndex]
+                    draw_line_style_settings(item,box)
+                # Show Annotation Settings
                 if activeWrapperItem.itemType == 'A':
-                    item = StyleGen.annotations[activeWrapperItem.itemIndex]
+                    draw_annotation_style_settings(item,box)
+                # Show Dimension Settings
                 if activeWrapperItem.itemType == 'D':
-                    item = StyleGen.alignedDimensions[activeWrapperItem.itemIndex]
-
-                if StyleGen.show_style_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
-                else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
-                
-                box = layout.box()
-                col = box.column()
-                row = col.row()
-                row.prop(StyleGen, 'show_style_settings', text="", icon=settingsIcon,emboss=False)
-
-                row.label(text= item.name + ' Settings:')
-                if StyleGen.show_style_settings:
-                    
-                    # Show Line Settings
-                    if activeWrapperItem.itemType == 'L':
-                        draw_line_style_settings(item,box)
-                    # Show Annotation Settings
-                    if activeWrapperItem.itemType == 'A':
-                        draw_annotation_style_settings(item,box)
-                    # Show Dimension Settings
-                    if activeWrapperItem.itemType == 'D':
-                        draw_dim_style_settings(item,box)
-                
-        else:
-            layout.operator("measureit_arch.addstylebutton", text="Use Styles", icon="ADD")
+                    draw_dim_style_settings(item,box)
 
 class SCENE_MT_styles_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
@@ -211,7 +208,7 @@ class ListDeletePropButton(Operator):
     def execute(self, context):
         # Add properties
         if self.is_style:
-            Generator = context.scene.StyleGenerator[0]
+            Generator = context.scene.StyleGenerator
             wrapper = Generator.wrappedStyles[self.tag]
 
         elif not self.is_style and self.item_type == 'D':
@@ -257,12 +254,9 @@ class AddStyleButton(Operator):
             for area in screen.areas:
                 if area.type == 'VIEW_3D':
                     # Add properties
-                    scene = context.scene
-                    if 'StyleGenerator' not in bpy.context.scene:
-                        bpy.context.scene.StyleGenerator.add()
-                        return {'FINISHED'}
 
-                    StyleGen = scene.StyleGenerator[0]
+                    scene = context.scene
+                    StyleGen = scene.StyleGenerator
                     annotationStyles = StyleGen.annotations
                     lineStyles = StyleGen.line_groups
                     alignedDimStyles = StyleGen.alignedDimensions
@@ -302,11 +296,8 @@ class AddStyleButton(Operator):
 
     def invoke(self, context, event):
         wm = context.window_manager
-        if 'StyleGenerator' in context.scene:
-            return wm.invoke_props_dialog(self)
-        else:
-            context.scene.StyleGenerator.add()
-            return {'FINISHED'}
+        return wm.invoke_props_dialog(self)
+
 
 def draw_line_style_row(line,layout):
     row = layout.row(align=True)

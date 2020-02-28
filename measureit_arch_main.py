@@ -131,9 +131,9 @@ class MeasureitArchMainPanel(Panel):
         layout = self.layout
         scene = context.scene
         hasGen = False
-        if 'StyleGenerator' in scene:
-            StyleGen = scene.StyleGenerator[0]
-            hasGen = True
+
+        StyleGen = scene.StyleGenerator
+        hasGen = True
 
        
         # ------------------------------
@@ -151,9 +151,10 @@ class MeasureitArchMainPanel(Panel):
             icon = "PAUSE"
             txt = 'Hide'
 
+        sceneProps = scene.MeasureItArchProps
         row.operator("measureit_arch.runopenglbutton", text=txt, icon=icon ,)
         row.prop(scene, "measureit_arch_gl_ghost", text="", icon='GHOST_ENABLED')
-        row.prop(scene, "measureit_arch_show_gizmos", text="", icon='GIZMO')
+        row.prop(sceneProps, "show_gizmos", text="", icon='GIZMO')
 
 
         # ------------------------------
@@ -295,6 +296,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         layout.use_property_decorate = False
         layout.use_property_split = True
         scene = context.scene
+        sceneProps = scene.MeasureItArchProps
         
         col = layout.column(align=True)
         #col.prop(scene, 'measureit_arch_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
@@ -308,9 +310,9 @@ class SCENE_PT_MARCH_Settings(Panel):
         col = layout.column()
         col.prop(scene, "measureit_arch_gl_show_d")
         col.prop(scene, "measureit_arch_debug_text")
-        col.prop(scene, "measureit_arch_eval_mods")
-        col.prop(scene, "measureit_arch_inst_dims")
-        col.prop(scene, "measureit_arch_debug_flip_text")
+        col.prop(sceneProps, "eval_mods")
+        col.prop(sceneProps, "instance_dims")
+        col.prop(sceneProps, "debug_flip_text")
 
         # Measureit-ARCH Legacy Overrides
         # Overrides need to be re-implimented in the new version
@@ -455,7 +457,7 @@ def draw_main(context):
                     
                     alignedDimProps = alignedDim
                     if alignedDim.uses_style:
-                        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+                        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if alignedDimStyle.name == alignedDim.style:
                                 alignedDimProps= alignedDimStyle
 
@@ -464,7 +466,7 @@ def draw_main(context):
                 for angleDim in DimGen.angleDimensions: 
                     dimProps = angleDim
                     if angleDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == angleDim.style:
                                 dimProps= dimStyle
                     update_text(textobj=angleDim,props=dimProps,context=context)
@@ -472,7 +474,7 @@ def draw_main(context):
                 for axisDim in DimGen.axisDimensions: 
                     dimProps = axisDim
                     if axisDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == axisDim.style:
                                 dimProps= dimStyle
                     update_text(textobj=axisDim,props=dimProps,context=context)
@@ -480,7 +482,7 @@ def draw_main(context):
                 for boundsDim in DimGen.boundsDimensions: 
                     dimProps = boundsDim
                     if boundsDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == boundsDim.style:
                                 dimProps= dimStyle
                     update_text(textobj=boundsDim,props=dimProps,context=context)
@@ -491,7 +493,7 @@ def draw_main(context):
                     annotation = annotationGen.annotations[idx]
                     annotationProps = annotation
                     if annotation.uses_style:
-                        for annotationStyle in context.scene.StyleGenerator[0].annotations:
+                        for annotationStyle in context.scene.StyleGenerator.annotations:
                             if annotationStyle.name == annotation.style:
                                 annotationProps = annotationStyle
                     if annotation.annotationTextSource is not '':
@@ -507,6 +509,7 @@ def draw_main(context):
 def draw_main_3d (context):
    
     scene = context.scene
+    sceneProps = scene.MeasureItArchProps
 
     # Display selected or all
     if scene.measureit_arch_gl_ghost is False:
@@ -559,9 +562,7 @@ def draw_main_3d (context):
                 myobj = obj_int.object
                 
                 if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
-                    if 'obverts' not in myobj:
-                        myobj['obverts'] = get_mesh_vertices(myobj) 
-                        mat = obj_int.matrix_world
+                    mat = obj_int.matrix_world
 
                 if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
                     lineGen = myobj.LineGenerator[0]
@@ -571,7 +572,7 @@ def draw_main_3d (context):
                     annotationGen = myobj.AnnotationGenerator[0]
                     draw_annotation(context,myobj,annotationGen,mat)
                     
-                if scene.measureit_arch_inst_dims:
+                if sceneProps.instance_dims:
                     if 'DimensionGenerator' in myobj and myobj.DimensionGenerator[0].measureit_arch_num != 0:
                         DimGen = myobj.DimensionGenerator[0]
                         for alignedDim in DimGen.alignedDimensions:

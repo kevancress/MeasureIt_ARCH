@@ -129,53 +129,12 @@ def precision_ui(self, context):
     col.prop(scene, 'measureit_arch_imperial_precision', text="Imperial Precision")
 
 
-class Measure_Pref(AddonPreferences):
-    # this must match the addon name, use '__package__'
-    # when defining this in a submodule of a python package.
-    bl_idname = __name__
-
-    category = StringProperty(
-            name="Tab Category",
-            description="Choose a name for the category of the panel",
-            default="MeasureIt-ARCH",
-            update=update_panel
-            )
-
-    def draw(self, context):
-        layout = self.layout
-
-        row = layout.row()
-        col = row.column()
-        col.label(text="Tab Category:")
-        col.prop(self, "category", text="")
-
 # Define menu
 # noinspection PyUnusedLocal
 def register():
     auto_load.register()
     bpy.types.SCENE_PT_unit.append(precision_ui)
-
     # Define properties
-    Scene.measureit_arch_debug_flip_text = BoolProperty(name="Debug Text Flip Vectors",
-                                    description="Displys Text Card and View Vectors used to Flip Text",
-                                    default=False)
-
-    Scene.measureit_arch_inst_dims = BoolProperty(name="Instance Dimensions",
-                                    description="NOTE: Instanced Dimensions text will not adapt to local changes in scale or rotation",
-                                    default=False)
-
-    Scene.measureit_arch_eval_mods = BoolProperty(name="Evaluate Modifiers",
-                                    description="MeasureIt-ARCH will attempt to evaluate Modifiers before drawing, May make dimensions and linework unstable",
-                                    default=False)
-
-    Scene.measureit_arch_is_render_draw = BoolProperty(name="Is Render",
-                                        description="Flag to use render size for draw aspect ratio",
-                                        default=False)
-
-    Scene.measureit_arch_show_gizmos = BoolProperty(name="Show Gizmos",
-                                        description="(EXPERIMENTAL) Display Measureit-ARCH Gizmos",
-                                        default=False)
-    
     Scene.measureit_arch_bound_x = BoolProperty()
     Scene.measureit_arch_bound_y = BoolProperty()
     Scene.measureit_arch_bound_z = BoolProperty()

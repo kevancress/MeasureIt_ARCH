@@ -198,10 +198,9 @@ class AddAnnotationButton(Operator):
 class M_ARCH_UL_annotations_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
         scene = bpy.context.scene
-        hasGen = False
-        if 'StyleGenerator' in scene:
-            StyleGen = scene.StyleGenerator[0]
-            hasGen = True
+
+        StyleGen = scene.StyleGenerator
+        hasGen = True
         
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             annotation = item

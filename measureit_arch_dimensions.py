@@ -1103,10 +1103,9 @@ class M_ARCH_UL_dimension_list(UIList):
         boundsDim = dimGen.boundsDimensions
 
         scene = bpy.context.scene
-        hasGen = False
-        if 'StyleGenerator' in scene:
-            StyleGen = scene.StyleGenerator[0]
-            hasGen = True
+
+        StyleGen = scene.StyleGenerator
+        hasGen = True
         
         # I should define this in the dimension container itself so that I dont have to edit this each time I define a new dimension type...
         #

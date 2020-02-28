@@ -44,7 +44,8 @@ class mArchGizmoGroup(GizmoGroup):
     def poll(cls, context):
         obj = context.object
         scene = context.scene
-        if scene.measureit_arch_show_gizmos and context.window_manager.measureit_arch_run_opengl:
+        sceneProps = scene.MeasureItArchProps
+        if sceneProps.show_gizmos and context.window_manager.measureit_arch_run_opengl:
             if obj is not None:
                 if 'DimensionGenerator' in obj:
                     return (obj)
@@ -81,7 +82,7 @@ def createDimOffsetGiz(group,dim,objIndex):
     context = bpy.context
     dimProps = dim
     if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 

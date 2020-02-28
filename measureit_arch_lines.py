@@ -196,10 +196,8 @@ class AddLineButton(Operator):
 class M_ARCH_UL_lines_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
         scene = bpy.context.scene
-        hasGen = False
-        if 'StyleGenerator' in scene:
-            StyleGen = scene.StyleGenerator[0]
-            hasGen = True
+        StyleGen = scene.StyleGenerator
+        hasGen = True
             
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             line = item
@@ -570,7 +568,7 @@ class RemoveFromLineGroup(Operator):
 #         mainObj = context.object
 
 #         if self.is_style is True:
-#             Generator = context.scene.StyleGenerator[0]
+#             Generator = context.scene.StyleGenerator
 #         else:
 #             Generator = mainObj.LineGenerator[0]
 #         line = Generator.line_groups[self.tag]

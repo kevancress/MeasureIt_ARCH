@@ -167,10 +167,12 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glDepthMask(False)
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
 
     dimProps = dim
     if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
@@ -186,7 +188,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         inView = False    
     if dim.visible and dimProps.visible and inView:
 
-        if context.scene.measureit_arch_is_render_draw:
+        if sceneProps.is_render_draw:
             viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
         else:
             viewport = [context.area.width, context.area.height]
@@ -215,12 +217,12 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
         else:
-            p1 = get_point(get_mesh_vertex(dim.dimObjectA,dim.dimPointA), dim.dimObjectA, aMatrix)
+            p1 = get_point(get_mesh_vertex(dim.dimObjectA,dim.dimPointA,dimProps.evalMods), dim.dimObjectA, aMatrix)
 
         if dim.dimPointB == 9999999:
             p2 = dim.dimObjectB.location
         else:
-            p2 = get_point(get_mesh_vertex(dim.dimObjectB,dim.dimPointB), dim.dimObjectB, bMatrix)
+            p2 = get_point(get_mesh_vertex(dim.dimObjectB,dim.dimPointB,dimProps.evalMods), dim.dimObjectB, bMatrix)
 
 
 
@@ -356,10 +358,10 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glDepthMask(False)
-
+    sceneProps = context.scene.MeasureItArchProps
     dimProps = dim
     if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
@@ -375,7 +377,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
         inView = False    
     if dim.visible and dimProps.visible and inView:
 
-        if context.scene.measureit_arch_is_render_draw:
+        if sceneProps.is_render_draw:
             viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
         else:
             viewport = [context.area.width, context.area.height]
@@ -428,7 +430,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
         viewVec = Vector((0,0,0)) # dummy vector to avoid errors
 
-        if context.scene.measureit_arch_is_render_draw:
+        if sceneProps.is_render_draw:
             cameraLoc = context.scene.camera.location.normalized()
             viewAxis = cameraLoc
         else:
@@ -608,7 +610,14 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
     bgl.glDepthMask(False)
 
     dimProps = dim
-    
+
+    if dim.uses_style:
+        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
+            if alignedDimStyle.name == dim.style:
+                dimProps = alignedDimStyle
+
+    sceneProps = context.scene.MeasureItArchProps
+
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     if dimProps.inFront:
          bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -622,7 +631,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
     if dim.visible and dimProps.visible and inView:
 
         # Get Viewport and CameraLoc or ViewRot
-        if context.scene.measureit_arch_is_render_draw:
+        if sceneProps.is_render_draw:
             viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
             cameraLoc = context.scene.camera.location.normalized()
         else:
@@ -654,12 +663,12 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
         else:
-            p1 = get_point(get_mesh_vertex(dim.dimObjectA,dim.dimPointA), dim.dimObjectA,aMatrix)
+            p1 = get_point(get_mesh_vertex(dim.dimObjectA,dim.dimPointA,dimProps.evalMods), dim.dimObjectA,aMatrix)
         
         if dim.dimPointB == 9999999:
             p2 = dim.dimObjectB.location
         else:
-            p2 = get_point(get_mesh_vertex(dim.dimObjectB,dim.dimPointB), dim.dimObjectB,bMatrix)
+            p2 = get_point(get_mesh_vertex(dim.dimObjectB,dim.dimPointB,dimProps.evalMods), dim.dimObjectB,bMatrix)
         
         #Sort Points 
         sortedPoints = sortPoints(p1,p2)
@@ -683,7 +692,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         elif viewPlane == 'YZ':
             viewAxis = i
         elif viewPlane == '99':
-            if context.scene.measureit_arch_is_render_draw:
+            if sceneProps.is_render_draw:
                 viewAxis = cameraLoc
             else:
                 viewVec = k.copy()
@@ -925,8 +934,9 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
 def draw_angleDimension(context, myobj, DimGen, dim,mat):
     dimProps = dim
+    sceneProps = context.scene.MeasureItArchProps
     if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
+        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
@@ -945,7 +955,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         bgl.glDepthMask(False)
 
         lineWeight = dimProps.lineWeight
-        if context.scene.measureit_arch_is_render_draw:
+        if sceneProps.is_render_draw:
             viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
         else:
             viewport = [context.area.width,context.area.height]
@@ -960,9 +970,9 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         radius = dim.dimRadius
         offset = 0.001
 
-        p1 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointA), myobj,mat))
-        p2 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointB), myobj,mat))
-        p3 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointC), myobj,mat))
+        p1 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointA,dimProps.evalMods), myobj,mat))
+        p2 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointB,dimProps.evalMods), myobj,mat))
+        p3 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointC,dimProps.evalMods), myobj,mat))
 
         #calc normal to plane defined by points
         vecA = (p1-p2)
@@ -1114,6 +1124,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
 def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     #Set properties
     context = bpy.context
+    sceneProps = context.scene.MeasureItArchProps
     i = Vector((1,0,0)) # X Unit Vector
     j = Vector((0,1,0)) # Y Unit Vector
     k = Vector((0,0,1)) # Z Unit Vector
@@ -1137,7 +1148,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 
     if viewPlane == '99':
         # Get Viewport and CameraLoc or ViewRot
-        if context.scene.measureit_arch_is_render_draw:
+        if sceneProps.is_render_draw:
             cameraLoc = context.scene.camera.location.normalized()
             viewAxis = cameraLoc
         else:
@@ -1221,13 +1232,14 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     return bestNormal 
         
 def draw_line_group(context, myobj, lineGen, mat):
-    scene = context.scene
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
     
-    if context.scene.measureit_arch_is_render_draw:
+    if sceneProps.is_render_draw:
         viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
     else:
         viewport = [context.area.width,context.area.height]
@@ -1236,7 +1248,7 @@ def draw_line_group(context, myobj, lineGen, mat):
         lineGroup = lineGen.line_groups[idx]
         lineProps= lineGroup
         if lineGroup.uses_style:
-            for lineStyle in context.scene.StyleGenerator[0].line_groups:
+            for lineStyle in context.scene.StyleGenerator.line_groups:
                 if lineStyle.name == lineGroup.style:
                     lineProps= lineStyle
             
@@ -1257,7 +1269,7 @@ def draw_line_group(context, myobj, lineGen, mat):
             rgb = [pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),alpha]
 
             #overide line color with theme selection colors when selected
-            if not context.scene.measureit_arch_is_render_draw:
+            if not sceneProps.is_render_draw:
                 if myobj in context.selected_objects and bpy.context.mode != 'EDIT_MESH' and context.scene.measureit_arch_gl_ghost:
                     rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
                     rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
@@ -1274,7 +1286,7 @@ def draw_line_group(context, myobj, lineGen, mat):
 
             #set other line properties
             isOrtho = False
-            if scene.measureit_arch_is_render_draw:
+            if sceneProps.is_render_draw:
                 if scene.camera.data.type == 'ORTHO':
                     isOrtho = True
             else:
@@ -1316,8 +1328,8 @@ def draw_line_group(context, myobj, lineGen, mat):
             arcAppend = arclengths.append
             start = time.time ()
             for sLine in lineGroup.singleLine:
-                a_p1 = Vector(get_point(get_mesh_vertex(myobj,sLine.pointA), myobj,mat))
-                b_p1 = Vector(get_point(get_mesh_vertex(myobj,sLine.pointB), myobj,mat))
+                a_p1 = Vector(get_point(get_mesh_vertex(myobj,sLine.pointA,lineProps.evalMods), myobj,mat))
+                b_p1 = Vector(get_point(get_mesh_vertex(myobj,sLine.pointB,lineProps.evalMods), myobj,mat))
 
             
                 pointAppend(a_p1)
@@ -1393,7 +1405,9 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batch3d.draw()
                 gpu.shader.unbind()
     end= time.time()
-    print (str((end-start)*1000)+'ms for '  + str(lineGroup.numLines) + 'Line Segments')
+    post = ' for ' + str(lineGroup.numLines) + ' line segemtns'
+    printTime(start,end,post)
+
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
@@ -1404,8 +1418,9 @@ def draw_annotation(context, myobj, annotationGen, mat):
     bgl.glEnable(bgl.GL_BLEND)
 
     bgl.glDepthMask(False)
+    sceneProps = scene.MeasureItArchProps
 
-    if context.scene.measureit_arch_is_render_draw:
+    if sceneProps.is_render_draw:
         viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
     else:
         viewport = [context.area.width,context.area.height]
@@ -1415,7 +1430,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
         annotation = annotationGen.annotations[idx]
         annotationProps = annotation
         if annotation.uses_style:
-            for annotationStyle in context.scene.StyleGenerator[0].annotations:
+            for annotationStyle in context.scene.StyleGenerator.annotations:
                 if annotationStyle.name == annotation.style:
                     annotationProps= annotationStyle
 
@@ -1447,7 +1462,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
 
             # Get Points
             if annotation.annotationAnchorObject.type == 'MESH':
-                p1 = get_point(get_mesh_vertex(myobj,annotation.annotationAnchor), myobj,mat)
+                p1 = get_point(get_mesh_vertex(myobj,annotation.annotationAnchor,annotationProps.evalMods), myobj,mat)
             else:
                 p1 = mat @ Vector((0,0,0))
 
@@ -1608,6 +1623,7 @@ def draw_arc(basis,init_angle,current_angle):
 
 def draw_text_3D(context,textobj,textprops,myobj,card):
     #get props
+    sceneProps = context.scene.MeasureItArchProps
     card[0] = Vector(card[0])
     card[1] = Vector(card[1])
     card[2] = Vector(card[2])
@@ -1622,7 +1638,7 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
 
     #Get View rotation
     debug_camera = False
-    if context.scene.measureit_arch_is_render_draw or debug_camera:
+    if sceneProps.is_render_draw or debug_camera:
         cameraLoc = context.scene.camera.location.normalized()
         viewRot = context.scene.camera.rotation_euler.to_quaternion()
     else:
@@ -1692,7 +1708,7 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
     
     #Draw View Axis in Red and Card Axis in Green for debug
     scene = bpy.context.scene
-    autoflipdebug = scene.measureit_arch_debug_flip_text
+    autoflipdebug = sceneProps.debug_flip_text
     if autoflipdebug == True:
         viewport = [context.area.width,context.area.height]
         lineShader.bind()
@@ -2223,7 +2239,7 @@ def get_arc_data(pointa, pointb, pointc, pointd):
 # -------------------------------------------------------------
 def format_distance(fmt, value, factor=1):
     s_code = "\u00b2"  # Superscript two THIS IS LEGACY (but being kept for when Area Measurements are re-implimented)
-    hide_units = bpy.context.scene.measureit_arch_hide_units # Also Legacy, Could be re-implimented... up for debate.
+    hide_units = bpy.context.scene.measureit_arch_hide_units # Also Legacy, Could be re-implimented... Requested now, should re-impliment
 
     # Get Scene Unit Settings
     scaleFactor = bpy.context.scene.unit_settings.scale_length
@@ -2405,6 +2421,7 @@ def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
 # mainobject
 # --------------------------------------------------------------------
 def get_mesh_vertices(myobj):
+    sceneProps = bpy.context.scene.MeasureItArchProps
     try:
         obverts = []
         verts=[]
@@ -2413,7 +2430,7 @@ def get_mesh_vertices(myobj):
                 bm = bmesh.from_edit_mesh(myobj.data)
                 verts = bm.verts
             else:
-                eval_res = bpy.context.scene.measureit_arch_eval_mods
+                eval_res = sceneProps.eval_mods
                 if eval_res or check_mods(myobj):
                     deps = bpy.context.view_layer.depsgraph
                     obj_eval = myobj.evaluated_get(deps)
@@ -2433,28 +2450,33 @@ def get_mesh_vertices(myobj):
     except AttributeError:
         return None
 
-def get_mesh_vertex(myobj,idx):
+def get_mesh_vertex(myobj,idx,evalMods):
+    sceneProps = bpy.context.scene.MeasureItArchProps
     try:
-        obverts = []
         verts=[]
         if myobj.type == 'MESH':
             if myobj.mode == 'EDIT':
                 bm = bmesh.from_edit_mesh(myobj.data)
                 verts = bm.verts
-            else:               
-                # This is waayyy faster than getting all verts...
-                # Not evaluating the depsgraph though
-                # because running that every dim, every frame gets expensive
-                verts = myobj.data.vertices
-
-            return verts[idx].co
+            else:     
+                eval_res = sceneProps.eval_mods
+                if (eval_res or evalMods) and check_mods(myobj):
+                    deps = bpy.context.view_layer.depsgraph
+                    obj_eval = myobj.evaluated_get(deps)
+                    mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
+                    verts = mesh.vertices          
+                else:
+                    verts = myobj.data.vertices
+            if idx < len(verts):
+                return verts[idx].co
+            else: return None
         else: return None 
     except AttributeError:
         return None
 
 def check_mods(myobj):
     goodMods = ["DATA_TRANSFER ", "NORMAL_EDIT", "WEIGHTED_NORMAL",
-                'UV_PROJECT', 'UV_WARP', 'ARRAY', 'DECIMATE', 
+                'UV_PROJECT', 'UV_WARP', 'ARRAY', 
                 'EDGE_SPLIT', 'MASK', 'MIRROR', 'MULTIRES', 'SCREW',
                 'SOLIDIFY', 'SUBSURF', 'TRIANGULATE', 'ARMATURE', 
                 'CAST', 'CURVE', 'DISPLACE', 'HOOK', 'LAPLACIANDEFORM',
@@ -2469,3 +2491,9 @@ def check_mods(myobj):
         if mod.type not in goodMods:
             return False
     return True
+
+def printTime(start,end,post):
+    totalTime= (end-start)*1000
+    mystring = '{:.2f}'.format(totalTime) +' ms'
+    mystring += post
+    print(mystring)
