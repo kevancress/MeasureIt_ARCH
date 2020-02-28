@@ -519,12 +519,13 @@ def draw_main_3d (context):
     # ---------------------------------------
 
     for myobj in objlist:
+    
         #Stash Object Vertices for use in Draw functions
-        #                
+          
         if myobj.visible_get() is True:
             mat = myobj.matrix_world
-            if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
-                myobj['obverts'] = get_mesh_vertices(myobj)
+           # if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
+           #     myobj['obverts'] = get_mesh_vertices(myobj)
 
             if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
                 lineGen = myobj.LineGenerator[0]

@@ -192,10 +192,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
             viewport = [context.area.width, context.area.height]
 
         # Obj Properties
-        obvertA = dim.dimObjectA['obverts']
-        if 'obverts' not in dim.dimObjectB:
-            dim.dimObjectB['obverts'] = get_mesh_vertices(dim.dimObjectB)
-        obvertB = dim.dimObjectB['obverts']
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
@@ -219,12 +215,12 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
         else:
-            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA, aMatrix)
+            p1 = get_point(get_mesh_vertex(dim.dimObjectA,dim.dimPointA), dim.dimObjectA, aMatrix)
 
         if dim.dimPointB == 9999999:
             p2 = dim.dimObjectB.location
         else:
-            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB, bMatrix)
+            p2 = get_point(get_mesh_vertex(dim.dimObjectB,dim.dimPointB), dim.dimObjectB, bMatrix)
 
 
 
@@ -612,11 +608,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
     bgl.glDepthMask(False)
 
     dimProps = dim
-    if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator[0].alignedDimensions:
-            if alignedDimStyle.name == dim.style:
-                dimProps = alignedDimStyle
-
+    
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     if dimProps.inFront:
          bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -639,10 +631,6 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
 
         # Obj Properties
-        obvertA = dim.dimObjectA['obverts']
-        if 'obverts' not in dim.dimObjectB:
-            dim.dimObjectB['obverts'] = get_mesh_vertices(dim.dimObjectB)
-        obvertB = dim.dimObjectB['obverts']
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
@@ -666,12 +654,12 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         if dim.dimPointA == 9999999:
             p1 = dim.dimObjectA.location
         else:
-            p1 = get_point(obvertA[dim.dimPointA], dim.dimObjectA,aMatrix)
+            p1 = get_point(get_mesh_vertex(dim.dimObjectA,dim.dimPointA), dim.dimObjectA,aMatrix)
         
         if dim.dimPointB == 9999999:
             p2 = dim.dimObjectB.location
         else:
-            p2 = get_point(obvertB[dim.dimPointB], dim.dimObjectB,bMatrix)
+            p2 = get_point(get_mesh_vertex(dim.dimObjectB,dim.dimPointB), dim.dimObjectB,bMatrix)
         
         #Sort Points 
         sortedPoints = sortPoints(p1,p2)
@@ -967,15 +955,14 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         pr = scene.measureit_arch_gl_precision
         a_code = "\u00b0"  # degree
         fmt = "%1." + str(pr) + "f"
-        obverts = myobj['obverts']
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         radius = dim.dimRadius
         offset = 0.001
 
-        p1 = Vector(get_point(obverts[dim.dimPointA], myobj,mat))
-        p2 = Vector(get_point(obverts[dim.dimPointB], myobj,mat))
-        p3 = Vector(get_point(obverts[dim.dimPointC], myobj,mat))
+        p1 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointA), myobj,mat))
+        p2 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointB), myobj,mat))
+        p3 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointC), myobj,mat))
 
         #calc normal to plane defined by points
         vecA = (p1-p2)
@@ -1180,13 +1167,15 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
             
         #get Adjacent Face normals if possible
         possibleNormals = []
-        for face in myobj.data.polygons:
-            if dim.dimPointA in face.vertices and dim.dimPointB in face.vertices:
-                worldNormal = myobj.matrix_local@Vector(face.normal)
-                worldNormal -= myobj.location
-                worldNormal.normalize()
-                possibleNormals.append(worldNormal)
-                    
+        faces = myobj.data.polygons
+        if len(faces)<2000:    
+            for face in myobj.data.polygons:
+                if dim.dimPointA in face.vertices and dim.dimPointB in face.vertices:
+                    worldNormal = myobj.matrix_local@Vector(face.normal)
+                    worldNormal -= myobj.location
+                    worldNormal.normalize()
+                    possibleNormals.append(worldNormal)
+                        
         # Check if Face Normals are available
         if len(possibleNormals) != 2: badNormals = True
         else:
@@ -1233,7 +1222,6 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
         
 def draw_line_group(context, myobj, lineGen, mat):
     scene = context.scene
-    obverts = myobj['obverts']
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
@@ -1323,41 +1311,38 @@ def draw_line_group(context, myobj, lineGen, mat):
             coords =[]
             pointcoord =[]
             arclengths = []
-            for x in range(0,lineGroup.numLines):
-                sLine = lineGroup.singleLine[x]
-                a_p1 = None
-                b_p1 = None
-                
-                if sLine.pointA <= len(obverts) and sLine.pointB <= len(obverts):
-                    a_p1 = Vector(get_point(obverts[sLine.pointA], myobj,mat))
-                    b_p1 = Vector(get_point(obverts[sLine.pointB], myobj,mat))
+            pointAppend = pointcoord.append
+            coordAppend = coords.append
+            arcAppend = arclengths.append
+            start = time.time ()
+            for sLine in lineGroup.singleLine:
+                a_p1 = Vector(get_point(get_mesh_vertex(myobj,sLine.pointA), myobj,mat))
+                b_p1 = Vector(get_point(get_mesh_vertex(myobj,sLine.pointB), myobj,mat))
 
-                if  a_p1 is not None and b_p1 is not None:
+            
+                pointAppend(a_p1)
+
+                if lineProps.lineOverExtension != 0:
+                    norm = (Vector(a_p1) - Vector(b_p1)).normalized()
+                    random.seed(lineProps.randomSeed)
+                    a_p1 += norm * (lineProps.lineOverExtension * (random.randrange(50,100,1)/100))
+                    b_p1 -= norm * (lineProps.lineOverExtension * (random.randrange(50,100,1)/100))
                     
-                    point = a_p1.copy()
-                    pointcoord.append(point)
+                arcAppend(0)
+                coordAppend(a_p1)
+                coordAppend(b_p1)
+                arcAppend((a_p1-b_p1).length)
+        
+   
 
-                    if lineProps.lineOverExtension != 0:
-                        norm = (Vector(a_p1) - Vector(b_p1)).normalized()
-                        random.seed(lineProps.randomSeed)
-                        a_p1 += norm * (lineProps.lineOverExtension * (random.randrange(50,100,1)/100))
-                        b_p1 -= norm * (lineProps.lineOverExtension * (random.randrange(50,100,1)/100))
-                        pointShader.uniform_float("thickness", lineWeight + (lineProps.lineOverExtension * (random.randrange(50,100,1)/8)))
-                    else:
-                        pointShader.uniform_float("thickness", lineWeight)
-
-
-                    arclengths.append(0)
-                    coords.append(a_p1)
-                    coords.append(b_p1)
-                    arclengths.append((Vector(a_p1)-Vector(b_p1)).length)
-                    
             #Draw Point Pass for Clean Corners
             gpu.shader.unbind()
+            if lineProps.lineOverExtension != 0:
+                pointShader.uniform_float("thickness", lineWeight + (lineProps.lineOverExtension * (random.randrange(50,100,1)/8)))
+    
             batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoord})
             batch3d.program_set(pointShader)
             batch3d.draw()
-
 
             lineShader.bind()
             lineShader.uniform_float("Viewport",viewport)
@@ -1388,7 +1373,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 bgl.glDepthFunc(bgl.GL_LESS)
                 gpu.shader.unbind()
             
-            # Draw Lines
+ 
             if lineProps.lineDrawDashed:
                 dashedLineShader.bind()
                 dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
@@ -1407,13 +1392,13 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batch3d.program_set(lineShader)
                 batch3d.draw()
                 gpu.shader.unbind()
-            
+    end= time.time()
+    print (str((end-start)*1000)+'ms for '  + str(lineGroup.numLines) + 'Line Segments')
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 
 def draw_annotation(context, myobj, annotationGen, mat):
-    obverts = myobj['obverts']
     scene = context.scene
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
@@ -1462,7 +1447,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
 
             # Get Points
             if annotation.annotationAnchorObject.type == 'MESH':
-                p1 = get_point(obverts[annotation.annotationAnchor], myobj,mat)
+                p1 = get_point(get_mesh_vertex(myobj,annotation.annotationAnchor), myobj,mat)
             else:
                 p1 = mat @ Vector((0,0,0))
 
@@ -2440,10 +2425,29 @@ def get_mesh_vertices(myobj):
             # We're going through every Vertex in the object here
             # probably excessive, should figure out a better way to
             # link dims to verts...
-            for vert in verts:
-                obverts.append(vert.co)
-                
+
+            obverts = [vert.co for vert in verts]
+            
             return obverts
+        else: return None 
+    except AttributeError:
+        return None
+
+def get_mesh_vertex(myobj,idx):
+    try:
+        obverts = []
+        verts=[]
+        if myobj.type == 'MESH':
+            if myobj.mode == 'EDIT':
+                bm = bmesh.from_edit_mesh(myobj.data)
+                verts = bm.verts
+            else:               
+                # This is waayyy faster than getting all verts...
+                # Not evaluating the depsgraph though
+                # because running that every dim, every frame gets expensive
+                verts = myobj.data.vertices
+
+            return verts[idx].co
         else: return None 
     except AttributeError:
         return None

@@ -359,6 +359,7 @@ def draw_line_style_settings(line,layout):
     col.prop(line, 'lineDrawDashed', text="Draw Dashed")
     col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
     col.prop(line, 'inFront', text="Draw In Front")
+    col.prop(dim,'evalMods')
 
 def draw_annotation_style_row(annotation,layout):
     row = layout.row(align=True)
@@ -401,6 +402,7 @@ def draw_annotation_style_settings(annotation,layout):
     col = layout.column(align=True)
     col.prop(annotation, 'lineWeight', text="Line Weight" )
     col.prop(annotation, 'inFront', text="Draw In Front")
+    col.prop(dim,'evalMods')
 
 def draw_dimension_style_row(dim,layout):
     row = layout.row(align=True)
@@ -446,3 +448,4 @@ def draw_dim_style_settings(dim,layout):
     col.prop(dim,'endcapSize', text='Arrow Size')
     col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
     col.prop(dim, 'inFront', text="Draw In Front")
+    col.prop(dim,'evalMods')

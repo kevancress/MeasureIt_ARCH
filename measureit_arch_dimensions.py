@@ -1274,6 +1274,7 @@ def draw_aligned_dimension_settings(dim,layout):
         col.prop(dim,'endcapSize', text='Arrow Size')
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
         col.prop(dim,'inFront', text='Draw in Front')
+        col.prop(dim,'evalMods')
 
 
 def draw_bounds_dimension_settings(dim,layout):
@@ -1395,6 +1396,10 @@ def draw_angle_dimension_settings(dim,layout):
             col.prop(dim,'textResolution',text='Resolution')
             col.prop(dim,'textAlignment',text='Alignment')
             col.prop(dim,'inFront', text='Draw in Front')
+            col.prop(dim,'endcapA', text='Arrow Start')
+            col.prop(dim,'endcapB', text='End')
+            col.prop(dim,'endcapSize', text='Arrow Size')
+            col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
         col.prop(dim,'reflexAngle', text='Use Reflex Angle')
             #col.prop(dim,'textPosition',text='Position')
 

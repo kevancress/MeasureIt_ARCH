@@ -13,7 +13,6 @@ def update_flag(self,context):
 
 def update_active_dim(self,context):
     dimGen = context.object.DimensionGenerator[0]
-    print(self)
     itemType = self.itemType
     idx = 0
     for wrap in dimGen.wrappedDimensions:
@@ -70,6 +69,10 @@ class BaseProp:
     free: BoolProperty(name="Free",
                 description="This Item is free and can be deleted",
                 default=False)
+
+    evalMods: BoolProperty(name="Evaluate Modifiers",
+            description="This Element Should Evaluate the Modifier Stack",
+            default=False)
     
     settings: BoolProperty(name= "Settings",
                 description= "Show Settings",
