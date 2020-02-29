@@ -163,16 +163,125 @@ class Line_Shader_3D ():
         }
     '''
 
+class Line_Group_Shader_3D ():
+    vertex_shader = '''
+
+        uniform mat4 ModelViewProjectionMatrix;
+        uniform mat4 objectMatrix;
+        uniform float offset;
+        in vec3 pos;
+        
+        vec4 worldPos = objectMatrix * vec4(pos, 1.0);
+        vec4 project = ModelViewProjectionMatrix * worldPos;
+        vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
+
+        void main()
+        {
+           gl_Position = project + vecOffset;
+        }
+
+        '''
+
+
+    geometry_shader = '''
+        layout(lines) in;
+        layout(triangle_strip, max_vertices = 60) out;
+
+        uniform mat4 ModelViewProjectionMatrix;
+        uniform vec2 Viewport;
+        uniform float thickness;
+
+        out vec2 mTexCoord;
+
+        float aspect = Viewport.x/Viewport.y;
+
+        int segments = int(thickness) + 5;
+
+        const float PI = 3.1415926;
+
+        void main() {
+            //calculate line normal
+
+            vec4 p1 =  gl_in[0].gl_Position;
+            vec4 p2 =  gl_in[1].gl_Position;
+            
+            vec2 ssp1 = vec2(p1.xy / p1.w);
+            vec2 ssp2 = vec2(p2.xy / p2.w);
+
+            float width = 0.00118 * thickness * aspect;
+
+            vec2 dir = normalize(ssp2 - ssp1);
+            vec2 normal = vec2(-dir[1], dir[0]);
+
+            // get offset factor from normal and user input thickness
+            vec2 offset = vec2(normal * width);
+            offset.x /= aspect;
+            
+            // generate rect
+            vec4 coords[4];
+            vec2 texCoords[4];
+
+            coords[0] = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
+            texCoords[0] = vec2(0,1);
+
+            coords[1] = vec4((ssp1 - offset)*p1.w,p1.z,p1.w);
+            texCoords[1] = vec2(0,0);
+
+            coords[2] = vec4((ssp2 + offset)*p2.w,p2.z,p2.w);
+            texCoords[2] = vec2(0,1);
+
+            coords[3] = vec4((ssp2 - offset)*p2.w,p2.z,p2.w);
+            texCoords[3] = vec2(0,0);
+
+            for (int i = 0; i < 4; ++i) {
+                mTexCoord = texCoords[i];
+                gl_Position = coords[i];
+                EmitVertex();
+            }
+            EndPrimitive();
+        }  
+    '''
+
+    fragment_shader = '''
+        in vec2 mTexCoord;
+        uniform vec4 finalColor;
+        out vec4 fragColor;
+
+        void main()
+        {
+            vec4 aaColor = finalColor;
+
+            vec2 center = vec2(0,0.5);
+            float dist = length(mTexCoord - center);
+            float distFromEdge = 1-(dist*2);
+
+            float delta = fwidth(distFromEdge);
+            float threshold = 2*delta;
+            float aa = clamp((distFromEdge/threshold)+0.5,0,1);
+            aa = aa -clamp(0.5*fwidth(aa),0,1);
+
+            aaColor[3] = mix(0,1.0,aa);
+            if (finalColor[3]<0.75){
+                aaColor[3] *=0.25;
+            }
+
+            fragColor = aaColor;
+        }
+    '''
+
+
 class Dashed_Shader_3D ():
 
     vertex_shader = '''
         uniform mat4 ModelViewProjectionMatrix;
+        uniform mat4 objectMatrix;
         uniform float offset;
 
         in vec3 pos;
         out vec3 v_arcpos;
 
-        vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0f);
+        vec4 worldPos = objectMatrix * vec4(pos, 1.0);
+        vec4 project = ModelViewProjectionMatrix * worldPos;
         vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
 
         void main()

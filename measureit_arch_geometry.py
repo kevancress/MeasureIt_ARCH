@@ -57,6 +57,11 @@ lineShader = gpu.types.GPUShader(
     Line_Shader_3D.fragment_shader,
     geocode=Line_Shader_3D.geometry_shader)
 
+lineGroupShader = gpu.types.GPUShader(
+    Line_Group_Shader_3D.vertex_shader,
+    Line_Group_Shader_3D.fragment_shader,
+    geocode=Line_Group_Shader_3D.geometry_shader)
+
 triShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
     Base_Shader_3D.fragment_shader)
@@ -68,6 +73,11 @@ dashedLineShader = gpu.types.GPUShader(
 
 pointShader = gpu.types.GPUShader(
     Point_Shader_3D.vertex_shader,
+    Point_Shader_3D.fragment_shader,
+    geocode=Point_Shader_3D.geometry_shader)
+
+lgPointShader = gpu.types.GPUShader(
+    Line_Group_Shader_3D.vertex_shader,
     Point_Shader_3D.fragment_shader,
     geocode=Point_Shader_3D.geometry_shader)
 
@@ -1315,11 +1325,12 @@ def draw_line_group(context, myobj, lineGen, mat):
             bgl.glDepthFunc(bgl.GL_LEQUAL) 
 
             #configure Shaders
-            pointShader.bind()
-            pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            pointShader.uniform_float("Viewport",viewport)
-            pointShader.uniform_float("thickness", lineWeight)
-            pointShader.uniform_float("offset", -offset)
+            lgPointShader.bind()
+            lgPointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            lgPointShader.uniform_float("Viewport",viewport)
+            lgPointShader.uniform_float("objectMatrix",mat)
+            lgPointShader.uniform_float("thickness", lineWeight)
+            lgPointShader.uniform_float("offset", -offset)
             
 
             #Get line data to be drawn
@@ -1364,19 +1375,13 @@ def draw_line_group(context, myobj, lineGen, mat):
             printTime(start,end,post)
 
             #Draw Point Pass for Clean Corners
-            gpu.shader.unbind()
-            if lineProps.lineOverExtension != 0:
-                pointShader.uniform_float("thickness", lineWeight + (lineProps.lineOverExtension * (random.randrange(50,100,1)/8)))
+            #gpu.shader.unbind()
+            #if lineProps.lineOverExtension != 0:
+            #    pointShader.uniform_float("thickness", lineWeight + (lineProps.lineOverExtension * (random.randrange(50,100,1)/8)))
     
-            batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoord})
-            batch3d.program_set(pointShader)
+            batch3d = batch_for_shader(lgPointShader, 'POINTS', {"pos": pointcoord})
+            batch3d.program_set(lgPointShader)
             batch3d.draw()
-
-            lineShader.bind()
-            lineShader.uniform_float("Viewport",viewport)
-            lineShader.uniform_float("thickness",lineWeight)
-            lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            lineShader.uniform_float("offset", -offset)
 
             if drawHidden == True:
                 # Invert The Depth test for hidden lines
@@ -1390,6 +1395,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.bind()
                 dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
                 dashedLineShader.uniform_float("Viewport",viewport)
+                dashedLineShader.uniform_float("objectMatrix",mat)
                 dashedLineShader.uniform_float("thickness",hiddenLineWeight)
                 dashedLineShader.uniform_float("screenSpaceDash",lineProps.screenSpaceDashes)
                 dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
@@ -1406,6 +1412,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.bind()
                 dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
                 dashedLineShader.uniform_float("Viewport",viewport)
+                dashedLineShader.uniform_float("objectMatrix",mat)
                 dashedLineShader.uniform_float("thickness",lineWeight)
                 dashedLineShader.uniform_float("screenSpaceDash",lineProps.screenSpaceDashes)
                 dashedLineShader.uniform_float("finalColor",  (rgb[0], rgb[1], rgb[2], rgb[3]))
@@ -1416,8 +1423,15 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batchHidden.draw()
 
             else:
-                batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-                batch3d.program_set(lineShader)
+                lineGroupShader.bind()
+                lineGroupShader.uniform_float("Viewport",viewport)
+                lineGroupShader.uniform_float("objectMatrix",mat)
+                lineGroupShader.uniform_float("thickness",lineWeight)
+                lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                lineGroupShader.uniform_float("offset", -offset)
+
+                batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                batch3d.program_set(lineGroupShader)
                 batch3d.draw()
                 gpu.shader.unbind()
     
@@ -2470,7 +2484,7 @@ def get_mesh_vertices(myobj):
 ## A streamlined version of get mesh vertex for line drawing
 def get_line_vertex(idx,verts,mat):
     vert = verts[idx].co
-    return mat @ vert
+    return vert
 
 
 def get_mesh_vertex(myobj,idx,evalMods):

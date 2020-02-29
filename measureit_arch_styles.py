@@ -350,7 +350,7 @@ def draw_line_style_settings(line,layout):
     col.prop(line, 'lineDrawDashed', text="Draw Dashed")
     col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
     col.prop(line, 'inFront', text="Draw In Front")
-    col.prop(dim,'evalMods')
+    col.prop(line,'evalMods')
 
 def draw_annotation_style_row(annotation,layout):
     row = layout.row(align=True)
