@@ -1370,9 +1370,9 @@ def draw_line_group(context, myobj, lineGen, mat):
             coords = lineGroup['coordBuffer']
             pointcoord = coords
 
-            end = time.time()
-            post = ' for ' + str(len(lineGroup['lineBuffer'])/2) + ' line segemtns In Loop'
-            printTime(start,end,post)
+            #end = time.time()
+            #post = ' for ' + str(len(lineGroup['lineBuffer'])/2) + ' line segemtns In Loop'
+            #printTime(start,end,post)
 
             #Draw Point Pass for Clean Corners
             #gpu.shader.unbind()
@@ -1435,9 +1435,9 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batch3d.draw()
                 gpu.shader.unbind()
     
-    end= time.time()
-    post = ' for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns Total'
-    printTime(start,end,post)
+    #end= time.time()
+    #post = ' for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns Total'
+    #printTime(start,end,post)
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
