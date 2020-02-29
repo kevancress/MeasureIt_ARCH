@@ -299,6 +299,7 @@ class OBJECT_PT_UILines(Panel):
                             col.prop(line, 'lineDrawDashed', text="Draw Dashed")
                             col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
                             col.prop(line, 'inFront', text="Draw In Front")
+                            col.prop(line, 'evalMods')
 
 class OBJECT_MT_lines_menu(bpy.types.Menu):
     bl_label = "Custom Menu"

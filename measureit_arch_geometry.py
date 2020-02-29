@@ -44,6 +44,9 @@ import numpy as np
 from array import array
 import random
 
+
+lastMode = None
+
 # define Shaders
 shader = gpu.types.GPUShader(
     Base_Shader_2D.vertex_shader,
@@ -1322,13 +1325,16 @@ def draw_line_group(context, myobj, lineGen, mat):
             #Get line data to be drawn
             coords =[]
             pointcoord = []
-            start = time.time ()
-
             evalMods = lineProps.evalMods
 
             # Evaluate Mesh Data
             verts=[]
-
+            global lastMode
+            recoordFlag = False
+            if lastMode != myobj.mode:
+                recoordFlag = True
+                lastMode = myobj.mode
+            
             if myobj.mode == 'EDIT':
                 bm = bmesh.from_edit_mesh(myobj.data)
                 verts = bm.verts
@@ -1343,13 +1349,19 @@ def draw_line_group(context, myobj, lineGen, mat):
                     verts = myobj.data.vertices
 
             # Get Coords
-            pointcoord = [get_line_vertex(idx,verts,mat) for idx in lineGroup['lineBuffer']]
-            coords = pointcoord
+            start = time.time ()
+            sceneProps = bpy.context.scene.MeasureItArchProps
+            if 'coordBuffer' not in lineGroup or evalMods or recoordFlag:
+                tempCoords = [get_line_vertex(idx,verts,mat) for idx in lineGroup['lineBuffer']]
+                lineGroup['coordBuffer'] = tempCoords
 
+            
+            coords = lineGroup['coordBuffer']
+            pointcoord = coords
 
-            #end= time.time()
-            #post = ' for ' + str(len(lineGroup['lineBuffer'])/2) + ' line segemtns In Loop'
-            #printTime(start,end,post)
+            end = time.time()
+            post = ' for ' + str(len(lineGroup['lineBuffer'])/2) + ' line segemtns In Loop'
+            printTime(start,end,post)
 
             #Draw Point Pass for Clean Corners
             gpu.shader.unbind()
@@ -1409,9 +1421,9 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batch3d.draw()
                 gpu.shader.unbind()
     
-    #end= time.time()
-    #post = ' for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns Total'
-    #printTime(start,end,post)
+    end= time.time()
+    post = ' for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns Total'
+    printTime(start,end,post)
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
@@ -2457,10 +2469,8 @@ def get_mesh_vertices(myobj):
 
 ## A streamlined version of get mesh vertex for line drawing
 def get_line_vertex(idx,verts,mat):
-    sceneProps = bpy.context.scene.MeasureItArchProps
-    if idx < len(verts):
-        vert = verts[idx].co
-        return mat @ vert
+    vert = verts[idx].co
+    return mat @ vert
 
 
 def get_mesh_vertex(myobj,idx,evalMods):
