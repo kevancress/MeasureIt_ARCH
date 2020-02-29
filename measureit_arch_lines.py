@@ -375,18 +375,17 @@ class AddToLineGroup(Operator):
                         lineGen = mainobject.LineGenerator[0]
                         lGroup = lineGen.line_groups[self.tag]
                         
-
+                        bufferList = lGroup['lineBuffer'].to_list()
                         for x in range (0, len(mylist)-1, 2):
                             if lineExists(lGroup,mylist[x],mylist[x+1]) is False:
-
-                                sLine = lGroup.singleLine.add()
-                                sLine.pointA = mylist[x]
-                                sLine.pointB = mylist[x+1]
+                                bufferList.append(mylist[x])
+                                bufferList.append(mylist[x+1])
                                 lGroup.numLines +=1
                                 #print("line made" + str(sLine.pointA) + ", " +str(sLine.pointB))
 
-                                # redraw
-                                context.area.tag_redraw()
+                        # redraw
+                        lGroup['lineBuffer'] = bufferList
+                        context.area.tag_redraw()
                         return {'FINISHED'}
 
 class AddLineByProperty(Operator):   
@@ -535,16 +534,20 @@ class RemoveFromLineGroup(Operator):
                         lineGen = mainobject.LineGenerator[0]
                         lGroup = lineGen.line_groups[self.tag]
                         idx = 0
-                        for sLine in lGroup.singleLine:
-                            for x in range (0, len(mylist), 2):
-                                if sLineExists(sLine,mylist[x],mylist[x+1]):
-                                    #print("checked Pair: (" + str(mylist[x]) +   "," + str(mylist[x+1]) + ")" )
-                                    #print("A:" + str(sLine.pointA) + "B:" + str(sLine.pointB) ) 
-                                    lGroup.singleLine.remove(idx) 
-                                    lGroup.numLines -= 1     
-                            idx +=1
-  
-                        # redraw
+                        bufferList = lGroup['lineBuffer'].to_list()
+                        for x in range (0, len(lGroup['lineBuffer']), 2):
+                            pointA = lGroup['lineBuffer'][x]
+                            pointB = lGroup['lineBuffer'][x+1]
+                            for y in range (0, len(mylist), 2):
+                                if sLineExists(pointA,pointB,mylist[y],mylist[y+1]):
+                                    print("checked Pair: (" + str(mylist[y]) +   "," + str(mylist[y+1]) + ")" )
+                                    print("A:" + str(pointA) + "B:" + str(pointB) ) 
+                                    del bufferList[x] 
+                                    del bufferList[x] 
+                                    lGroup.numLines -= 1 
+
+                        # redraw      
+                        lGroup['lineBuffer'] = bufferList
                         context.area.tag_redraw()
                         return {'FINISHED'}
 
@@ -578,18 +581,20 @@ class RemoveFromLineGroup(Operator):
 
 #         return {'FINISHED'}
 
-def sLineExists(sLine,a,b):
-    if (sLine.pointA == a and sLine.pointB == b):
+def sLineExists(pointA,pointB,a,b):
+    if (pointA == a and pointB == b):
         return True
-    elif (sLine.pointA == b and sLine.pointB == a):
+    elif (pointA == b and pointB == a):
         return True
     else:
         return False
 
 def lineExists(lGroup,a,b):
-    for sLine in lGroup.singleLine:
-        if (sLine.pointA == a and sLine.pointB == b):
+    for x in range (0, len(lGroup['lineBuffer']), 2):
+        pointA = lGroup['lineBuffer'][x]
+        pointB = lGroup['lineBuffer'][x+1]
+        if (pointA == a and pointB == b):
             return True
-        elif (sLine.pointA == b and sLine.pointB == a):
+        elif (pointA == b and pointB == a):
             return True
     return False
