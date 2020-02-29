@@ -1335,7 +1335,6 @@ def draw_line_group(context, myobj, lineGen, mat):
 
             #Get line data to be drawn
             coords =[]
-            pointcoord = []
             evalMods = lineProps.evalMods
 
             # Evaluate Mesh Data
@@ -1360,7 +1359,6 @@ def draw_line_group(context, myobj, lineGen, mat):
                     verts = myobj.data.vertices
 
             # Get Coords
-            start = time.time ()
             sceneProps = bpy.context.scene.MeasureItArchProps
             if 'coordBuffer' not in lineGroup or evalMods or recoordFlag:
                 tempCoords = [get_line_vertex(idx,verts,mat) for idx in lineGroup['lineBuffer']]
@@ -1368,20 +1366,9 @@ def draw_line_group(context, myobj, lineGen, mat):
 
             
             coords = lineGroup['coordBuffer']
-            pointcoord = coords
+            start = time.time ()
 
-            #end = time.time()
-            #post = ' for ' + str(len(lineGroup['lineBuffer'])/2) + ' line segemtns In Loop'
-            #printTime(start,end,post)
 
-            #Draw Point Pass for Clean Corners
-            #gpu.shader.unbind()
-            #if lineProps.lineOverExtension != 0:
-            #    pointShader.uniform_float("thickness", lineWeight + (lineProps.lineOverExtension * (random.randrange(50,100,1)/8)))
-    
-            batch3d = batch_for_shader(lgPointShader, 'POINTS', {"pos": pointcoord})
-            batch3d.program_set(lgPointShader)
-            batch3d.draw()
 
             if drawHidden == True:
                 # Invert The Depth test for hidden lines
@@ -1406,6 +1393,10 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batchHidden.draw()
                 bgl.glDepthFunc(bgl.GL_LESS)
                 gpu.shader.unbind()
+                end= time.time()
+                post = ' Hidden Line Shader for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns'
+                printTime(start,end,post)
+                start = time.time ()
             
  
             if lineProps.lineDrawDashed:
@@ -1421,6 +1412,10 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
                 batchHidden.program_set(dashedLineShader)
                 batchHidden.draw()
+                end= time.time()
+                post = 'All Dashed Line Shader for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns'
+                printTime(start,end,post)
+                start = time.time ()
 
             else:
                 lineGroupShader.bind()
@@ -1434,10 +1429,11 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batch3d.program_set(lineGroupShader)
                 batch3d.draw()
                 gpu.shader.unbind()
+                end= time.time()
+                post = ' Line Shader for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns'
+                printTime(start,end,post)
+                start = time.time ()
     
-    #end= time.time()
-    #post = ' for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns Total'
-    #printTime(start,end,post)
     gpu.shader.unbind()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)

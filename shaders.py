@@ -195,10 +195,6 @@ class Line_Group_Shader_3D ():
 
         float aspect = Viewport.x/Viewport.y;
 
-        int segments = int(thickness) + 5;
-
-        const float PI = 3.1415926;
-
         void main() {
             //calculate line normal
 
@@ -239,6 +235,39 @@ class Line_Group_Shader_3D ():
                 EmitVertex();
             }
             EndPrimitive();
+
+            //draw Point pass
+            float radius = 0.00117 * thickness * aspect;
+            int segments = int(thickness) + 5;
+
+            const float PI = 3.1415926;
+
+            gl_Position = gl_in[0].gl_Position;
+            mTexCoord = vec2(0,0.5);
+            EmitVertex();
+            segments = clamp(segments,0,24);
+
+            for (int i = 0; i <= segments; i++) {
+                // Angle between each side in radians
+                float ang = PI * 2.0 / segments * i;
+
+                // Offset from center of point
+                offset = vec2(cos(ang)*radius, -sin(ang)*radius);
+                offset.x /= aspect;
+                mTexCoord = vec2(0,1);
+                gl_Position = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
+                EmitVertex();
+
+                gl_Position = gl_in[0].gl_Position;
+                mTexCoord = vec2(0,0.5);
+                EmitVertex();
+
+            }
+
+            EndPrimitive();
+
+
+
         }  
     '''
 
@@ -435,10 +464,7 @@ class Point_Shader_3D ():
             gl_Position = gl_in[0].gl_Position;
             EmitVertex();
             
-            if (segments > 24){
-                segments = 24;
-            }
-
+            segments = clamp(segments,0,24);
             for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
                 float ang = PI * 2.0 / segments * i;
