@@ -29,7 +29,7 @@ bl_info = {
     "name": "MeasureIt-ARCH",
     "author": "Kevan Cress, Antonio Vazquez (antonioya)",
     "location": "View3D > Tools Panel /Properties panel",
-    "version": (0, 1, 0),
+    "version": (0, 4, 0),
     "blender": (2, 80, 0),      
     "description": "Tools for measuring objects.",
     "category": "3D View"
