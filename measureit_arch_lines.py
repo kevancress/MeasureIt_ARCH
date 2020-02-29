@@ -39,15 +39,6 @@ from .measureit_arch_render import *
 from .measureit_arch_main import get_smart_selected, get_selected_vertex
 from .measureit_arch_baseclass import BaseProp
 
-class SingleLineProperties(PropertyGroup):
-    pointA: IntProperty(name = "pointA",
-                        description = "first vertex index of the line")
-                        
-    pointB: IntProperty(name = "pointB",
-                        description = "Second vertex index of the line")
-
-bpy.utils.register_class(SingleLineProperties)
-
 class LineProperties(BaseProp, PropertyGroup):
     numLines: IntProperty(name="Number of Lines",
                         description="Number Of Single Lines")
@@ -99,8 +90,7 @@ class LineProperties(BaseProp, PropertyGroup):
     lineOverExtension: FloatProperty(name="Line Over Extension",
                                     default=0.0)
     randomSeed: IntProperty() 
-    #collection of individual line segments                        
-    singleLine: CollectionProperty(type=SingleLineProperties)
+
 bpy.utils.register_class(LineProperties)
 
 class LineContainer(PropertyGroup):
@@ -381,7 +371,7 @@ class AddToLineGroup(Operator):
                                 bufferList.append(mylist[x])
                                 bufferList.append(mylist[x+1])
                                 lGroup.numLines +=1
-                                #print("line made" + str(sLine.pointA) + ", " +str(sLine.pointB))
+                    
 
                         # redraw
                         lGroup['lineBuffer'] = bufferList
@@ -540,8 +530,8 @@ class RemoveFromLineGroup(Operator):
                             pointB = lGroup['lineBuffer'][x+1]
                             for y in range (0, len(mylist), 2):
                                 if sLineExists(pointA,pointB,mylist[y],mylist[y+1]):
-                                    print("checked Pair: (" + str(mylist[y]) +   "," + str(mylist[y+1]) + ")" )
-                                    print("A:" + str(pointA) + "B:" + str(pointB) ) 
+                                    #print("checked Pair: (" + str(mylist[y]) +   "," + str(mylist[y+1]) + ")" )
+                                    #print("A:" + str(pointA) + "B:" + str(pointB) ) 
                                     del bufferList[x] 
                                     del bufferList[x] 
                                     lGroup.numLines -= 1 
