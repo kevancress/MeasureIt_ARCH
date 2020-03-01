@@ -92,12 +92,32 @@ bpy.utils.register_class(BoundsDimensionProperties)
 
 
 class ArcDimensionProperties(BaseDim, PropertyGroup):
-    drawAxis: BoolVectorProperty(name= "Draw Axis",
-                description= "Axis to Dimension for Bounding Box",
-                default= (False,False,False),
-                subtype= 'XYZ')
+    dimPointC: IntProperty(name='dimPointC',
+                    description="Angle End Vertex Index")
+
+    showLength: BoolProperty(name='Show Arc Length',
+                    description='Displays the Arc Length Measurement',
+                    default = True)
+
+    showRadius: BoolProperty(name='Show Arc Radius',
+                    description='Displays the Arc Radius and Center',
+                    default = True)
+
+    showRadius: BoolProperty(name='Show Arc Radius',
+                    description='Displays the Arc Radius and Center',
+                    default = True)
+
+    endcapC: EnumProperty(
+                items=(('99', "--", "No Cap"),
+                        ('L', "Arrow", "Arrow"),
+                        ('T', "Triangle", "Triangle")),
+                default ='T',
+                name="C end",
+                description="Add arrows to Radius Leader")
+
     
 bpy.utils.register_class(ArcDimensionProperties)
+
 
 
 class AngleDimensionProperties(BaseDim, PropertyGroup):
@@ -110,7 +130,7 @@ class AngleDimensionProperties(BaseDim, PropertyGroup):
                     default= (0.05),
                     subtype='DISTANCE')
 
-    reflexAngle: BoolProperty(name='Exterior Angle',
+    reflexAngle: BoolProperty(name='Show Reflex Angle',
                     description='Displays the Reflex Angle (Greater then 180 Degrees)',
                     default = False)
 
@@ -143,7 +163,8 @@ class DimensionWrapper(PropertyGroup):
                 items=(('D-ALIGNED', "Aligned Dimension", ""),
                         ('D-ANGLE', "Angle Dimension", ""),
                         ('D-AXIS', "Axis Dimension", ""),
-                        ('D-BOUNDS', "Bounding Box Dimension","")),
+                        ('D-BOUNDS', "Bounding Box Dimension",""),
+                        ('D-ARC',"Arc DImension","")),
                 name="Dimension Item Type",
                 update=recalc_dimWrapper_index)
 
@@ -165,6 +186,7 @@ class DimensionContainer(PropertyGroup):
     angleDimensions: CollectionProperty(type=AngleDimensionProperties)
     axisDimensions: CollectionProperty(type=AxisDimensionProperties)
     boundsDimensions: CollectionProperty(type=BoundsDimensionProperties)
+    arcDimensions: CollectionProperty(type=ArcDimensionProperties)
 
     wrappedDimensions: CollectionProperty(type=DimensionWrapper)
 
@@ -902,35 +924,19 @@ class AddArcButton(Operator): #LEGACY
                 if 'DimensionGenerator' not in mainobject:
                     mainobject.DimensionGenerator.add()
 
-                mp = mainobject.DimensionGenerator[0]
-                # -----------------------
-                # Only if not exist
-                # -----------------------
-                if exist_segment(mp, mylist[0], mylist[1], 11, mylist[2]) is False:
-                    # Create all array elements
-                    for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
-                        mp.measureit_arch_segments.add()
+                DimGen = mainobject.DimensionGenerator[0]
+                newDimension = DimGen.arcDimensions.add()
+                newDimension.itemType = 'D-ARC'
+                newDimension.name = 'Arc ' + str(len(DimGen.arcDimensions))
+                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper.itemType = 'D-ARC'
+            
 
-                    # Set values
-                    ms = mp.measureit_arch_segments[mp.measureit_arch_num]
-                    ms.gltype = 11
-                    ms.glpointa = mylist[0]
-                    ms.glpointb = mylist[1]
-                    ms.glpointc = mylist[2]
-                    ms.glarrow_a = scene.measureit_arch_glarrow_a
-                    ms.glarrow_b = scene.measureit_arch_glarrow_b
-                    ms.glarrow_s = scene.measureit_arch_glarrow_s
-                    # color
-                    ms.glcolor = scene.measureit_arch_default_color
-                    # dist
-                    ms.glspace = scene.measureit_arch_hint_space
-                    # text
-                    ms.gltxt = scene.measureit_arch_gl_txt
-                    ms.glfont_size = scene.measureit_arch_font_size
-                    ms.glfont_align = scene.measureit_arch_font_align
-                    ms.glfont_rotat = scene.measureit_arch_font_rotation
-                    # Add index
-                    mp.measureit_arch_num += 1
+                # Set values
+                newDimension.dimPointA = mylist[0]
+                newDimension.dimPointB = mylist[1]
+                newDimension.dimPointC = mylist[2]
+
 
                 # redraw
                 context.area.tag_redraw()
@@ -952,6 +958,7 @@ class M_ARCH_UL_dimension_list(UIList):
         alignedDim = dimGen.alignedDimensions
         axisDim =  dimGen.axisDimensions
         boundsDim = dimGen.boundsDimensions
+        arcDim = dimGen.arcDimensions
 
         scene = bpy.context.scene
 
@@ -979,6 +986,10 @@ class M_ARCH_UL_dimension_list(UIList):
             elif item.itemType == 'D-BOUNDS':
                 dim = boundsDim[item.itemIndex]
                 nameIcon = 'SHADING_BBOX'
+            
+            elif item.itemType == 'D-ARC':
+                dim = arcDim[item.itemIndex]
+                nameIcon = 'MOD_THICKNESS'
 
 
             row = layout.row(align=True)
@@ -1055,6 +1066,8 @@ class OBJECT_PT_UIDimensions(Panel):
                     item = dimGen.axisDimensions[activeWrapperItem.itemIndex]
                 if activeWrapperItem.itemType == 'D-BOUNDS':
                     item = dimGen.boundsDimensions[activeWrapperItem.itemIndex]
+                if activeWrapperItem.itemType == 'D-ARC':
+                    item = dimGen.arcDimensions[activeWrapperItem.itemIndex]
 
                 if dimGen.show_dimension_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                 else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
@@ -1074,6 +1087,8 @@ class OBJECT_PT_UIDimensions(Panel):
                         draw_axis_dimension_settings(item,box)
                     if activeWrapperItem.itemType == 'D-BOUNDS':
                         draw_bounds_dimension_settings(item,box)
+                    if activeWrapperItem.itemType == 'D-ARC':
+                        draw_arc_dimension_settings(item,box)
 
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
@@ -1254,3 +1269,38 @@ def draw_angle_dimension_settings(dim,layout):
             #col.prop(dim,'textPosition',text='Position')
 
         col = layout.column(align=True)
+
+def draw_arc_dimension_settings(dim,layout):
+    col = layout.column()
+    if dim.uses_style is False:
+        split = layout.split(factor=0.485)
+        col = split.column()
+        col.alignment ='RIGHT'
+        col.label(text='Font')
+        col = split.column()
+
+        col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
+
+        col = layout.column()
+
+    col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+    if dim.uses_style is False:
+        col = layout.column(align=True)
+        col.prop(dim,'lineWeight',text='Line Weight')
+
+    col.prop(dim,'dimOffset',text='Radius')
+
+    if dim.uses_style is False:
+        col = layout.column(align=True)
+        col.prop(dim,'fontSize',text='Font Size')
+        col.prop(dim,'textResolution',text='Resolution')
+        col.prop(dim,'textAlignment',text='Alignment')
+        col.prop(dim,'inFront', text='Draw in Front')
+        col.prop(dim,'endcapA', text='Arrow Start')
+        col.prop(dim,'endcapB', text='End')
+        col.prop(dim,'endcapC', text='End')
+        col.prop(dim,'endcapSize', text='Arrow Size')
+        col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
+        #col.prop(dim,'textPosition',text='Position')
+
+    col = layout.column(align=True)

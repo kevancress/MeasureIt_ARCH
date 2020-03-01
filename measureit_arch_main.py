@@ -35,7 +35,7 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
-from .measureit_arch_geometry import draw_annotation, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, get_mesh_vertices
+from .measureit_arch_geometry import draw_annotation, draw_arcDimension, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, get_mesh_vertices
 
 # ------------------------------------------------------
 # Handler to detect new Blend load
@@ -178,9 +178,11 @@ class MeasureitArchMainPanel(Panel):
         row.prop(scene,'measureit_arch_bound_y',text="Y", toggle = 1)
         row.prop(scene,'measureit_arch_bound_z',text="Z", toggle = 1)
 
+        col = box.column(align=True)
         col.operator("measureit_arch.addanglebutton", text="Angle", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-        #col.operator("measureit_arch.addarcbutton", text="Arc", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-        #col = box.column()
+        col.operator("measureit_arch.addarcbutton", text="Arc", icon="MOD_THICKNESS")
+
+        #col = box.column(align=True)
         #col.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
 
         col = box.column(align=True)
@@ -486,6 +488,14 @@ def draw_main(context):
                             if dimStyle.name == boundsDim.style:
                                 dimProps= dimStyle
                     update_text(textobj=boundsDim,props=dimProps,context=context)
+                
+                for arcDim in DimGen.arcDimensions: 
+                    dimProps = arcDim
+                    if arcDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == arcDim.style:
+                                dimProps= dimStyle
+                    update_text(textobj=arcDim,props=dimProps,context=context)
             
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
@@ -552,6 +562,9 @@ def draw_main_3d (context):
                 
                 for boundsDim in DimGen.boundsDimensions:
                     draw_boundsDimension(context,myobj,DimGen,boundsDim,mat)
+                
+                for arcDim in DimGen.arcDimensions:
+                    draw_arcDimension(context,myobj,DimGen,arcDim,mat)
 
     # Draw Instanced Objects
     draw_instanced = True

@@ -301,6 +301,8 @@ class DeletePropButton(Operator):
             itemGroup = Generator.axisDimensions
         elif self.item_type == 'D-BOUNDS':
             itemGroup = Generator.boundsDimensions
+        elif self.item_type == 'D-ARC':
+            itemGroup = Generator.arcDimensions
         elif 'D' in self.item_type:
             itemGroup = Generator.alignedDimensions
             
@@ -352,6 +354,7 @@ class DeleteAllItemsButton(Operator):
         else:
             
             if self.item_type is 'D':
+
                 for alignedDim in mainobject.DimensionGenerator[0].alignedDimensions:
                     mainobject.DimensionGenerator[0].alignedDimensions.remove(0)
                     mainobject.DimensionGenerator[0].measureit_arch_num = 0
@@ -364,8 +367,12 @@ class DeleteAllItemsButton(Operator):
                 for boundsDim in mainobject.DimensionGenerator[0].boundsDimensions:
                     mainobject.DimensionGenerator[0].boundsDimensions.remove(0)
                     mainobject.DimensionGenerator[0].measureit_arch_num = 0
+                for arcDim in mainobject.DimensionGenerator[0].arcDimensions:
+                    mainobject.DimensionGenerator[0].arcDimensions.remove(0)
+                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
                 for wrapper in mainobject.DimensionGenerator[0].wrappedDimensions:
                     mainobject.DimensionGenerator[0].wrappedDimensions.remove(0)
+
 
             elif self.item_type is 'L':
                 for line in mainobject.LineGenerator[0].line_groups:

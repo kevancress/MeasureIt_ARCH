@@ -176,7 +176,6 @@ def update_text(textobj, props, context):
                 image.scale(width, height)
                 image.pixels = [v / 255 for v in texture_buffer]
 
-
 def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
@@ -366,7 +365,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
-
 
 def draw_boundsDimension(context, myobj, measureGen, dim, mat):
     # GL Settings
@@ -613,8 +611,6 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
-
-
 
 def draw_axisDimension(context, myobj, measureGen,dim, mat):
     # GL Settings
@@ -1136,6 +1132,64 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         #Reset openGL Settings
         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
+
+
+def draw_arcDimension(context, myobj, DimGen, dim,mat):
+    dimProps = dim
+    sceneProps = context.scene.MeasureItArchProps
+    if dim.uses_style:
+        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
+            if alignedDimStyle.name == dim.style:
+                dimProps = alignedDimStyle
+
+    # Check Visibility Conditions
+    inView = False
+    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+        inView = True
+    
+    if inView and dim.visible and dimProps.visible:
+         # GL Settings
+        bgl.glEnable(bgl.GL_MULTISAMPLE)
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        if dimProps.inFront:
+            bgl.glDisable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthMask(False)
+
+        lineWeight = dimProps.lineWeight
+        if sceneProps.is_render_draw:
+            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+        else:
+            viewport = [context.area.width,context.area.height]
+
+
+        scene = context.scene
+        pr = scene.measureit_arch_gl_precision
+        a_code = "\u00b0"  # degree
+        fmt = "%1." + str(pr) + "f"
+        rawRGB = dimProps.color
+        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        offset = 0.001
+
+        p1 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointA,dimProps.evalMods), myobj,mat))
+        p2 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointB,dimProps.evalMods), myobj,mat))
+        p3 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointC,dimProps.evalMods), myobj,mat))
+
+        #calc normal to plane defined by points
+        vecA = (p1-p2)
+        vecA.normalize()
+        vecB = (p3-p2)
+        vecB.normalize()
+        norm = vecA.cross(vecB).normalized()
+
+
+        print('drawing Arc Dimension')
+
+ 
+        #Reset openGL Settings
+        bgl.glDisable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthMask(True)
+
 
 def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     #Set properties
@@ -2264,6 +2318,40 @@ def get_render_location(mypoint):
 # Return:
 # ang: angle (radians)
 # len: len of arc
+
+def legacy_arc_maths():
+    an_p1 = get_point(obverts[ms.glpointa].co, myobj)
+    an_p2 = get_point(obverts[ms.glpointb].co, myobj)
+    an_p3 = get_point(obverts[ms.glpointc].co, myobj)
+    # reference for maths: http://en.wikipedia.org/wiki/Circumscribed_circle
+    an_p12 = Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
+    an_p13 = Vector((an_p1[0] - an_p3[0], an_p1[1] - an_p3[1], an_p1[2] - an_p3[2]))
+    an_p21 = Vector((an_p2[0] - an_p1[0], an_p2[1] - an_p1[1], an_p2[2] - an_p1[2]))
+    an_p23 = Vector((an_p2[0] - an_p3[0], an_p2[1] - an_p3[1], an_p2[2] - an_p3[2]))
+    an_p31 = Vector((an_p3[0] - an_p1[0], an_p3[1] - an_p1[1], an_p3[2] - an_p1[2]))
+    an_p32 = Vector((an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
+    an_p12xp23 = an_p12.copy().cross(an_p23)
+
+    # radius = an_p12.length * an_p23.length * an_p31.length / (2 * an_p12xp23.length)
+
+    alpha = pow(an_p23.length, 2) * an_p12.dot(an_p13) / (2 * pow(an_p12xp23.length, 2))
+    beta = pow(an_p13.length, 2) * an_p21.dot(an_p23) / (2 * pow(an_p12xp23.length, 2))
+    gamma = pow(an_p12.length, 2) * an_p31.dot(an_p32) / (2 * pow(an_p12xp23.length, 2))
+
+    a_p1 = (alpha * an_p1[0] + beta * an_p2[0] + gamma * an_p3[0],
+            alpha * an_p1[1] + beta * an_p2[1] + gamma * an_p3[1],
+            alpha * an_p1[2] + beta * an_p2[2] + gamma * an_p3[2])
+
+    b_p1 = (an_p2[0], an_p2[1], an_p2[2])
+    a_n = an_p12.cross(an_p23)
+    a_n.normalize()  # normal vector
+    arc_angle, arc_length = get_arc_data(an_p1, a_p1, an_p2, an_p3)
+    # Apply scale to arc_length
+    arc_length *= scene.measureit_scale_factor
+
+
+
+
 #
 # ---------------------------------------------------------
 def get_arc_data(pointa, pointb, pointc, pointd):
