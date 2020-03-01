@@ -1211,23 +1211,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         a_n = an_p12.cross(an_p23)
         a_n.normalize()  # normal vector
         arc_angle, arc_length = get_arc_data(an_p1, a_p1, an_p2, an_p3)
-
-
-        A = Vector(p1)
-        B = Vector(p2)
-        C = Vector(p3)
-
-        a = (B-C).length
-        b = (A-C).length
-        c = (A-B).length
-
         
-
-
- 
-
-
-
         A = Vector((0,0,0))
         B = Vector(p2)-Vector(p1)
         C = Vector(p3)-Vector(p1)
@@ -1252,38 +1236,79 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         factor1 = perp_ba.dot(perp_bc)
         factor2 = (B.normalized().dot(C.normalized()))
 
-
-
-
-
-
-
         #making it a circle
         center = Vector(a_p1)-p1
         startVec = A - center
         arc_angle = arc_angle
         numCircleVerts = math.ceil(radius/.2)+ int((degrees(arc_angle))/2)
         verts = []
-        for idx in range (numCircleVerts+1):
+        for idx in range (numCircleVerts+2):
             rotangle= -(arc_angle/(numCircleVerts+1))*idx
             point = startVec.copy()
             point.rotate(Quaternion(norm,rotangle))
             verts.append((point).normalized())
 
-             # batch & Draw Shader
-        radius += (B-center).length
+        # batch & Draw Shader
+        radius = (B-center).length
+        offsetRadius = radius + dim.dimOffset
         endVec = C
         coords = []
-        coords.append(startVec+p1+center)
+
+        # Map raw Circle Verts to radius for marker
+        startVec = (verts[0]*offsetRadius)+center+p1
+        coords.append(startVec)
         for vert in verts:
-            coords.append((vert*radius)+center+p1)
-            coords.append((vert*radius)+center+p1)
-        coords.append(endVec+p1)
+            coords.append((vert*offsetRadius)+center+p1)
+            coords.append((vert*offsetRadius)+center+p1)
+        endVec = (verts[len(verts)-1]*offsetRadius)+center+p1
+        coords.append(endVec)
+
+
+
+        # Add A and C Extension Lines
+        coords.append(A+p1)
+        coords.append((((A-center).normalized())*(offsetRadius+dimProps.endcapSize/100)+center+p1))
         
+        coords.append(C+p1)
+        coords.append((((C-center).normalized())*(offsetRadius+dimProps.endcapSize/100))+center+p1)
+
+        # Add Radius leader
         coords.append(center+p1)
         radiusLeader = B+p1
         coords.append(radiusLeader)
 
+
+        # Generate end caps
+        filledCoords = []
+        midVec = B+p1
+        caps = (dimProps.endcapA,dimProps.endcapB,dim.endcapC)
+        capSize = dimProps.endcapSize
+        pos = (startVec,endVec,radiusLeader)
+        arrowoffset =  int(max(0, min(capSize, len(coords)/4))) #Clamp capsize between 0 and the length of the coords
+        mids = (coords[arrowoffset+1], coords[len(coords)-arrowoffset-1],center+p1) #offset the arrow direction as arrow size increases
+        i=0
+        for cap in caps:
+            #def        generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
+            capCoords = generate_end_caps(context,dimProps,cap,capSize,pos[i],midVec,mids[i],i,False)
+            i += 1 
+            for coord in capCoords[0]:
+                coords.append(coord)
+            for filledCoord in capCoords[1]:
+                filledCoords.append(filledCoord)
+
+       
+        if len(filledCoords) != 0:
+            #bind shader
+            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+            triShader.bind()
+            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            triShader.uniform_float("offset", -offset) #z offset this a little to avoid zbuffering
+
+            batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
+            batch.program_set(triShader)
+            batch.draw()
+            gpu.shader.unbind()
+            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
         
 
