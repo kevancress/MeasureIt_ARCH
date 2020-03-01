@@ -1385,9 +1385,13 @@ def draw_line_group(context, myobj, lineGen, mat):
 
 
                 global hiddenBatch3D
-                if  hiddenBatch3D == None or recoordFlag or sceneProps.is_render_draw:
-                     hiddenBatch3D = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
-                batchHidden = hiddenBatch3D
+                if  hiddenBatch3D == None or recoordFlag:
+                    hiddenBatch3D = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                if sceneProps.is_render_draw:
+                    batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                else:
+                    batchHidden = hiddenBatch3D
+
                 batchHidden.program_set(dashedLineShader)
                 batchHidden.draw()
 
@@ -1410,10 +1414,13 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("offset", -offset)
 
                 global dashedBatch3D
-                if dashedBatch3D == None or recoordFlag or sceneProps.is_render_draw:
+                if dashedBatch3D == None or recoordFlag:
                     dashedBatch3D = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                if sceneProps.is_render_draw:
+                    batchDashed = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                else:
+                    batchDashed = dashedBatch3D
 
-                batchDashed = dashedBatch3D
                 batchDashed .program_set(dashedLineShader)
                 batchDashed .draw()
                 end= time.time()
@@ -1430,9 +1437,14 @@ def draw_line_group(context, myobj, lineGen, mat):
                 lineGroupShader.uniform_float("offset", -offset)
 
                 global lineBatch3D
-                if lineBatch3D == None or recoordFlag or sceneProps.is_render_draw:
+                if lineBatch3D == None or recoordFlag:
                     lineBatch3D = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
-                batch3d = lineBatch3D
+                    batch3d = lineBatch3D
+                if sceneProps.is_render_draw:
+                    batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                else:
+                    batch3d = lineBatch3D
+               
                 batch3d.program_set(lineGroupShader)
                 batch3d.draw()
                 gpu.shader.unbind()
