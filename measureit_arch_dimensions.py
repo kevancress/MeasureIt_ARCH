@@ -87,10 +87,18 @@ class BoundsDimensionProperties(BaseDim, PropertyGroup):
                 default= (False,False,False),
                 subtype= 'XYZ')
     
-    
-
 bpy.utils.register_class(BoundsDimensionProperties)
     
+
+
+class ArcDimensionProperties(BaseDim, PropertyGroup):
+    drawAxis: BoolVectorProperty(name= "Draw Axis",
+                description= "Axis to Dimension for Bounding Box",
+                default= (False,False,False),
+                subtype= 'XYZ')
+    
+bpy.utils.register_class(ArcDimensionProperties)
+
 
 class AngleDimensionProperties(BaseDim, PropertyGroup):
 
@@ -931,163 +939,6 @@ class AddArcButton(Operator): #LEGACY
                 self.report({'ERROR'},
                             "MeasureIt-ARCH: Select three vertices for creating arc measure")
                 return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
-        return {'CANCELLED'}
-
-    bl_idname = "measureit_arch.addoriginbutton"
-    bl_label = "Add"
-    bl_description = "(OBJECT mode only) Add a new measure to origin (select object and optionally 1 vertex)"
-    bl_category = 'MeasureitArch'
-
-    # ------------------------------
-    # Poll
-    # ------------------------------
-    @classmethod
-    def poll(cls, context):
-        o = context.object
-        if o is None:
-            return False
-        else:
-            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LAMP":
-                if bpy.context.mode == 'OBJECT':
-                    return True
-                else:
-                    return False
-            else:
-                return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            # Add properties
-            scene = context.scene
-            mainobject = context.object
-            mylist = get_selected_vertex(mainobject)
-            if 'DimensionGenerator' not in mainobject:
-                mainobject.DimensionGenerator.add()
-
-            mp = mainobject.DimensionGenerator[0]
-            # Create all array elements
-            for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
-                mp.measureit_arch_segments.add()
-
-            # -----------------------
-            # Set values
-            # -----------------------
-            ms = mp.measureit_arch_segments[mp.measureit_arch_num]
-            flag = False
-            if len(mylist) > 0:
-                if len(mylist) == 1:
-                    if exist_segment(mp, mylist[0], mylist[0], 6) is False:  # Both equal
-                        flag = True
-                        # Vertex to origin
-                        ms.gltype = 6
-                        ms.glpointa = mylist[0]
-                        ms.glpointb = mylist[0]
-                else:
-                    self.report({'ERROR'},
-                                "MeasureIt-ARCH: Enter in EDITMODE and select one vertex only for creating "
-                                "measure from vertex to origin")
-                    return {'FINISHED'}
-            else:
-                # Object to origin
-                if exist_segment(mp, 0, 0, 7) is False:  # Both equal
-                    flag = True
-                    ms.gltype = 7
-                    ms.glpointa = 0
-                    ms.glpointb = 0
-            # ------------------
-            # only if created
-            # ------------------
-            if flag is True:
-                ms.glarrow_a = scene.measureit_arch_glarrow_a
-                ms.glarrow_b = scene.measureit_arch_glarrow_b
-                ms.glarrow_s = scene.measureit_arch_glarrow_s
-                # color
-                ms.glcolor = scene.measureit_arch_default_color
-                # dist
-                ms.glspace = scene.measureit_arch_hint_space
-                # text
-                ms.gltxt = scene.measureit_arch_gl_txt
-                ms.glfont_size = scene.measureit_arch_font_size
-                ms.glfont_align = scene.measureit_arch_font_align
-                ms.glfont_rotat = scene.measureit_arch_font_rotation
-                # Add index
-                mp.measureit_arch_num += 1
-
-            # redraw
-            context.area.tag_redraw()
-
-            return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
-        return {'CANCELLED'}
-
-    bl_idname = "measureit_arch.addnotebutton"
-    bl_label = "Note"
-    bl_description = "(OBJECT mode only) Add a new note"
-    bl_category = 'MeasureitArch'
-    tag: IntProperty()
-
-    # ------------------------------
-    # Poll
-    # ------------------------------
-    # noinspection PyUnusedLocal
-    @classmethod
-    def poll(cls, context):
-        if bpy.context.mode == 'OBJECT':
-            return True
-        else:
-            return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            bpy.ops.object.empty_add(type='PLAIN_AXES')
-            myempty = bpy.data.objects[bpy.context.active_object.name]
-            myempty.location = bpy.context.scene.cursor_location
-            myempty.empty_display_size = 0.01
-            myempty.name = "Annotation"
-            # Add properties
-            scene = context.scene
-            mainobject = myempty
-            if 'DimensionGenerator' not in mainobject:
-                mainobject.DimensionGenerator.add()
-
-            mp = mainobject.DimensionGenerator[0]
-            # Create all array elements
-            for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
-                mp.measureit_arch_segments.add()
-
-            # Set values
-            ms = mp.measureit_arch_segments[mp.measureit_arch_num]
-            ms.gltype = 10
-            ms.glpointa = 0
-            ms.glpointb = 0  # Equal
-            # color
-            ms.glcolor = scene.measureit_arch_default_color
-            # dist
-            ms.glspace = scene.measureit_arch_hint_space
-            # text
-            ms.gltxt = scene.measureit_arch_gl_txt
-            ms.glfont_size = scene.measureit_arch_font_size
-            ms.glfont_align = scene.measureit_arch_font_align
-            ms.glfont_rotat = scene.measureit_arch_font_rotation
-            # Add index
-            mp.measureit_arch_num += 1
-
-            # redraw
-            context.area.tag_redraw()
-            return {'FINISHED'}
         else:
             self.report({'WARNING'},
                         "View3D not found, cannot run operator")
