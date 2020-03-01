@@ -1170,6 +1170,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
         offset = 0.001
+        radius = dim.dimOffset
 
         p1 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointA,dimProps.evalMods), myobj,mat))
         p2 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointB,dimProps.evalMods), myobj,mat))
@@ -1183,7 +1184,142 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         norm = vecA.cross(vecB).normalized()
 
 
-        print('drawing Arc Dimension')
+        an_p1 = p1
+        an_p2 = p2
+        an_p3 = p3
+        # reference for maths: http://en.wikipedia.org/wiki/Circumscribed_circle
+        an_p12 = Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
+        an_p13 = Vector((an_p1[0] - an_p3[0], an_p1[1] - an_p3[1], an_p1[2] - an_p3[2]))
+        an_p21 = Vector((an_p2[0] - an_p1[0], an_p2[1] - an_p1[1], an_p2[2] - an_p1[2]))
+        an_p23 = Vector((an_p2[0] - an_p3[0], an_p2[1] - an_p3[1], an_p2[2] - an_p3[2]))
+        an_p31 = Vector((an_p3[0] - an_p1[0], an_p3[1] - an_p1[1], an_p3[2] - an_p1[2]))
+        an_p32 = Vector((an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
+        an_p12xp23 = an_p12.copy().cross(an_p23)
+
+        #radius = an_p12.length * an_p23.length * an_p31.length / (2 * an_p12xp23.length)
+
+        alpha = pow(an_p23.length, 2) * an_p12.dot(an_p13) / (2 * pow(an_p12xp23.length, 2))
+        beta = pow(an_p13.length, 2) * an_p21.dot(an_p23) / (2 * pow(an_p12xp23.length, 2))
+        gamma = pow(an_p12.length, 2) * an_p31.dot(an_p32) / (2 * pow(an_p12xp23.length, 2))
+
+        # THIS IS THE CENTER POINT
+        a_p1 = (alpha * an_p1[0] + beta * an_p2[0] + gamma * an_p3[0],
+                alpha * an_p1[1] + beta * an_p2[1] + gamma * an_p3[1],
+                alpha * an_p1[2] + beta * an_p2[2] + gamma * an_p3[2])
+
+        b_p1 = (an_p2[0], an_p2[1], an_p2[2])
+        a_n = an_p12.cross(an_p23)
+        a_n.normalize()  # normal vector
+        arc_angle, arc_length = get_arc_data(an_p1, a_p1, an_p2, an_p3)
+
+
+        A = Vector(p1)
+        B = Vector(p2)
+        C = Vector(p3)
+
+        a = (B-C).length
+        b = (A-C).length
+        c = (A-B).length
+
+        
+
+
+ 
+
+
+
+        A = Vector((0,0,0))
+        B = Vector(p2)-Vector(p1)
+        C = Vector(p3)-Vector(p1)
+ 
+        ba_dist = B.length
+        ba_mid = interpolate3d(B,A, ba_dist/2)
+
+        bc_dist = (C-B).length
+        bc_mid = interpolate3d(C,B, bc_dist/2)
+
+        ca_dist = (C).length
+        ca_mid = interpolate3d(C,A, ca_dist/2)
+
+        perp_ba = B.cross(norm).normalized()
+        perp_bc = (C-B).cross(norm).normalized()
+        perp_ca = C.cross(norm).normalized()
+
+        ba_perpBi = Vector(ba_mid) + perp_ba*100
+        bc_perpBi = Vector(bc_mid) + perp_bc*100
+        ca_perpBi = Vector(ca_mid) + perp_ca*100
+ 
+        factor1 = perp_ba.dot(perp_bc)
+        factor2 = (B.normalized().dot(C.normalized()))
+
+
+
+
+
+
+
+        #making it a circle
+        center = Vector(a_p1)-p1
+        startVec = A - center
+        arc_angle = arc_angle
+        numCircleVerts = math.ceil(radius/.2)+ int((degrees(arc_angle))/2)
+        verts = []
+        for idx in range (numCircleVerts+1):
+            rotangle= -(arc_angle/(numCircleVerts+1))*idx
+            point = startVec.copy()
+            point.rotate(Quaternion(norm,rotangle))
+            verts.append((point).normalized())
+
+             # batch & Draw Shader
+        radius += (B-center).length
+        endVec = C
+        coords = []
+        coords.append(startVec+p1+center)
+        for vert in verts:
+            coords.append((vert*radius)+center+p1)
+            coords.append((vert*radius)+center+p1)
+        coords.append(endVec+p1)
+        
+        coords.append(center+p1)
+        radiusLeader = B+p1
+        coords.append(radiusLeader)
+
+
+        
+
+        print('drawing Arc Dimension. Arc Angle: ' + str(arc_angle) + ' Arc Length: ' + str(arc_length))
+
+
+        # Debug sets for drawing triangle and perpindicular bisectors   
+        #coords = [A,B,B,C,C,A,Vector(ba_mid)-perp_ba*100,ba_perpBi,Vector(bc_mid)-perp_bc*100,bc_perpBi,Vector(ca_mid)-perp_ca*100,ca_perpBi,center,B]
+        #pointCoords = [A,B,C,ba_mid,bc_mid,ca_mid,center]
+
+
+        pointCoords = [center+p1]
+
+        pointShader.bind()
+        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        pointShader.uniform_float("thickness", lineWeight*4)
+        pointShader.uniform_float("offset", -offset)
+        gpu.shader.unbind()
+
+ 
+        batchpoint = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
+        batchpoint.program_set(pointShader)
+        batchpoint.draw()
+
+
+
+        lineShader.bind()
+        lineShader.uniform_float("Viewport",viewport)
+        lineShader.uniform_float("thickness",lineWeight)
+        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        lineShader.uniform_float("offset", -offset)
+
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        batch.program_set(lineShader)
+        batch.draw()
+        gpu.shader.unbind()
 
  
         #Reset openGL Settings
@@ -2319,35 +2455,7 @@ def get_render_location(mypoint):
 # ang: angle (radians)
 # len: len of arc
 
-def legacy_arc_maths():
-    an_p1 = get_point(obverts[ms.glpointa].co, myobj)
-    an_p2 = get_point(obverts[ms.glpointb].co, myobj)
-    an_p3 = get_point(obverts[ms.glpointc].co, myobj)
-    # reference for maths: http://en.wikipedia.org/wiki/Circumscribed_circle
-    an_p12 = Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
-    an_p13 = Vector((an_p1[0] - an_p3[0], an_p1[1] - an_p3[1], an_p1[2] - an_p3[2]))
-    an_p21 = Vector((an_p2[0] - an_p1[0], an_p2[1] - an_p1[1], an_p2[2] - an_p1[2]))
-    an_p23 = Vector((an_p2[0] - an_p3[0], an_p2[1] - an_p3[1], an_p2[2] - an_p3[2]))
-    an_p31 = Vector((an_p3[0] - an_p1[0], an_p3[1] - an_p1[1], an_p3[2] - an_p1[2]))
-    an_p32 = Vector((an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
-    an_p12xp23 = an_p12.copy().cross(an_p23)
-
-    # radius = an_p12.length * an_p23.length * an_p31.length / (2 * an_p12xp23.length)
-
-    alpha = pow(an_p23.length, 2) * an_p12.dot(an_p13) / (2 * pow(an_p12xp23.length, 2))
-    beta = pow(an_p13.length, 2) * an_p21.dot(an_p23) / (2 * pow(an_p12xp23.length, 2))
-    gamma = pow(an_p12.length, 2) * an_p31.dot(an_p32) / (2 * pow(an_p12xp23.length, 2))
-
-    a_p1 = (alpha * an_p1[0] + beta * an_p2[0] + gamma * an_p3[0],
-            alpha * an_p1[1] + beta * an_p2[1] + gamma * an_p3[1],
-            alpha * an_p1[2] + beta * an_p2[2] + gamma * an_p3[2])
-
-    b_p1 = (an_p2[0], an_p2[1], an_p2[2])
-    a_n = an_p12.cross(an_p23)
-    a_n.normalize()  # normal vector
-    arc_angle, arc_length = get_arc_data(an_p1, a_p1, an_p2, an_p3)
-    # Apply scale to arc_length
-    arc_length *= scene.measureit_scale_factor
+    
 
 
 
