@@ -46,6 +46,9 @@ import random
 
 
 lastMode = None
+lineBatch3D = None
+dashedBatch3D = None
+hiddenBatch3D = None
 
 # define Shaders
 shader = gpu.types.GPUShader(
@@ -1324,20 +1327,12 @@ def draw_line_group(context, myobj, lineGen, mat):
             #gl Settings
             bgl.glDepthFunc(bgl.GL_LEQUAL) 
 
-            #configure Shaders
-            lgPointShader.bind()
-            lgPointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            lgPointShader.uniform_float("Viewport",viewport)
-            lgPointShader.uniform_float("objectMatrix",mat)
-            lgPointShader.uniform_float("thickness", lineWeight)
-            lgPointShader.uniform_float("offset", -offset)
             
-
             #Get line data to be drawn
             coords =[]
             evalMods = lineProps.evalMods
 
-            # Evaluate Mesh Data
+            # Flag for re-evaluation of batches & mesh data
             verts=[]
             global lastMode
             recoordFlag = False
@@ -1387,10 +1382,15 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("screenSpaceDash",lineProps.screenSpaceDashes)
                 dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
                 dashedLineShader.uniform_float("offset", -offset)
-            
-                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+
+
+                global hiddenBatch3D
+                if  hiddenBatch3D == None or recoordFlag or sceneProps.is_render_draw:
+                     hiddenBatch3D = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                batchHidden = hiddenBatch3D
                 batchHidden.program_set(dashedLineShader)
                 batchHidden.draw()
+
                 bgl.glDepthFunc(bgl.GL_LESS)
                 gpu.shader.unbind()
                 end= time.time()
@@ -1408,10 +1408,14 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("screenSpaceDash",lineProps.screenSpaceDashes)
                 dashedLineShader.uniform_float("finalColor",  (rgb[0], rgb[1], rgb[2], rgb[3]))
                 dashedLineShader.uniform_float("offset", -offset)
-            
-                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
-                batchHidden.program_set(dashedLineShader)
-                batchHidden.draw()
+
+                global dashedBatch3D
+                if dashedBatch3D == None or recoordFlag or sceneProps.is_render_draw:
+                    dashedBatch3D = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+
+                batchDashed = dashedBatch3D
+                batchDashed .program_set(dashedLineShader)
+                batchDashed .draw()
                 end= time.time()
                 post = 'All Dashed Line Shader for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns'
                 printTime(start,end,post)
@@ -1425,7 +1429,10 @@ def draw_line_group(context, myobj, lineGen, mat):
                 lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 lineGroupShader.uniform_float("offset", -offset)
 
-                batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                global lineBatch3D
+                if lineBatch3D == None or recoordFlag or sceneProps.is_render_draw:
+                    lineBatch3D = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                batch3d = lineBatch3D
                 batch3d.program_set(lineGroupShader)
                 batch3d.draw()
                 gpu.shader.unbind()

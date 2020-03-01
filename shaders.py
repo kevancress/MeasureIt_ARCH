@@ -192,7 +192,6 @@ class Line_Group_Shader_3D ():
         uniform float thickness;
 
         out vec2 mTexCoord;
-
         float aspect = Viewport.x/Viewport.y;
 
         void main() {
@@ -236,7 +235,8 @@ class Line_Group_Shader_3D ():
             }
             EndPrimitive();
 
-            //draw Point pass
+            //Draw Point pass
+            
             float radius = 0.00117 * thickness * aspect;
             int segments = int(thickness) + 5;
 
@@ -261,13 +261,9 @@ class Line_Group_Shader_3D ():
                 gl_Position = gl_in[0].gl_Position;
                 mTexCoord = vec2(0,0.5);
                 EmitVertex();
-
             }
 
             EndPrimitive();
-
-
-
         }  
     '''
 
@@ -297,7 +293,6 @@ class Line_Group_Shader_3D ():
             fragColor = aaColor;
         }
     '''
-
 
 class Dashed_Shader_3D ():
 
