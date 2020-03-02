@@ -1383,7 +1383,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
 
 
 
-        print('drawing Arc Dimension. Arc Angle: ' + str(arc_angle) + ' Arc Length: ' + str(arc_length))
+        #print('drawing Arc Dimension. Arc Angle: ' + str(arc_angle) + ' Arc Length: ' + str(arc_length))
 
 
         # Debug sets for drawing triangle and perpindicular bisectors   
