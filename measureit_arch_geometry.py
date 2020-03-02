@@ -1212,33 +1212,14 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         a_n.normalize()  # normal vector
         arc_angle, arc_length = get_arc_data(an_p1, a_p1, an_p2, an_p3)
         
-        A = Vector((0,0,0))
-        B = Vector(p2)-Vector(p1)
-        C = Vector(p3)-Vector(p1)
- 
-        ba_dist = B.length
-        ba_mid = interpolate3d(B,A, ba_dist/2)
+        center = Vector(a_p1)
 
-        bc_dist = (C-B).length
-        bc_mid = interpolate3d(C,B, bc_dist/2)
-
-        ca_dist = (C).length
-        ca_mid = interpolate3d(C,A, ca_dist/2)
-
-        perp_ba = B.cross(norm).normalized()
-        perp_bc = (C-B).cross(norm).normalized()
-        perp_ca = C.cross(norm).normalized()
-
-        ba_perpBi = Vector(ba_mid) + perp_ba*100
-        bc_perpBi = Vector(bc_mid) + perp_bc*100
-        ca_perpBi = Vector(ca_mid) + perp_ca*100
- 
-        factor1 = perp_ba.dot(perp_bc)
-        factor2 = (B.normalized().dot(C.normalized()))
+        A = Vector(p1) - center
+        B = Vector(p2) - center
+        C = Vector(p3) - center
 
         #making it a circle
-        center = Vector(a_p1)-p1
-        startVec = A - center
+        startVec = A
         arc_angle = arc_angle
         numCircleVerts = math.ceil(radius/.2)+ int((degrees(arc_angle))/2)
         verts = []
@@ -1249,32 +1230,31 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             verts.append((point).normalized())
 
         # batch & Draw Shader
-        radius = (B-center).length
+        radius = (B).length
         offsetRadius = radius + dim.dimOffset
         endVec = C
         coords = []
 
         # Map raw Circle Verts to radius for marker
-        startVec = (verts[0]*offsetRadius)+center+p1
+        startVec = (verts[0]*offsetRadius)
         coords.append(startVec)
         for vert in verts:
-            coords.append((vert*offsetRadius)+center+p1)
-            coords.append((vert*offsetRadius)+center+p1)
-        endVec = (verts[len(verts)-1]*offsetRadius)+center+p1
+            coords.append((vert*offsetRadius))
+            coords.append((vert*offsetRadius))
+        endVec = (verts[len(verts)-1]*offsetRadius)
         coords.append(endVec)
 
-
-
         # Add A and C Extension Lines
-        coords.append(A+p1)
-        coords.append((((A-center).normalized())*(offsetRadius+dimProps.endcapSize/100)+center+p1))
+        coords.append(A)
+        coords.append((((A).normalized())*(offsetRadius+dimProps.endcapSize/100)))
         
-        coords.append(C+p1)
-        coords.append((((C-center).normalized())*(offsetRadius+dimProps.endcapSize/100))+center+p1)
+        coords.append(C)
+        coords.append((((C).normalized())*(offsetRadius+dimProps.endcapSize/100)))
 
         # Add Radius leader
-        coords.append(center+p1)
-        radiusLeader = B+p1
+        zeroVec = Vector((0,0,0))
+        coords.append(zeroVec)
+        radiusLeader = B
         coords.append(radiusLeader)
 
 
@@ -1285,7 +1265,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         capSize = dimProps.endcapSize
         pos = (startVec,endVec,radiusLeader)
         arrowoffset =  int(max(0, min(capSize, len(coords)/4))) #Clamp capsize between 0 and the length of the coords
-        mids = (coords[arrowoffset+1], coords[len(coords)-arrowoffset-1],center+p1) #offset the arrow direction as arrow size increases
+        mids = (coords[arrowoffset+1], coords[len(coords)-arrowoffset-1],zeroVec) #offset the arrow direction as arrow size increases
         i=0
         for cap in caps:
             #def        generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
@@ -1304,13 +1284,104 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             triShader.uniform_float("offset", -offset) #z offset this a little to avoid zbuffering
 
-            batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
+            mappedFilledCoords = []
+            for coord in filledCoords:
+                mappedFilledCoords.append(coord+center)
+
+
+            batch = batch_for_shader(triShader, 'TRIS', {"pos": mappedFilledCoords})
             batch.program_set(triShader)
             batch.draw()
             gpu.shader.unbind()
             bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
         
+        #### TEXT
+        scene = context.scene
+        pr = scene.measureit_arch_gl_precision
+        textFormat = "%1." + str(pr) + "f"
+
+        # Check for text field
+        if len(dim.textFields) != 2:
+            dim.textFields.add()
+            dim.textFields.add()
+
+        radiusText = dim.textFields[0]    
+        lengthText = dim.textFields[1] 
+
+
+        # format text and update if necessary
+        lengthStr = str(format_distance(textFormat,arc_length))
+        radStr = 'r = ' + str(format_distance(textFormat,radius))
+
+        if lengthText.text != str(lengthStr):
+            lengthText.text = str(lengthStr)
+            lengthText.text_updated = True
+
+        
+        if radiusText.text != str(lengthStr):
+            radiusText.text = str(radStr)
+            radiusText.text_updated = True
+        
+        #make Radius text card
+
+        width = radiusText.textWidth
+        height = radiusText.textHeight 
+        
+    
+        midPoint = Vector(interpolate3d(zeroVec,radiusLeader,radius/2))
+        vecY =  midPoint.cross(norm).normalized()
+        vecX = midPoint.normalized()
+        resolution = dimProps.textResolution
+        size = dimProps.fontSize/fontSizeMult
+        sx = (width/resolution)*0.1*size
+        sy = (height/resolution)*0.1*size
+        origin = Vector(midPoint)
+        cardX = vecX * sx
+        cardY = vecY *sy
+        tmp = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
+        square = []
+        for coord in tmp:
+            square.append(coord+center)
+            
+        if scene.measureit_arch_gl_show_d:
+            draw_text_3D(context,dim.textFields[0],dimProps,myobj,square)
+
+        #make Length text card
+
+        width = lengthText.textWidth
+        height = lengthText.textHeight 
+        
+        midPoint = radiusLeader.normalized()*offsetRadius
+        vecX =  midPoint.cross(norm).normalized()
+        vecY = midPoint.normalized()
+        resolution = dimProps.textResolution
+        size = dimProps.fontSize/fontSizeMult
+        sx = (width/resolution)*0.1*size
+        sy = (height/resolution)*0.1*size
+        origin = Vector(midPoint)
+        cardX = vecX * sx
+        cardY = vecY *sy
+        tmp = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
+        square = []
+        for coord in tmp:
+            square.append(coord+center)
+            
+        if scene.measureit_arch_gl_show_d:
+            draw_text_3D(context,dim.textFields[1],dimProps,myobj,square)
+
+
+
+
+
+
+
+
+        draw_coords = []
+        for coord in coords:
+            draw_coords.append(coord+center)
+
+
 
         print('drawing Arc Dimension. Arc Angle: ' + str(arc_angle) + ' Arc Length: ' + str(arc_length))
 
@@ -1320,7 +1391,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         #pointCoords = [A,B,C,ba_mid,bc_mid,ca_mid,center]
 
 
-        pointCoords = [center+p1]
+        pointCoords = [zeroVec]
 
         pointShader.bind()
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
@@ -1341,7 +1412,29 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         lineShader.uniform_float("offset", -offset)
 
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": draw_coords})
+        batch.program_set(lineShader)
+        batch.draw()
+        gpu.shader.unbind()
+
+        # Draw the arc itself
+        Coords = []
+        startVec = (verts[0]*radius)
+        coords.append(startVec)
+        for vert in verts:
+            coords.append((vert*radius))
+            coords.append((vert*radius))
+        endVec = (verts[len(verts)-1]*radius)
+        coords.append(endVec)
+
+        
+        draw_coords = []
+        for coord in coords:
+            draw_coords.append(coord+center)   
+
+        lineShader.bind()
+        lineShader.uniform_float("thickness",lineWeight-1)
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": draw_coords})
         batch.program_set(lineShader)
         batch.draw()
         gpu.shader.unbind()
