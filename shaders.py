@@ -201,7 +201,7 @@ class Line_Group_Shader_3D ():
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
 
-            vec4 dir3d = vec4(p2-p1);
+            vec4 dir3d = normalize(p2-p1);
 
             vec4 p1Ext = vec4(p1-dir3d*extension*0.01);
             vec4 p2Ext = vec4(p2+dir3d*extension*0.01);
@@ -252,7 +252,7 @@ class Line_Group_Shader_3D ():
             int segments = int(thickness) + 5;
 
             const float PI = 3.1415926;
-
+            
             gl_Position = gl_in[0].gl_Position;
             mTexCoord = vec2(0,0.5);
             EmitVertex();
