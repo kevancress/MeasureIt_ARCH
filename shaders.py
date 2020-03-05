@@ -153,11 +153,11 @@ class Line_Shader_3D ():
             float threshold = 2*delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
             aa = aa -clamp(0.5*fwidth(aa),0,1);
+            aa = smoothstep(0,1,aa);
 
-            aaColor[3] = mix(0,1.0,aa);
-            if (finalColor[3]<0.75){
-                aaColor[3] *=0.25;
-            }
+            aaColor[3] = mix(0,finalColor[3],aa);
+
+            fragColor = aaColor;
 
             fragColor = aaColor;
         }
@@ -190,6 +190,7 @@ class Line_Group_Shader_3D ():
         uniform mat4 ModelViewProjectionMatrix;
         uniform vec2 Viewport;
         uniform float thickness;
+        uniform float extension;
 
         out vec2 mTexCoord;
         float aspect = Viewport.x/Viewport.y;
@@ -199,14 +200,24 @@ class Line_Group_Shader_3D ():
 
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
+
+            vec4 dir3d = vec4(p2-p1);
+
+            vec4 p1Ext = vec4(p1-dir3d*extension*0.01);
+            vec4 p2Ext = vec4(p2+dir3d*extension*0.01);
             
-            vec2 ssp1 = vec2(p1.xy / p1.w);
-            vec2 ssp2 = vec2(p2.xy / p2.w);
+            vec2 ssp1 = vec2(p1Ext.xy / p1Ext.w);
+            vec2 ssp2 = vec2(p2Ext.xy / p2Ext.w);
 
             float width = 0.00118 * thickness * aspect;
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
+
+            // get line extension amont
+            vec2 extAmount = vec2(0,0);
+            //extAmount.x /= aspect;
+            
 
             // get offset factor from normal and user input thickness
             vec2 offset = vec2(normal * width);
@@ -216,16 +227,16 @@ class Line_Group_Shader_3D ():
             vec4 coords[4];
             vec2 texCoords[4];
 
-            coords[0] = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
+            coords[0] = vec4((ssp1 + offset + extAmount)*p1Ext.w,p1Ext.z,p1Ext.w);
             texCoords[0] = vec2(0,1);
 
-            coords[1] = vec4((ssp1 - offset)*p1.w,p1.z,p1.w);
+            coords[1] = vec4((ssp1 - offset + extAmount)*p1Ext.w,p1Ext.z,p1Ext.w);
             texCoords[1] = vec2(0,0);
 
-            coords[2] = vec4((ssp2 + offset)*p2.w,p2.z,p2.w);
+            coords[2] = vec4((ssp2 + offset - extAmount)*p2Ext.w,p2Ext.z,p2Ext.w);
             texCoords[2] = vec2(0,1);
 
-            coords[3] = vec4((ssp2 - offset)*p2.w,p2.z,p2.w);
+            coords[3] = vec4((ssp2 - offset - extAmount)*p2Ext.w,p2Ext.z,p2Ext.w);
             texCoords[3] = vec2(0,0);
 
             for (int i = 0; i < 4; ++i) {
@@ -284,11 +295,9 @@ class Line_Group_Shader_3D ():
             float threshold = 2*delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
             aa = aa -clamp(0.5*fwidth(aa),0,1);
+            aa = smoothstep(0,1,aa);
 
-            aaColor[3] = mix(0,1.0,aa);
-            if (finalColor[3]<0.75){
-                aaColor[3] *=0.25;
-            }
+            aaColor[3] = mix(0,finalColor[3],aa);
 
             fragColor = aaColor;
         }
@@ -405,11 +414,11 @@ class Dashed_Shader_3D ():
             float threshold = 2*delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
             aa = aa -clamp(0.5*fwidth(aa),0,1);
+            aa = smoothstep(0,1,aa);
 
-            aaColor[3] = mix(0,1.0,aa);
-            if (finalColor[3]<0.75){
-                aaColor[3] *=0.25;
-            }
+            aaColor[3] = mix(0,finalColor[3],aa);
+
+            fragColor = aaColor;
 
             if (step(sin(g_ArcLength * u_Scale), 0.5) == 1) discard;
             fragColor = aaColor;
@@ -498,11 +507,9 @@ class Point_Shader_3D ():
             float threshold = 2*delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
             aa = aa -clamp(0.5*fwidth(aa),0,1);
+            aa = smoothstep(0,1,aa);
 
-            aaColor[3] = mix(0,1.0,aa);
-            if (finalColor[3]<0.75){
-                aaColor[3] *=0.25;
-            }
+            aaColor[3] = mix(0,finalColor[3],aa);
 
             fragColor = aaColor;
         }

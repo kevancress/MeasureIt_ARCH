@@ -1256,16 +1256,17 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         coords.append(zeroVec)
         radiusLeader = B
         coords.append(radiusLeader)
+        radiusMid = Vector(interpolate3d(radiusLeader,zeroVec,radius/2))
 
 
         # Generate end caps
         filledCoords = []
-        midVec = B+p1
+        midVec = B
         caps = (dimProps.endcapA,dimProps.endcapB,dim.endcapC)
         capSize = dimProps.endcapSize
         pos = (startVec,endVec,radiusLeader)
-        arrowoffset =  int(max(0, min(capSize, len(coords)/4))) #Clamp capsize between 0 and the length of the coords
-        mids = (coords[arrowoffset+1], coords[len(coords)-arrowoffset-1],zeroVec) #offset the arrow direction as arrow size increases
+        arrowoffset =  capSize #Clamp capsize between 0 and the length of the coords
+        mids = (coords[arrowoffset+1], coords[len(coords)-arrowoffset-8], radiusMid) #offset the arrow direction as arrow size increases
         i=0
         for cap in caps:
             #def        generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
@@ -1384,14 +1385,12 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
 
 
         #print('drawing Arc Dimension. Arc Angle: ' + str(arc_angle) + ' Arc Length: ' + str(arc_length))
-
-
         # Debug sets for drawing triangle and perpindicular bisectors   
         #coords = [A,B,B,C,C,A,Vector(ba_mid)-perp_ba*100,ba_perpBi,Vector(bc_mid)-perp_bc*100,bc_perpBi,Vector(ca_mid)-perp_ca*100,ca_perpBi,center,B]
         #pointCoords = [A,B,C,ba_mid,bc_mid,ca_mid,center]
 
 
-        pointCoords = [zeroVec]
+        pointCoords = [zeroVec+center]
 
         pointShader.bind()
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
@@ -1741,6 +1740,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 lineGroupShader.uniform_float("Viewport",viewport)
                 lineGroupShader.uniform_float("objectMatrix",mat)
                 lineGroupShader.uniform_float("thickness",lineWeight)
+                lineGroupShader.uniform_float("extension",lineGroup.lineOverExtension)
                 lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 lineGroupShader.uniform_float("offset", -offset)
 
@@ -1758,7 +1758,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 gpu.shader.unbind()
                 end= time.time()
                 post = ' Line Shader for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns'
-                printTime(start,end,post)
+                #printTime(start,end,post)
                 start = time.time ()
     
     gpu.shader.unbind()
