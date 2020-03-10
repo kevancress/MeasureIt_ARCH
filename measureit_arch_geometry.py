@@ -97,7 +97,7 @@ def update_text(textobj, props, context):
     for textField in textobj.textFields:
         if textField.text_updated:
             update_flag = True
-            
+
         if textobj.text_updated or textField.text_updated or props.text_updated or update_flag:
             # Get textitem Properties
             rawRGB = props.color
@@ -166,7 +166,6 @@ def update_text(textobj, props, context):
                     textField['texture'] = texture_buffer
                     textOffscreen.free()
                     textField.text_updated = False
-                    textobj.text_updated = False
                     textField.texture_updated = True
             
             # generate image datablock from buffer for debug preview

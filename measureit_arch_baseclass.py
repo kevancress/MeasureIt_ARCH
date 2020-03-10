@@ -59,7 +59,7 @@ class BaseProp:
                 max=1,
                 subtype='COLOR',
                 size=4,
-                update = update_flag)
+                update=update_flag)
 
     lineWeight: IntProperty(name="Line Weight",
                 description="Lineweight",
