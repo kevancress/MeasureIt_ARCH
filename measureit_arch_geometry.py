@@ -98,7 +98,7 @@ def update_text(textobj, props, context):
         if textField.text_updated:
             update_flag = True
             
-        if textField.text_updated or props.text_updated or update_flag:
+        if textobj.text_updated or textField.text_updated or props.text_updated or update_flag:
             # Get textitem Properties
             rawRGB = props.color
             rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
