@@ -120,7 +120,7 @@ bpy.app.handlers.save_pre.append(save_handler)
 # ------------------------------------------------------------------
 class MeasureitArchMainPanel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
-    bl_label = "MeasureIt ARCH"
+    bl_label = "MeasureIt ARCH V0.4(Dev)"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
     bl_category = 'MeasureIt-ARCH'
@@ -452,6 +452,7 @@ def draw_main(context):
     # ---------------------------------------
     # Generate all OpenGL calls for measures
     # ---------------------------------------
+
     for myobj in objlist:
         if myobj.visible_get() is True:
             if 'DimensionGenerator' in myobj:
@@ -531,7 +532,6 @@ def draw_main_3d (context):
     # ---------------------------------------
     # Generate all OpenGL calls
     # ---------------------------------------
-
     for myobj in objlist:
     
         #Stash Object Vertices for use in Draw functions
@@ -541,22 +541,15 @@ def draw_main_3d (context):
            # if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
            #     myobj['obverts'] = get_mesh_vertices(myobj)
             
-            start = time.time()
+
             if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
                 lineGen = myobj.LineGenerator[0]
                 draw_line_group(context,myobj,lineGen,mat)
 
-                end= time.time()
-                lineGroup = lineGen.line_groups[0]
-                post = ' Line Shader for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns'
-                post = ''
-                printTime(start,end,post)
-                start = time.time ()
-
-
             if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator[0].num_annotations != 0:
                 annotationGen = myobj.AnnotationGenerator[0]
                 draw_annotation(context,myobj,annotationGen,mat)
+
 
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator[0]
@@ -575,6 +568,7 @@ def draw_main_3d (context):
                 
                 for arcDim in DimGen.arcDimensions:
                     draw_arcDimension(context,myobj,DimGen,arcDim,mat)
+
 
     # Draw Instanced Objects
     draw_instanced = True

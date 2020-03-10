@@ -93,11 +93,12 @@ fontSizeMult = 6
 
 def update_text(textobj, props, context):
     update_flag = False
+
     for textField in textobj.textFields:
         if textField.text_updated:
             update_flag = True
             
-        if textobj.text_updated or textField.text_updated or props.text_updated or update_flag:
+        if textField.text_updated or props.text_updated or update_flag:
             # Get textitem Properties
             rawRGB = props.color
             rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
@@ -165,6 +166,7 @@ def update_text(textobj, props, context):
                     textField['texture'] = texture_buffer
                     textOffscreen.free()
                     textField.text_updated = False
+                    textobj.text_updated = False
                     textField.texture_updated = True
             
             # generate image datablock from buffer for debug preview
@@ -1741,6 +1743,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 lineGroupShader.uniform_float("objectMatrix",mat)
                 lineGroupShader.uniform_float("thickness",lineWeight)
                 lineGroupShader.uniform_float("extension",lineGroup.lineOverExtension)
+                lineGroupShader.uniform_int("seed",lineGroup.randomSeed)
                 lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 lineGroupShader.uniform_float("offset", -offset)
 
