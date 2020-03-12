@@ -341,7 +341,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
             bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
             triShader.bind()
             triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", 0)
+            triShader.uniform_float("offset", -0.001)
 
             batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
             batch.program_set(triShader)
@@ -355,7 +355,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         lineShader.uniform_float("Viewport",viewport)
         lineShader.uniform_float("thickness",lineWeight)
         lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", 0)
+        lineShader.uniform_float("offset", -0.001)
 
         # batch & Draw Shader   
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
@@ -461,7 +461,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
             pointShader.bind()
             pointShader.uniform_float("Viewport",viewport)
             pointShader.uniform_float("thickness", 5)
-            pointShader.uniform_float("offset", 0)
+            pointShader.uniform_float("offset", 0.001)
 
     
         # establish measure loop
@@ -587,7 +587,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                     bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
                     triShader.bind()
                     triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                    triShader.uniform_float("offset", 0)
+                    triShader.uniform_float("offset", -0.001)
 
                     batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
                     batch.program_set(triShader)
@@ -601,7 +601,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 lineShader.uniform_float("Viewport",viewport)
                 lineShader.uniform_float("thickness",lineWeight)
                 lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                lineShader.uniform_float("offset", 0)
+                lineShader.uniform_float("offset", -0.001)
 
                 # batch & Draw Shader   
                 batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
@@ -917,7 +917,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
             triShader.bind()
             triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", 0)
+            triShader.uniform_float("offset", -0.001)
 
             batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
             batch.program_set(triShader)
@@ -930,7 +930,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         lineShader.uniform_float("Viewport",viewport)
         lineShader.uniform_float("thickness",lineWeight)
         lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", 0)
+        lineShader.uniform_float("offset", -0.001)
 
         # batch & Draw Shader   
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
@@ -1806,13 +1806,13 @@ def draw_annotation(context, myobj, annotationGen, mat):
             pointShader.uniform_float("Viewport",viewport)
             pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             pointShader.uniform_float("thickness", lineWeight)
-            pointShader.uniform_float("offset", 0)
+            pointShader.uniform_float("offset", -0.001)
             gpu.shader.unbind()
 
             lineShader.bind()
             lineShader.uniform_float("Viewport",viewport)
             lineShader.uniform_float("thickness",lineWeight)
-            lineShader.uniform_float("offset", 0)
+            lineShader.uniform_float("offset", -0.001)
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
 
             # Get Points

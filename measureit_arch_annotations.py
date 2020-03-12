@@ -313,13 +313,11 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                             col = box.column(align=True)
                             col.prop(annotation, 'lineWeight', text="Line Weight" )
-                            col.prop(annotation,'inFront', text='Draw in Front')
-
                         
                         col = box.column()
                         col.prop(annotation, 'annotationOffset', text='Offset')
                         col.prop(annotation, 'annotationRotation', text='Rotation')
-
+                        col.prop(annotation,'inFront', text='Draw in Front')
                 # Delete Operator (Move to drop down menu next to list)
                 col = layout.column()
 
