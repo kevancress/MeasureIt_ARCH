@@ -46,7 +46,7 @@ import random
 
 
 lastMode = None
-lineBatch3D = None
+lineBatch3D = {}
 dashedBatch3D = None
 hiddenBatch3D = None
 
@@ -90,6 +90,9 @@ textShader = gpu.types.GPUShader(
 
 fontSizeMult = 6
 
+
+def clear_batches():
+    lineBatch3D.clear()
 
 def update_text(textobj, props, context):
     update_flag = False
@@ -1749,14 +1752,15 @@ def draw_line_group(context, myobj, lineGen, mat):
                 
               
                 batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
-                #global lineBatch3D
-                #if lineBatch3D == None or recoordFlag:
-                #    lineBatch3D = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
-                #    batch3d = lineBatch3D
-                #if sceneProps.is_render_draw:
-                #    batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
-                #else:
-                #    batch3d = lineBatch3D
+                global lineBatch3D
+                batchKey = myobj.name + lineGroup.name
+                if batchKey not in lineBatch3D or recoordFlag:
+                    lineBatch3D[batchKey] = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                    batch3d = lineBatch3D[batchKey]
+                if sceneProps.is_render_draw:
+                    batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                else:
+                    batch3d = lineBatch3D[batchKey]
                
                 batch3d.program_set(lineGroupShader)
                 batch3d.draw()

@@ -36,7 +36,7 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
-from .measureit_arch_geometry import draw_annotation, draw_arcDimension, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, get_mesh_vertices, printTime
+from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, get_mesh_vertices, printTime
 
 # ------------------------------------------------------
 # Handler to detect new Blend load
@@ -61,6 +61,7 @@ def save_handler(dummy):
     # count as an ID user and prevent the object from being removed normally
     print("Measureit-ARCH: Cleaning Phantom Objects")
     objlist = []
+    clear_batches()
     for scene in bpy.data.scenes:
         for obj in scene.objects:
             objlist.append(obj.name)
