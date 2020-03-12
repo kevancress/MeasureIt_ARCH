@@ -228,9 +228,6 @@ def render_main(self, context, animation=False):
     sceneProps= scene.MeasureItArchProps
     sceneProps.is_render_draw = True
     bgl.glEnable(bgl.GL_MULTISAMPLE)
-    settings = bpy.context.scene.render.image_settings
-    depth = settings.color_depth
-    settings.color_depth = '16'
 
     
     clipdepth = context.scene.camera.data.clip_end
@@ -380,14 +377,15 @@ def render_main(self, context, animation=False):
 
     # Saves image
     if image is not None and (scene.measureit_arch_render is True or animation is True):
+        settings = bpy.context.scene.render.image_settings
+        myformat = settings.file_format
         ren_path = bpy.context.scene.render.filepath
         filename = "mit_frame"
         ftxt = "%04d" % scene.frame_current
-        outpath = (ren_path + filename + ftxt + ".png")
+        outpath = (ren_path + filename + ftxt + '.png')
         save_image(self, outpath, image)
 
     # restore default value
-    settings.color_depth = depth
     sceneProps.is_render_draw = False
 
 # -------------------------------------
@@ -406,7 +404,7 @@ def save_image(self, filepath, myimage):
         # Apply new info and save
         settings.file_format = 'PNG'
         settings.color_mode = "RGBA"
-        settings.color_depth = '8'
+        settings.color_depth = '16'
         myimage.save_render(filepath)
         print("MeasureIt-ARCH: Image " + filepath + " saved")
 
