@@ -1267,7 +1267,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
 
         # Generate end caps
         filledCoords = []
-        midVec = B
+        midVec = A
         caps = (dimProps.endcapA,dimProps.endcapB,dim.endcapC)
         capSize = dimProps.endcapSize
         pos = (startVec,endVec,radiusLeader)
@@ -2136,7 +2136,7 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
     filledCoords = []
     size = capSize/100
     distVector = Vector(pos-Vector(midpoint)).normalized()
-    norm = distVector.cross(userOffsetVector)
+    norm = distVector.cross(userOffsetVector).normalized()
     line = distVector*size
     arrowAngle = item.endcapArrowAngle
 
