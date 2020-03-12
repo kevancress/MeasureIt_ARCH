@@ -1644,7 +1644,8 @@ def draw_line_group(context, myobj, lineGen, mat):
             verts=[]
             global lastMode
             recoordFlag = False
-            if lastMode != myobj.mode or evalMods:
+            evalModsGlobal = sceneProps.eval_mods
+            if lastMode != myobj.mode or evalMods or evalModsGlobal:
                 recoordFlag = True
                 lastMode = myobj.mode
                 
@@ -1652,8 +1653,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 bm = bmesh.from_edit_mesh(myobj.data)
                 verts = bm.verts
             else:     
-                eval_res = sceneProps.eval_mods
-                if (eval_res or evalMods) and check_mods(myobj):
+                if (evalModsGlobal or evalMods) and check_mods(myobj):
                     deps = bpy.context.view_layer.depsgraph
                     obj_eval = myobj.evaluated_get(deps)
                     mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
