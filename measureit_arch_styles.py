@@ -438,5 +438,5 @@ def draw_dim_style_settings(dim,layout):
     col.prop(dim,'endcapB', text='End')
     col.prop(dim,'endcapSize', text='Arrow Size')
     col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
-    col.prop(dim, 'inFront', text="Draw In Front")
+    col.prop(dim,'inFront', text="Draw In Front")
     col.prop(dim,'evalMods')

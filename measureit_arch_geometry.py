@@ -1570,7 +1570,7 @@ def draw_line_group(context, myobj, lineGen, mat):
 
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
-        lineProps= lineGroup
+        lineProps = lineGroup
         if lineGroup.uses_style:
             for lineStyle in context.scene.StyleGenerator.line_groups:
                 if lineStyle.name == lineGroup.style:
@@ -1637,17 +1637,17 @@ def draw_line_group(context, myobj, lineGen, mat):
 
             
             #Get line data to be drawn
-            coords =[]
+    
             evalMods = lineProps.evalMods
 
             # Flag for re-evaluation of batches & mesh data
             verts=[]
             global lastMode
             recoordFlag = False
-            if lastMode != myobj.mode:
+            if lastMode != myobj.mode or evalMods:
                 recoordFlag = True
                 lastMode = myobj.mode
-            
+                
             if myobj.mode == 'EDIT':
                 bm = bmesh.from_edit_mesh(myobj.data)
                 verts = bm.verts
@@ -1667,7 +1667,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 tempCoords = [get_line_vertex(idx,verts,mat) for idx in lineGroup['lineBuffer']]
                 lineGroup['coordBuffer'] = tempCoords
 
-            
+            coords = []            
             coords = lineGroup['coordBuffer']
             start = time.time ()
 
@@ -1691,14 +1691,14 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
                 dashedLineShader.uniform_float("offset", -offset)
 
-
-                global hiddenBatch3D
-                if  hiddenBatch3D == None or recoordFlag:
-                    hiddenBatch3D = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
-                if sceneProps.is_render_draw:
-                    batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
-                else:
-                    batchHidden = hiddenBatch3D
+                batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords})     
+                #global hiddenBatch3D
+                #if  hiddenBatch3D == None or recoordFlag:
+                #    hiddenBatch3D = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                #if sceneProps.is_render_draw:
+                #    batchHidden = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                #else:
+                #    batchHidden = hiddenBatch3D
 
                 batchHidden.program_set(dashedLineShader)
                 batchHidden.draw()
@@ -1721,13 +1721,14 @@ def draw_line_group(context, myobj, lineGen, mat):
                 dashedLineShader.uniform_float("finalColor",  (rgb[0], rgb[1], rgb[2], rgb[3]))
                 dashedLineShader.uniform_float("offset", -offset)
 
-                global dashedBatch3D
-                if dashedBatch3D == None or recoordFlag:
-                    dashedBatch3D = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
-                if sceneProps.is_render_draw:
-                    batchDashed = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
-                else:
-                    batchDashed = dashedBatch3D
+                batchDashed = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                #global dashedBatch3D
+                #if dashedBatch3D == None or recoordFlag:
+                #    dashedBatch3D = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                #if sceneProps.is_render_draw:
+                #    batchDashed = batch_for_shader(dashedLineShader,'LINES',{"pos":coords}) 
+                #else:
+                #    batchDashed = dashedBatch3D
 
                 batchDashed .program_set(dashedLineShader)
                 batchDashed .draw()
@@ -1745,15 +1746,17 @@ def draw_line_group(context, myobj, lineGen, mat):
                 lineGroupShader.uniform_int("seed",lineGroup.randomSeed)
                 lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 lineGroupShader.uniform_float("offset", -offset)
-
-                global lineBatch3D
-                if lineBatch3D == None or recoordFlag:
-                    lineBatch3D = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
-                    batch3d = lineBatch3D
-                if sceneProps.is_render_draw:
-                    batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
-                else:
-                    batch3d = lineBatch3D
+                
+              
+                batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                #global lineBatch3D
+                #if lineBatch3D == None or recoordFlag:
+                #    lineBatch3D = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                #    batch3d = lineBatch3D
+                #if sceneProps.is_render_draw:
+                #    batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                #else:
+                #    batch3d = lineBatch3D
                
                 batch3d.program_set(lineGroupShader)
                 batch3d.draw()
