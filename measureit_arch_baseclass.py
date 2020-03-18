@@ -330,6 +330,7 @@ class DeleteAllItemsButton(Operator):
     bl_category = 'MeasureitArch'
     item_type: StringProperty()
     is_style: BoolProperty()
+    passedItem: PointerProperty(type=PropertyGroup)
     # -----------------------
     # ------------------------------
     # Execute button action
@@ -354,24 +355,13 @@ class DeleteAllItemsButton(Operator):
         else:
             
             if self.item_type is 'D':
-
-                for alignedDim in mainobject.DimensionGenerator[0].alignedDimensions:
-                    mainobject.DimensionGenerator[0].alignedDimensions.remove(0)
-                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
-                for angleDim in mainobject.DimensionGenerator[0].angleDimensions:
-                    mainobject.DimensionGenerator[0].angleDimensions.remove(0)
-                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
-                for axisDim in mainobject.DimensionGenerator[0].axisDimensions:
-                    mainobject.DimensionGenerator[0].axisDimensions.remove(0)
-                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
-                for boundsDim in mainobject.DimensionGenerator[0].boundsDimensions:
-                    mainobject.DimensionGenerator[0].boundsDimensions.remove(0)
-                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
-                for arcDim in mainobject.DimensionGenerator[0].arcDimensions:
-                    mainobject.DimensionGenerator[0].arcDimensions.remove(0)
-                    mainobject.DimensionGenerator[0].measureit_arch_num = 0
-                for wrapper in mainobject.DimensionGenerator[0].wrappedDimensions:
-                    mainobject.DimensionGenerator[0].wrappedDimensions.remove(0)
+                for key in mainobject.DimensionGenerator[0].keys():
+                    item = mainobject.DimensionGenerator[0].path_resolve(key)
+                    if 'collection' in str(item):
+                        typeContainer = item
+                        for dim in typeContainer:
+                            mainobject.DimensionGenerator[0].measureit_arch_num = 0
+                            typeContainer.remove(0)
 
 
             elif self.item_type is 'L':
