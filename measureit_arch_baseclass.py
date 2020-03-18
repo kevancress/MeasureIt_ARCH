@@ -353,7 +353,6 @@ class DeleteAllItemsButton(Operator):
                 StyleGen.wrappedStyles.remove(0)
 
         else:
-            
             if self.item_type is 'D':
                 for key in mainobject.DimensionGenerator[0].keys():
                     item = mainobject.DimensionGenerator[0].path_resolve(key)
@@ -362,7 +361,6 @@ class DeleteAllItemsButton(Operator):
                         for dim in typeContainer:
                             mainobject.DimensionGenerator[0].measureit_arch_num = 0
                             typeContainer.remove(0)
-
 
             elif self.item_type is 'L':
                 for line in mainobject.LineGenerator[0].line_groups:

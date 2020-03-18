@@ -176,18 +176,17 @@ bpy.utils.register_class(DimensionWrapper)
 class DimensionContainer(PropertyGroup):
     measureit_arch_num: IntProperty(name='Number of measures', min=0, max=1000, default=0,
                                 description='Number total of measureit_arch elements')
-    
     active_dimension_index: IntProperty(name="Active Dimension Index")
-
     show_dimension_settings: BoolProperty(name='Show Dimension Settings', default=False)
     
-    # Array of segments
+    # Collections of each dimension property
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
     angleDimensions: CollectionProperty(type=AngleDimensionProperties)
     axisDimensions: CollectionProperty(type=AxisDimensionProperties)
     boundsDimensions: CollectionProperty(type=BoundsDimensionProperties)
     arcDimensions: CollectionProperty(type=ArcDimensionProperties)
 
+    # Collection of Wrapped dimensions for list UI display
     wrappedDimensions: CollectionProperty(type=DimensionWrapper)
 
 bpy.utils.register_class(DimensionContainer)
