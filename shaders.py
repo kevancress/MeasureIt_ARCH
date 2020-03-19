@@ -191,11 +191,9 @@ class Line_Group_Shader_3D ():
         uniform vec2 Viewport;
         uniform float thickness;
         uniform float extension;
-        uniform int seed;
 
         out vec2 mTexCoord;
         float aspect = Viewport.x/Viewport.y;
-        int rseed = seed;
 
 
         void main() {
@@ -206,12 +204,8 @@ class Line_Group_Shader_3D ():
 
             vec4 dir3d = normalize(p2-p1);
 
- 
-
-            float rand = (rseed);
-
-            vec4 p1Ext = vec4(p1-dir3d*extension*0.01*rand);
-            vec4 p2Ext = vec4(p2+dir3d*extension*0.01*rand);
+            vec4 p1Ext = vec4(p1-dir3d*extension*0.01);
+            vec4 p2Ext = vec4(p2+dir3d*extension*0.01);
             
             vec2 ssp1 = vec2(p1Ext.xy / p1Ext.w);
             vec2 ssp2 = vec2(p2Ext.xy / p2Ext.w);
@@ -254,7 +248,7 @@ class Line_Group_Shader_3D ():
             EndPrimitive();
 
             //Draw Point pass
-            
+            ssp1 = vec2(p1.xy / p1.w);
             float radius = 0.00117 * thickness * aspect;
             int segments = int(thickness) + 5;
 
