@@ -215,11 +215,6 @@ class Line_Group_Shader_3D ():
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
 
-            // get line extension amount
-            vec2 extAmount = vec2(0,0);
-            //extAmount.x /= aspect;
-            
-
             // get offset factor from normal and user input thickness
             vec2 offset = vec2(normal * width);
             offset.x /= aspect;
@@ -228,16 +223,16 @@ class Line_Group_Shader_3D ():
             vec4 coords[4];
             vec2 texCoords[4];
 
-            coords[0] = vec4((ssp1 + offset + extAmount)*p1Ext.w,p1Ext.z,p1Ext.w);
+            coords[0] = vec4((ssp1 + offset)*p1Ext.w,p1Ext.z,p1Ext.w);
             texCoords[0] = vec2(0,1);
 
-            coords[1] = vec4((ssp1 - offset + extAmount)*p1Ext.w,p1Ext.z,p1Ext.w);
+            coords[1] = vec4((ssp1 - offset)*p1Ext.w,p1Ext.z,p1Ext.w);
             texCoords[1] = vec2(0,0);
 
-            coords[2] = vec4((ssp2 + offset - extAmount)*p2Ext.w,p2Ext.z,p2Ext.w);
+            coords[2] = vec4((ssp2 + offset)*p2Ext.w,p2Ext.z,p2Ext.w);
             texCoords[2] = vec2(0,1);
 
-            coords[3] = vec4((ssp2 - offset - extAmount)*p2Ext.w,p2Ext.z,p2Ext.w);
+            coords[3] = vec4((ssp2 - offset)*p2Ext.w,p2Ext.z,p2Ext.w);
             texCoords[3] = vec2(0,0);
 
             for (int i = 0; i < 4; ++i) {
