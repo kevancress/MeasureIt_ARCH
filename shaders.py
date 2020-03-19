@@ -167,17 +167,12 @@ class Line_Group_Shader_3D ():
     vertex_shader = '''
 
         uniform mat4 ModelViewProjectionMatrix;
-        uniform mat4 objectMatrix;
-        uniform float offset;
         in vec3 pos;
-        
-        vec4 worldPos = objectMatrix * vec4(pos, 1.0);
-        vec4 project = ModelViewProjectionMatrix * worldPos;
-        vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
+
 
         void main()
         {
-           gl_Position = project + vecOffset;
+           gl_Position = vec4(pos, 1.0);
         }
 
         '''
@@ -188,16 +183,17 @@ class Line_Group_Shader_3D ():
         layout(triangle_strip, max_vertices = 60) out;
 
         uniform mat4 ModelViewProjectionMatrix;
+        uniform mat4 objectMatrix;
         uniform vec2 Viewport;
         uniform float thickness;
         uniform float extension;
+        uniform float offset;
 
         out vec2 mTexCoord;
         float aspect = Viewport.x/Viewport.y;
 
-
         void main() {
-            //calculate line normal
+            //calculate line normal and extension
 
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
@@ -206,6 +202,18 @@ class Line_Group_Shader_3D ():
 
             vec4 p1Ext = vec4(p1-dir3d*extension*0.01);
             vec4 p2Ext = vec4(p2+dir3d*extension*0.01);
+
+            
+            vec4 p1worldPos = objectMatrix * p1Ext;
+            vec4 p1project = ModelViewProjectionMatrix * p1worldPos;
+
+            vec4 p2worldPos = objectMatrix * p2Ext;
+            vec4 p2project = ModelViewProjectionMatrix * p2worldPos;
+
+            vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
+
+            p1Ext = p1project + vecOffset;
+            p2Ext = p2project + vecOffset;
             
             vec2 ssp1 = vec2(p1Ext.xy / p1Ext.w);
             vec2 ssp2 = vec2(p2Ext.xy / p2Ext.w);
@@ -243,13 +251,21 @@ class Line_Group_Shader_3D ():
             EndPrimitive();
 
             //Draw Point pass
+            p1 =  gl_in[0].gl_Position;
+            vec4 worldPos = objectMatrix * p1;
+            vec4 project = ModelViewProjectionMatrix * worldPos;
+
+            p1 = project + vecOffset;
             ssp1 = vec2(p1.xy / p1.w);
+
+
+
             float radius = 0.00117 * thickness * aspect;
             int segments = int(thickness) + 5;
 
             const float PI = 3.1415926;
             
-            gl_Position = gl_in[0].gl_Position;
+            gl_Position = p1;
             mTexCoord = vec2(0,0.5);
             EmitVertex();
             segments = clamp(segments,0,24);
@@ -265,7 +281,7 @@ class Line_Group_Shader_3D ():
                 gl_Position = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
                 EmitVertex();
 
-                gl_Position = gl_in[0].gl_Position;
+                gl_Position = p1;
                 mTexCoord = vec2(0,0.5);
                 EmitVertex();
             }
