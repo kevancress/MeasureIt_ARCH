@@ -79,11 +79,6 @@ pointShader = gpu.types.GPUShader(
     Point_Shader_3D.fragment_shader,
     geocode=Point_Shader_3D.geometry_shader)
 
-lgPointShader = gpu.types.GPUShader(
-    Line_Group_Shader_3D.vertex_shader,
-    Point_Shader_3D.fragment_shader,
-    geocode=Point_Shader_3D.geometry_shader)
-
 textShader = gpu.types.GPUShader(
     Text_Shader.vertex_shader,
     Text_Shader.fragment_shader)
@@ -461,12 +456,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
         bestPairs = [xpairs[2],ypairs[1],zpairs[0]]
         pairs = [xpairs,ypairs,zpairs]
-        #draw points for debug
-        if False:
-            pointShader.bind()
-            pointShader.uniform_float("Viewport",viewport)
-            pointShader.uniform_float("thickness", 5)
-            pointShader.uniform_float("offset", 0.001)
+
 
     
         # establish measure loop
@@ -1065,12 +1055,8 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
 
 
 
-        #configure shaders
-        pointShader.bind()
-        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("thickness", lineWeight)
-        pointShader.uniform_float("offset", -offset)
-        gpu.shader.unbind()
+
+        
 
         lineShader.bind()
         lineShader.uniform_float("Viewport",viewport)
@@ -1081,11 +1067,21 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         # Draw Point Pass for Clean Corners
         # I'm being lazy here, should do a proper lineadjacency
         # with miters and do this in one pass
+        
         pointCoords = []
         pointCoords.append((startVec*radius)+p2)
         for vert in verts:
             pointCoords.append((vert*radius)+p2)
         pointCoords.append((endVec*radius)+p2)
+
+        #configure shaders
+        pointShader.bind()
+        pointShader.uniform_float("Viewport",viewport)
+        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        pointShader.uniform_float("thickness", lineWeight)
+        pointShader.uniform_float("offset", -0.001)
+        gpu.shader.unbind()
+
         batch3d = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
         batch3d.program_set(pointShader)
         batch3d.draw()
@@ -1154,7 +1150,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         inView = True
     
     if inView and dim.visible and dimProps.visible:
-         # GL Settings
+        # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
@@ -1168,10 +1164,11 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         else:
             viewport = [context.area.width,context.area.height]
 
-
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         a_code = "\u00b0"  # degree
+        #arc_code = "\u25e0" #arc
+        arc_code = ""
         fmt = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
@@ -1190,10 +1187,13 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         norm = vecA.cross(vecB).normalized()
 
 
+        # Calculate the Arc Defined by our 3 points
+        # reference for maths: http://en.wikipedia.org/wiki/Circumscribed_circle
+
         an_p1 = p1
         an_p2 = p2
         an_p3 = p3
-        # reference for maths: http://en.wikipedia.org/wiki/Circumscribed_circle
+
         an_p12 = Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
         an_p13 = Vector((an_p1[0] - an_p3[0], an_p1[1] - an_p3[1], an_p1[2] - an_p3[2]))
         an_p21 = Vector((an_p2[0] - an_p1[0], an_p2[1] - an_p1[1], an_p2[2] - an_p1[2]))
@@ -1201,8 +1201,6 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         an_p31 = Vector((an_p3[0] - an_p1[0], an_p3[1] - an_p1[1], an_p3[2] - an_p1[2]))
         an_p32 = Vector((an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
         an_p12xp23 = an_p12.copy().cross(an_p23)
-
-        #radius = an_p12.length * an_p23.length * an_p31.length / (2 * an_p12xp23.length)
 
         alpha = pow(an_p23.length, 2) * an_p12.dot(an_p13) / (2 * pow(an_p12xp23.length, 2))
         beta = pow(an_p13.length, 2) * an_p21.dot(an_p23) / (2 * pow(an_p12xp23.length, 2))
@@ -1235,7 +1233,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             point.rotate(Quaternion(norm,rotangle))
             verts.append((point).normalized())
 
-        # batch & Draw Shader
+        # Radius
         radius = (B).length
         offsetRadius = radius + dim.dimOffset
         endVec = C
@@ -1250,29 +1248,20 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         endVec = (verts[len(verts)-1]*offsetRadius)
         coords.append(endVec)
 
-        # Add A and C Extension Lines
-        coords.append(A)
-        coords.append((((A).normalized())*(offsetRadius+dimProps.endcapSize/100)))
-        
-        coords.append(C)
-        coords.append((((C).normalized())*(offsetRadius+dimProps.endcapSize/100)))
-
-        # Add Radius leader
+        # Define Radius Leader
         zeroVec = Vector((0,0,0))
-        coords.append(zeroVec)
         radiusLeader = B
-        coords.append(radiusLeader)
         radiusMid = Vector(interpolate3d(radiusLeader,zeroVec,radius/2))
 
-
+       
         # Generate end caps
         filledCoords = []
         midVec = A
         caps = (dimProps.endcapA,dimProps.endcapB,dim.endcapC)
         capSize = dimProps.endcapSize
         pos = (startVec,endVec,radiusLeader)
-        arrowoffset =  capSize #Clamp capsize between 0 and the length of the coords
-        mids = (coords[arrowoffset+1], coords[len(coords)-arrowoffset-8], radiusMid) #offset the arrow direction as arrow size increases
+        arrowoffset =  3 + int(max(0, min(math.ceil(capSize/4), len(coords)/5)))
+        mids = (coords[arrowoffset], coords[len(coords)-arrowoffset], radiusMid) #offset the arrow direction as arrow size increases
         i=0
         for cap in caps:
             #def        generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
@@ -1283,7 +1272,20 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             for filledCoord in capCoords[1]:
                 filledCoords.append(filledCoord)
 
-       
+         # Add A and C Extension Lines
+        coords.append(A)
+        coords.append((((A).normalized())*(offsetRadius + arrowoffset/100)))
+        
+        coords.append(C)
+        coords.append((((C).normalized())*(offsetRadius + arrowoffset/100)))
+
+         # Add Radius leader
+
+        coords.append(zeroVec)
+        coords.append(radiusLeader)
+
+        
+
         if len(filledCoords) != 0:
             #bind shader
             bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
@@ -1313,13 +1315,16 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             dim.textFields.add()
             dim.textFields.add()
 
-        radiusText = dim.textFields[0]    
-        lengthText = dim.textFields[1] 
+        radiusText = dim.textFields[0]
+        
+        lengthText = dim.textFields[1]
+       
 
 
         # format text and update if necessary
-        lengthStr = str(format_distance(textFormat,arc_length))
-        radStr = 'r = ' + str(format_distance(textFormat,radius))
+        lengthStr = arc_code + str(format_distance(textFormat,arc_length))
+        
+        radStr = 'r ' + str(format_distance(textFormat,radius))
 
         if lengthText.text != str(lengthStr):
             lengthText.text = str(lengthStr)
@@ -1331,10 +1336,8 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             radiusText.text_updated = True
         
         #make Radius text card
-
         width = radiusText.textWidth
         height = radiusText.textHeight 
-        
     
         midPoint = Vector(interpolate3d(zeroVec,radiusLeader,radius/2))
         vecY =  midPoint.cross(norm).normalized()
@@ -1377,38 +1380,11 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim.textFields[1],dimProps,myobj,square)
 
-
-
-
-
-
-
-
         draw_coords = []
+        point_coords = []
         for coord in coords:
             draw_coords.append(coord+center)
-
-
-
-        #print('drawing Arc Dimension. Arc Angle: ' + str(arc_angle) + ' Arc Length: ' + str(arc_length))
-        # Debug sets for drawing triangle and perpindicular bisectors   
-        #coords = [A,B,B,C,C,A,Vector(ba_mid)-perp_ba*100,ba_perpBi,Vector(bc_mid)-perp_bc*100,bc_perpBi,Vector(ca_mid)-perp_ca*100,ca_perpBi,center,B]
-        #pointCoords = [A,B,C,ba_mid,bc_mid,ca_mid,center]
-
-
-        pointCoords = [zeroVec+center]
-
-        pointShader.bind()
-        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("thickness", lineWeight*4)
-        pointShader.uniform_float("offset", -offset)
-        gpu.shader.unbind()
-
- 
-        batchpoint = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
-        batchpoint.program_set(pointShader)
-        batchpoint.draw()
-
+            point_coords.append(coord+center)
 
 
         lineShader.bind()
@@ -1434,8 +1410,10 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
 
         
         draw_coords = []
+        point_coords2 = []
         for coord in coords:
-            draw_coords.append(coord+center)   
+            draw_coords.append(coord+center)
+            point_coords2.append(coord+center)  
 
         lineShader.bind()
         lineShader.uniform_float("thickness",lineWeight-1)
@@ -1443,6 +1421,31 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         batch.program_set(lineShader)
         batch.draw()
         gpu.shader.unbind()
+
+        pointShader.bind()
+        pointShader.uniform_float("Viewport",viewport)
+        pointShader.uniform_float("thickness",lineWeight)
+        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        pointShader.uniform_float("offset", -offset)
+
+        batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords})
+        batch.program_set(pointShader)
+        batch.draw()
+
+        pointShader.uniform_float("thickness",lineWeight-1)
+        batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords2})
+        batch.program_set(pointShader)
+        batch.draw()
+
+        pointCenter = [center]
+        pointShader.uniform_float("thickness",lineWeight*4)
+        batch = batch_for_shader(pointShader, 'POINTS', {"pos": pointCenter})
+        batch.program_set(pointShader)
+        batch.draw()
+
+        gpu.shader.unbind()
+
+        
 
  
         #Reset openGL Settings
@@ -1911,14 +1914,15 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 
                 # Again This is Super Lazy, gotta write up a shader that handles
                 # Mitered thick lines, but for now this works.
-                #if annotation.textPosition == 'T' or annotation.textPosition == 'B':
-                #    batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoords})
-                #    batch3d.program_set(pointShader)
-                #    batch3d.draw()
+                if annotation.textPosition == 'T' or annotation.textPosition == 'B':
+                    batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoords})
+                    batch3d.program_set(pointShader)
+                    batch3d.draw()
             
             # Draw Line Endcaps
             if endcap == 'D':
                 pointShader.bind()
+                pointShader.uniform_float("Viewport",viewport)
                 pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 pointShader.uniform_float("thickness", endcapSize)
                 pointShader.uniform_float("offset", -0.01)

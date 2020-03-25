@@ -202,7 +202,6 @@ class Line_Group_Shader_3D ():
 
             vec4 p1Ext = vec4(p1-dir3d*extension*0.01);
             vec4 p2Ext = vec4(p2+dir3d*extension*0.01);
-
             
             vec4 p1worldPos = objectMatrix * p1Ext;
             vec4 p1project = ModelViewProjectionMatrix * p1worldPos;
