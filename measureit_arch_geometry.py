@@ -1769,8 +1769,8 @@ def draw_line_group(context, myobj, lineGen, mat):
                 lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 lineGroupShader.uniform_float("offset", -offset)
                 
-              
-                batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                #colors = [(rgb[0], rgb[1], rgb[2], rgb[3]) for coord in range(len(coords))]
+
                 global lineBatch3D
                 batchKey = myobj.name + lineGroup.name
                 if batchKey not in lineBatch3D or recoordFlag:

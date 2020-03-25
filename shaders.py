@@ -168,11 +168,19 @@ class Line_Group_Shader_3D ():
 
         uniform mat4 ModelViewProjectionMatrix;
         in vec3 pos;
+        //in vec4 colorIn;
 
+        
+        // Interface block to send color and thickness to geometry shader
+
+        // out VS_OUT {
+        //     vec4 color;
+        //} vs_out;
 
         void main()
         {
            gl_Position = vec4(pos, 1.0);
+           //vs_out.color = colorIn;
         }
 
         '''
@@ -181,6 +189,11 @@ class Line_Group_Shader_3D ():
     geometry_shader = '''
         layout(lines) in;
         layout(triangle_strip, max_vertices = 60) out;
+        //out vec4 fcolor;
+
+        //in VS_OUT {
+        //    vec4 color;
+        //} gs_in[];
 
         uniform mat4 ModelViewProjectionMatrix;
         uniform mat4 objectMatrix;
@@ -228,29 +241,36 @@ class Line_Group_Shader_3D ():
             
             // generate rect
             vec4 coords[4];
+            //vec4 colors[4];
             vec2 texCoords[4];
 
             coords[0] = vec4((ssp1 + offset)*p1Ext.w,p1Ext.z,p1Ext.w);
+            //colors[0] = gs_in[0].color;
             texCoords[0] = vec2(0,1);
 
             coords[1] = vec4((ssp1 - offset)*p1Ext.w,p1Ext.z,p1Ext.w);
+            //colors[1] = gs_in[0].color;
             texCoords[1] = vec2(0,0);
 
             coords[2] = vec4((ssp2 + offset)*p2Ext.w,p2Ext.z,p2Ext.w);
+            //colors[2] = gs_in[1].color;
             texCoords[2] = vec2(0,1);
 
             coords[3] = vec4((ssp2 - offset)*p2Ext.w,p2Ext.z,p2Ext.w);
+            //colors[3] = gs_in[1].color;
             texCoords[3] = vec2(0,0);
 
             for (int i = 0; i < 4; ++i) {
                 mTexCoord = texCoords[i];
                 gl_Position = coords[i];
+                //fcolor = colors[i];
                 EmitVertex();
             }
             EndPrimitive();
 
             //Draw Point pass
             p1 =  gl_in[0].gl_Position;
+            //fcolor = gs_in[0].color;
             vec4 worldPos = objectMatrix * p1;
             vec4 project = ModelViewProjectionMatrix * worldPos;
 
@@ -291,6 +311,7 @@ class Line_Group_Shader_3D ():
 
     fragment_shader = '''
         in vec2 mTexCoord;
+        in vec4 fcolor;
         uniform vec4 finalColor;
         out vec4 fragColor;
 
