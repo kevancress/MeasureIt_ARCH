@@ -1566,8 +1566,14 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 def draw_line_group(context, myobj, lineGen, mat):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
+    bgl.glBlendFunc(bgl.GL_ONE,bgl.GL_ZERO)
+    #bgl.glBlendEquationSeparate(bgl.GL_FUNC_ADD,bgl.GL_MAX)
+    bgl.glBlendColor(0,0,0,0)    
+
+
     bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthMask(False)
+    bgl.glDepthFunc(bgl.GL_LEQUAL) 
+    bgl.glDepthMask(True)
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     

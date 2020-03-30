@@ -188,7 +188,7 @@ class Line_Group_Shader_3D ():
 
     geometry_shader = '''
         layout(lines) in;
-        layout(triangle_strip, max_vertices = 60) out;
+        layout(triangle_strip, max_vertices = 100) out;
         //out vec4 fcolor;
 
         //in VS_OUT {
@@ -260,15 +260,9 @@ class Line_Group_Shader_3D ():
             //colors[3] = gs_in[1].color;
             texCoords[3] = vec2(0,0);
 
-            for (int i = 0; i < 4; ++i) {
-                mTexCoord = texCoords[i];
-                gl_Position = coords[i];
-                //fcolor = colors[i];
-                EmitVertex();
-            }
-            EndPrimitive();
 
-            //Draw Point pass
+            
+            //Draw Point pass First
             p1 =  gl_in[0].gl_Position;
             //fcolor = gs_in[0].color;
             vec4 worldPos = objectMatrix * p1;
@@ -287,7 +281,7 @@ class Line_Group_Shader_3D ():
             gl_Position = p1;
             mTexCoord = vec2(0,0.5);
             EmitVertex();
-            segments = clamp(segments,0,24);
+            segments = clamp(segments,0,30);
 
             for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
@@ -296,7 +290,7 @@ class Line_Group_Shader_3D ():
                 // Offset from center of point
                 offset = vec2(cos(ang)*radius, -sin(ang)*radius);
                 offset.x /= aspect;
-                mTexCoord = vec2(0,1);
+                mTexCoord = vec2(0,0.9);
                 gl_Position = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
                 EmitVertex();
 
@@ -306,32 +300,59 @@ class Line_Group_Shader_3D ():
             }
 
             EndPrimitive();
+
+
+
+            for (int i = 0; i < 4; ++i) {
+                mTexCoord = texCoords[i];
+                gl_Position = coords[i];
+                //fcolor = colors[i];
+                EmitVertex();
+            }
+            EndPrimitive();
         }  
     '''
 
     fragment_shader = '''
         in vec2 mTexCoord;
         in vec4 fcolor;
+        in vec4 gl_FragCoord;
         uniform vec4 finalColor;
+        uniform float thickness;
         out vec4 fragColor;
+
+        float map(float value, float min1, float max1, float min2, float max2) {
+            return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+        }
 
         void main()
         {
             vec4 aaColor = finalColor;
+            vec4 mixColor = new vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
             vec2 center = vec2(0,0.5);
             float dist = length(mTexCoord - center);
             float distFromEdge = 1-(dist*2);
 
             float delta = fwidth(distFromEdge);
-            float threshold = 2*delta;
+            float threshold = 1.5*delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
-            aa = aa -clamp(0.5*fwidth(aa),0,1);
             aa = smoothstep(0,1,aa);
 
-            aaColor[3] = mix(0,finalColor[3],aa);
+            aaColor = mix(mixColor,finalColor,aa);
 
-            fragColor = aaColor;
+            if (aaColor[3]<0.85){
+                gl_FragDepth = gl_FragCoord.z + (1-aaColor[3])/50;
+                if(aaColor[3]<0.25){
+                    discard;
+                }
+        
+            }
+            else{
+                gl_FragDepth = gl_FragCoord.z;
+            }
+
+            fragColor = aaColor;            
         }
     '''
 
