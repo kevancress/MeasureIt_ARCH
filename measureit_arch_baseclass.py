@@ -70,8 +70,8 @@ class BaseProp:
                 description="This Item is free and can be deleted",
                 default=False)
 
-    evalMods: BoolProperty(name="Evaluate Modifiers",
-            description="This Element Should Evaluate the Modifier Stack",
+    evalMods: BoolProperty(name="Evaluate Depsgraph",
+            description="This Element will evaluate the Dependency Graph (Modifiers, Shape Keys etc.) before drawing",
             default=False)
     
     settings: BoolProperty(name= "Settings",
@@ -238,8 +238,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 description="NOTE: Instanced Dimensions text will not adapt to local changes in scale or rotation",
                                 default=False)
 
-    eval_mods: BoolProperty(name="Evaluate Modifiers",
-                                description="MeasureIt-ARCH will attempt to evaluate Modifiers before drawing, May make dimensions and linework unstable",
+    eval_mods: BoolProperty(name="Evaluate Depsgraph",
+                                description="All MeasureIt-ARCH elements will attempt to evaluate the dependency graph (Modifiers, Shape Keys, etc.) before drawing, May make dimensions and linework unstable",
                                 default=False)
 
     is_render_draw: BoolProperty(name="Is Render",

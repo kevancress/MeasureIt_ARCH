@@ -182,7 +182,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
-    bgl.glDepthMask(False)
+    bgl.glDepthMask(True)
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
@@ -372,7 +372,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
-    bgl.glDepthMask(False)
+    bgl.glDepthMask(True)
     sceneProps = context.scene.MeasureItArchProps
     dimProps = dim
     if dim.uses_style:
@@ -615,7 +615,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
-    bgl.glDepthMask(False)
+    bgl.glDepthMask(True)
 
     dimProps = dim
 
@@ -1112,7 +1112,13 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
             for filledCoord in capCoords[1]:
                 filledCoords.append(filledCoord)
 
-       
+
+        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        batch.program_set(lineShader)
+        batch.draw()
+        gpu.shader.unbind()
+
+        # Draw Filled Faces after
         if len(filledCoords) != 0:
             #bind shader
             bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
@@ -1126,10 +1132,6 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
             gpu.shader.unbind()
             bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-        batch.program_set(lineShader)
-        batch.draw()
-        gpu.shader.unbind()
 
         #Reset openGL Settings
         bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -1137,6 +1139,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
 
 
 def draw_arcDimension(context, myobj, DimGen, dim,mat):
+    
     dimProps = dim
     sceneProps = context.scene.MeasureItArchProps
     if dim.uses_style:
@@ -1156,7 +1159,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         if dimProps.inFront:
             bgl.glDisable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(False)
+        bgl.glDepthMask(True)
 
         lineWeight = dimProps.lineWeight
         if sceneProps.is_render_draw:
@@ -1286,23 +1289,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
 
         
 
-        if len(filledCoords) != 0:
-            #bind shader
-            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-            triShader.bind()
-            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", -offset) #z offset this a little to avoid zbuffering
-
-            mappedFilledCoords = []
-            for coord in filledCoords:
-                mappedFilledCoords.append(coord+center)
-
-
-            batch = batch_for_shader(triShader, 'TRIS', {"pos": mappedFilledCoords})
-            batch.program_set(triShader)
-            batch.draw()
-            gpu.shader.unbind()
-            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+   
 
         
         #### TEXT
@@ -1415,6 +1402,16 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             draw_coords.append(coord+center)
             point_coords2.append(coord+center)  
 
+        pointShader.bind()
+        pointShader.uniform_float("Viewport",viewport)
+        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        pointShader.uniform_float("offset", -offset)
+
+        pointShader.uniform_float("thickness",lineWeight-1)
+        batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords2})
+        batch.program_set(pointShader)
+        batch.draw()
+
         lineShader.bind()
         lineShader.uniform_float("thickness",lineWeight-1)
         batch = batch_for_shader(lineShader, 'LINES', {"pos": draw_coords})
@@ -1422,20 +1419,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         batch.draw()
         gpu.shader.unbind()
 
-        pointShader.bind()
-        pointShader.uniform_float("Viewport",viewport)
-        pointShader.uniform_float("thickness",lineWeight)
-        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("offset", -offset)
 
-        batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords})
-        batch.program_set(pointShader)
-        batch.draw()
-
-        pointShader.uniform_float("thickness",lineWeight-1)
-        batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords2})
-        batch.program_set(pointShader)
-        batch.draw()
 
         pointCenter = [center]
         pointShader.uniform_float("thickness",lineWeight*4)
@@ -1445,6 +1429,23 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
 
         gpu.shader.unbind()
 
+        if len(filledCoords) != 0:
+            #bind shader
+            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+            triShader.bind()
+            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            triShader.uniform_float("offset", -offset) #z offset this a little to avoid zbuffering
+
+            mappedFilledCoords = []
+            for coord in filledCoords:
+                mappedFilledCoords.append(coord+center)
+
+
+            batch = batch_for_shader(triShader, 'TRIS', {"pos": mappedFilledCoords})
+            batch.program_set(triShader)
+            batch.draw()
+            gpu.shader.unbind()
+            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
         
 
  
@@ -1567,9 +1568,6 @@ def draw_line_group(context, myobj, lineGen, mat):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glBlendFunc(bgl.GL_ONE,bgl.GL_ZERO)
-    #bgl.glBlendEquationSeparate(bgl.GL_FUNC_ADD,bgl.GL_MAX)
-    bgl.glBlendColor(0,0,0,0)    
-
 
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL) 
@@ -1796,6 +1794,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 start = time.time ()
     
     gpu.shader.unbind()
+    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 

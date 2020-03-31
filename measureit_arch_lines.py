@@ -282,7 +282,7 @@ class OBJECT_PT_UILines(Panel):
 
                             col = box.column(align=True)
                             col.prop(line, 'lineOverExtension', text="Extension" )
-                            col.prop(line, 'randomSeed', text="Seed" )
+                            #col.prop(line, 'randomSeed', text="Seed" )
                         
                             col = box.column(align=True)
                             if line.lineDrawHidden: col.enabled = True

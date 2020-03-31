@@ -594,8 +594,12 @@ class Text_Shader():
         out vec4 fragColor;
 
         void main()
-        {
-            fragColor = texture(image, uvInterp);
+        {   
+            vec4 color = texture(image, uvInterp);
+            if (color[3]<0.5){
+                discard;
+            }
+            fragColor = color;
         }
     '''
 
