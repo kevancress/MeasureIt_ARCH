@@ -386,8 +386,6 @@ class AddLineByProperty(Operator):
     bl_category = 'MeasureitArch'
     tag: IntProperty()
     calledFromGroup: BoolProperty(default=False)
-    use_approximate: BoolProperty(default=True)
-    includeNonManifold: BoolProperty(default=False)
     creaseAngle: FloatProperty()
 
     # ------------------------------
@@ -441,50 +439,27 @@ class AddLineByProperty(Operator):
                         angle = obj.data.auto_smooth_angle
                         vertsToAdd=[]
                         
-                        # faster method, uses the dot product of the face normal with the averaged normal of the two edges
-                        if self.use_approximate:
-                            for face in obj.data.polygons:
-                                lastVert = None
-                                keys = face.edge_keys
-                                faceNormal = Vector(face.normal)
-                                for key in keys:
-                                    pointA = obj.data.vertices[key[0]]
-                                    pointB = obj.data.vertices[key[1]]
-                                    aNorm = pointA.normal
-                                    bNorm = pointB.normal
-                                    edgeNormal = Vector(aNorm + bNorm).normalized()
-                                    edgeDir = pointB.co - pointA.co
-                                    dotProd = faceNormal.dot(edgeNormal)
-                                    if dotProd >= -1 and dotProd <= 1:
-                                        creaseAngle = math.acos(dotProd)
-                                        if creaseAngle > angle:
-                                            vertsToAdd.append(key[0])
-                                            vertsToAdd.append(key[1])
-                        
+                        start = time.time()
+                        bm = bmesh.new()
+                        bm.from_mesh(obj.data)
+                        bm.edges.ensure_lookup_table()
 
-                        # More accurate Method, but requires face adjacency for each edge, super slow
-                        else:
-                            for edge in obj.data.edges:
-                                pointA = edge.vertices[0]
-                                pointB = edge.vertices[1]
-                                adjacentFaces =[]
-                                for face in obj.data.polygons:
-                                    if pointA in face.vertices and pointB in face.vertices:
-                                        adjacentFaces.append(face)
-                                if len(adjacentFaces) == 2:
-                                    normalA = Vector(adjacentFaces[0].normal)
-                                    normalB = Vector(adjacentFaces[1].normal)
-                                    dotProd = (normalA.dot(normalB))
-                                    #print (str(adjacentFaces[0].index) + ' dot(' + str(adjacentFaces[1].index) + ') = ' + str(dotProd))
-                                    if dotProd >= -1 and dotProd <= 1:
-                                        creaseAngle = math.acos(dotProd)
-                                        if creaseAngle > angle:
-                                            vertsToAdd.append(pointA)
-                                            vertsToAdd.append(pointB)
-                                else:
-                                    vertsToAdd.append(pointA)
-                                    vertsToAdd.append(pointB)
-                            
+                        for edge in bm.edges:
+                            linked_faces = edge.link_faces
+                            pointA = edge.verts[0].index
+                            pointB = edge.verts[1].index
+                            if len(linked_faces) == 2:
+                                normalA = Vector(linked_faces[0].normal)
+                                normalB = Vector(linked_faces[1].normal)
+                                dotProd = (normalA.dot(normalB))
+                                if dotProd >= -1 and dotProd <= 1:
+                                    creaseAngle = math.acos(dotProd)
+                                    if creaseAngle > angle:
+                                        vertsToAdd.append(pointA)
+                                        vertsToAdd.append(pointB)
+                            else:
+                                vertsToAdd.append(pointA)
+                                vertsToAdd.append(pointB)
 
                         lGroup['lineBuffer'] = vertsToAdd
                         lineGen.line_num += 1
@@ -501,7 +476,6 @@ class AddLineByProperty(Operator):
         mesh = context.object.data
         layout = self.layout
         col = layout.column()
-        col.prop(self, 'use_approximate', text= 'Use Approximate (Faster, Ignores Non-Manifold)')
         col.prop(mesh,'auto_smooth_angle', text= 'Set Crease Angle')
 
 class RemoveFromLineGroup(Operator):   
