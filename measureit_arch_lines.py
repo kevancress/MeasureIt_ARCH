@@ -386,6 +386,7 @@ class AddLineByProperty(Operator):
     bl_category = 'MeasureitArch'
     tag: IntProperty()
     calledFromGroup: BoolProperty(default=False)
+    includeNonManifold: BoolProperty(default=True)
     creaseAngle: FloatProperty()
 
     # ------------------------------
@@ -439,32 +440,39 @@ class AddLineByProperty(Operator):
                         angle = obj.data.auto_smooth_angle
                         vertsToAdd=[]
                         
-                        start = time.time()
+                        # Create a Bmesh Instance from the selected object
                         bm = bmesh.new()
                         bm.from_mesh(obj.data)
                         bm.edges.ensure_lookup_table()
 
+                        # For each edge get its linked faces and vertex indicies
                         for edge in bm.edges:
                             linked_faces = edge.link_faces
                             pointA = edge.verts[0].index
                             pointB = edge.verts[1].index
                             if len(linked_faces) == 2:
-                                normalA = Vector(linked_faces[0].normal)
-                                normalB = Vector(linked_faces[1].normal)
+                                normalA = Vector(linked_faces[0].normal).normalized()
+                                normalB = Vector(linked_faces[1].normal).normalized()
                                 dotProd = (normalA.dot(normalB))
+                                
                                 if dotProd >= -1 and dotProd <= 1:
                                     creaseAngle = math.acos(dotProd)
                                     if creaseAngle > angle:
                                         vertsToAdd.append(pointA)
                                         vertsToAdd.append(pointB)
-                            else:
-                                vertsToAdd.append(pointA)
-                                vertsToAdd.append(pointB)
 
+                            # Any edge with greater or less 
+                            # than 2 linked faces is non manifold
+                            else:
+                                if self.includeNonManifold: 
+                                    vertsToAdd.append(pointA)
+                                    vertsToAdd.append(pointB)
+
+                        # Free the Bmesh instance and add the 
+                        # vertex indicies to the line groups line buffer            
+                        bm.free()
                         lGroup['lineBuffer'] = vertsToAdd
                         lineGen.line_num += 1
-                    end = time.time()
-                    #printTime(start,end,"")
                     return {'FINISHED'}
     
     def invoke(self, context, event):
@@ -477,6 +485,7 @@ class AddLineByProperty(Operator):
         layout = self.layout
         col = layout.column()
         col.prop(mesh,'auto_smooth_angle', text= 'Set Crease Angle')
+        col.prop(self,'includeNonManifold', text= 'Add Lines to Non-Manifold Edges?')
 
 class RemoveFromLineGroup(Operator):   
     bl_idname = "measureit_arch.removefromlinegroup"
