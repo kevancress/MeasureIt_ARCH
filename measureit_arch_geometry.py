@@ -948,12 +948,14 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    # Check Visibility Conditions
+    #check all visibility conditions
     inView = False
-    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
-        inView = True
-    
-    if inView and dim.visible and dimProps.visible:
+
+    if dimProps.dimVisibleInView is None or dimProps.dimVisibleInView.name == context.scene.camera.data.name:
+        inView = True        
+    else:
+        inView = False    
+    if dim.visible and dimProps.visible and inView:
          # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_BLEND)
