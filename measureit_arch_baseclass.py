@@ -236,7 +236,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     instance_dims: BoolProperty(name="Instance Dimensions",
                                 description="NOTE: Instanced Dimensions text will not adapt to local changes in scale or rotation",
-                                default=False)
+                                default=True)
 
     eval_mods: BoolProperty(name="Evaluate Depsgraph",
                                 description="All MeasureIt-ARCH elements will attempt to evaluate the dependency graph (Modifiers, Shape Keys, etc.) before drawing, May make dimensions and linework unstable",

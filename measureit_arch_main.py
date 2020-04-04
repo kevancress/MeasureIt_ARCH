@@ -38,6 +38,8 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 from bpy.app.handlers import persistent
 from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, get_mesh_vertices, printTime
 
+draw_instanced = True
+
 # ------------------------------------------------------
 # Handler to detect new Blend load
 #
@@ -518,6 +520,58 @@ def draw_main(context):
                             annotation.text = fmt % myobj[annotation.annotationTextSource]
                     update_text(textobj=annotation,props=annotationProps,context=context)
 
+                # Draw Instanced Objects
+
+    if draw_instanced:
+        deps = bpy.context.view_layer.depsgraph
+        for obj_int in deps.object_instances:
+            if obj_int.is_instance:
+                myobj = obj_int.object
+
+                if 'DimensionGenerator' in myobj:
+                    DimGen = myobj.DimensionGenerator[0]
+                    for alignedDim in DimGen.alignedDimensions:
+                        
+                        alignedDimProps = alignedDim
+                        if alignedDim.uses_style:
+                            for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
+                                if alignedDimStyle.name == alignedDim.style:
+                                    alignedDimProps= alignedDimStyle
+
+                        update_text(textobj=alignedDim,props=alignedDimProps,context=context)
+                    
+                    for angleDim in DimGen.angleDimensions: 
+                        dimProps = angleDim
+                        if angleDim.uses_style:
+                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                                if dimStyle.name == angleDim.style:
+                                    dimProps= dimStyle
+                        update_text(textobj=angleDim,props=dimProps,context=context)
+                    
+                    for axisDim in DimGen.axisDimensions: 
+                        dimProps = axisDim
+                        if axisDim.uses_style:
+                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                                if dimStyle.name == axisDim.style:
+                                    dimProps= dimStyle
+                        update_text(textobj=axisDim,props=dimProps,context=context)
+
+                    for boundsDim in DimGen.boundsDimensions: 
+                        dimProps = boundsDim
+                        if boundsDim.uses_style:
+                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                                if dimStyle.name == boundsDim.style:
+                                    dimProps= dimStyle
+                        update_text(textobj=boundsDim,props=dimProps,context=context)
+                    
+                    for arcDim in DimGen.arcDimensions: 
+                        dimProps = arcDim
+                        if arcDim.uses_style:
+                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                                if dimStyle.name == arcDim.style:
+                                    dimProps= dimStyle
+                        update_text(textobj=arcDim,props=dimProps,context=context)
+
 
 def draw_main_3d (context):
    
@@ -572,7 +626,7 @@ def draw_main_3d (context):
 
 
     # Draw Instanced Objects
-    draw_instanced = True
+
     if draw_instanced:
         deps = bpy.context.view_layer.depsgraph
         for obj_int in deps.object_instances:
@@ -593,6 +647,7 @@ def draw_main_3d (context):
                 if sceneProps.instance_dims:
                     if 'DimensionGenerator' in myobj and myobj.DimensionGenerator[0].measureit_arch_num != 0:
                         DimGen = myobj.DimensionGenerator[0]
+                        mat = obj_int.matrix_world
                         for alignedDim in DimGen.alignedDimensions:
                             draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
                         for angleDim in DimGen.angleDimensions:
