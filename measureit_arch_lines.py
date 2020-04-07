@@ -110,7 +110,7 @@ Object.LineGenerator = CollectionProperty(type=LineContainer)
 class AddLineButton(Operator):
     bl_idname = "measureit_arch.addlinebutton"
     bl_label = "Add"
-    bl_description = "(EDITMODE only) Add a new measure segment between 2 vertices (select 2 vertices or more)"
+    bl_description = "(EDITMODE) Creates a new Line Group from the selected edges"
     bl_category = 'MeasureitArch'
 
     # ------------------------------
@@ -382,7 +382,7 @@ class AddToLineGroup(Operator):
 class AddLineByProperty(Operator):   
     bl_idname = "measureit_arch.addlinebyproperty"
     bl_label = "Add Lines By Crease"
-    bl_description = "Add Lines to Edges sharper than the specified angle OBJECT MODE ONLY"
+    bl_description = "(OBJECT MODE) Creates a Line Group from edges with a crease greater than the specified angle"
     bl_category = 'MeasureitArch'
     tag: IntProperty()
     calledFromGroup: BoolProperty(default=False)

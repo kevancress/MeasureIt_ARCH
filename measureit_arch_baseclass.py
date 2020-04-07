@@ -64,7 +64,8 @@ class BaseProp:
     lineWeight: IntProperty(name="Line Weight",
                 description="Lineweight",
                 default = 1,
-                min = 1)
+                soft_min = 1,
+                min = 0)
 
     free: BoolProperty(name="Free",
                 description="This Item is free and can be deleted",
@@ -235,7 +236,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 default=False)
 
     instance_dims: BoolProperty(name="Instance Dimensions",
-                                description="WARNING: Only the first Instances Dimension text will adapt to local changes in scale or rotation",
+                                description="WARNING: Only the most recent Instance's Dimension text will adapt to local changes in scale or rotation",
                                 default=False)
 
     eval_mods: BoolProperty(name="Evaluate Depsgraph",

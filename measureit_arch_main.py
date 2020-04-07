@@ -203,8 +203,8 @@ class MeasureitArchMainPanel(Panel):
         box.label(text="Add Lines")
 
         col = box.column(align=True)
-        col.operator("measureit_arch.addlinebutton", text="Line", icon="MESH_CUBE")
-        op = col.operator("measureit_arch.addlinebyproperty", text="Line by Crease", icon="MESH_CUBE")
+        col.operator("measureit_arch.addlinebutton", text="Line Group", icon="MESH_CUBE")
+        op = col.operator("measureit_arch.addlinebyproperty", text="Line Group by Crease", icon="MESH_CUBE")
         op.calledFromGroup = False
 
         col = box.column(align=True)

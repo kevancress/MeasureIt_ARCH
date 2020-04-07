@@ -343,7 +343,7 @@ class Line_Group_Shader_3D ():
 
             if (aaColor[3]<0.85){
                 gl_FragDepth = gl_FragCoord.z + (1-aaColor[3])/50;
-                if(aaColor[3]<0.25){
+                if(aaColor[3]<0.1){
                     discard;
                 }
         
