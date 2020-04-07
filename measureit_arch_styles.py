@@ -393,7 +393,7 @@ def draw_annotation_style_settings(annotation,layout):
     col = layout.column(align=True)
     col.prop(annotation, 'lineWeight', text="Line Weight" )
     col.prop(annotation, 'inFront', text="Draw In Front")
-    col.prop(dim,'evalMods')
+    col.prop(annotation,'evalMods')
 
 def draw_dimension_style_row(dim,layout):
     row = layout.row(align=True)
