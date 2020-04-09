@@ -319,8 +319,8 @@ def draw_line_style_row(line,layout):
     subrow.prop(line, 'color',emboss=True, text="")
     subrow.separator()
     subrow = row.row(align=True)
-    subrow.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
-    subrow.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
+    #subrow.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
+    subrow.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon,emboss=False)
     subrow.prop(line, "visible", text="", icon = visIcon)
 
 def draw_line_style_settings(line,layout):

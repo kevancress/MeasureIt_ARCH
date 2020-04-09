@@ -216,8 +216,8 @@ class M_ARCH_UL_lines_list(UIList):
                 subrow.scale_x = 0.5
                 subrow.prop(line, 'color',emboss=True, text="")
                 subrow.separator()
-                row.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
-                row.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon)
+                #row.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
+                row.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon,emboss=False)
             else:
                 row.prop_search(line,'style', StyleGen,'line_groups',text="", icon='COLOR')
                 row.separator()
