@@ -1569,7 +1569,9 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 def draw_line_group(context, myobj, lineGen, mat):
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
+    
     bgl.glBlendFunc(bgl.GL_ONE,bgl.GL_ZERO)
+    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL) 
@@ -1691,13 +1693,8 @@ def draw_line_group(context, myobj, lineGen, mat):
                     tempCoords = [get_line_vertex(idx,verts,mat) for idx in lineGroup['lineBuffer']]
                     lineGroup['coordBuffer'] = tempCoords
 
-
-
-
-
             coords = []            
             coords = lineGroup['coordBuffer']
-            start = time.time ()
 
 
 
@@ -1712,6 +1709,7 @@ def draw_line_group(context, myobj, lineGen, mat):
 
                 dashedLineShader.bind()
                 dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
+                dashedLineShader.uniform_float("dashSpace", lineProps.lineDashSpace)
                 dashedLineShader.uniform_float("Viewport",viewport)
                 dashedLineShader.uniform_float("objectMatrix",mat)
                 dashedLineShader.uniform_float("thickness",hiddenLineWeight)
@@ -1732,16 +1730,12 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batchHidden.draw()
 
                 bgl.glDepthFunc(bgl.GL_LESS)
-                gpu.shader.unbind()
-                end= time.time()
-                post = ' Hidden Line Shader for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns'
-                printTime(start,end,post)
-                start = time.time ()
-            
+                gpu.shader.unbind()          
  
             if lineProps.lineDrawDashed:
                 dashedLineShader.bind()
                 dashedLineShader.uniform_float("u_Scale", lineProps.lineHiddenDashScale)
+                dashedLineShader.uniform_float("dashSpace", lineProps.lineDashSpace)
                 dashedLineShader.uniform_float("Viewport",viewport)
                 dashedLineShader.uniform_float("objectMatrix",mat)
                 dashedLineShader.uniform_float("thickness",lineWeight)
@@ -1761,10 +1755,6 @@ def draw_line_group(context, myobj, lineGen, mat):
 
                 batchDashed.program_set(dashedLineShader)
                 batchDashed.draw()
-                end= time.time()
-                post = 'All Dashed Line Shader for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns'
-                printTime(start,end,post)
-                start = time.time ()
 
             else:
                 lineGroupShader.bind()
@@ -1790,12 +1780,9 @@ def draw_line_group(context, myobj, lineGen, mat):
                 batch3d.program_set(lineGroupShader)
                 batch3d.draw()
                 gpu.shader.unbind()
-                end= time.time()
-                post = ' Line Shader for ' + str(math.ceil(len(lineGroup['lineBuffer'])/2)) + ' line segemtns'
-                #printTime(start,end,post)
-                start = time.time ()
     
     gpu.shader.unbind()
+    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
     bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)

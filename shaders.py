@@ -273,7 +273,7 @@ class Line_Group_Shader_3D ():
 
 
 
-            float radius = 0.00117 * thickness * aspect;
+            float radius = 0.00118 * thickness * aspect;
             int segments = int(thickness) + 5;
 
             const float PI = 3.1415926;
@@ -281,7 +281,7 @@ class Line_Group_Shader_3D ():
             gl_Position = p1;
             mTexCoord = vec2(0,0.5);
             EmitVertex();
-            segments = clamp(segments,0,30);
+            segments = clamp(segments,0,40);
 
             for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
@@ -337,12 +337,13 @@ class Line_Group_Shader_3D ():
             float delta = fwidth(distFromEdge);
             float threshold = 1.5*delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
-            aa = smoothstep(0,1,aa);
+            aa = smoothstep(0,1,aa*aa);
 
             aaColor = mix(mixColor,finalColor,aa);
 
             if (aaColor[3]<0.85){
-                gl_FragDepth = gl_FragCoord.z + (1-aaColor[3])/50;
+                gl_FragDepth = gl_FragCoord.z + (1-aaColor[3])/100;
+                //gl_FragDepth = gl_FragCoord.z;
                 if(aaColor[3]<0.1){
                     discard;
                 }
@@ -451,6 +452,7 @@ class Dashed_Shader_3D ():
         in vec2 mTexCoord;
         uniform float u_Scale;
         uniform vec4 finalColor;
+        uniform float dashSpace;
         
         in float g_ArcLength;
         out vec4 fragColor;
@@ -473,7 +475,8 @@ class Dashed_Shader_3D ():
 
             fragColor = aaColor;
 
-            if (step(sin(g_ArcLength * u_Scale), 0.5) == 1) discard;
+            float mapdashSpace = 2*dashSpace - 1;
+            if (step(sin(g_ArcLength * u_Scale), mapdashSpace) == 1) discard;
             fragColor = aaColor;
         }
     '''

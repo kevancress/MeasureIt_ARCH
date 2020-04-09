@@ -73,6 +73,12 @@ class LineProperties(BaseProp, PropertyGroup):
                         default= 10,
                         min = 0)
 
+    lineDashSpace: FloatProperty(name="Dash Spacing",
+    description="Dash Spacing",
+    default= 0.5,
+    min = 0,
+    max = 1)
+
     isOutline: BoolProperty(name= "Is Outline",
                         description= "Line Group Is For Drawing Outlines",
                         default=False)
@@ -294,6 +300,7 @@ class OBJECT_PT_UILines(Panel):
                             if line.lineDrawDashed or line.lineDrawHidden: col.enabled = True
                             else: col.enabled = False
                             col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+                            col.prop(line, 'lineDashSpace',text="Dash Spacing")
 
                             col = box.column(align=True)
                             col.prop(line, 'lineDrawDashed', text="Draw Dashed")
