@@ -318,29 +318,13 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(scene, "measureit_arch_debug_text")
         col.prop(sceneProps, "eval_mods")
         col.prop(sceneProps, "instance_dims")
-        col.prop(sceneProps, "debug_flip_text")
+        #col.prop(sceneProps, "debug_flip_text")
 
         # Measureit-ARCH Legacy Overrides
         # Overrides need to be re-implimented in the new version
 
         #col.label(text = 'Override:')
-        #col.prop(scene, 'measureit_arch_scale', text="Scale",toggle=True,icon="EMPTY_ARROWS")
         #col.prop(scene, 'measureit_arch_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
-        if scene.measureit_arch_scale is True:
-            scaleBox = layout.box()
-            scaleBox.label(text='Scale Override')
-            col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_scale_color', text="Color")
-            col.prop(scene, 'measureit_arch_scale_factor', text="Factor")
-
-            col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_gl_scaletxt', text="Text")
-            col.prop(scene, 'measureit_arch_scale_font', text="Font Size")
-            col.prop(scene, 'measureit_arch_scale_precision', text="Precision")
-            
-            col = scaleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_scale_pos_x')
-            col.prop(scene, 'measureit_arch_scale_pos_y')
 
         if scene.measureit_arch_ovr is True:
             styleBox = layout.box()
