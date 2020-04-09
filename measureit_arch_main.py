@@ -320,23 +320,6 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(sceneProps, "instance_dims")
         #col.prop(sceneProps, "debug_flip_text")
 
-        # Measureit-ARCH Legacy Overrides
-        # Overrides need to be re-implimented in the new version
-
-        #col.label(text = 'Override:')
-        #col.prop(scene, 'measureit_arch_ovr', text="Style",toggle=True,icon="TRACKING_FORWARDS_SINGLE")
-
-        if scene.measureit_arch_ovr is True:
-            styleBox = layout.box()
-            styleBox.label(text='Style Override')
-            col = styleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_ovr_color', text="Colour")
-            col.prop(scene, 'measureit_arch_ovr_width', text="Width")
-            col = styleBox.column(align = True)
-            col.prop(scene, 'measureit_arch_ovr_font', text="Font Size")
-            col.prop(scene, 'measureit_arch_ovr_font_align', text="Alignment")
-            if scene.measureit_arch_ovr_font_align == 'L':
-                col.prop(scene, 'measureit_arch_ovr_font_rotation', text="Rotation")
 
 
 # -------------------------------------------------------------
