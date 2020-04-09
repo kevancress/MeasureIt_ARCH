@@ -474,7 +474,7 @@ class Dashed_Shader_3D ():
             aaColor[3] = mix(0,finalColor[3],aa);
 
             fragColor = aaColor;
-
+            
             float mapdashSpace = 2*dashSpace - 1;
             if (step(sin(g_ArcLength * u_Scale), mapdashSpace) == 1) discard;
             fragColor = aaColor;

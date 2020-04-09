@@ -29,6 +29,7 @@ import bmesh
 import bgl
 import gpu
 from bmesh import from_edit_mesh
+from math import degrees, radians
 from gpu_extras.batch import batch_for_shader
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
@@ -394,7 +395,7 @@ class AddLineByProperty(Operator):
     tag: IntProperty()
     calledFromGroup: BoolProperty(default=False)
     includeNonManifold: BoolProperty(default=True)
-    creaseAngle: FloatProperty()
+    creaseAngle: FloatProperty(default=radians(30),subtype='ANGLE')
 
     # ------------------------------
     # Poll
@@ -444,7 +445,7 @@ class AddLineByProperty(Operator):
                         lGroup.lineWeight = 1     
                         lGroup.lineColor = scene.measureit_arch_default_color
                         lGroup.name = 'Line ' + str(len(lineGen.line_groups))
-                        angle = obj.data.auto_smooth_angle
+                        angle = self.creaseAngle
                         vertsToAdd=[]
                         
                         # Create a Bmesh Instance from the selected object
@@ -491,7 +492,7 @@ class AddLineByProperty(Operator):
         mesh = context.object.data
         layout = self.layout
         col = layout.column()
-        col.prop(mesh,'auto_smooth_angle', text= 'Set Crease Angle')
+        col.prop(self,'creaseAngle', text= 'Set Crease Angle')
         col.prop(self,'includeNonManifold', text= 'Add Lines to Non-Manifold Edges?')
 
 class RemoveFromLineGroup(Operator):   
