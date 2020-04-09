@@ -480,7 +480,12 @@ def draw_main(context):
                                 annotationProps = annotationStyle
                     if annotation.annotationTextSource is not '':
                         try:
-                            annotation.text = myobj[annotation.annotationTextSource]
+                            if len(annotation.textFields)>1:
+                                annotation.textFields[0].text = annotation.annotationTextSource
+                                annotation.textFields[1].text = str(myobj[annotation.annotationTextSource])
+                            else:
+                                 annotation.textFields[0].text = str(myobj[annotation.annotationTextSource])
+
                         except:
                             pr = scene.measureit_arch_gl_precision
                             fmt = "%1." + str(pr) + "f"
