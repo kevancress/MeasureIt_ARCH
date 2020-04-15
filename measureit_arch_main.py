@@ -468,7 +468,7 @@ def draw_main(context):
                             if dimStyle.name == arcDim.style:
                                 dimProps= dimStyle
                     update_text(textobj=arcDim,props=dimProps,context=context)
-            
+        
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
                 for idx in range(0, annotationGen.num_annotations):
@@ -483,7 +483,7 @@ def draw_main(context):
                             if len(annotation.textFields)>1:
                                 annotation.textFields[0].text = annotation.annotationTextSource
                                 annotation.textFields[1].text = str(myobj[annotation.annotationTextSource])
-                            else:
+                            else:  
                                  annotation.textFields[0].text = str(myobj[annotation.annotationTextSource])
 
                         except:
@@ -544,6 +544,14 @@ def draw_main(context):
                                     dimProps= dimStyle
                         update_text(textobj=arcDim,props=dimProps,context=context)
 
+    # Reset Style Update Flags
+    StyleGen = context.scene.StyleGenerator
+    dimStyles = StyleGen.alignedDimensions
+    annoStyles = StyleGen.annotations
+    for style in annoStyles:
+        style.text_updated = False
+    for style in dimStyles:
+        style.text_updated = False
 
 def draw_main_3d (context):
    
@@ -668,19 +676,17 @@ def get_selected_vertex(myobject):
         flag = True
 
     bm = from_edit_mesh(myobject.data)
-    tv = len(bm.verts)
-    for v in bm.verts:
-        if v.select:
+    for v in bm.select_history:
+        if len(mylist)==0:mylist.extend([v.index])
+        else:
             mylist.extend([v.index])
+            mylist.extend([v.index])
+        
 
     if flag is True:
         bpy.ops.object.editmode_toggle()
     # Back context object
     bpy.context.view_layer.objects.active = oldobj
-
-    # if select all vertices, then use origin
-    if tv == len(mylist):
-        return []
 
     return mylist
 

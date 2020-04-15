@@ -225,9 +225,12 @@ class AddAlignedDimensionButton(Operator):
             # Edit Context
             if bpy.context.mode == 'EDIT_MESH':
                 for mainobject in context.objects_in_mode:
-                    mylist = get_smart_selected(mainobject)
-                    if len(mylist) < 2:  # if not selected linked vertex
-                        mylist = get_selected_vertex(mainobject)
+                    mylist = []
+                    selectionMode = bpy.context.scene.tool_settings.mesh_select_mode
+                    if selectionMode[1]:
+                        mylist = get_smart_selected(mainobject) # Operates on Bmesh Edges
+                    elif selectionMode[0]:
+                        mylist = get_selected_vertex(mainobject) 
                     if len(mylist) >= 2:
                         #Check Generators
                         if 'DimensionGenerator' not in mainobject:
@@ -236,6 +239,10 @@ class AddAlignedDimensionButton(Operator):
                             scene.StyleGenerator.add()
 
                         DimGen = mainobject.DimensionGenerator[0]
+                        masterDimOffset = 0
+                        masterDimFontSize = 0
+                        masterDimEndCapSize = 0
+                        masterDimLeaderOffset = 0
 
                         for x in range(0, len(mylist) - 1, 2):
                             if exist_segment(DimGen, mylist[x], mylist[x + 1]) is False:
@@ -254,11 +261,24 @@ class AddAlignedDimensionButton(Operator):
                                 distVector = Vector(p1)-Vector(p2)
                                 dist = distVector.length
 
-                                newDimension.endcapSize= math.ceil(dist*3)
-                                newDimension.fontSize= math.ceil(dist*15)
-                                newDimension.dimOffset = dist/4
-                                newDimension.dimLeaderOffset = dist/30
+                                if len(mylist)<2 or masterDimOffset == 0:    
+                                    newDimension.endcapSize= math.ceil(dist*3)
+                                    masterDimEndCapSize = math.ceil(dist*3)
 
+                                    newDimension.fontSize= math.ceil(dist*15)
+                                    masterDimFontSize = math.ceil(dist*15)
+                                    
+                                    newDimension.dimOffset = dist/4
+                                    masterDimOffset = dist/4
+
+                                    newDimension.dimLeaderOffset = dist/30
+                                    masterDistance = dist/30
+
+                                else:
+                                    newDimension.endcapSize= masterDimEndCapSize
+                                    newDimension.fontSize= masterDimFontSize
+                                    newDimension.dimOffset = masterDimOffset
+                                    newDimension.dimLeaderOffset = masterDimLeaderOffset
 
                                 newDimension.name = 'Dimension ' + str(len(DimGen.alignedDimensions))
                                 newDimensions.append(newDimension)
@@ -488,9 +508,12 @@ class AddAxisDimensionButton(Operator):
             # Edit Context
             if bpy.context.mode == 'EDIT_MESH':
                 for mainobject in context.objects_in_mode:
-                    mylist = get_smart_selected(mainobject)
-                    if len(mylist) < 2:  # if not selected linked vertex
-                        mylist = get_selected_vertex(mainobject)
+                    mylist = []
+                    selectionMode = bpy.context.scene.tool_settings.mesh_select_mode
+                    if selectionMode[1]:
+                        mylist = get_smart_selected(mainobject) # Operates on Bmesh Edges
+                    elif selectionMode[0]:
+                        mylist = get_selected_vertex(mainobject) 
                     if len(mylist) >= 2:
                         #Check Generators
                         if 'DimensionGenerator' not in mainobject:

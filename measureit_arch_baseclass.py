@@ -111,7 +111,7 @@ class TextField(PropertyGroup):
     textHeight: IntProperty(name='annotationHeight',
                 description= 'Height of annotation')
 
-    texture_updated: BoolProperty(name='text_updated',
+    texture_updated: BoolProperty(name='texture_updated',
             description= 'flag when text texture need to be redrawn',
             default = False)
 
@@ -146,8 +146,8 @@ class BaseWithText(BaseProp):
     textResolution: IntProperty(name="Annotation Resolution",
                 description="Annotation Resolution",
                 default=150,
-                min=50,
-                max=1200,
+                soft_min=50,
+                soft_max=1200,
                 update = update_flag)
 
     font: PointerProperty(type= bpy.types.VectorFont,

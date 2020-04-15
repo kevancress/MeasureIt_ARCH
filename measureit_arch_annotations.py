@@ -303,7 +303,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
                             col.prop(annotation, 'textResolution', text="Resolution")
                             col.prop(annotation, 'fontSize', text="Size") 
-                            col.prop(annotation, 'textAlignment', text='Alignment')
+                            col.prop(annotation, 'textAlignment', text='Justification')
                             col.prop(annotation, 'textPosition', text='Position')
 
                             col = box.column(align=True)

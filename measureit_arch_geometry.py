@@ -95,10 +95,10 @@ def update_text(textobj, props, context):
     update_flag = False
 
     for textField in textobj.textFields:
-        if textField.text_updated:
-            update_flag = True
+        if textobj.text_updated or props.text_updated:
+            textField.text_updated = True
 
-        if textobj.text_updated or textField.text_updated or props.text_updated or update_flag:
+        if textField.text_updated:
             # Get textitem Properties
             rawRGB = props.color
             rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
@@ -176,7 +176,7 @@ def update_text(textobj, props, context):
                 image = bpy.data.images[str('test')]
                 image.scale(width, height)
                 image.pixels = [v / 255 for v in texture_buffer]
-
+    textobj.text_updated = False    
 def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
@@ -364,6 +364,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         gpu.shader.unbind()
         
         #Reset openGL Settings
+
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
 
@@ -1514,14 +1515,22 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
         #get Adjacent Face normals if possible
         possibleNormals = []
         faces = myobj.data.polygons
-        if len(faces)<2000:    
-            for face in myobj.data.polygons:
-                if dim.dimPointA in face.vertices and dim.dimPointB in face.vertices:
-                    worldNormal = myobj.matrix_local@Vector(face.normal)
-                    worldNormal -= myobj.location
-                    worldNormal.normalize()
-                    possibleNormals.append(worldNormal)
-                        
+        # Create a Bmesh Instance from the selected object
+        bm = bmesh.new()
+        bm.from_mesh(myobj.data)
+        bm.edges.ensure_lookup_table()
+
+        # For each edge get its linked faces and vertex indicies
+        for edge in bm.edges:
+            bmEdgeIndices = [edge.verts[0].index,edge.verts[1].index]
+            if dim.dimPointA in bmEdgeIndices and dim.dimPointB in bmEdgeIndices:
+                linked_faces = edge.link_faces
+                for face in linked_faces:
+                    possibleNormals.append(face.normal)
+
+        bm.free()
+       
+
         # Check if Face Normals are available
         if len(possibleNormals) != 2: badNormals = True
         else:
