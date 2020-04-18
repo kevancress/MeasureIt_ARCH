@@ -120,7 +120,6 @@ class RenderSegmentButton(Operator):
         if render_main(self, context) is True:
             self.report({'INFO'}, msg)
 
-        
         return {'FINISHED'}
 
     # ---------------------
@@ -387,7 +386,7 @@ def render_main(self, context, animation=False):
 
     # restore default value
     sceneProps.is_render_draw = False
-
+    return True
 # -------------------------------------
 # Save image to file
 # -------------------------------------

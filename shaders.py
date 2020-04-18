@@ -272,7 +272,6 @@ class Line_Group_Shader_3D ():
             ssp1 = vec2(p1.xy / p1.w);
 
 
-
             float radius = 0.00118 * thickness * aspect;
             int segments = int(thickness) + 5;
 
@@ -341,10 +340,10 @@ class Line_Group_Shader_3D ():
 
             aaColor = mix(mixColor,finalColor,aa);
 
-            if (aaColor[3]<0.85){
+            if (aa<0.85){
                 gl_FragDepth = gl_FragCoord.z + (1-aaColor[3])/100;
                 //gl_FragDepth = gl_FragCoord.z;
-                if(aaColor[3]<0.1){
+                if(aa<0.1){
                     discard;
                 }
         

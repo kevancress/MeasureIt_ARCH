@@ -136,14 +136,17 @@ class AddAnnotationButton(Operator):
     # Execute button action
     # ------------------------------
     def execute(self, context):
+        emptyAnnoFlag = False
         if context.area.type == 'VIEW_3D':
             scene = context.scene
             # Add properties
             mainobject = context.object
             if len(context.selected_objects) == 0:
                 cursorLoc = bpy.context.scene.cursor.location
-                newEmpty = bpy.ops.object.empty_add(type='SPHERE', radius=0.05, location=cursorLoc)
+                newEmpty = bpy.ops.object.empty_add(type='SPHERE', radius=0.01, location=cursorLoc)
+                context.object.name = 'Annotation Empty'
                 mainobject = context.object
+                emptyAnnoFlag = True
 
             if 'AnnotationGenerator' not in mainobject:
                 mainobject.AnnotationGenerator.add()
@@ -172,12 +175,18 @@ class AddAnnotationButton(Operator):
             
             newAnnotation.itemType = 'A'
             newAnnotation.annotationAnchorObject = mainobject
-            newAnnotation.style = scene.measureit_arch_default_annotation_style
+            
             
             if scene.measureit_arch_default_annotation_style is not '':
                 newAnnotation.uses_style = True
+                newAnnotation.style = scene.measureit_arch_default_annotation_style
             else:
                 newAnnotation.uses_style = False
+
+            if emptyAnnoFlag:
+                newAnnotation.annotationOffset = (0,0,0)
+                newAnnotation.textAlignment = 'C'
+                newAnnotation.lineWeight = 0
 
             newAnnotation.name = ("Annotation " + str(annotationGen.num_annotations))
             field = newAnnotation.textFields.add()
@@ -185,7 +194,6 @@ class AddAnnotationButton(Operator):
             field2 = newAnnotation.textFields.add()
             field2.text = ("")
 
-            newAnnotation.lineWeight = 1
             newAnnotation.color = (0,0,0,1)
             newAnnotation.fontSize = 24
             return {'FINISHED'}
@@ -365,6 +373,7 @@ class AddTextField(Operator):
                 textFields.remove(len(textFields)-1)
             return {'FINISHED'}
         return {'FINISHED'}
+
 class TranlateAnnotationOp(bpy.types.Operator):
     """Move Annotation"""
     bl_idname = "measureit_arch.translate_annotation"
