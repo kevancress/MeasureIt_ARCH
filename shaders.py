@@ -168,14 +168,6 @@ class Line_Group_Shader_3D ():
 
         uniform mat4 ModelViewProjectionMatrix;
         in vec3 pos;
-        //in vec4 colorIn;
-
-        
-        // Interface block to send color and thickness to geometry shader
-
-        // out VS_OUT {
-        //     vec4 color;
-        //} vs_out;
 
         void main()
         {
@@ -188,12 +180,7 @@ class Line_Group_Shader_3D ():
 
     geometry_shader = '''
         layout(lines) in;
-        layout(triangle_strip, max_vertices = 100) out;
-        //out vec4 fcolor;
-
-        //in VS_OUT {
-        //    vec4 color;
-        //} gs_in[];
+        layout(triangle_strip, max_vertices = 64) out;
 
         uniform mat4 ModelViewProjectionMatrix;
         uniform mat4 objectMatrix;
@@ -226,7 +213,6 @@ class Line_Group_Shader_3D ():
 
             p1Ext = p1project + vecOffset;
             p2Ext = p2project + vecOffset;
-            
             vec2 ssp1 = vec2(p1Ext.xy / p1Ext.w);
             vec2 ssp2 = vec2(p2Ext.xy / p2Ext.w);
 
@@ -234,36 +220,37 @@ class Line_Group_Shader_3D ():
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
+            normal.x /= aspect; 
+            normal = normalize(normal);
 
             // get offset factor from normal and user input thickness
-            vec2 offset = vec2(normal * width);
-            offset.x /= aspect;
+            vec2 lineOffset = vec2(normal * width);
+            lineOffset.x /= aspect;
             
             // generate rect
             vec4 coords[4];
             //vec4 colors[4];
             vec2 texCoords[4];
 
-            coords[0] = vec4((ssp1 + offset)*p1Ext.w,p1Ext.z,p1Ext.w);
+            coords[0] = vec4((ssp1 + lineOffset)*p1Ext.w,p1Ext.z,p1Ext.w);
             //colors[0] = gs_in[0].color;
             texCoords[0] = vec2(0,1);
 
-            coords[1] = vec4((ssp1 - offset)*p1Ext.w,p1Ext.z,p1Ext.w);
+            coords[1] = vec4((ssp1 - lineOffset)*p1Ext.w,p1Ext.z,p1Ext.w);
             //colors[1] = gs_in[0].color;
             texCoords[1] = vec2(0,0);
 
-            coords[2] = vec4((ssp2 + offset)*p2Ext.w,p2Ext.z,p2Ext.w);
+            coords[2] = vec4((ssp2 + lineOffset)*p2Ext.w,p2Ext.z,p2Ext.w);
             //colors[2] = gs_in[1].color;
             texCoords[2] = vec2(0,1);
 
-            coords[3] = vec4((ssp2 - offset)*p2Ext.w,p2Ext.z,p2Ext.w);
+            coords[3] = vec4((ssp2 - lineOffset)*p2Ext.w,p2Ext.z,p2Ext.w);
             //colors[3] = gs_in[1].color;
             texCoords[3] = vec2(0,0);
 
 
             
             //Draw Point pass First
-            p1 =  gl_in[0].gl_Position;
             //fcolor = gs_in[0].color;
             vec4 worldPos = objectMatrix * p1;
             vec4 project = ModelViewProjectionMatrix * worldPos;
@@ -280,17 +267,17 @@ class Line_Group_Shader_3D ():
             gl_Position = p1;
             mTexCoord = vec2(0,0.5);
             EmitVertex();
-            segments = clamp(segments,0,40);
+            segments = clamp(segments,0,28);
 
             for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
                 float ang = PI * 2.0 / segments * i;
 
                 // Offset from center of point
-                offset = vec2(cos(ang)*radius, -sin(ang)*radius);
-                offset.x /= aspect;
+                vec2 circleOffset = vec2(cos(ang)*radius, -sin(ang)*radius);
+                circleOffset.x /= aspect;
                 mTexCoord = vec2(0,0.9);
-                gl_Position = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
+                gl_Position = vec4((ssp1 + circleOffset)*p1.w,p1.z,p1.w);
                 EmitVertex();
 
                 gl_Position = p1;
