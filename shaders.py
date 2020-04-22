@@ -106,6 +106,8 @@ class Line_Shader_3D ():
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
+            normal.x /= aspect;
+            normal = normalize(normal);
 
             // get offset factor from normal and user input thickness
             vec2 offset = vec2(normal * width);
@@ -189,7 +191,10 @@ class Line_Group_Shader_3D ():
         uniform float extension;
         uniform float offset;
 
+        const float PI = 3.1415926;
+
         out vec2 mTexCoord;
+
         float aspect = Viewport.x/Viewport.y;
 
         void main() {
@@ -198,21 +203,23 @@ class Line_Group_Shader_3D ():
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
 
-            vec4 dir3d = normalize(p2-p1);
+            vec4 dir3d = vec4(normalize(p2.xyz-p1.xyz),0);
 
-            vec4 p1Ext = vec4(p1-dir3d*extension*0.01);
-            vec4 p2Ext = vec4(p2+dir3d*extension*0.01);
+            float extAmount = extension * 0.01;
+
+            vec4 p1ExtLocal = vec4(p1 - dir3d*extAmount);
+            vec4 p2ExtLocal = vec4(p2 + dir3d*extAmount);
             
-            vec4 p1worldPos = objectMatrix * p1Ext;
+            vec4 p1worldPos = objectMatrix * p1ExtLocal;
             vec4 p1project = ModelViewProjectionMatrix * p1worldPos;
 
-            vec4 p2worldPos = objectMatrix * p2Ext;
+            vec4 p2worldPos = objectMatrix * p2ExtLocal;
             vec4 p2project = ModelViewProjectionMatrix * p2worldPos;
 
             vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
 
-            p1Ext = p1project + vecOffset;
-            p2Ext = p2project + vecOffset;
+            vec4 p1Ext = p1project + vecOffset;
+            vec4 p2Ext = p2project + vecOffset;
             vec2 ssp1 = vec2(p1Ext.xy / p1Ext.w);
             vec2 ssp2 = vec2(p2Ext.xy / p2Ext.w);
 
@@ -220,7 +227,7 @@ class Line_Group_Shader_3D ():
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
-            normal.x /= aspect; 
+            normal.x /= aspect;
             normal = normalize(normal);
 
             // get offset factor from normal and user input thickness
@@ -229,45 +236,36 @@ class Line_Group_Shader_3D ():
             
             // generate rect
             vec4 coords[4];
-            //vec4 colors[4];
             vec2 texCoords[4];
 
             coords[0] = vec4((ssp1 + lineOffset)*p1Ext.w,p1Ext.z,p1Ext.w);
-            //colors[0] = gs_in[0].color;
             texCoords[0] = vec2(0,1);
 
             coords[1] = vec4((ssp1 - lineOffset)*p1Ext.w,p1Ext.z,p1Ext.w);
-            //colors[1] = gs_in[0].color;
             texCoords[1] = vec2(0,0);
 
             coords[2] = vec4((ssp2 + lineOffset)*p2Ext.w,p2Ext.z,p2Ext.w);
-            //colors[2] = gs_in[1].color;
             texCoords[2] = vec2(0,1);
 
             coords[3] = vec4((ssp2 - lineOffset)*p2Ext.w,p2Ext.z,p2Ext.w);
-            //colors[3] = gs_in[1].color;
             texCoords[3] = vec2(0,0);
 
 
-            
             //Draw Point pass First
-            //fcolor = gs_in[0].color;
+            float radius = 0.00118 * thickness * aspect;
+
             vec4 worldPos = objectMatrix * p1;
             vec4 project = ModelViewProjectionMatrix * worldPos;
 
-            p1 = project + vecOffset;
-            ssp1 = vec2(p1.xy / p1.w);
+            vec4 pointCenter = project + vecOffset;
+            vec2 sspC = vec2(pointCenter.xy / pointCenter.w);
 
-
-            float radius = 0.00118 * thickness * aspect;
             int segments = int(thickness) + 5;
+            segments = clamp(segments,0,28);
 
-            const float PI = 3.1415926;
-            
-            gl_Position = p1;
+            gl_Position = pointCenter;
             mTexCoord = vec2(0,0.5);
             EmitVertex();
-            segments = clamp(segments,0,28);
 
             for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
@@ -277,10 +275,10 @@ class Line_Group_Shader_3D ():
                 vec2 circleOffset = vec2(cos(ang)*radius, -sin(ang)*radius);
                 circleOffset.x /= aspect;
                 mTexCoord = vec2(0,0.9);
-                gl_Position = vec4((ssp1 + circleOffset)*p1.w,p1.z,p1.w);
+                gl_Position = vec4((sspC + circleOffset)*pointCenter.w, pointCenter.z, pointCenter.w);
                 EmitVertex();
 
-                gl_Position = p1;
+                gl_Position = pointCenter;
                 mTexCoord = vec2(0,0.5);
                 EmitVertex();
             }
@@ -292,7 +290,6 @@ class Line_Group_Shader_3D ():
             for (int i = 0; i < 4; ++i) {
                 mTexCoord = texCoords[i];
                 gl_Position = coords[i];
-                //fcolor = colors[i];
                 EmitVertex();
             }
             EndPrimitive();
