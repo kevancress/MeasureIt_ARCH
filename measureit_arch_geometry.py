@@ -97,6 +97,9 @@ def get_dim_tag(self,obj):
             elif itemType == 'D-AXIS':
                 if self == dimGen.axisDimensions[wrap.itemIndex]:
                     return idx
+            elif itemType == 'D-ARC':
+                if self == dimGen.arcDimensions[wrap.itemIndex]:
+                    return idx
         idx += 1
 
 
@@ -105,6 +108,7 @@ def recalc_dimWrapper_index(dimGen):
     id_aligned = 0
     id_angle = 0
     id_axis = 0
+    id_arc = 0
     for dim in wrappedDimensions:
         if dim.itemType == 'D-ALIGNED':
             dim.itemIndex = id_aligned
@@ -114,6 +118,9 @@ def recalc_dimWrapper_index(dimGen):
             id_angle += 1
         elif dim.itemType == 'D-AXIS':
             dim.itemIndex = id_axis
+            id_axis += 1
+        elif dim.itemType == 'D-ARC':
+            dim.itemIndex = id_arc
             id_axis += 1
 
 
@@ -208,6 +215,7 @@ def update_text(textobj, props, context):
                 image.scale(width, height)
                 image.pixels = [v / 255 for v in texture_buffer]
     textobj.text_updated = False    
+
 def draw_alignedDimension(context, myobj, measureGen, dim, mat):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
@@ -1254,9 +1262,24 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         offset = 0.001
         radius = dim.dimOffset
 
-        p1 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointA,dimProps.evalMods), myobj,mat))
-        p2 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointB,dimProps.evalMods), myobj,mat))
-        p3 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointC,dimProps.evalMods), myobj,mat))
+        deleteFlag = False
+        try:
+            p1 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointA,dimProps.evalMods), myobj,mat))
+            p2 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointB,dimProps.evalMods), myobj,mat))
+            p3 = Vector(get_point(get_mesh_vertex(myobj,dim.dimPointC,dimProps.evalMods), myobj,mat))
+        except IndexError:
+            print('Get Point Error for ' + dim.name + ' on ' + myobj.name)
+            deleteFlag = True
+
+        if deleteFlag:
+            dimGen = myobj.DimensionGenerator[0]
+            wrapTag = get_dim_tag(dim, myobj)
+            wrapper = dimGen.wrappedDimensions[wrapTag]
+            tag = wrapper.itemIndex
+            dimGen.arcDimensions.remove(tag)
+            dimGen.wrappedDimensions.remove(wrapTag)
+            recalc_dimWrapper_index(dimGen)
+            return
 
         #calc normal to plane defined by points
         vecA = (p1-p2)
@@ -1269,9 +1292,9 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         # Calculate the Arc Defined by our 3 points
         # reference for maths: http://en.wikipedia.org/wiki/Circumscribed_circle
 
-        an_p1 = p1
-        an_p2 = p2
-        an_p3 = p3
+        an_p1 = p1.copy()
+        an_p2 = p2.copy()
+        an_p3 = p3.copy()
 
         an_p12 = Vector((an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
         an_p13 = Vector((an_p1[0] - an_p3[0], an_p1[1] - an_p3[1], an_p1[2] - an_p3[2]))
@@ -1296,12 +1319,17 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         arc_angle, arc_length = get_arc_data(an_p1, a_p1, an_p2, an_p3)
         
         center = Vector(a_p1)
+        dim.arcCenter = center
+
+        # DRAW EVERYTHING AT THE ORIGIN,
+        # Well move all our coords back into place by
+        # adding back our center vector later
 
         A = Vector(p1) - center
         B = Vector(p2) - center
         C = Vector(p3) - center
 
-        #making it a circle
+        #get circle verts
         startVec = A
         arc_angle = arc_angle
         numCircleVerts = math.ceil(radius/.2)+ int((degrees(arc_angle))/2)
@@ -1329,18 +1357,26 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
 
         # Define Radius Leader
         zeroVec = Vector((0,0,0))
-        radiusLeader = B
+        radiusLeader = C.copy()
+        radiusLeader.rotate(Quaternion(norm,arc_angle/2))
         radiusMid = Vector(interpolate3d(radiusLeader,zeroVec,radius/2))
 
        
         # Generate end caps
+        # Set up properties
         filledCoords = []
         midVec = A
-        caps = (dimProps.endcapA,dimProps.endcapB,dim.endcapC)
+        caps = [dimProps.endcapA,dimProps.endcapB]
+        pos = [startVec,endVec]
+
+        if dim.showRadius:
+            caps.append(dim.endcapC)
+            pos.append(radiusLeader)
+
         capSize = dimProps.endcapSize
-        pos = (startVec,endVec,radiusLeader)
         arrowoffset =  3 + int(max(0, min(math.ceil(capSize/4), len(coords)/5)))
         mids = (coords[arrowoffset], coords[len(coords)-arrowoffset], radiusMid) #offset the arrow direction as arrow size increases
+        
         i=0
         for cap in caps:
             #def        generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
@@ -1359,13 +1395,9 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         coords.append((((C).normalized())*(offsetRadius + arrowoffset/100)))
 
          # Add Radius leader
-
-        coords.append(zeroVec)
-        coords.append(radiusLeader)
-
-        
-
-   
+        if dim.showRadius:
+            coords.append(zeroVec)
+            coords.append(radiusLeader)
 
         
         #### TEXT
@@ -1386,39 +1418,45 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
 
         # format text and update if necessary
         lengthStr = arc_code + str(format_distance(textFormat,arc_length))
-        
-        radStr = 'r ' + str(format_distance(textFormat,radius))
+        if dim.displayAsAngle:
+            if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
+                arc_angle = degrees(arc_angle)
+            else:
+                a_code = " rad"
+            lengthStr = " " + textFormat % arc_angle
+            lengthStr += a_code
 
         if lengthText.text != str(lengthStr):
             lengthText.text = str(lengthStr)
             lengthText.text_updated = True
 
-        
-        if radiusText.text != str(lengthStr):
-            radiusText.text = str(radStr)
-            radiusText.text_updated = True
-        
-        #make Radius text card
-        width = radiusText.textWidth
-        height = radiusText.textHeight 
-    
-        midPoint = Vector(interpolate3d(zeroVec,radiusLeader,radius/2))
-        vecY =  midPoint.cross(norm).normalized()
-        vecX = midPoint.normalized()
-        resolution = dimProps.textResolution
-        size = dimProps.fontSize/fontSizeMult
-        sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.1*size
-        origin = Vector(midPoint)
-        cardX = vecX * sx
-        cardY = vecY *sy
-        tmp = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
-        square = []
-        for coord in tmp:
-            square.append(coord+center)
+        if dim.showRadius:
+            radStr = 'r ' + str(format_distance(textFormat,radius))
+            if radiusText.text != str(lengthStr):
+                radiusText.text = str(radStr)
+                radiusText.text_updated = True
             
-        if scene.measureit_arch_gl_show_d:
-            draw_text_3D(context,dim.textFields[0],dimProps,myobj,square)
+            #make Radius text card
+            width = radiusText.textWidth
+            height = radiusText.textHeight 
+        
+            midPoint = Vector(interpolate3d(zeroVec,radiusLeader,radius/2))
+            vecY =  midPoint.cross(norm).normalized()
+            vecX = midPoint.normalized()
+            resolution = dimProps.textResolution
+            size = dimProps.fontSize/fontSizeMult
+            sx = (width/resolution)*0.1*size
+            sy = (height/resolution)*0.1*size
+            origin = Vector(midPoint)
+            cardX = vecX * sx
+            cardY = vecY *sy
+            tmp = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
+            square = []
+            for coord in tmp:
+                square.append(coord+center)
+                
+            if scene.measureit_arch_gl_show_d:
+                draw_text_3D(context,dim.textFields[0],dimProps,myobj,square)
 
         #make Length text card
 
@@ -1448,6 +1486,18 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         for coord in coords:
             draw_coords.append(coord+center)
             point_coords.append(coord+center)
+
+
+        pointShader.bind()
+        pointShader.uniform_float("Viewport",viewport)
+        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        pointShader.uniform_float("offset", -offset)
+
+        pointShader.uniform_float("thickness",lineWeight)
+        batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords})
+        batch.program_set(pointShader)
+        batch.draw()
+        gpu.shader.unbind()
 
 
         lineShader.bind()
@@ -1483,34 +1533,37 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         pointShader.uniform_float("offset", -offset)
 
-        pointShader.uniform_float("thickness",lineWeight-1)
+        pointShader.uniform_float("thickness",lineWeight/2)
         batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords2})
         batch.program_set(pointShader)
         batch.draw()
 
         lineShader.bind()
-        lineShader.uniform_float("thickness",lineWeight-1)
+        lineShader.uniform_float("thickness",lineWeight/2)
         batch = batch_for_shader(lineShader, 'LINES', {"pos": draw_coords})
         batch.program_set(lineShader)
         batch.draw()
         gpu.shader.unbind()
 
 
-
-        pointCenter = [center]
-        pointShader.uniform_float("thickness",lineWeight*4)
-        batch = batch_for_shader(pointShader, 'POINTS', {"pos": pointCenter})
-        batch.program_set(pointShader)
-        batch.draw()
-
-        gpu.shader.unbind()
+        if dim.showRadius:
+            pointCenter = [center]
+            pointShader.bind()
+            pointShader.uniform_float("thickness",lineWeight*3)
+            pointShader.uniform_float("Viewport",viewport)
+            pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+            pointShader.uniform_float("offset", -0.01)
+            batch = batch_for_shader(pointShader, 'POINTS', {"pos": pointCenter})
+            batch.program_set(pointShader)
+            batch.draw()
+            gpu.shader.unbind()
 
         if len(filledCoords) != 0:
             #bind shader
             bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
             triShader.bind()
             triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", -offset) #z offset this a little to avoid zbuffering
+            triShader.uniform_float("offset", -0.01) #z offset this a little to avoid zbuffering
 
             mappedFilledCoords = []
             for coord in filledCoords:

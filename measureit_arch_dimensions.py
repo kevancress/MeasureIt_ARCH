@@ -95,6 +95,8 @@ class ArcDimensionProperties(BaseDim, PropertyGroup):
     dimPointC: IntProperty(name='dimPointC',
                     description="Angle End Vertex Index")
 
+    arcCenter: FloatVectorProperty(name='Arc Center')
+
     showLength: BoolProperty(name='Show Arc Length',
                     description='Displays the Arc Length Measurement',
                     default = True)
@@ -103,9 +105,9 @@ class ArcDimensionProperties(BaseDim, PropertyGroup):
                     description='Displays the Arc Radius and Center',
                     default = True)
 
-    showRadius: BoolProperty(name='Show Arc Radius',
-                    description='Displays the Arc Radius and Center',
-                    default = True)
+    displayAsAngle: BoolProperty(name='Display Arc Length as Angle',
+                    description='Display the Arc Length as the angle between the two extreems',
+                    default = False)
 
     endcapC: EnumProperty(
                 items=(('99', "--", "No Cap"),
@@ -892,7 +894,8 @@ class AddAngleButton(Operator):
 
         return {'CANCELLED'}
 
-class AddArcButton(Operator): #LEGACY
+class AddArcButton(Operator):
+
     bl_idname = "measureit_arch.addarcbutton"
     bl_label = "Angle"
     bl_description = "(EDITMODE only) Add a new arc measure (select 3 vertices of the arc," \
@@ -933,6 +936,7 @@ class AddArcButton(Operator): #LEGACY
                 newDimension = DimGen.arcDimensions.add()
                 newDimension.itemType = 'D-ARC'
                 newDimension.name = 'Arc ' + str(len(DimGen.arcDimensions))
+                newDimension.lineWeight = 2
                 newWrapper = DimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-ARC'
             
@@ -955,6 +959,33 @@ class AddArcButton(Operator): #LEGACY
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
+
+class CursorToArcOrigin(Operator):
+    bl_idname = "measureit_arch.cursortoarcorigin"
+    bl_label = "Cursor To Arc Origin"
+    bl_description = "Move the 3D Cursor to the Arc's Origin"
+    bl_category = 'MeasureitArch'
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        myobj = context.active_object
+        dimGen = myobj.DimensionGenerator[0]
+        activeIndex = dimGen.active_dimension_index
+        activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+        cursor = context.scene.cursor
+        
+        if activeWrapperItem.itemType == 'D-ARC':
+            arc = dimGen.arcDimensions[activeWrapperItem.itemIndex]
+            center = arc.arcCenter
+            cursor.location = center
+            return {'FINISHED'}
+        else:
+             self.report({'ERROR'},
+            "Please Select an Arc Dimension")
+        return {'CANCELLED'}
+
 
 class M_ARCH_UL_dimension_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
@@ -1146,7 +1177,6 @@ def draw_aligned_dimension_settings(dim,layout):
         col.prop(dim,'inFront', text='Draw in Front')
         col.prop(dim,'evalMods')
 
-
 def draw_bounds_dimension_settings(dim,layout):
     col = layout.column()    
 
@@ -1196,8 +1226,6 @@ def draw_bounds_dimension_settings(dim,layout):
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
         col.prop(dim,'inFront', text='Draw in Front')
 
-
-
 def draw_axis_dimension_settings(dim,layout):
     col = layout.column()    
 
@@ -1238,8 +1266,6 @@ def draw_axis_dimension_settings(dim,layout):
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
         col.prop(dim,'inFront', text='Draw in Front')
 
-
-
 def draw_angle_dimension_settings(dim,layout):
         col = layout.column()
         if dim.uses_style is False:
@@ -1278,6 +1304,8 @@ def draw_angle_dimension_settings(dim,layout):
 
 def draw_arc_dimension_settings(dim,layout):
     col = layout.column()
+    op = col.operator('measureit_arch.cursortoarcorigin')
+
     if dim.uses_style is False:
         split = layout.split(factor=0.485)
         col = split.column()
@@ -1300,13 +1328,17 @@ def draw_arc_dimension_settings(dim,layout):
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
         col.prop(dim,'textResolution',text='Resolution')
-        col.prop(dim,'textAlignment',text='Alignment')
-        col.prop(dim,'inFront', text='Draw in Front')
+        col = layout.column(align=True)
         col.prop(dim,'endcapA', text='Arrow Start')
         col.prop(dim,'endcapB', text='End')
-        col.prop(dim,'endcapC', text='End')
+        col.prop(dim,'endcapC', text='Radius')
         col.prop(dim,'endcapSize', text='Arrow Size')
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
         #col.prop(dim,'textPosition',text='Position')
+    col = layout.column(align=True)
+    col.prop(dim,'displayAsAngle')
+    col.prop(dim,'showRadius')
+    col.prop(dim,'inFront', text='Draw in Front')
+    
 
     col = layout.column(align=True)
