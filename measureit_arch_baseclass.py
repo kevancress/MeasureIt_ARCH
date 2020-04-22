@@ -136,6 +136,8 @@ bpy.utils.register_class(TextField)
 
 class BaseWithText(BaseProp):
 
+    text: StringProperty(name='legacy text')
+
     text_updated: BoolProperty(name='text_updated',
                 description= 'flag when text needs to be redrawn',
                 default = False)

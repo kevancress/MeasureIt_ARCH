@@ -471,8 +471,7 @@ def draw_main(context):
         
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
-                for idx in range(0, annotationGen.num_annotations):
-                    annotation = annotationGen.annotations[idx]
+                for annotation in annotationGen.annotations:
                     annotationProps = annotation
                     if annotation.uses_style:
                         for annotationStyle in context.scene.StyleGenerator.annotations:

@@ -1883,8 +1883,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
         viewport = [context.area.width,context.area.height]
     
 
-    for idx in range(0, annotationGen.num_annotations):
-        annotation = annotationGen.annotations[idx]
+    for annotation in annotationGen.annotations:
         annotationProps = annotation
         if annotation.uses_style:
             for annotationStyle in context.scene.StyleGenerator.annotations:
@@ -1918,10 +1917,23 @@ def draw_annotation(context, myobj, annotationGen, mat):
             lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
 
             # Get Points
-            if annotation.annotationAnchorObject.type == 'MESH':
-                p1 = get_point(get_mesh_vertex(myobj,annotation.annotationAnchor,annotationProps.evalMods), myobj,mat)
-            else:
-                p1 = mat @ Vector((0,0,0))
+            deleteFlag = False
+            try:
+                p1local = get_mesh_vertex(myobj,annotation.annotationAnchor,annotationProps.evalMods)
+                p1 = get_point(p1local, myobj,mat)
+            except IndexError: 
+                deleteFlag = True
+
+            if deleteFlag:
+                idx = 0
+                for anno in annotationGen.annotations:
+                    if annotation == anno:
+                        annotationGen.annotations.remove(idx)
+                        return
+                    idx += 1
+
+
+
 
             loc = mat.to_translation()
             diff = Vector(p1) - Vector(loc)
@@ -1946,6 +1958,12 @@ def draw_annotation(context, myobj, annotationGen, mat):
             fieldIdx = 0
             if 'textFields' not in annotation:
                 annotation.textFields.add()
+            
+            # Some Backwards Compatibility for annotations
+            if annotation.textFields[0].text == "" and annotation.name == "":
+                annotation.textFields[0].text = annotation.text
+                annotation.name = annotation.text
+
             for textField in annotation.textFields:
                 textcard = generate_text_card(context,textField,annotationProps,annotation.annotationRotation,(0,0,0))
                 heightOffset = textcard[1] - textcard[0]
@@ -2944,7 +2962,8 @@ def get_mesh_vertex(myobj,idx,evalMods):
                 if idx != 9999999:
                     raise IndexError
                 return myobj.location
-        else: myobj.location
+        else: 
+            return Vector((0,0,0))
     except AttributeError:
         print("Get Point Error")
         return None
