@@ -44,7 +44,6 @@ import numpy as np
 from array import array
 import random
 
-
 lastMode = None
 lineBatch3D = {}
 dashedBatch3D = {}
@@ -84,6 +83,38 @@ textShader = gpu.types.GPUShader(
     Text_Shader.fragment_shader)
 
 fontSizeMult = 6
+
+
+def get_dim_tag(self,obj):
+    dimGen = obj.DimensionGenerator[0]
+    itemType = self.itemType
+    idx = 0
+    for wrap in dimGen.wrappedDimensions:
+        if itemType == wrap.itemType:
+            if itemType == 'D-ALIGNED':
+                if self == dimGen.alignedDimensions[wrap.itemIndex]:
+                    return idx
+            elif itemType == 'D-AXIS':
+                if self == dimGen.axisDimensions[wrap.itemIndex]:
+                    return idx
+        idx += 1
+
+
+def recalc_dimWrapper_index(dimGen):
+    wrappedDimensions = dimGen.wrappedDimensions
+    id_aligned = 0
+    id_angle = 0
+    id_axis = 0
+    for dim in wrappedDimensions:
+        if dim.itemType == 'D-ALIGNED':
+            dim.itemIndex = id_aligned
+            id_aligned += 1
+        elif dim.itemType == 'D-ANGLE':
+            dim.itemIndex = id_angle
+            id_angle += 1
+        elif dim.itemType == 'D-AXIS':
+            dim.itemIndex = id_axis
+            id_axis += 1
 
 
 def clear_batches():
@@ -230,16 +261,36 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
             bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat
 
         # get points positions from indicies
-        if dim.dimPointA == 9999999:
-            p1 = dim.dimObjectA.location
-        else:
-            p1 = get_point(get_mesh_vertex(dim.dimObjectA,dim.dimPointA,dimProps.evalMods), dim.dimObjectA, aMatrix)
+        # noinspection PyBroadException
+        p1Local = Vector((0,0,0))
+        p2Local = Vector((0,0,0))
 
-        if dim.dimPointB == 9999999:
-            p2 = dim.dimObjectB.location
-        else:
-            p2 = get_point(get_mesh_vertex(dim.dimObjectB,dim.dimPointB,dimProps.evalMods), dim.dimObjectB, bMatrix)
+        deleteFlag = False
+        try:
+            p1Local = get_mesh_vertex(dim.dimObjectA,dim.dimPointA,dimProps.evalMods)
+        except IndexError:
+            print('p1 excepted for ' + dim.name + ' on ' + myobj.name)
+            deleteFlag = True
 
+        try:
+            p2Local = get_mesh_vertex(dim.dimObjectB,dim.dimPointB,dimProps.evalMods)
+        except IndexError:
+            print('p2 excepted for ' + dim.name + ' on ' + myobj.name)
+            deleteFlag = True
+
+        if deleteFlag:
+            dimGen = myobj.DimensionGenerator[0]
+            wrapTag = get_dim_tag(dim, myobj)
+            wrapper = dimGen.wrappedDimensions[wrapTag]
+            tag = wrapper.itemIndex
+            dimGen.alignedDimensions.remove(tag)
+            dimGen.wrappedDimensions.remove(wrapTag)
+            recalc_dimWrapper_index(dimGen)
+            return
+
+        p1 = get_point(p1Local, dim.dimObjectA,aMatrix)
+        p2 = get_point(p2Local, dim.dimObjectB,bMatrix)
+            
 
 
         #check dominant Axis
@@ -669,16 +720,38 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         if dim.dimObjectB != dim.dimObjectA:
             bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat 
 
-        if dim.dimPointA == 9999999:
-            p1 = dim.dimObjectA.location
-        else:
-            p1 = get_point(get_mesh_vertex(dim.dimObjectA,dim.dimPointA,dimProps.evalMods), dim.dimObjectA,aMatrix)
-        
-        if dim.dimPointB == 9999999:
-            p2 = dim.dimObjectB.location
-        else:
-            p2 = get_point(get_mesh_vertex(dim.dimObjectB,dim.dimPointB,dimProps.evalMods), dim.dimObjectB,bMatrix)
-        
+        p1Local = Vector((0,0,0))
+        p2Local = Vector((0,0,0))
+
+        deleteFlag = False
+        try:
+            p1Local = get_mesh_vertex(dim.dimObjectA,dim.dimPointA,dimProps.evalMods)
+        except IndexError:
+            print('p1 excepted for ' + dim.name + ' on ' + myobj.name)
+            deleteFlag = True
+
+        try:
+            p2Local = get_mesh_vertex(dim.dimObjectB,dim.dimPointB,dimProps.evalMods)
+        except IndexError:
+            print('p2 excepted for ' + dim.name + ' on ' + myobj.name)
+            deleteFlag = True
+
+        if deleteFlag:
+            dimGen = myobj.DimensionGenerator[0]
+            wrapTag = get_dim_tag(dim, myobj)
+            wrapper = dimGen.wrappedDimensions[wrapTag]
+            tag = wrapper.itemIndex
+            dimGen.axisDimensions.remove(tag)
+            dimGen.wrappedDimensions.remove(wrapTag)
+            recalc_dimWrapper_index(dimGen)
+            return
+
+            
+
+
+        p1 = get_point(p1Local, dim.dimObjectA,aMatrix)
+        p2 = get_point(p2Local, dim.dimObjectB,bMatrix)
+
         #Sort Points 
         sortedPoints = sortPoints(p1,p2)
         p1 = sortedPoints[0]
@@ -1506,10 +1579,10 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 
     # Mesh Dimension Behaviour
     if myobj.type == 'MESH':
-        if dim.dimPointA != 9999999:
+        try:
             vertA = myobj.data.vertices[dim.dimPointA]
             directionRay = vertA.normal + loc 
-        else:
+        except:
             directionRay = Vector((0,0,0))
             
         #get Adjacent Face normals if possible
@@ -2867,9 +2940,13 @@ def get_mesh_vertex(myobj,idx,evalMods):
                     verts = myobj.data.vertices
             if idx < len(verts):
                 return verts[idx].co
-            else: return None
-        else: return None 
+            else:
+                if idx != 9999999:
+                    raise IndexError
+                return myobj.location
+        else: myobj.location
     except AttributeError:
+        print("Get Point Error")
         return None
 
 def check_mods(myobj):

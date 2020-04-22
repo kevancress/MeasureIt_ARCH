@@ -234,6 +234,10 @@ class ListDeletePropButton(Operator):
         DeletePropButton.execute(self,context)
         return {'FINISHED'}
    
+
+
+
+
 class AddStyleButton(Operator):
     bl_idname = "measureit_arch.addstylebutton"
     bl_label = "Add"

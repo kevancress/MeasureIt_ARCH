@@ -85,11 +85,11 @@ def save_handler(dummy):
                         obj.DimensionGenerator[0].measureit_arch_num = 0
                 if 'axisDimensions' in dimgen:
                     for axisDim in obj.DimensionGenerator[0].axisDimensions:
-                        obj.DimensionGenerator[0].boundsDimensions.remove(0)
+                        obj.DimensionGenerator[0].axisDimensions.remove(0)
                         obj.DimensionGenerator[0].measureit_arch_num = 0
                 if 'boundsDimensions' in dimgen:
                     for boundsDim in obj.DimensionGenerator[0].boundsDimensions:
-                        obj.DimensionGenerator[0].axisDimensions.remove(0)
+                        obj.DimensionGenerator[0].boundsDimensions.remove(0)
                         obj.DimensionGenerator[0].measureit_arch_num = 0
                 if 'wrappedDimensions' in dimgen:
                     for wrapper in obj.DimensionGenerator[0].wrappedDimensions:

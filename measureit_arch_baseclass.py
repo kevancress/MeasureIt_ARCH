@@ -8,6 +8,7 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                 FloatProperty, EnumProperty, PointerProperty
 
+
 def update_flag(self,context):
     self.text_updated = True
 
@@ -27,6 +28,22 @@ def update_active_dim(self,context):
                     return
         idx += 1
     
+def recalc_dimWrapper_index(self,context):
+    dimGen = context.object.DimensionGenerator[0]
+    wrappedDimensions = dimGen.wrappedDimensions
+    id_aligned = 0
+    id_angle = 0
+    id_axis = 0
+    for dim in wrappedDimensions:
+        if dim.itemType == 'D-ALIGNED':
+            dim.itemIndex = id_aligned
+            id_aligned += 1
+        elif dim.itemType == 'D-ANGLE':
+            dim.itemIndex = id_angle
+            id_angle += 1
+        elif dim.itemType == 'D-AXIS':
+            dim.itemIndex = id_axis
+            id_axis += 1
 
 class BaseProp:
     inFront: BoolProperty(name='inFront',
@@ -257,9 +274,6 @@ bpy.utils.register_class(MeasureItARCHSceneProps)
 Scene.MeasureItArchProps = bpy.props.PointerProperty(type=MeasureItARCHSceneProps)
 
 
-
-
-
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"
     bl_label = "Delete property"
@@ -323,6 +337,57 @@ class DeletePropButton(Operator):
                     return {'FINISHED'}
                 
         return {'FINISHED'}
+
+
+## An operator to delete corrupted dimensions
+class DeleteCorruptedProp(Operator):
+    bl_idname = "measureit_arch.deletecorruptedprop"
+    bl_label = "Delete Corrupted Property"
+    bl_description = "Delete a property"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'} 
+    tag: IntProperty()
+    item_type: StringProperty()
+    is_style: BoolProperty()
+    dimGenObj: PointerProperty(type=Object)
+
+    def execute(self, context):
+
+        Generator = self.dimGenObj.DimensionGenerator[0]
+        wrapper = Generator.wrappedDimensions[self.tag]
+
+        wrapperTag = self.tag        
+        self.item_type = wrapper.itemType
+        self.tag = wrapper.itemIndex
+
+        Generator.wrappedDimensions.remove(wrapperTag)
+        recalc_dimWrapper_index(self,context)
+
+        mainObj = context.object
+        
+        Generator = mainObj.DimensionGenerator[0]
+        Generator.measureit_arch_num -= 1
+
+        if self.item_type == 'D-ALIGNED':
+            itemGroup = Generator.alignedDimensions
+        elif self.item_type == 'D-ANGLE':
+            itemGroup = Generator.angleDimensions
+        elif self.item_type == 'D-AXIS':
+            itemGroup = Generator.axisDimensions
+        elif self.item_type == 'D-BOUNDS':
+            itemGroup = Generator.boundsDimensions
+        elif self.item_type == 'D-ARC':
+            itemGroup = Generator.arcDimensions
+            
+        # Delete element
+        itemGroup[self.tag].free = True
+        itemGroup.remove(self.tag)
+        # redraw
+        context.area.tag_redraw()
+
+
+        return {'FINISHED'}
+   
 
 class DeleteAllItemsButton(Operator):
     bl_idname = "measureit_arch.deleteallitemsbutton"

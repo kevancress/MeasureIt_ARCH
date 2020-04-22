@@ -28,7 +28,7 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UILis
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty, PointerProperty, BoolVectorProperty
 from .measureit_arch_main import *
-from .measureit_arch_baseclass import BaseWithText , BaseDim
+from .measureit_arch_baseclass import BaseWithText , BaseDim, recalc_dimWrapper_index
 from mathutils import Vector, Matrix, Euler, Quaternion
 import math
 # ------------------------------------------------------------------
@@ -137,23 +137,6 @@ class AngleDimensionProperties(BaseDim, PropertyGroup):
 
 bpy.utils.register_class(AngleDimensionProperties)
 
-
-def recalc_dimWrapper_index(self,context):
-    dimGen = context.object.DimensionGenerator[0]
-    wrappedDimensions = dimGen.wrappedDimensions
-    id_aligned = 0
-    id_angle = 0
-    id_axis = 0
-    for dim in wrappedDimensions:
-        if dim.itemType == 'D-ALIGNED':
-            dim.itemIndex = id_aligned
-            id_aligned += 1
-        elif dim.itemType == 'D-ANGLE':
-            dim.itemIndex = id_angle
-            id_angle += 1
-        elif dim.itemType == 'D-AXIS':
-            dim.itemIndex = id_axis
-            id_axis += 1
 
 # A Wrapper object so multiple dimension types can be
 # Shown in the same UI List
