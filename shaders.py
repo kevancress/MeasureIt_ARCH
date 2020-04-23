@@ -170,11 +170,17 @@ class Line_Group_Shader_3D ():
 
         uniform mat4 ModelViewProjectionMatrix;
         in vec3 pos;
+        in float weight;
+
+        out VS_OUT
+        {
+            float weightOut;
+        } vs_out;
 
         void main()
         {
            gl_Position = vec4(pos, 1.0);
-           //vs_out.color = colorIn;
+           vs_out.weightOut = weight;
         }
 
         '''
@@ -184,12 +190,17 @@ class Line_Group_Shader_3D ():
         layout(lines) in;
         layout(triangle_strip, max_vertices = 64) out;
 
+        in VS_OUT {
+            float weightOut;
+        } gs_in[]; 
+
         uniform mat4 ModelViewProjectionMatrix;
         uniform mat4 objectMatrix;
         uniform vec2 Viewport;
         uniform float thickness;
         uniform float extension;
         uniform float offset;
+        uniform float weightInfluence;
 
         const float PI = 3.1415926;
 
@@ -223,7 +234,11 @@ class Line_Group_Shader_3D ():
             vec2 ssp1 = vec2(p1Ext.xy / p1Ext.w);
             vec2 ssp2 = vec2(p2Ext.xy / p2Ext.w);
 
-            float width = 0.00118 * thickness * aspect;
+            float thickness1 = mix(thickness, gs_in[0].weightOut * thickness, weightInfluence);
+            float thickness2 = mix(thickness, gs_in[1].weightOut * thickness, weightInfluence);
+
+            float width1 = 0.00118 * thickness1 * aspect;
+            float width2 = 0.00118 * thickness2 * aspect;
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
@@ -231,28 +246,31 @@ class Line_Group_Shader_3D ():
             normal = normalize(normal);
 
             // get offset factor from normal and user input thickness
-            vec2 lineOffset = vec2(normal * width);
-            lineOffset.x /= aspect;
+            vec2 lineOffset1 = vec2(normal * width1);
+            lineOffset1.x /= aspect;
+
+            vec2 lineOffset2 = vec2(normal * width2);
+            lineOffset2.x /= aspect;
             
             // generate rect
             vec4 coords[4];
             vec2 texCoords[4];
 
-            coords[0] = vec4((ssp1 + lineOffset)*p1Ext.w,p1Ext.z,p1Ext.w);
+            coords[0] = vec4((ssp1 + lineOffset1)*p1Ext.w,p1Ext.z,p1Ext.w);
             texCoords[0] = vec2(0,1);
 
-            coords[1] = vec4((ssp1 - lineOffset)*p1Ext.w,p1Ext.z,p1Ext.w);
+            coords[1] = vec4((ssp1 - lineOffset1)*p1Ext.w,p1Ext.z,p1Ext.w);
             texCoords[1] = vec2(0,0);
 
-            coords[2] = vec4((ssp2 + lineOffset)*p2Ext.w,p2Ext.z,p2Ext.w);
+            coords[2] = vec4((ssp2 + lineOffset2)*p2Ext.w,p2Ext.z,p2Ext.w);
             texCoords[2] = vec2(0,1);
 
-            coords[3] = vec4((ssp2 - lineOffset)*p2Ext.w,p2Ext.z,p2Ext.w);
+            coords[3] = vec4((ssp2 - lineOffset2)*p2Ext.w,p2Ext.z,p2Ext.w);
             texCoords[3] = vec2(0,0);
 
 
             //Draw Point pass First
-            float radius = 0.00118 * thickness * aspect;
+            float radius = 0.00118 * thickness1 * aspect;
 
             vec4 worldPos = objectMatrix * p1;
             vec4 project = ModelViewProjectionMatrix * worldPos;

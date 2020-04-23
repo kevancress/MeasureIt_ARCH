@@ -31,7 +31,7 @@ import gpu
 from bmesh import from_edit_mesh
 from math import degrees, radians
 from gpu_extras.batch import batch_for_shader
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList, VertexGroup
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty, PointerProperty
 from bpy.app.handlers import persistent
@@ -68,6 +68,15 @@ class LineProperties(BaseProp, PropertyGroup):
                         description="Hidden Line Lineweight",
                         default= 1,
                         min = 0)
+
+    lineWeightGroup: StringProperty(name='Line Weight Group')
+
+    weightGroupInfluence: FloatProperty(name='Group Influence',
+                        min=0,
+                        soft_max=1.0,
+                        max=10,
+                        default=1,
+                        subtype='FACTOR')
     
     lineHiddenDashScale: IntProperty(name="Hidden Line Dash Scale",
                         description="Hidden Line Dash Scale",
@@ -284,7 +293,13 @@ class OBJECT_PT_UILines(Panel):
 
                     if lineGen.show_line_settings:
                         if not line.uses_style:
+
+                            col = box.column(align=True)
                             col.prop(line, 'lineWeight', text="Lineweight" )
+                            col.prop_search(line, "lineWeightGroup", context.active_object, "vertex_groups", text="Line Weight Group")
+                            col.prop(line, 'weightGroupInfluence', text="Influence")
+
+                            col = box.column(align=True)
                             col.prop(line, 'lineDepthOffset', text="Z Offset")
 
                             col = box.column(align=True)

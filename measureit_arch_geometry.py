@@ -1831,7 +1831,16 @@ def draw_line_group(context, myobj, lineGen, mat):
             coords = []            
             coords = lineGroup['coordBuffer']
 
+            ### dummy line weight group setup
+            tempWeights = []
+            if lineGroup.lineWeightGroup is not "":
 
+                vertexGroup = myobj.vertex_groups[lineGroup.lineWeightGroup]
+                for idx in lineGroup['lineBuffer']:
+                    tempWeights.append(vertexGroup.weight(idx))
+            else:
+                for idx in lineGroup['lineBuffer']:
+                    tempWeights.append(1.0)
 
             if drawHidden == True:
                 # Invert The Depth test for hidden lines
@@ -1897,6 +1906,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 lineGroupShader.uniform_float("objectMatrix",mat)
                 lineGroupShader.uniform_float("thickness",lineWeight)
                 lineGroupShader.uniform_float("extension",lineGroup.lineOverExtension)
+                lineGroupShader.uniform_float("weightInfluence",lineGroup.weightGroupInfluence)
                 lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 lineGroupShader.uniform_float("offset", -offset)
                 
@@ -1904,11 +1914,11 @@ def draw_line_group(context, myobj, lineGen, mat):
 
                 global lineBatch3D
                 batchKey = myobj.name + lineGroup.name
-                if batchKey not in lineBatch3D or recoordFlag:
-                    lineBatch3D[batchKey] = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                if batchKey not in lineBatch3D or recoordFlag or myobj.mode == 'WEIGHT_PAINT':
+                    lineBatch3D[batchKey] = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords,"weight":tempWeights})
                     batch3d = lineBatch3D[batchKey]
                 if sceneProps.is_render_draw:
-                    batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords})
+                    batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords,"weight":tempWeights})
                 else:
                     batch3d = lineBatch3D[batchKey]
                

@@ -339,56 +339,6 @@ class DeletePropButton(Operator):
                     return {'FINISHED'}
                 
         return {'FINISHED'}
-
-
-## An operator to delete corrupted dimensions
-class DeleteCorruptedProp(Operator):
-    bl_idname = "measureit_arch.deletecorruptedprop"
-    bl_label = "Delete Corrupted Property"
-    bl_description = "Delete a property"
-    bl_category = 'MeasureitArch'
-    bl_options = {'REGISTER'} 
-    tag: IntProperty()
-    item_type: StringProperty()
-    is_style: BoolProperty()
-    dimGenObj: PointerProperty(type=Object)
-
-    def execute(self, context):
-
-        Generator = self.dimGenObj.DimensionGenerator[0]
-        wrapper = Generator.wrappedDimensions[self.tag]
-
-        wrapperTag = self.tag        
-        self.item_type = wrapper.itemType
-        self.tag = wrapper.itemIndex
-
-        Generator.wrappedDimensions.remove(wrapperTag)
-        recalc_dimWrapper_index(self,context)
-
-        mainObj = context.object
-        
-        Generator = mainObj.DimensionGenerator[0]
-        Generator.measureit_arch_num -= 1
-
-        if self.item_type == 'D-ALIGNED':
-            itemGroup = Generator.alignedDimensions
-        elif self.item_type == 'D-ANGLE':
-            itemGroup = Generator.angleDimensions
-        elif self.item_type == 'D-AXIS':
-            itemGroup = Generator.axisDimensions
-        elif self.item_type == 'D-BOUNDS':
-            itemGroup = Generator.boundsDimensions
-        elif self.item_type == 'D-ARC':
-            itemGroup = Generator.arcDimensions
-            
-        # Delete element
-        itemGroup[self.tag].free = True
-        itemGroup.remove(self.tag)
-        # redraw
-        context.area.tag_redraw()
-
-
-        return {'FINISHED'}
    
 
 class DeleteAllItemsButton(Operator):
