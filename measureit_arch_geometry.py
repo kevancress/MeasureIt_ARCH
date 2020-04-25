@@ -458,8 +458,84 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
             viewport = [context.area.width, context.area.height]
 
         # Obj Properties
+        # Find the min and max points on each axis
+        maxX = None
+        minX = None
+        maxY = None
+        minY = None
+        maxZ = None
+        minZ = None
+
+        if dim.dimCollection != None:
+            collection = dim.dimCollection
+            objects = collection.all_objects
+        else:
+            objects = [myobj]
         
-        bounds = myobj.bound_box
+        for myobj in objects:
+            bounds = myobj.bound_box
+            for coord in bounds:
+                # initialize coords
+                coord = myobj.matrix_world @ Vector(coord)
+                if maxX == None:
+                    maxX = coord[0]
+                    minX = coord[0]
+                    maxY = coord[1]
+                    minY = coord[1]
+                    maxZ = coord[2]
+                    minZ = coord[2]
+                if coord[0] > maxX: maxX = coord[0]
+                if coord[0] < minX: minX = coord[0]
+                if coord[1] > maxY: maxY = coord[1]
+                if coord[1] < minY: minY = coord[1]
+                if coord[2] > maxZ: maxZ = coord[2]
+                if coord[2] < minZ: minZ = coord[2]
+
+        distX = maxX - minX
+        distY = maxY - minY
+        distZ = maxZ - minZ
+
+        p0 = Vector((minX,minY,maxZ))
+        p1 = Vector((minX,minY,minZ))
+        p2 = Vector((maxX,minY,maxZ))
+        p3 = Vector((maxX,minY,minZ))
+        p4 = Vector((maxX,maxY,maxZ))
+        p5 = Vector((maxX,maxY,minZ))
+        p6 = Vector((minX,maxY,maxZ))
+        p7 = Vector((minX,maxY,minZ))
+
+        bounds = [p0,p1,p2,p3,p4,p5,p6,p7]
+        print ("X: " + str(distX) + ", Y: " + str(distY) + ", Z: " + str(distZ))
+
+        # Points for Bounding Box
+        # 
+        #       6-----------4
+        #      /           /|
+        #     /           / |
+        #    /           /  |
+        #   0 ----------2   5           Z
+        #   |           |  /            |  y
+        #   |           | /             | /
+        #   |           |/              |/   
+        #   1-----------3               |--------X
+
+
+        # identify axis pairs
+        zpairs = [[0,1],
+                  [2,3],
+                  [4,5],
+                  [6,7]]
+        
+        xpairs = [[0,2],
+                  [1,3],
+                  [6,4],
+                  [7,5]]
+
+        ypairs = [[0,6],
+                  [1,7],
+                  [3,5],
+                  [2,4]]
+    
         measureAxis = []
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
@@ -474,27 +550,13 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
         offset = dim.dimOffset
         geoOffset = dim.dimLeaderOffset
 
-        # identify axis pairs
-        zpairs = [[0,1],
-                  [2,3],
-                  [4,5],
-                  [6,7]]
-        
-        xpairs = [[0,4],
-                  [1,5],
-                  [2,6],
-                  [3,7]]
 
-        ypairs = [[0,3],
-                  [1,2],
-                  [4,7],
-                  [5,6]]
 
         ## Select Best Pairs
 
-        diagonalPair = [2,4]
-        dp1 = myobj.matrix_world @ Vector(bounds[2])
-        dp2 = myobj.matrix_world @ Vector(bounds[4])
+        diagonalPair = [1,4]
+        dp1 = Vector(bounds[1])
+        dp2 = Vector(bounds[4])
         dplength = Vector(dp1 - dp2).length
         centerpoint = interpolate3d(dp1,dp2,dplength/2)
 
@@ -514,11 +576,9 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
             viewVec.rotate(viewRot)
             viewAxis = viewVec
 
-        bestPairs = [xpairs[2],ypairs[1],zpairs[0]]
+        bestPairs = [xpairs[2],ypairs[0],zpairs[0]]
         pairs = [xpairs,ypairs,zpairs]
 
-
-    
         # establish measure loop
         idx = 0
         selectionVectors = [k,i,j]
@@ -527,8 +587,8 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 # get points 
                 axisViewVec = viewVec.copy()
                 axisViewVec[idx] = 0
-                p1 = myobj.matrix_world @ Vector(bounds[bestPairs[idx][0]])
-                p2 = myobj.matrix_world @ Vector(bounds[bestPairs[idx][1]])
+                p1 = Vector(bounds[bestPairs[idx][0]])
+                p2 = Vector(bounds[bestPairs[idx][1]])
 
                 #check dominant Axis
                 sortedPoints = sortPoints(p1, p2)
@@ -1221,7 +1281,6 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
 
-
 def draw_arcDimension(context, myobj, DimGen, dim,mat):
     
     dimProps = dim
@@ -1447,7 +1506,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             size = dimProps.fontSize/fontSizeMult
             sx = (width/resolution)*0.1*size
             sy = (height/resolution)*0.1*size
-            origin = Vector(midPoint)
+            origin = Vector(midPoint) + 0.04*vecY
             cardX = vecX * sx
             cardY = vecY *sy
             tmp = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
@@ -1487,12 +1546,11 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             draw_coords.append(coord+center)
             point_coords.append(coord+center)
 
-
+        # Draw Our Measurement
         pointShader.bind()
         pointShader.uniform_float("Viewport",viewport)
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         pointShader.uniform_float("offset", -offset)
-
         pointShader.uniform_float("thickness",lineWeight)
         batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords})
         batch.program_set(pointShader)
@@ -1512,7 +1570,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         gpu.shader.unbind()
 
         # Draw the arc itself
-        Coords = []
+        coords = []
         startVec = (verts[0]*radius)
         coords.append(startVec)
         for vert in verts:
@@ -1532,14 +1590,14 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         pointShader.uniform_float("Viewport",viewport)
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         pointShader.uniform_float("offset", -offset)
-
-        pointShader.uniform_float("thickness",lineWeight/2)
+        pointShader.uniform_float("thickness",lineWeight*3)
         batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords2})
         batch.program_set(pointShader)
         batch.draw()
+        gpu.shader.unbind()
 
         lineShader.bind()
-        lineShader.uniform_float("thickness",lineWeight/2)
+        lineShader.uniform_float("thickness",lineWeight*3)
         batch = batch_for_shader(lineShader, 'LINES', {"pos": draw_coords})
         batch.program_set(lineShader)
         batch.draw()
@@ -1549,7 +1607,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         if dim.showRadius:
             pointCenter = [center]
             pointShader.bind()
-            pointShader.uniform_float("thickness",lineWeight*3)
+            pointShader.uniform_float("thickness",lineWeight*5)
             pointShader.uniform_float("Viewport",viewport)
             pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             pointShader.uniform_float("offset", -0.01)
@@ -1581,7 +1639,6 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         #Reset openGL Settings
         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
-
 
 def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     #Set properties
@@ -2029,7 +2086,8 @@ def draw_annotation(context, myobj, annotationGen, mat):
 
             for textField in annotation.textFields:
                 textcard = generate_text_card(context,textField,annotationProps,annotation.annotationRotation,(0,0,0))
-                heightOffset = textcard[1] - textcard[0]
+                yoff = Vector(textcard[1] - textcard[0]).normalized()
+                heightOffset = (textcard[1] - textcard[0]) + yoff*0.01
                 # Transform Text Card with Composed Matrix
                 textcard[0] = rotLocMatrix @ (textcard[0] + offset - (heightOffset*fieldIdx)) + diff
                 textcard[1] = rotLocMatrix @ (textcard[1] + offset - (heightOffset*fieldIdx)) + diff

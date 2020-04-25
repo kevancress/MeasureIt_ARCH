@@ -24,7 +24,7 @@
 #
 # ----------------------------------------------------------
 import bpy
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList, Collection
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty, PointerProperty, BoolVectorProperty
 from .measureit_arch_main import *
@@ -80,13 +80,19 @@ class AxisDimensionProperties(BaseDim, PropertyGroup):
 
 bpy.utils.register_class(AxisDimensionProperties)
 
+class ObjectPointers(PropertyGroup):
+    pointerObj: PointerProperty(type = Object)
+
+bpy.utils.register_class(ObjectPointers)
 
 class BoundsDimensionProperties(BaseDim, PropertyGroup):
     drawAxis: BoolVectorProperty(name= "Draw Axis",
                 description= "Axis to Dimension for Bounding Box",
                 default= (False,False,False),
                 subtype= 'XYZ')
-    
+
+    dimCollection: PointerProperty(type=Collection)
+
 bpy.utils.register_class(BoundsDimensionProperties)
     
 
@@ -409,27 +415,25 @@ class AddBoundingDimensionButton(Operator):
             # Object Context
             if bpy.context.mode == 'OBJECT':
                 mainobject = context.object
-                if len(context.selected_objects) > 1:
-                    self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select one object only")
-                    return {'FINISHED'}
-
                 # Check Generators
                 if 'DimensionGenerator' not in mainobject:
                     mainobject.DimensionGenerator.add()
-                if 'StyleGenerator' not in scene:
-                    scene.StyleGenerator.add()
-
 
                 # Basically I dont need to do anything here, I want to handle the measureing and the selection of which bounding box
                 # verts to anchor to in the draw method, so that the most visible verts can be selected depending on the current view.
                 # all we need to do is to create a dummy Bounds dimension and set its defualt props. We do the tricky part in the draw.
                 
                 # Maybe we dont even bother to set axis on creation. Maybe its just a single dim object with toggles for each axis... keep it simple, avoid clutter.
+                # Now that we're supporting Bounds for multiple objects we do need to grab all of the selcted objects
+
 
                 # Add Bounds Dim with Axis
                 DimGen = mainobject.DimensionGenerator[0]
                 newBoundsDimension = DimGen.boundsDimensions.add()
+                for obj in context.selected_objects:
+                    newObjPointer = newBoundsDimension.dimObjects.add()
+                    newObjPointer.pointerObj = obj
+                    newObjPointer.name = obj.name
 
                 newBoundsDimension.name = 'Bounding Box Dimension'
                 newBoundsDimension.drawAxis[0] = scene.measureit_arch_bound_x
@@ -1179,7 +1183,8 @@ def draw_aligned_dimension_settings(dim,layout):
 
 def draw_bounds_dimension_settings(dim,layout):
     col = layout.column()    
-
+    col.prop_search(dim,'dimCollection', bpy.data,'collections',text="Collection", icon='GROUP')
+    
     if dim.uses_style is False:
         split = layout.split(factor=0.485)
         col = split.column()
@@ -1197,6 +1202,7 @@ def draw_bounds_dimension_settings(dim,layout):
     if dim.uses_style is False:
         col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
         col.prop(dim,'lineWeight',text='Line Weight')
+
 
     split = layout.split(factor=0.49)
     row = split.row(align=True)
