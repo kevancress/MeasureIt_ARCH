@@ -423,17 +423,11 @@ class AddBoundingDimensionButton(Operator):
                 # verts to anchor to in the draw method, so that the most visible verts can be selected depending on the current view.
                 # all we need to do is to create a dummy Bounds dimension and set its defualt props. We do the tricky part in the draw.
                 
-                # Maybe we dont even bother to set axis on creation. Maybe its just a single dim object with toggles for each axis... keep it simple, avoid clutter.
-                # Now that we're supporting Bounds for multiple objects we do need to grab all of the selcted objects
-
+                # Maybe we dont even bother to set axis on creation. Maybe its just a single dim object with toggles for each axis... keep it simple, avoid clutter.a
 
                 # Add Bounds Dim with Axis
                 DimGen = mainobject.DimensionGenerator[0]
                 newBoundsDimension = DimGen.boundsDimensions.add()
-                for obj in context.selected_objects:
-                    newObjPointer = newBoundsDimension.dimObjects.add()
-                    newObjPointer.pointerObj = obj
-                    newObjPointer.name = obj.name
 
                 newBoundsDimension.name = 'Bounding Box Dimension'
                 newBoundsDimension.drawAxis[0] = scene.measureit_arch_bound_x
