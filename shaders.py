@@ -292,7 +292,7 @@ class Line_Group_Shader_3D ():
                 // Offset from center of point
                 vec2 circleOffset = vec2(cos(ang)*radius, -sin(ang)*radius);
                 circleOffset.x /= aspect;
-                mTexCoord = vec2(0,0.9);
+                mTexCoord = vec2(0,1);
                 gl_Position = vec4((sspC + circleOffset)*pointCenter.w, pointCenter.z, pointCenter.w);
                 EmitVertex();
 
@@ -319,6 +319,7 @@ class Line_Group_Shader_3D ():
         in vec4 fcolor;
         in vec4 gl_FragCoord;
         uniform vec4 finalColor;
+        uniform bool depthPass;
         out vec4 fragColor;
 
         void main()
@@ -337,17 +338,17 @@ class Line_Group_Shader_3D ():
 
             aaColor = mix(mixColor,finalColor,aa);
 
-            if (aa<0.85){
-                gl_FragDepth = gl_FragCoord.z + (1-aaColor[3])/500;
-                if(aa<0.1){
+            if(depthPass){
+                if (aa<1){
                     discard;
                 }
-            }
-            else{
-                gl_FragDepth = gl_FragCoord.z;
+                fragColor = aaColor; 
             }
 
-            fragColor = aaColor;            
+            else{
+                fragColor = aaColor; 
+            }
+
         }
     '''
 

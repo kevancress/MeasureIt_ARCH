@@ -1759,17 +1759,21 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     return bestNormal 
         
 def draw_line_group(context, myobj, lineGen, mat):
-    bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_BLEND)
-    
-    bgl.glBlendFunc(bgl.GL_ONE,bgl.GL_ZERO)
-    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthFunc(bgl.GL_LEQUAL) 
-    bgl.glDepthMask(True)
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
+
+    # Blending Settings
+    bgl.glEnable(bgl.GL_BLEND)
+
+
+
+
+
+    # Depth Settings
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthFunc(bgl.GL_LEQUAL) 
+
+
     
     
     if sceneProps.is_render_draw:
@@ -1840,9 +1844,6 @@ def draw_line_group(context, myobj, lineGen, mat):
             if lineProps.isOutline:
                 offset = -10 - offset
             offset /= 1000
-
-            #gl Settings
-            bgl.glDepthFunc(bgl.GL_LEQUAL) 
 
             
             #Get line data to be drawn
@@ -1978,14 +1979,28 @@ def draw_line_group(context, myobj, lineGen, mat):
                     batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": coords,"weight":tempWeights})
                 else:
                     batch3d = lineBatch3D[batchKey]
-               
+
+
+                bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+                bgl.glDepthMask(True)
+                lineGroupShader.uniform_float("depthPass",True)
                 batch3d.program_set(lineGroupShader)
                 batch3d.draw()
+                
+                if sceneProps.is_render_draw:
+                    bgl.glBlendEquation(bgl.GL_MAX)
+
+                bgl.glDepthMask(False)
+                lineGroupShader.uniform_float("depthPass",False)
+                batch3d.program_set(lineGroupShader)
+                batch3d.draw()
+
+
                 gpu.shader.unbind()
     
     gpu.shader.unbind()
-    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
     bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 

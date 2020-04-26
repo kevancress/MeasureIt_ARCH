@@ -261,7 +261,7 @@ def render_main(self, context, animation=False):
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
         bgl.glClearDepth(clipdepth)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthFunc(bgl.GL_LESS)  
+        bgl.glDepthFunc(bgl.GL_LEQUAL)  
 
         gpu.matrix.reset()
         gpu.matrix.load_matrix(view_matrix_3d)
@@ -271,6 +271,7 @@ def render_main(self, context, animation=False):
 
         
         # Clear Color Keep on depth info
+        bgl.glClearColor(0,0,0,0)
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
         # -----------------------------
