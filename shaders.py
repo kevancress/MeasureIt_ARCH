@@ -319,36 +319,29 @@ class Line_Group_Shader_3D ():
         in vec4 fcolor;
         in vec4 gl_FragCoord;
         uniform vec4 finalColor;
-        uniform float thickness;
         out vec4 fragColor;
-
-        float map(float value, float min1, float max1, float min2, float max2) {
-            return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
-        }
 
         void main()
         {
             vec4 aaColor = finalColor;
-            vec4 mixColor = new vec4(finalColor[0],finalColor[1],finalColor[2],0);
+            vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
             vec2 center = vec2(0,0.5);
             float dist = length(mTexCoord - center);
             float distFromEdge = 1-(dist*2);
 
             float delta = fwidth(distFromEdge);
-            float threshold = 1.5*delta;
+            float threshold = 1.5 * delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
             aa = smoothstep(0,1,aa*aa);
 
             aaColor = mix(mixColor,finalColor,aa);
 
             if (aa<0.85){
-                gl_FragDepth = gl_FragCoord.z + (1-aaColor[3])/100;
-                //gl_FragDepth = gl_FragCoord.z;
+                gl_FragDepth = gl_FragCoord.z + (1-aaColor[3])/500;
                 if(aa<0.1){
                     discard;
                 }
-        
             }
             else{
                 gl_FragDepth = gl_FragCoord.z;
