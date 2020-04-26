@@ -342,13 +342,9 @@ class Line_Group_Shader_3D ():
                 if (aa<1){
                     discard;
                 }
-                fragColor = aaColor; 
             }
-
-            else{
-                fragColor = aaColor; 
-            }
-
+            
+            fragColor = aaColor; 
         }
     '''
 
