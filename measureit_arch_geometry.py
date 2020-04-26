@@ -1897,8 +1897,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 for idx in lineGroup['lineBuffer']:
                     tempWeights.append(vertexGroup.weight(idx))
             else:
-                for idx in lineGroup['lineBuffer']:
-                    tempWeights.append(1.0)
+                tempWeights = [1.0] * len(lineGroup['lineBuffer'])
 
             if drawHidden == True:
                 # Invert The Depth test for hidden lines
