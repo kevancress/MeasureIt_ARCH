@@ -34,6 +34,8 @@ def recalc_dimWrapper_index(self,context):
     id_aligned = 0
     id_angle = 0
     id_axis = 0
+    id_arc = 0
+    id_area = 0
     for dim in wrappedDimensions:
         if dim.itemType == 'D-ALIGNED':
             dim.itemIndex = id_aligned
@@ -44,6 +46,12 @@ def recalc_dimWrapper_index(self,context):
         elif dim.itemType == 'D-AXIS':
             dim.itemIndex = id_axis
             id_axis += 1
+        elif dim.itemType == 'D-ARC':
+            dim.itemIndex = id_arc
+            id_arc += 1
+        elif dim.itemType == 'D-AREA':
+            dim.itemIndex = id_area
+            id_area += 1
 
 class BaseProp:
     inFront: BoolProperty(name='inFront',
@@ -320,6 +328,8 @@ class DeletePropButton(Operator):
             itemGroup = Generator.boundsDimensions
         elif self.item_type == 'D-ARC':
             itemGroup = Generator.arcDimensions
+        elif self.item_type == 'D-AREA':
+            itemGroup = Generator.areaDimensions
         elif 'D' in self.item_type:
             itemGroup = Generator.alignedDimensions
             

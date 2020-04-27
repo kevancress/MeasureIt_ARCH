@@ -36,7 +36,9 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
                       FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
-from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, get_mesh_vertices, printTime
+from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_areaDimension, \
+                        draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, \
+                        get_mesh_vertices, printTime
 
 draw_instanced = True
 
@@ -186,8 +188,8 @@ class MeasureitArchMainPanel(Panel):
         col.operator("measureit_arch.addanglebutton", text="Angle", icon="DRIVER_ROTATIONAL_DIFFERENCE")
         col.operator("measureit_arch.addarcbutton", text="Arc", icon="MOD_THICKNESS")
 
-        #col = box.column(align=True)
-        #col.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
+        col = box.column(align=True)
+        col.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
 
         col = box.column(align=True)
         if hasGen:
@@ -468,6 +470,14 @@ def draw_main(context):
                             if dimStyle.name == arcDim.style:
                                 dimProps= dimStyle
                     update_text(textobj=arcDim,props=dimProps,context=context)
+
+                for areaDim in DimGen.areaDimensions: 
+                    dimProps = areaDim
+                    if areaDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == areaDim.style:
+                                dimProps= dimStyle
+                    update_text(textobj=areaDim,props=dimProps,context=context)
         
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator[0]
@@ -602,6 +612,9 @@ def draw_main_3d (context):
                 
                 for arcDim in DimGen.arcDimensions:
                     draw_arcDimension(context,myobj,DimGen,arcDim,mat)
+
+                for areaDim in DimGen.areaDimensions:
+                    draw_areaDimension(context,myobj,DimGen,areaDim,mat)
 
 
     # Draw Instanced Objects
@@ -771,13 +784,10 @@ def get_selected_faces(myobject):
         flag = True
 
     bm = from_edit_mesh(myobject.data)
-    for e in bm.faces:
+    for face in bm.faces:
         myface = []
-        if e.select is True:
-            for i in range(0, len(e.verts)):
-                myface.extend([e.verts[i].index])
-
-            mylist.extend([myface])
+        if face.select is True:
+            mylist.extend([face.index])
 
     if flag is True:
         bpy.ops.object.editmode_toggle()

@@ -31,30 +31,38 @@ from .measureit_arch_main import *
 from .measureit_arch_baseclass import BaseWithText , BaseDim, recalc_dimWrapper_index
 from mathutils import Vector, Matrix, Euler, Quaternion
 import math
+import random
 # ------------------------------------------------------------------
 # Define property group class for measureit_arch faces index
 # ------------------------------------------------------------------
 
 
-class MeasureitArchIndex(PropertyGroup):
-    glidx: IntProperty(name="index",
-                        description="vertex index")
+class AreaDimensionProperties(BaseDim,PropertyGroup):
 
-bpy.utils.register_class(MeasureitArchIndex)
+    dimTextPos: FloatVectorProperty(name='Text Position',
+                            description='Offset for Area Dimension Text',
+                            default= (0,0,0),
+                            subtype= 'TRANSLATION')
 
-# ------------------------------------------------------------------
-# Define property group class for measureit_arch faces
-# ------------------------------------------------------------------
+    showFill: BoolProperty(name='Show Fill')
+    showOutline: BoolProperty(name='Show Outline')
 
+    fillAlpha: FloatProperty(name='Fill',
+                    min=0,
+                    soft_max=1.0,
+                    max=1,
+                    default=0.5,
+                    subtype='FACTOR')
 
-class MeasureitArchFaces(PropertyGroup):
-    glface: IntProperty(name="glface",
-                         description="Face number")
-    # Array of index
-    measureit_arch_index: CollectionProperty(type=MeasureitArchIndex)
+    fillColor: FloatVectorProperty(name="Color",
+                description="Color for the Item",
+                default= (0.0,0.0,0.0, 1.0),
+                min=0,
+                max=1,
+                subtype='COLOR',
+                size=4)
 
-bpy.utils.register_class(MeasureitArchFaces)
-
+bpy.utils.register_class(AreaDimensionProperties)
 
 class AlignedDimensionProperties(BaseDim, PropertyGroup):
 
@@ -80,10 +88,6 @@ class AxisDimensionProperties(BaseDim, PropertyGroup):
 
 bpy.utils.register_class(AxisDimensionProperties)
 
-class ObjectPointers(PropertyGroup):
-    pointerObj: PointerProperty(type = Object)
-
-bpy.utils.register_class(ObjectPointers)
 
 class BoundsDimensionProperties(BaseDim, PropertyGroup):
     drawAxis: BoolVectorProperty(name= "Draw Axis",
@@ -122,8 +126,7 @@ class ArcDimensionProperties(BaseDim, PropertyGroup):
                 default ='T',
                 name="C end",
                 description="Add arrows to Radius Leader")
-
-    
+   
 bpy.utils.register_class(ArcDimensionProperties)
 
 
@@ -142,7 +145,6 @@ class AngleDimensionProperties(BaseDim, PropertyGroup):
                     description='Displays the Reflex Angle (Greater then 180 Degrees)',
                     default = False)
 
-
 bpy.utils.register_class(AngleDimensionProperties)
 
 
@@ -155,7 +157,8 @@ class DimensionWrapper(PropertyGroup):
                         ('D-ANGLE', "Angle Dimension", ""),
                         ('D-AXIS', "Axis Dimension", ""),
                         ('D-BOUNDS', "Bounding Box Dimension",""),
-                        ('D-ARC',"Arc DImension","")),
+                        ('D-ARC',"Arc Dimension",""),
+                        ('D-AREA',"Area Dimension","")),
                 name="Dimension Item Type",
                 update=recalc_dimWrapper_index)
 
@@ -176,12 +179,15 @@ class DimensionContainer(PropertyGroup):
     axisDimensions: CollectionProperty(type=AxisDimensionProperties)
     boundsDimensions: CollectionProperty(type=BoundsDimensionProperties)
     arcDimensions: CollectionProperty(type=ArcDimensionProperties)
+    areaDimensions: CollectionProperty(type=AreaDimensionProperties)
+
 
     # Collection of Wrapped dimensions for list UI display
     wrappedDimensions: CollectionProperty(type=DimensionWrapper)
 
 bpy.utils.register_class(DimensionContainer)
 Object.DimensionGenerator = CollectionProperty(type=DimensionContainer)
+
 
 class AddAlignedDimensionButton(Operator):
     bl_idname = "measureit_arch.addaligneddimensionbutton"
@@ -381,7 +387,6 @@ class AddAlignedDimensionButton(Operator):
 
             return {'CANCELLED'}
 
-
 class AddBoundingDimensionButton(Operator):
     bl_idname = "measureit_arch.addboundingdimensionbutton"
     bl_label = "Bounding"
@@ -455,8 +460,6 @@ class AddBoundingDimensionButton(Operator):
                         "View3D not found, cannot run operator")
 
             return {'CANCELLED'}
-
-
 
 class AddAxisDimensionButton(Operator):
     bl_idname = "measureit_arch.addaxisdimensionbutton"
@@ -644,10 +647,10 @@ class AddAxisDimensionButton(Operator):
 
             return {'CANCELLED'}
 
-class AddAreaButton(Operator): # LEGACY
+class AddAreaButton(Operator):
     bl_idname = "measureit_arch.addareabutton"
     bl_label = "Area"
-    bl_description = "(EDITMODE only) Add a new measure for area (select 1 o more faces)"
+    bl_description = "(EDITMODE only) Add a new measure for area (select 1 or more faces)"
     bl_category = 'MeasureitArch'
 
     # ------------------------------
@@ -674,138 +677,49 @@ class AddAreaButton(Operator): # LEGACY
         if context.area.type == 'VIEW_3D':
             # Add properties
             scene = context.scene
-            mainobject = context.object
-            mylist = get_selected_faces(mainobject)
+            myobj = context.object
+            mylist = get_selected_faces(myobj)
             if len(mylist) >= 1:
-                if 'DimensionGenerator' not in mainobject:
-                    mainobject.DimensionGenerator.add()
+                if 'DimensionGenerator' not in myobj:
+                    myobj.DimensionGenerator.add()
 
-                mp = mainobject.DimensionGenerator[0]
-                mp.measureit_arch_segments.add()
-                ms = mp.measureit_arch_segments[mp.measureit_arch_num]
-                ms.gltype = 20
+                dimGen = myobj.DimensionGenerator[0]
+                areaDims = dimGen.areaDimensions
+                newDim = areaDims.add()
 
-                f = -1
-                for face in mylist:
-                    # Create array elements
-                    ms.measureit_arch_faces.add()
-                    f += 1
-                    # Set values
-                    mf = ms.measureit_arch_faces[f]
-                    mf.glface = f
-                    i = 0
-                    for v in face:
-                        mf.measureit_arch_index.add()
-                        mi = mf.measureit_arch_index[i]
-                        mi.glidx = v
-                        i += 1
+                newDim['facebuffer'] = mylist
 
-                # color
-                rgb = scene.measureit_arch_default_color
-                ms.glcolor = (rgb[0], rgb[1], rgb[2], 0.4)
-                # dist
-                ms.glspace = scene.measureit_arch_hint_space
-                # text
-                ms.gltxt = scene.measureit_arch_gl_txt
-                ms.glfont_size = scene.measureit_arch_font_size
-                ms.glfont_align = scene.measureit_arch_font_align
-                ms.glfont_rotat = scene.measureit_arch_font_rotation
-                # Sum group
-                ms.gltot = scene.measureit_arch_sum
-                # Add index
-                mp.measureit_arch_num += 1
+                bm = bmesh.from_edit_mesh(myobj.data)
+                faces = bm.faces
+
+                bm.faces.ensure_lookup_table()
+
+                perimiterEdges = []
+                for faceIdx in mylist:
+                    face = faces[faceIdx]
+                    edges = face.edges
+                    for edge in edges:
+                        adjFaces = edge.link_faces
+                        if adjFaces[0].index in mylist and adjFaces[1].index in mylist:
+                            pass
+                        else:
+                            perimiterEdges.append(edge.index)
+
+                newDim['perimeterEdgeBuffer'] = perimiterEdges 
+                newDim.name = 'Area ' + str(len(dimGen.areaDimensions))
+                newDim.fillColor = (random.random(),random.random(),random.random(),1)
+
+                newWrapper = dimGen.wrappedDimensions.add()
+                newWrapper.itemType = 'D-AREA'
+
                 # redraw
+                recalc_dimWrapper_index(self,context)
                 context.area.tag_redraw()
+
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
                             "MeasureIt-ARCH: Select at least one face for creating area measure. ")
-                return {'FINISHED'}
-        else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
-        return {'CANCELLED'}
-
-    bl_idname = "measureit_arch.addsegmentortobutton"
-    bl_label = "Add"
-    bl_description = "(EDITMODE only) Add a new measure segment from vertex to object origin for one " \
-                     "axis (select 1 vertex)"
-    bl_category = 'MeasureitArch'
-    tag: IntProperty()
-
-    # ------------------------------
-    # Poll
-    # ------------------------------
-    @classmethod
-    def poll(cls, context):
-        o = context.object
-        if o is None:
-            return False
-        else:
-            if o.type == "MESH":
-                if bpy.context.mode == 'EDIT_MESH':
-                    return True
-                else:
-                    return False
-            else:
-                return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        if context.area.type == 'VIEW_3D':
-            # Add properties
-            scene = context.scene
-            mainobject = context.object
-            mylist = get_smart_selected(mainobject)
-
-            if len(mylist) < 1:  # if not selected linked vertex
-                mylist = get_selected_vertex(mainobject)
-
-            if len(mylist) >= 1:
-                if 'DimensionGenerator' not in mainobject:
-                    mainobject.DimensionGenerator.add()
-
-                mp = mainobject.DimensionGenerator[0]
-                for x in range(0, len(mylist)):
-                    # -----------------------
-                    # Only if not exist
-                    # -----------------------
-                    if exist_segment(mp, mylist[x], mylist[x], 12 + int(self.tag)) is False:
-                        # Create all array elements
-                        for cont in range(len(mp.measureit_arch_segments) - 1, mp.measureit_arch_num):
-                            mp.measureit_arch_segments.add()
-
-                        # Set values
-                        ms = mp.measureit_arch_segments[mp.measureit_arch_num]
-                        ms.gltype = 12 + int(self.tag)
-                        ms.glpointa = mylist[x]
-                        ms.glpointb = mylist[x]
-                        ms.glarrow_a = scene.measureit_arch_glarrow_a
-                        ms.glarrow_b = scene.measureit_arch_glarrow_b
-                        ms.glarrow_s = scene.measureit_arch_glarrow_s
-                        # color
-                        ms.glcolor = scene.measureit_arch_default_color
-                        # dist
-                        ms.glspace = scene.measureit_arch_hint_space
-                        # text
-                        ms.gltxt = scene.measureit_arch_gl_txt
-                        ms.glfont_size = scene.measureit_arch_font_size
-                        ms.glfont_align = scene.measureit_arch_font_align
-                        ms.glfont_rotat = scene.measureit_arch_font_rotation
-                        # Sum group
-                        ms.gltot = scene.measureit_arch_sum
-                        # Add index
-                        mp.measureit_arch_num += 1
-
-                # redraw
-                context.area.tag_redraw()
-                return {'FINISHED'}
-            else:
-                self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select at least one vertex for creating measure segment.")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -993,6 +907,7 @@ class M_ARCH_UL_dimension_list(UIList):
         axisDim =  dimGen.axisDimensions
         boundsDim = dimGen.boundsDimensions
         arcDim = dimGen.arcDimensions
+        areaDim = dimGen.areaDimensions
 
         scene = bpy.context.scene
 
@@ -1025,8 +940,12 @@ class M_ARCH_UL_dimension_list(UIList):
                 dim = arcDim[item.itemIndex]
                 nameIcon = 'MOD_THICKNESS'
 
+            elif item.itemType == 'D-AREA':
+                dim = areaDim[item.itemIndex]
+                nameIcon = 'MESH_GRID'
 
-            row = layout.row(align=True)
+
+            row = layout.row()
             subrow = row.row()
 
             subrow.prop(dim, "name", text="",emboss=False,icon=nameIcon)
@@ -1038,9 +957,11 @@ class M_ARCH_UL_dimension_list(UIList):
             else: styleIcon = 'UNLINKED'
             
             if not dim.uses_style:
-                subrow = row.row()
+                subrow = row.row(align=True)
                 subrow.scale_x = 0.6
                 subrow.prop(dim, 'color', text="" )
+                if item.itemType == 'D-AREA':
+                    subrow.prop(dim,'fillColor',text="")
             else:
                 row.prop_search(dim,'style', StyleGen,'alignedDimensions',text="", icon='COLOR')
                 row.separator()
@@ -1102,6 +1023,8 @@ class OBJECT_PT_UIDimensions(Panel):
                     item = dimGen.boundsDimensions[activeWrapperItem.itemIndex]
                 if activeWrapperItem.itemType == 'D-ARC':
                     item = dimGen.arcDimensions[activeWrapperItem.itemIndex]
+                if activeWrapperItem.itemType == 'D-AREA':
+                    item = dimGen.areaDimensions[activeWrapperItem.itemIndex]
 
                 if dimGen.show_dimension_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                 else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
@@ -1123,6 +1046,8 @@ class OBJECT_PT_UIDimensions(Panel):
                         draw_bounds_dimension_settings(item,box)
                     if activeWrapperItem.itemType == 'D-ARC':
                         draw_arc_dimension_settings(item,box)
+                    if activeWrapperItem.itemType == 'D-AREA':
+                        draw_area_dimension_settings(item,box)
 
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
@@ -1342,3 +1267,41 @@ def draw_arc_dimension_settings(dim,layout):
     
 
     col = layout.column(align=True)
+
+def draw_area_dimension_settings(dim,layout):
+    col = layout.column(align=True)    
+
+    col.prop(dim,"fillColor", text='Fill Color')
+    col.prop(dim,'fillAlpha', text='Fill Amount')
+
+    if dim.uses_style is False:
+        split = layout.split(factor=0.485)
+        col = split.column()
+        col.alignment ='RIGHT'
+        col.label(text='Font')
+        col = split.column()
+
+        col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
+
+        col = layout.column(align=True)
+        col.prop(dim,'dimViewPlane', text='View Plane')
+    else:
+        col.prop(dim,'dimViewPlane', text='View Plane Overide')
+
+    if dim.uses_style is False:
+        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop(dim,'lineWeight',text='Line Weight')
+
+    col = layout.column(align=True)
+    col.prop(dim,'dimTextPos',text='Text Position')
+    
+    if dim.uses_style is False:
+        col = layout.column(align=True)
+        col.prop(dim,'fontSize',text='Font Size')
+        col.prop(dim,'textResolution',text='Resolution')
+        col.prop(dim,'textAlignment',text='Alignment')
+        #col.prop(dim,'textPosition',text='Position')
+
+        col = layout.column(align=True)
+        col.prop(dim,'inFront', text='Draw in Front')
+        col.prop(dim,'evalMods')

@@ -297,6 +297,9 @@ def render_main(self, context, animation=False):
                     if 'arcDimensions' in measureGen:
                         for dim in measureGen.arcDimensions:
                             draw_arcDimension(context, myobj, measureGen,dim,mat)
+                    if 'areaDimensions' in measureGen:
+                        for dim in measureGen.areaDimensions:
+                            draw_areaDimension(context, myobj, measureGen,dim,mat)
 
                 if 'LineGenerator' in myobj:
                     # Set 3D Projection Martix

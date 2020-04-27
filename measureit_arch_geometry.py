@@ -1640,6 +1640,168 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
 
+def draw_areaDimension(context, myobj, DimGen, dim, mat):
+    dimProps = dim
+    sceneProps = context.scene.MeasureItArchProps
+    scene = context.scene
+    if dim.uses_style:
+        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
+            if alignedDimStyle.name == dim.style:
+                dimProps = alignedDimStyle
+
+    # Check Visibility Conditions
+    inView = False
+    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+        inView = True
+    
+    if inView and dim.visible and dimProps.visible:
+        # GL Settings
+        bgl.glEnable(bgl.GL_MULTISAMPLE)
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        if dimProps.inFront:
+            bgl.glDisable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthMask(True)
+
+        lineWeight = dimProps.lineWeight
+        if sceneProps.is_render_draw:
+            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+        else:
+            viewport = [context.area.width,context.area.height]
+
+        rawRGB = dimProps.fillColor
+        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),1)
+        fillRGB = (rgb[0],rgb[1],rgb[2],dim.fillAlpha)
+
+        rawRGB = dimProps.color
+        textRGB = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+
+        bm = bmesh.new()
+        if myobj.mode != 'EDIT':
+            bm.from_mesh(myobj.data)
+        else:
+            bm = bmesh.from_edit_mesh(myobj.data)
+        
+        bm.faces.ensure_lookup_table()
+        bm.edges.ensure_lookup_table()
+        bm.verts.ensure_lookup_table()
+        faces = bm.faces
+
+  
+ 
+
+        # Get the Filled Coord and Sum the Face Areas
+        filledCoords = []
+        sumArea = 0
+        verts = bm.verts
+        for faceIdx in dim['facebuffer'].to_list():
+            face = faces[faceIdx]
+            area = face.calc_area()
+        
+            indices = []
+            for vert in face.verts:
+                indices.append(vert.index)
+
+            tris = mesh_utils.ngon_tessellate(myobj.data,indices)
+
+            for tri in tris:
+                v1, v2, v3 = tri
+                p1 = mat @ verts[indices[v1]].co
+                p2 = mat @ verts[indices[v2]].co
+                p3 = mat @ verts[indices[v3]].co
+                filledCoords.append(p1)
+                filledCoords.append(p2)
+                filledCoords.append(p3)
+                area = get_triangle_area(p1, p2, p3)
+                sumArea += area
+
+        # Get the Perimeter Coords
+        perimeterCoords = [] 
+        for edgeIdx in dim['perimeterEdgeBuffer'].to_list():
+            edge = bm.edges[edgeIdx]
+            verts = edge.verts
+            perimeterCoords.append(verts[0].co)
+            perimeterCoords.append(verts[1].co)
+
+        # Format and draw Text
+        if 'textFields' not in dim:
+            dim.textFields.add()
+
+        dimText = dim.textFields[0]
+        pr = scene.measureit_arch_gl_precision
+        textFormat = "%1." + str(pr) + "f"
+        areaText = format_distance(textFormat,sumArea,isArea=True)
+        if dimText.text != str(areaText):
+            dimText.text = str(areaText)
+            dimText.text_updated = True
+        
+        width = dimText.textWidth
+        height = dimText.textHeight 
+       
+        resolution = dimProps.textResolution
+        size = dimProps.fontSize/fontSizeMult
+        sx = (width/resolution)*0.1*size
+        sy = (height/resolution)*0.1*size
+        origin = Vector(dim.dimTextPos)
+        cardX = Vector((1,0,0))*sx
+        cardY = Vector((0,1,0))*sy
+
+        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
+        if scene.measureit_arch_gl_show_d:
+            draw_text_3D(context,dimText,dimProps,myobj,square)
+
+
+        #Draw Fill
+        bgl.glDepthMask(False)
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+        triShader.bind()
+        triShader.uniform_float("finalColor", fillRGB)
+        triShader.uniform_float("offset", -0.001) #z offset this a little to avoid zbuffering
+
+        batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
+        batch.program_set(triShader)
+        batch.draw()
+        gpu.shader.unbind()
+
+
+        # Draw Perimeter
+        lineGroupShader.bind()
+        lineGroupShader.uniform_float("Viewport",viewport)
+        lineGroupShader.uniform_float("objectMatrix",mat)
+        lineGroupShader.uniform_float("thickness",dim.lineWeight)
+        lineGroupShader.uniform_float("extension",0)
+        lineGroupShader.uniform_float("weightInfluence", 1)
+        lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        lineGroupShader.uniform_float("offset", -0.001)
+        
+        tempWeights = [1.0] * len(perimeterCoords)
+
+        batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": perimeterCoords,"weight":tempWeights})
+
+        bgl.glDepthMask(True)
+        lineGroupShader.uniform_float("depthPass", True)
+        batch3d.program_set(lineGroupShader)
+        batch3d.draw()
+
+        if sceneProps.is_render_draw:
+            bgl.glBlendEquation(bgl.GL_MAX)
+
+        bgl.glDepthMask(False)
+        lineGroupShader.uniform_float("depthPass", False)
+        batch3d.program_set(lineGroupShader)
+        batch3d.draw()
+        gpu.shader.unbind()
+
+
+    gpu.shader.unbind()
+    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+    bgl.glDisable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthMask(True)
+
+
+
 def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     #Set properties
     context = bpy.context
@@ -1889,15 +2051,16 @@ def draw_line_group(context, myobj, lineGen, mat):
             coords = []            
             coords = lineGroup['coordBuffer']
 
-            ### dummy line weight group setup
+            ### line weight group setup
             tempWeights = []
             if lineGroup.lineWeightGroup is not "":
-
                 vertexGroup = myobj.vertex_groups[lineGroup.lineWeightGroup]
                 for idx in lineGroup['lineBuffer']:
                     tempWeights.append(vertexGroup.weight(idx))
             else:
                 tempWeights = [1.0] * len(lineGroup['lineBuffer'])
+
+            
 
             if drawHidden == True:
                 # Invert The Depth test for hidden lines
@@ -2854,7 +3017,7 @@ def get_arc_data(pointa, pointb, pointc, pointd):
 # Format a number to the right unit
 #
 # -------------------------------------------------------------
-def format_distance(fmt, value, factor=1):
+def format_distance(fmt, value, factor=1,isArea=False):
     s_code = "\u00b2"  # Superscript two THIS IS LEGACY (but being kept for when Area Measurements are re-implimented)
     hide_units = bpy.context.scene.measureit_arch_hide_units # Also Legacy, Could be re-implimented... Requested now, should re-impliment
 
@@ -2865,24 +3028,28 @@ def format_distance(fmt, value, factor=1):
     seperate_units = bpy.context.scene.unit_settings.use_separate
 
     toInches = 39.3700787401574887
+    inPerFoot = 11.999
+
+    if isArea:
+        toInches = 1550
+        inPerFoot = 143.999
+
     value *= scaleFactor
 
     # Imperial Formating
     if unit_system == "IMPERIAL":
         base = int(bpy.context.scene.measureit_arch_imperial_precision)
         decInches = value * toInches
-
-        if hide_units is False:
-            fmt += "\""
         
         # Seperate ft and inches
         # Unless Inches are the specified Length Unit
         if unit_length != 'INCHES':
-            feet = floor(decInches/12)
-            decInches -= feet*12
+            feet = floor(decInches/inPerFoot)
+            decInches -= feet*inPerFoot
         else:
             feet = 0
         
+
         #Seperate Fractional Inches
         inches = floor(decInches)
         if inches != 0:
@@ -2918,7 +3085,10 @@ def format_distance(fmt, value, factor=1):
             fracString = str(frac) + "/" + str(base) +"\""
         else: fracString = ""
 
-        tx_dist = feetString + inchesString + fracString
+        if not isArea:
+            tx_dist = feetString + inchesString + fracString
+        else:
+            tx_dist = str(fmt % (value*toInches/inPerFoot)) + " sq. ft."
     
 
     # METRIC FORMATING
@@ -2959,8 +3129,12 @@ def format_distance(fmt, value, factor=1):
                         fmt += " mm"
                     d_mm = value * (1000)
                     tx_dist = fmt % d_mm
+        if isArea:
+            tx_dist += s_code
     else:
         tx_dist = fmt % value
+
+
     return tx_dist
 
 
