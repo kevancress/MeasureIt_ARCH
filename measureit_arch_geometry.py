@@ -1773,7 +1773,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat):
         lineGroupShader.uniform_float("extension",0)
         lineGroupShader.uniform_float("weightInfluence", 1)
         lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineGroupShader.uniform_float("offset", -0.001)
+        lineGroupShader.uniform_float("zOffset", -0.001)
         
         tempWeights = [1.0] * len(perimeterCoords)
 
@@ -1941,7 +1941,14 @@ def draw_line_group(context, myobj, lineGen, mat):
     if sceneProps.is_render_draw:
         viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
     else:
+        ## Use render resolution scaled to viewport aspect ratio
         viewport = [context.area.width,context.area.height]
+        viewAspect = viewport[0]/viewport[1]
+        render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+        renderAspect = render[0]/render[1]
+        apsectDiff = (viewAspect/renderAspect)/2
+        render = [render[0]*apsectDiff,render[1]/apsectDiff]
+        viewport = render
 
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
@@ -2128,7 +2135,7 @@ def draw_line_group(context, myobj, lineGen, mat):
                 lineGroupShader.uniform_float("extension",lineGroup.lineOverExtension)
                 lineGroupShader.uniform_float("weightInfluence",lineGroup.weightGroupInfluence)
                 lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                lineGroupShader.uniform_float("offset", -offset)
+                lineGroupShader.uniform_float("zOffset", -offset)
                 
                 #colors = [(rgb[0], rgb[1], rgb[2], rgb[3]) for coord in range(len(coords))]
 

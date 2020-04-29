@@ -199,60 +199,65 @@ class Line_Group_Shader_3D ():
         uniform vec2 Viewport;
         uniform float thickness;
         uniform float extension;
-        uniform float offset;
+        uniform float zOffset;
         uniform float weightInfluence;
 
         const float PI = 3.1415926;
-
         out vec2 mTexCoord;
 
-        float aspect = Viewport.x/Viewport.y;
+        float width = thickness;
+        float extAmount = extension * 0.01;
+        vec4 vecOffset = vec4(0.0,0.0,zOffset,0.0);
+        float radius = width;
 
         void main() {
-            //calculate line normal and extension
-
+            //calculate world space line normal and extension
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
 
             vec4 dir3d = vec4(normalize(p2.xyz-p1.xyz),0);
 
-            float extAmount = extension * 0.01;
-
             vec4 p1ExtLocal = vec4(p1 - dir3d*extAmount);
             vec4 p2ExtLocal = vec4(p2 + dir3d*extAmount);
-            
+
+
+            // Project to Clip space Using Object and veiw matrix
             vec4 p1worldPos = objectMatrix * p1ExtLocal;
             vec4 p1project = ModelViewProjectionMatrix * p1worldPos;
 
             vec4 p2worldPos = objectMatrix * p2ExtLocal;
             vec4 p2project = ModelViewProjectionMatrix * p2worldPos;
 
-            vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
-
+            // Add Z offset
             vec4 p1Ext = p1project + vecOffset;
             vec4 p2Ext = p2project + vecOffset;
+
+            // Get Screen Space points
             vec2 ssp1 = vec2(p1Ext.xy / p1Ext.w);
             vec2 ssp2 = vec2(p2Ext.xy / p2Ext.w);
 
-            float thickness1 = mix(thickness, gs_in[0].weightOut * thickness, weightInfluence);
-            float thickness2 = mix(thickness, gs_in[1].weightOut * thickness, weightInfluence);
+            // Get Width per point
+            float width1 = mix(width, gs_in[0].weightOut * width, weightInfluence);
+            float width2 = mix(width, gs_in[1].weightOut * width, weightInfluence);
 
-            float width1 = 0.00118 * thickness1 * aspect;
-            float width2 = 0.00118 * thickness2 * aspect;
-
+            // Screen Space direction and normal
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
-            normal.x /= aspect;
             normal = normalize(normal);
 
-            // get offset factor from normal and user input thickness
+            // Screen Space line width offset
             vec2 lineOffset1 = vec2(normal * width1);
-            lineOffset1.x /= aspect;
+            lineOffset1.x /= Viewport.x;
+            lineOffset1.y /= Viewport.y;
+
 
             vec2 lineOffset2 = vec2(normal * width2);
-            lineOffset2.x /= aspect;
+            lineOffset2.x /= Viewport.x;
+            lineOffset2.y /= Viewport.y;
+
             
-            // generate rect
+
+            // Generate the rectangle Coords
             vec4 coords[4];
             vec2 texCoords[4];
 
@@ -269,18 +274,20 @@ class Line_Group_Shader_3D ():
             texCoords[3] = vec2(0,0);
 
 
-            //Draw Point pass First
-            float radius = 0.00118 * thickness1 * aspect;
 
+            // Draw Point pass
+            // Get Center Point in Screen Space
             vec4 worldPos = objectMatrix * p1;
             vec4 project = ModelViewProjectionMatrix * worldPos;
 
             vec4 pointCenter = project + vecOffset;
             vec2 sspC = vec2(pointCenter.xy / pointCenter.w);
 
+            // Get number of segments in the circle
             int segments = int(thickness) + 5;
             segments = clamp(segments,0,28);
 
+            // Generate Circle
             gl_Position = pointCenter;
             mTexCoord = vec2(0,0.5);
             EmitVertex();
@@ -291,7 +298,8 @@ class Line_Group_Shader_3D ():
 
                 // Offset from center of point
                 vec2 circleOffset = vec2(cos(ang)*radius, -sin(ang)*radius);
-                circleOffset.x /= aspect;
+                circleOffset.x /= Viewport.x;
+                circleOffset.y /= Viewport.y;
                 mTexCoord = vec2(0,1);
                 gl_Position = vec4((sspC + circleOffset)*pointCenter.w, pointCenter.z, pointCenter.w);
                 EmitVertex();
@@ -304,7 +312,7 @@ class Line_Group_Shader_3D ():
             EndPrimitive();
 
 
-
+            // Draw Rectange
             for (int i = 0; i < 4; ++i) {
                 mTexCoord = texCoords[i];
                 gl_Position = coords[i];
