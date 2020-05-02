@@ -1737,16 +1737,43 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat):
         
         width = dimText.textWidth
         height = dimText.textHeight 
-       
+
+        # get text location
+        # We're using the active face center and normal for 
+        # initial text placement 
+        originFace = faces[dim.originFaceIdx]
+        origin = originFace.calc_center_bounds()
+        normal = originFace.normal
+        tangent = originFace.calc_tangent_vert_diagonal()
+        origin += dim.dimTextPos + normal*0.001
+
+        y= normal.cross(tangent)
+        x= normal.cross(y)
+        
+        y.rotate(Quaternion(normal,radians(-45)))
+        x.rotate(Quaternion(normal,radians(-45)))
+
+        y.rotate(Quaternion(normal,dim.dimRotation))
+        x.rotate(Quaternion(normal,dim.dimRotation))
+
+        # get card vectors
         resolution = dimProps.textResolution
         size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.1*size
-        origin = Vector(dim.dimTextPos)
-        cardX = Vector((1,0,0))*sx
-        cardY = Vector((0,1,0))*sy
 
+        cardX = x*sx
+        cardY = y*sy
+
+        # Create card & Draw text
         square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
+        # account for obj mat
+        tempCoords = []
+        for coord in square:
+            tempCoords.append(mat@coord)
+        square = tempCoords
+        del tempCoords
+
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dimText,dimProps,myobj,square)
 
@@ -1942,13 +1969,16 @@ def draw_line_group(context, myobj, lineGen, mat):
         viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
     else:
         ## Use render resolution scaled to viewport aspect ratio
-        viewport = [context.area.width,context.area.height]
-        viewAspect = viewport[0]/viewport[1]
-        render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
-        renderAspect = render[0]/render[1]
-        apsectDiff = (viewAspect/renderAspect)/2
-        render = [render[0]*apsectDiff,render[1]/apsectDiff]
-        viewport = render
+        rv3d = context.area.spaces[0].region_3d
+        zoom = (rv3d.view_camera_zoom+30)/63
+        viewport = [context.scene.render.resolution_x/zoom,context.scene.render.resolution_y/zoom]
+
+        #viewAspect = viewport[0]/viewport[1]
+        #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+        #renderAspect = render[0]/render[1]
+        #apsectDiff = (viewAspect/renderAspect)/2
+        #render = [render[0]*apsectDiff,render[1]/apsectDiff]
+        #viewport = render
 
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
@@ -2149,14 +2179,16 @@ def draw_line_group(context, myobj, lineGen, mat):
                 else:
                     batch3d = lineBatch3D[batchKey]
 
-
-                bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
-                bgl.glDepthMask(True)
-                lineGroupShader.uniform_float("depthPass",True)
-                batch3d.program_set(lineGroupShader)
-                batch3d.draw()
+                if rgb[3] == 1:
+                    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+                    bgl.glDepthMask(True)
+                    lineGroupShader.uniform_float("depthPass",True)
+                    batch3d.program_set(lineGroupShader)
+                    batch3d.draw()
                 
                 if sceneProps.is_render_draw:
+                    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+                    #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
                     bgl.glBlendEquation(bgl.GL_MAX)
 
                 bgl.glDepthMask(False)

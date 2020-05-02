@@ -60,46 +60,48 @@ def load_handler(dummy):
 
 @persistent
 def save_handler(dummy):        
-    # Check all Scenes for phantom objects
-    # Necessary because the pointer properties on Dimensions and annotations
-    # count as an ID user and prevent the object from being removed normally
-    print("Measureit-ARCH: Cleaning Phantom Objects")
-    objlist = []
-    clear_batches()
-    for scene in bpy.data.scenes:
-        for obj in scene.objects:
-            objlist.append(obj.name)
+    cleanScene = True
+    if cleanScene:
+        # Check all Scenes for phantom objects
+        # Necessary because the pointer properties on Dimensions and annotations
+        # count as an ID user and prevent the object from being removed normally
+        print("Measureit-ARCH: Cleaning Phantom Objects")
+        objlist = []
+        clear_batches()
+        for scene in bpy.data.scenes:
+            for obj in scene.objects:
+                objlist.append(obj.name)
 
-    for obj in bpy.context.blend_data.objects:
-        if obj.name in objlist or obj is None:
-            pass
-        else:
-            print (str(obj.name) + ' Data Removed')
-            if 'DimensionGenerator' in obj:
-                dimgen = obj.DimensionGenerator[0]
-                if 'alignedDimensions' in dimgen:
-                    for alignedDim in obj.DimensionGenerator[0].alignedDimensions:
-                        obj.DimensionGenerator[0].alignedDimensions.remove(0)
-                        obj.DimensionGenerator[0].measureit_arch_num = 0
-                if 'angleDimensions' in dimgen:
-                    for angleDim in obj.DimensionGenerator[0].angleDimensions:
-                        obj.DimensionGenerator[0].angleDimensions.remove(0)
-                        obj.DimensionGenerator[0].measureit_arch_num = 0
-                if 'axisDimensions' in dimgen:
-                    for axisDim in obj.DimensionGenerator[0].axisDimensions:
-                        obj.DimensionGenerator[0].axisDimensions.remove(0)
-                        obj.DimensionGenerator[0].measureit_arch_num = 0
-                if 'boundsDimensions' in dimgen:
-                    for boundsDim in obj.DimensionGenerator[0].boundsDimensions:
-                        obj.DimensionGenerator[0].boundsDimensions.remove(0)
-                        obj.DimensionGenerator[0].measureit_arch_num = 0
-                if 'wrappedDimensions' in dimgen:
-                    for wrapper in obj.DimensionGenerator[0].wrappedDimensions:
-                        obj.DimensionGenerator[0].wrappedDimensions.remove(0)
-            if 'AnnotationGenerator' in obj:
-                for annotation in obj.AnnotationGenerator[0].annotations:
-                    obj.AnnotationGenerator[0].annotations.remove(0)
-                    obj.AnnotationGenerator[0].num_annotations = 0
+        for obj in bpy.context.blend_data.objects:
+            if obj.name in objlist or obj is None:
+                pass
+            else:
+                print (str(obj.name) + ' Data Removed')
+                if 'DimensionGenerator' in obj:
+                    dimgen = obj.DimensionGenerator[0]
+                    if 'alignedDimensions' in dimgen:
+                        for alignedDim in obj.DimensionGenerator[0].alignedDimensions:
+                            obj.DimensionGenerator[0].alignedDimensions.remove(0)
+                            obj.DimensionGenerator[0].measureit_arch_num = 0
+                    if 'angleDimensions' in dimgen:
+                        for angleDim in obj.DimensionGenerator[0].angleDimensions:
+                            obj.DimensionGenerator[0].angleDimensions.remove(0)
+                            obj.DimensionGenerator[0].measureit_arch_num = 0
+                    if 'axisDimensions' in dimgen:
+                        for axisDim in obj.DimensionGenerator[0].axisDimensions:
+                            obj.DimensionGenerator[0].axisDimensions.remove(0)
+                            obj.DimensionGenerator[0].measureit_arch_num = 0
+                    if 'boundsDimensions' in dimgen:
+                        for boundsDim in obj.DimensionGenerator[0].boundsDimensions:
+                            obj.DimensionGenerator[0].boundsDimensions.remove(0)
+                            obj.DimensionGenerator[0].measureit_arch_num = 0
+                    if 'wrappedDimensions' in dimgen:
+                        for wrapper in obj.DimensionGenerator[0].wrappedDimensions:
+                            obj.DimensionGenerator[0].wrappedDimensions.remove(0)
+                if 'AnnotationGenerator' in obj:
+                    for annotation in obj.AnnotationGenerator[0].annotations:
+                        obj.AnnotationGenerator[0].annotations.remove(0)
+                        obj.AnnotationGenerator[0].num_annotations = 0
 
 bpy.app.handlers.load_post.append(load_handler)
 bpy.app.handlers.save_pre.append(save_handler)

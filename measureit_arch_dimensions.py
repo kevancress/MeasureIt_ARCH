@@ -44,7 +44,11 @@ class AreaDimensionProperties(BaseDim,PropertyGroup):
                             default= (0,0,0),
                             subtype= 'TRANSLATION')
 
+    originFaceIdx: IntProperty(name = 'Origin Face',
+                            description='The face whos normal and center are used for text placement',)
+    
     showFill: BoolProperty(name='Show Fill')
+
     showOutline: BoolProperty(name='Show Outline')
 
     fillAlpha: FloatProperty(name='Fill',
@@ -650,7 +654,8 @@ class AddAxisDimensionButton(Operator):
 class AddAreaButton(Operator):
     bl_idname = "measureit_arch.addareabutton"
     bl_label = "Area"
-    bl_description = "(EDITMODE only) Add a new measure for area (select 1 or more faces)"
+    bl_description = "(EDITMODE only) Add a new measure for area (select 1 or more faces) \n \
+        The active face determines text placement"
     bl_category = 'MeasureitArch'
 
     # ------------------------------
@@ -678,17 +683,23 @@ class AddAreaButton(Operator):
             # Add properties
             scene = context.scene
             myobj = context.object
+            
+            # Get all selected faces
             mylist = get_selected_faces(myobj)
             if len(mylist) >= 1:
                 if 'DimensionGenerator' not in myobj:
                     myobj.DimensionGenerator.add()
 
+                # Create Area Dim
                 dimGen = myobj.DimensionGenerator[0]
                 areaDims = dimGen.areaDimensions
                 newDim = areaDims.add()
 
+                # add faces to buffer
                 newDim['facebuffer'] = mylist
 
+
+                # Calc Perimeter edges
                 bm = bmesh.from_edit_mesh(myobj.data)
                 faces = bm.faces
 
@@ -705,9 +716,14 @@ class AddAreaButton(Operator):
                         else:
                             perimiterEdges.append(edge.index)
 
+                # Add perimeter edges to buffer
                 newDim['perimeterEdgeBuffer'] = perimiterEdges 
                 newDim.name = 'Area ' + str(len(dimGen.areaDimensions))
                 newDim.fillColor = (random.random(),random.random(),random.random(),1)
+
+                # User last Selected face as text origin
+                lastIdx = len(mylist)-1
+                newDim.originFaceIdx = bm.select_history[-1].index
 
                 newWrapper = dimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-AREA'
@@ -1294,6 +1310,7 @@ def draw_area_dimension_settings(dim,layout):
 
     col = layout.column(align=True)
     col.prop(dim,'dimTextPos',text='Text Position')
+    col.prop(dim,'dimRotation',text='Text Rotation')
     
     if dim.uses_style is False:
         col = layout.column(align=True)
