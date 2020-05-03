@@ -458,66 +458,73 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
             viewport = [context.area.width, context.area.height]
 
         # Obj Properties
-        # Find the min and max points on each axis
-        maxX = None
-        minX = None
-        maxY = None
-        minY = None
-        maxZ = None
-        minZ = None
-
+        # For Collection Bounding Box
         if dim.dimCollection != None:
             collection = dim.dimCollection
             objects = collection.all_objects
+
+            # Find the min and max points on each axis
+            maxX = None
+            minX = None
+            maxY = None
+            minY = None
+            maxZ = None
+            minZ = None
+            
+            for myobj in objects:
+                bounds = myobj.bound_box
+                for coord in bounds:
+                    # initialize coords
+                    coord = myobj.matrix_world @ Vector(coord)
+                    if maxX == None:
+                        maxX = coord[0]
+                        minX = coord[0]
+                        maxY = coord[1]
+                        minY = coord[1]
+                        maxZ = coord[2]
+                        minZ = coord[2]
+                    if coord[0] > maxX: maxX = coord[0]
+                    if coord[0] < minX: minX = coord[0]
+                    if coord[1] > maxY: maxY = coord[1]
+                    if coord[1] < minY: minY = coord[1]
+                    if coord[2] > maxZ: maxZ = coord[2]
+                    if coord[2] < minZ: minZ = coord[2]
+
+            distX = maxX - minX
+            distY = maxY - minY
+            distZ = maxZ - minZ
+
+            p0 = Vector((minX,minY,minZ))
+            p1 = Vector((minX,minY,maxZ))
+            p2 = Vector((minX,maxY,maxZ))
+            p3 = Vector((minX,maxY,minZ))
+            p4 = Vector((maxX,minY,minZ))
+            p5 = Vector((maxX,minY,maxZ))
+            p6 = Vector((maxX,maxY,maxZ))
+            p7 = Vector((maxX,maxY,minZ))
+            
+            bounds = [p0,p1,p2,p3,p4,p5,p6,p7]
+            print ("X: " + str(distX) + ", Y: " + str(distY) + ", Z: " + str(distZ))
+
         else:
-            objects = [myobj]
-        
-        for myobj in objects:
             bounds = myobj.bound_box
-            for coord in bounds:
-                # initialize coords
-                coord = myobj.matrix_world @ Vector(coord)
-                if maxX == None:
-                    maxX = coord[0]
-                    minX = coord[0]
-                    maxY = coord[1]
-                    minY = coord[1]
-                    maxZ = coord[2]
-                    minZ = coord[2]
-                if coord[0] > maxX: maxX = coord[0]
-                if coord[0] < minX: minX = coord[0]
-                if coord[1] > maxY: maxY = coord[1]
-                if coord[1] < minY: minY = coord[1]
-                if coord[2] > maxZ: maxZ = coord[2]
-                if coord[2] < minZ: minZ = coord[2]
+            tempbounds = []
+            for bound in bounds:
+                tempbounds.append(myobj.matrix_world @ Vector(bound))
+            bounds = tempbounds
 
-        distX = maxX - minX
-        distY = maxY - minY
-        distZ = maxZ - minZ
-
-        p0 = Vector((minX,minY,maxZ))
-        p1 = Vector((minX,minY,minZ))
-        p2 = Vector((maxX,minY,maxZ))
-        p3 = Vector((maxX,minY,minZ))
-        p4 = Vector((maxX,maxY,maxZ))
-        p5 = Vector((maxX,maxY,minZ))
-        p6 = Vector((minX,maxY,maxZ))
-        p7 = Vector((minX,maxY,minZ))
-
-        bounds = [p0,p1,p2,p3,p4,p5,p6,p7]
-        print ("X: " + str(distX) + ", Y: " + str(distY) + ", Z: " + str(distZ))
 
         # Points for Bounding Box
         # 
-        #       6-----------4
+        #       2-----------6
         #      /           /|
         #     /           / |
         #    /           /  |
-        #   0 ----------2   5           Z
+        #   1 ----------5   7           Z
         #   |           |  /            |  y
         #   |           | /             | /
         #   |           |/              |/   
-        #   1-----------3               |--------X
+        #   0-----------4               |--------X
 
 
         # identify axis pairs
@@ -526,15 +533,15 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                   [4,5],
                   [6,7]]
         
-        xpairs = [[0,2],
-                  [1,3],
-                  [6,4],
-                  [7,5]]
+        xpairs = [[0,4],
+                  [1,5],
+                  [2,6],
+                  [3,7]]
 
-        ypairs = [[0,6],
-                  [1,7],
-                  [3,5],
-                  [2,4]]
+        ypairs = [[0,3],
+                  [1,2],
+                  [4,7],
+                  [5,6]]
     
         measureAxis = []
         scene = context.scene
@@ -551,11 +558,9 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
         geoOffset = dim.dimLeaderOffset
 
 
-
         ## Select Best Pairs
-
-        diagonalPair = [1,4]
-        dp1 = Vector(bounds[1])
+        diagonalPair = [2,4]
+        dp1 = Vector(bounds[2])
         dp2 = Vector(bounds[4])
         dplength = Vector(dp1 - dp2).length
         centerpoint = interpolate3d(dp1,dp2,dplength/2)
@@ -576,17 +581,17 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
             viewVec.rotate(viewRot)
             viewAxis = viewVec
 
-        bestPairs = [xpairs[2],ypairs[0],zpairs[0]]
+        bestPairs = [xpairs[2],ypairs[1],zpairs[0]]
         pairs = [xpairs,ypairs,zpairs]
 
         # establish measure loop
+        # this runs through the X, Y and Z axis
         idx = 0
         selectionVectors = [k,i,j]
+        placementVec = [j,-i,-i]
         for axis in dim.drawAxis:
             if axis:
                 # get points 
-                axisViewVec = viewVec.copy()
-                axisViewVec[idx] = 0
                 p1 = Vector(bounds[bestPairs[idx][0]])
                 p2 = Vector(bounds[bestPairs[idx][1]])
 
@@ -605,19 +610,18 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
 
                 # Compute offset vector from face normal and user input
+                axisViewVec = viewVec.copy()
+                axisViewVec[idx] = 0
                 rotationMatrix = Matrix.Rotation(dim.dimRotation, 4, normDistVector)
 
-                selectedNormal = -absNormDisVector.cross(axisViewVec).normalized()
+                selectedNormal = placementVec[idx]
+
+                if dim.dimCollection == None:
+                    rot = myobj.matrix_world.to_quaternion()
+                    selectedNormal.rotate(rot)
 
                 #print(str(idx) + " " + str(abs(selectedNormal.dot(selectionVectors[idx]))))
 
-                if abs(selectedNormal.dot(selectionVectors[idx])) > 0.8:
-                    selectedNormal = selectionVectors[idx]
-                else:
-                    selectedNormal = -absNormDisVector.cross(selectionVectors[idx]).normalized()
-                
-                if selectedNormal.dot((Vector(midpoint)-Vector(centerpoint)).normalized())<0:
-                    selectedNormal = -selectedNormal
                 
                 userOffsetVector = rotationMatrix@selectedNormal
                 offsetDistance = userOffsetVector*offset
@@ -914,7 +918,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         if offsetDistance < geoOffsetDistance:
             offsetDistance = geoOffsetDistance
    
-        #Set Gizmo Props
+        #Set Gi-zmo Props
         dim.gizLoc = midpoint
         dim.gizRotDir = userOffsetVector
 
@@ -1669,7 +1673,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat):
         else:
             viewport = [context.area.width,context.area.height]
 
-        rawRGB = dimProps.fillColor
+        rawRGB = dim.fillColor
         rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),1)
         fillRGB = (rgb[0],rgb[1],rgb[2],dim.fillAlpha)
 
@@ -1796,7 +1800,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat):
         lineGroupShader.bind()
         lineGroupShader.uniform_float("Viewport",viewport)
         lineGroupShader.uniform_float("objectMatrix",mat)
-        lineGroupShader.uniform_float("thickness",dim.lineWeight)
+        lineGroupShader.uniform_float("thickness",dimProps.lineWeight)
         lineGroupShader.uniform_float("extension",0)
         lineGroupShader.uniform_float("weightInfluence", 1)
         lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
@@ -1972,7 +1976,7 @@ def draw_line_group(context, myobj, lineGen, mat):
         rv3d = context.area.spaces[0].region_3d
         zoom = (rv3d.view_camera_zoom+30)/63
         viewport = [context.scene.render.resolution_x/zoom,context.scene.render.resolution_y/zoom]
-
+        viewport = [context.area.width,context.area.height]
         #viewAspect = viewport[0]/viewport[1]
         #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
         #renderAspect = render[0]/render[1]

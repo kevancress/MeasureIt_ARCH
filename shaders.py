@@ -238,6 +238,7 @@ class Line_Group_Shader_3D ():
 
             // Get Width per point
             float width1 = mix(width, gs_in[0].weightOut * width, weightInfluence);
+            radius = width1;
             float width2 = mix(width, gs_in[1].weightOut * width, weightInfluence);
 
             // Screen Space direction and normal

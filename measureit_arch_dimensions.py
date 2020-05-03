@@ -722,8 +722,11 @@ class AddAreaButton(Operator):
                 newDim.fillColor = (random.random(),random.random(),random.random(),1)
 
                 # User last Selected face as text origin
-                lastIdx = len(mylist)-1
-                newDim.originFaceIdx = bm.select_history[-1].index
+                try:
+                    lastIdx = len(mylist)-1
+                    newDim.originFaceIdx = bm.select_history[-1].index
+                except IndexError:
+                    newDim.originFaceIdx = mylist[len(mylist)-1]
 
                 newWrapper = dimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-AREA'
