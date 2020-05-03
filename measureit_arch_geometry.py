@@ -463,32 +463,24 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
             collection = dim.dimCollection
             objects = collection.all_objects
 
-            # Find the min and max points on each axis
-            maxX = None
-            minX = None
-            maxY = None
-            minY = None
-            maxZ = None
-            minZ = None
-            
+            # get the axis aligned bounding coords for each object            
+            coords = []
             for myobj in objects:
-                bounds = myobj.bound_box
-                for coord in bounds:
-                    # initialize coords
-                    coord = myobj.matrix_world @ Vector(coord)
-                    if maxX == None:
-                        maxX = coord[0]
-                        minX = coord[0]
-                        maxY = coord[1]
-                        minY = coord[1]
-                        maxZ = coord[2]
-                        minZ = coord[2]
-                    if coord[0] > maxX: maxX = coord[0]
-                    if coord[0] < minX: minX = coord[0]
-                    if coord[1] > maxY: maxY = coord[1]
-                    if coord[1] < minY: minY = coord[1]
-                    if coord[2] > maxZ: maxZ = coord[2]
-                    if coord[2] < minZ: minZ = coord[2]
+                # if no rotation just use the Objects bounding Box
+                if myobj.matrix_world.to_quaternion() == Quaternion((1.0, 0.0, 0.0, 0.0)):
+                    bounds = myobj.bound_box
+                    for coord in bounds:
+                        coords.append(myobj.matrix_world @ Vector(coord))
+                else: # otherwise get its points and calc its AABB directly
+                    obverts = get_mesh_vertices(myobj)
+                    worldObverts = [myobj.matrix_world @ coord for coord in obverts]
+                    maxX,minX,maxY,minY,maxZ,minZ = get_axis_aligned_bounds(worldObverts)
+                    coords.append(Vector((maxX,maxY,maxZ)))
+                    coords.append(Vector((minX,minY,minZ)))
+                    
+
+            # Get the axis aligned bounding coords for that set of coords
+            maxX,minX,maxY,minY,maxZ,minZ = get_axis_aligned_bounds(coords)
 
             distX = maxX - minX
             distY = maxY - minY
@@ -504,14 +496,36 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
             p7 = Vector((maxX,maxY,minZ))
             
             bounds = [p0,p1,p2,p3,p4,p5,p6,p7]
-            print ("X: " + str(distX) + ", Y: " + str(distY) + ", Z: " + str(distZ))
+            #print ("X: " + str(distX) + ", Y: " + str(distY) + ", Z: " + str(distZ))
 
+        # Single object bounding Box
         else:
-            bounds = myobj.bound_box
-            tempbounds = []
-            for bound in bounds:
-                tempbounds.append(myobj.matrix_world @ Vector(bound))
-            bounds = tempbounds
+            if not dim.calcAxisAligned:
+                bounds = myobj.bound_box
+                tempbounds = []
+                for bound in bounds:
+                    tempbounds.append(myobj.matrix_world @ Vector(bound))
+                bounds = tempbounds
+
+            else:
+                obverts = get_mesh_vertices(myobj)
+                worldObverts = [myobj.matrix_world @ coord for coord in obverts]
+                maxX,minX,maxY,minY,maxZ,minZ = get_axis_aligned_bounds(worldObverts)
+            
+                distX = maxX - minX
+                distY = maxY - minY
+                distZ = maxZ - minZ
+
+                p0 = Vector((minX,minY,minZ))
+                p1 = Vector((minX,minY,maxZ))
+                p2 = Vector((minX,maxY,maxZ))
+                p3 = Vector((minX,maxY,minZ))
+                p4 = Vector((maxX,minY,minZ))
+                p5 = Vector((maxX,minY,maxZ))
+                p6 = Vector((maxX,maxY,maxZ))
+                p7 = Vector((maxX,maxY,minZ))
+                
+                bounds = [p0,p1,p2,p3,p4,p5,p6,p7]
 
 
         # Points for Bounding Box
@@ -616,7 +630,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
                 selectedNormal = placementVec[idx]
 
-                if dim.dimCollection == None:
+                if dim.dimCollection == None and dim.calcAxisAligned == False:
                     rot = myobj.matrix_world.to_quaternion()
                     selectedNormal.rotate(rot)
 
@@ -731,6 +745,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
         #Reset openGL Settings
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
+
 
 def draw_axisDimension(context, myobj, measureGen,dim, mat):
     # GL Settings
@@ -1831,7 +1846,31 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat):
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 
-
+# takes a set of co-ordinates returns the min and max value for each axis
+def get_axis_aligned_bounds(coords):
+    maxX = None
+    minX = None
+    maxY = None
+    minY = None
+    maxZ = None
+    minZ = None
+    
+    for coord in coords:
+        if maxX == None:
+            maxX = coord[0]
+            minX = coord[0]
+            maxY = coord[1]
+            minY = coord[1]
+            maxZ = coord[2]
+            minZ = coord[2]
+        if coord[0] > maxX: maxX = coord[0]
+        if coord[0] < minX: minX = coord[0]
+        if coord[1] > maxY: maxY = coord[1]
+        if coord[1] < minY: minY = coord[1]
+        if coord[2] > maxZ: maxZ = coord[2]
+        if coord[2] < minZ: minZ = coord[2]
+    
+    return [maxX,minX,maxY,minY,maxZ,minZ]
 
 def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     #Set properties
@@ -3180,16 +3219,6 @@ def format_distance(fmt, value, factor=1,isArea=False):
 
     return tx_dist
 
-
-# -------------------------------------------------------------
-# Get radian float based on angle choice
-#
-# -------------------------------------------------------------
-def get_angle_in_rad(fangle):
-    if fangle == 0:
-        return 0.0
-    else:
-        return radians(fangle)
 
 def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
     if pos2d is None:

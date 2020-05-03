@@ -101,6 +101,8 @@ class BoundsDimensionProperties(BaseDim, PropertyGroup):
 
     dimCollection: PointerProperty(type=Collection)
 
+    calcAxisAligned: BoolProperty()
+
 bpy.utils.register_class(BoundsDimensionProperties)
     
 
@@ -1156,6 +1158,7 @@ def draw_bounds_dimension_settings(dim,layout):
     col.prop(dim,'dimLeaderOffset',text='Offset')
     col.prop(dim, 'dimRotation', text='Rotation')
     
+    
     if dim.uses_style is False:
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
@@ -1168,7 +1171,13 @@ def draw_bounds_dimension_settings(dim,layout):
         col.prop(dim,'endcapB', text='End')
         col.prop(dim,'endcapSize', text='Arrow Size')
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
+        
+        col = layout.column(align=True) 
         col.prop(dim,'inFront', text='Draw in Front')
+
+      
+    col.prop(dim,'calcAxisAligned', text='Always Use Axis Aligned Bounds')
+ 
 
 def draw_axis_dimension_settings(dim,layout):
     col = layout.column()    
