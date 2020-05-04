@@ -507,11 +507,25 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                     tempbounds.append(myobj.matrix_world @ Vector(bound))
                 bounds = tempbounds
 
-            else:
-                obverts = get_mesh_vertices(myobj)
-                worldObverts = [myobj.matrix_world @ coord for coord in obverts]
-                maxX,minX,maxY,minY,maxZ,minZ = get_axis_aligned_bounds(worldObverts)
-            
+            else: # Calc AABB when rotation changes
+                try:
+                    if myobj.matrix_world.to_quaternion() != Quaternion(dim['lastRot']):
+                        obverts = get_mesh_vertices(myobj)
+                        worldObverts = [myobj.matrix_world @ coord for coord in obverts]
+                        maxX,minX,maxY,minY,maxZ,minZ = get_axis_aligned_bounds(worldObverts)
+                        dim['bounds'] = [maxX,minX,maxY,minY,maxZ,minZ]
+                        dim['lastRot'] = myobj.matrix_world.to_quaternion()
+                    else:
+                        maxX,minX,maxY,minY,maxZ,minZ = dim['bounds']
+                except:
+                    obverts = get_mesh_vertices(myobj)
+                    worldObverts = [myobj.matrix_world @ coord for coord in obverts]
+                    maxX,minX,maxY,minY,maxZ,minZ = get_axis_aligned_bounds(worldObverts)
+                    dim['bounds'] = [maxX,minX,maxY,minY,maxZ,minZ]
+                    dim['lastRot'] = myobj.matrix_world.to_quaternion()
+                    
+
+                
                 distX = maxX - minX
                 distY = maxY - minY
                 distZ = maxZ - minZ
@@ -526,6 +540,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 p7 = Vector((maxX,maxY,minZ))
                 
                 bounds = [p0,p1,p2,p3,p4,p5,p6,p7]
+                   
 
 
         # Points for Bounding Box
