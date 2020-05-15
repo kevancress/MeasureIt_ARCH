@@ -255,7 +255,6 @@ class BaseDim(BaseWithText):
                             default= 0.0,
                             subtype='ANGLE')
 
-
 class MeasureItARCHSceneProps(PropertyGroup):
     
     debug_flip_text: BoolProperty(name="Debug Text Flip Vectors",
@@ -278,7 +277,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 description="(EXPERIMENTAL) Display Measureit-ARCH Gizmos",
                                 default=False)
 
-    
 
 bpy.utils.register_class(MeasureItARCHSceneProps)
 Scene.MeasureItArchProps = bpy.props.PointerProperty(type=MeasureItARCHSceneProps)
@@ -350,6 +348,29 @@ class DeletePropButton(Operator):
                 
         return {'FINISHED'}
    
+
+class AddTextField(Operator):
+    bl_idname = "measureit_arch.addtextfield"
+    bl_label = "Add Text Field"
+    bl_description = "Add or Remove a new field"
+    bl_category = 'MeasureitArch'
+    idx: IntProperty()
+    add: BoolProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        mainobject = context.object
+        if 'AnnotationGenerator' in mainobject:
+            textFields = mainobject.AnnotationGenerator[0].annotations[self.idx].textFields
+            if self.add:
+                textFields.add()
+            else:
+                textFields.remove(len(textFields)-1)
+            return {'FINISHED'}
+        return {'FINISHED'}
+
 
 class DeleteAllItemsButton(Operator):
     bl_idname = "measureit_arch.deleteallitemsbutton"

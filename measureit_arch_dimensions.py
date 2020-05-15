@@ -450,6 +450,13 @@ class AddBoundingDimensionButton(Operator):
                 newBoundsDimension.textFields.add()
                 newBoundsDimension.textFields.add()
 
+                newBoundsDimension.style = scene.measureit_arch_default_dimension_style
+                if scene.measureit_arch_default_dimension_style is not '':
+                    newBoundsDimension.uses_style = True
+                else:
+                    newBoundsDimension.uses_style = False
+
+
                 newWrapper = DimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-BOUNDS'
 

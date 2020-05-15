@@ -470,30 +470,35 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 boundsStr = str(myobj.name) + "_bounds"
                 rotStr = str(myobj.name) + "_lastRot"
                 locStr = str(myobj.name) + "_lastLoc"
+                scaleStr = str(myobj.name) + "_lastScale"
 
-                # if no rotation just use the Objects bounding Box
+                # if no rotation or non mesh obj just use the Objects bounding Box
                 # Also clean up any chached values
-                if myobj.matrix_world.to_quaternion() == Quaternion((1.0, 0.0, 0.0, 0.0)):
+                if myobj.matrix_world.to_quaternion() == Quaternion((1.0, 0.0, 0.0, 0.0)) or myobj.type != 'MESH':
                     bounds = myobj.bound_box
                     for coord in bounds:
                         coords.append(myobj.matrix_world @ Vector(coord))
+
+                        # Also clean up any chached values
                         try:
                             del dim[locStr]
                             del dim[rotStr]
                             del dim[boundsStr]
+                            del dim[scaleStr]
                         except KeyError:
                             pass
 
                 else: # otherwise get its points and calc its AABB directly
 
                     try:
-                        if myobj.matrix_world.to_quaternion() != Quaternion(dim[rotStr]) or myobj.location != Vector(dim[locStr]) :
+                        if myobj.matrix_world.to_quaternion() != Quaternion(dim[rotStr]) or myobj.location != Vector(dim[locStr]) or  myobj.scale !=  Vector(dim[scaleStr]):
                             obverts = get_mesh_vertices(myobj)
                             worldObverts = [myobj.matrix_world @ coord for coord in obverts]
                             maxX,minX,maxY,minY,maxZ,minZ = get_axis_aligned_bounds(worldObverts)
                             dim[boundsStr] = [maxX,minX,maxY,minY,maxZ,minZ]
                             dim[rotStr] = myobj.matrix_world.to_quaternion()
                             dim[locStr] = myobj.location
+                            dim[scaleStr] = myobj.scale
                         else:
                             maxX,minX,maxY,minY,maxZ,minZ = dim[boundsStr]
                     except KeyError:
@@ -503,6 +508,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                         dim[boundsStr] = [maxX,minX,maxY,minY,maxZ,minZ]
                         dim[rotStr] = myobj.matrix_world.to_quaternion()
                         dim[locStr] = myobj.location
+                        dim[scaleStr] = myobj.scale
 
 
                     coords.append(Vector((maxX,maxY,maxZ)))

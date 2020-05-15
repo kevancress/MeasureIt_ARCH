@@ -350,30 +350,6 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
             txtRemoveOp.idx = annoGen.active_annotation_index 
             txtRemoveOp.add = False
 
-class AddTextField(Operator):
-    bl_idname = "measureit_arch.addtextfield"
-    bl_label = "Add Text Field"
-    bl_description = "Add or Remove a new field"
-    bl_category = 'MeasureitArch'
-    idx: IntProperty()
-    add: BoolProperty()
-
-
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    def execute(self, context):
-        mainobject = context.object
-        if 'AnnotationGenerator' in mainobject:
-            textFields = mainobject.AnnotationGenerator[0].annotations[self.idx].textFields
-            if self.add:
-                textFields.add()
-            else:
-                textFields.remove(len(textFields)-1)
-            return {'FINISHED'}
-        return {'FINISHED'}
-
 class TranlateAnnotationOp(bpy.types.Operator):
     """Move Annotation"""
     bl_idname = "measureit_arch.translate_annotation"
