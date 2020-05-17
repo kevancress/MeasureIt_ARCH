@@ -1,5 +1,5 @@
 # MeasureIt - ARCH Dimension, Annotation and Linework tools for Blender 2.8
-MeasureIt - ARCH is based off of Antonio Vazquez's [MeasureIt Addon](https://www.youtube.com/watch?v=R0jCdCoaRvs).
+MeasureIt - ARCH is based off of Antonio Vazquez's MeasureIt Addon
 
 Get the latest Stable release [here](https://github.com/kevancress/MeasureIt-ARCH/releases)
 
