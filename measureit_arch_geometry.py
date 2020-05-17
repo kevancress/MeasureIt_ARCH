@@ -59,9 +59,14 @@ lineShader = gpu.types.GPUShader(
     Line_Shader_3D.fragment_shader,
     geocode=Line_Shader_3D.geometry_shader)
 
+if bpy.app.version > (2,83,0):
+    lgsfrag = Line_Group_Shader_3D_B283.fragment_shader
+else:
+    lgsfrag = Line_Group_Shader_3D.fragment_shader
+    
 lineGroupShader = gpu.types.GPUShader(
     Line_Group_Shader_3D.vertex_shader,
-    Line_Group_Shader_3D.fragment_shader,
+    lgsfrag,
     geocode=Line_Group_Shader_3D.geometry_shader)
 
 triShader = gpu.types.GPUShader(
@@ -2048,10 +2053,6 @@ def draw_line_group(context, myobj, lineGen, mat):
     # Blending Settings
     bgl.glEnable(bgl.GL_BLEND)
 
-
-
-
-
     # Depth Settings
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthFunc(bgl.GL_LEQUAL) 
@@ -2121,8 +2122,8 @@ def draw_line_group(context, myobj, lineGen, mat):
             # Eventually I should do this properly in shader with "blender_srgb_to_framebuffer_space()"", but right now that breaks compatibility
             # with versions less than 2.83, so for backwards compatibility we do this here.
 
-            if bpy.app.version > (2,83,0):
-                rgb = [pow(rgb[0],(2.2)),pow(rgb[1],(2.2)),pow(rgb[2],(2.2)),rgb[3]]
+            #if bpy.app.version > (2,83,0):
+            #    rgb = [pow(rgb[0],(2.2)),pow(rgb[1],(2.2)),pow(rgb[2],(2.2)),rgb[3]]
 
             #set other line properties
             isOrtho = False
@@ -2289,7 +2290,8 @@ def draw_line_group(context, myobj, lineGen, mat):
                     lineGroupShader.uniform_float("depthPass",True)
                     batch3d.program_set(lineGroupShader)
                     batch3d.draw()
-                
+
+
                 if sceneProps.is_render_draw:
                     bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
                     #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
