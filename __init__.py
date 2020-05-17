@@ -30,8 +30,10 @@ bl_info = {
     "author": "Kevan Cress, Antonio Vazquez (antonioya)",
     "location": "View3D > Tools Panel /Properties panel",
     "version": (0, 4, 0),
-    "blender": (2, 80, 0),      
-    "description": "Tools for measuring objects.",
+    "blender": (2, 83, 0),      
+    "description": "Tools for adding Dimensions, Annotations and Linework to Objects",
+    "warning": "",
+    "doc_url": "https://github.com/kevancress/MeasureIt-ARCH/wiki/Version-0.4-Documentation",
     "category": "3D View"
 }
 

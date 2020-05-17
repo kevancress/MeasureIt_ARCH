@@ -2114,6 +2114,16 @@ def draw_line_group(context, myobj, lineGen, mat):
                         rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
                         rgb[3] = 1.0
 
+            # if the Blender version is greater than 2.83, redo the gamma correction because
+            # it's corrected for in the source code now.
+            # https://wiki.blender.org/wiki/Reference/Release_Notes/2.83/Python_API
+            # https://developer.blender.org/T74139
+            # Eventually I should do this properly in shader with "blender_srgb_to_framebuffer_space()"", but right now that breaks compatibility
+            # with versions less than 2.83, so for backwards compatibility we do this here.
+
+            if bpy.app.version > (2,83,0):
+                rgb = [pow(rgb[0],(2.2)),pow(rgb[1],(2.2)),pow(rgb[2],(2.2)),rgb[3]]
+
             #set other line properties
             isOrtho = False
             if sceneProps.is_render_draw:
