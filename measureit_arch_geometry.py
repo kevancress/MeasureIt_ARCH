@@ -1774,9 +1774,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat):
         bm.verts.ensure_lookup_table()
         faces = bm.faces
 
-  
- 
-
         # Get the Filled Coord and Sum the Face Areas
         filledCoords = []
         sumArea = 0
@@ -1831,14 +1828,14 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat):
         originFace = faces[dim.originFaceIdx]
         origin = originFace.calc_center_bounds()
         normal = originFace.normal
-        tangent = originFace.calc_tangent_vert_diagonal()
+        tangent = originFace.calc_tangent_edge()
         origin += dim.dimTextPos + normal*0.001
 
         y= normal.cross(tangent)
         x= normal.cross(y)
         
-        y.rotate(Quaternion(normal,radians(-45)))
-        x.rotate(Quaternion(normal,radians(-45)))
+        #y.rotate(Quaternion(normal,radians(-45)))
+        #x.rotate(Quaternion(normal,radians(-45)))
 
         y.rotate(Quaternion(normal,dim.dimRotation))
         x.rotate(Quaternion(normal,dim.dimRotation))

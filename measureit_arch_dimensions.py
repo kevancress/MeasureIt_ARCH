@@ -432,9 +432,7 @@ class AddBoundingDimensionButton(Operator):
 
                 # Basically I dont need to do anything here, I want to handle the measureing and the selection of which bounding box
                 # verts to anchor to in the draw method, so that the most visible verts can be selected depending on the current view.
-                # all we need to do is to create a dummy Bounds dimension and set its defualt props. We do the tricky part in the draw.
-                
-                # Maybe we dont even bother to set axis on creation. Maybe its just a single dim object with toggles for each axis... keep it simple, avoid clutter.a
+                # all we need to do is to create a  Bounds dimension and set its defualt props. We do the tricky part in the draw.
 
                 # Add Bounds Dim with Axis
                 DimGen = mainobject.DimensionGenerator[0]
@@ -907,6 +905,25 @@ class CursorToArcOrigin(Operator):
     bl_category = 'MeasureitArch'
 
     # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        myobj = context.object
+        if myobj is None:
+            return False
+        else:
+            dimGen = myobj.DimensionGenerator[0]
+            activeIndex = dimGen.active_dimension_index
+            activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+
+            if activeWrapperItem.itemType == 'D-ARC':
+                return True
+            else:
+                return False
+                
+
+    # ------------------------------
     # Execute button action
     # ------------------------------
     def execute(self, context):
@@ -926,6 +943,175 @@ class CursorToArcOrigin(Operator):
             "Please Select an Arc Dimension")
         return {'CANCELLED'}
 
+class AddFaceToArea(Operator):   
+    bl_idname = "measureit_arch.addfacetoarea"
+    bl_label = "Add Selected Faces to Area Dimension"
+    bl_description = "(EDIT MODE) Adds the currently selected faces to the active Area Dimension"
+    bl_category = 'MeasureitArch'
+    tag: IntProperty()
+
+    # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        myobj = context.object
+        if myobj is None:
+            return False
+        else:
+            if myobj.type == "MESH":
+                if bpy.context.mode == 'EDIT_MESH':
+                    dimGen = myobj.DimensionGenerator[0]
+                    activeIndex = dimGen.active_dimension_index
+                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+
+                    if activeWrapperItem.itemType == 'D-AREA':
+                        return True
+                    else:
+                       return False
+                else:
+                    return False
+            else:
+                return False
+
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+         for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    # get selected
+
+                    myobj = context.object
+                    mylist =  get_selected_faces(myobj)
+                    dimGen = myobj.DimensionGenerator[0]
+                    activeIndex = dimGen.active_dimension_index
+                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+                    
+                    if activeWrapperItem.itemType == 'D-AREA':
+                        dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
+                    else:
+                        return{'CANCLED'}
+
+                    # add faces to buffer
+                    templist = dim['facebuffer'].to_list()
+                    for idx in mylist:
+                        templist.append(idx)
+                    dim['facebuffer'] = templist
+
+
+                    # Calc Perimeter edges
+                    bm = bmesh.from_edit_mesh(myobj.data)
+                    faces = bm.faces
+
+                    bm.faces.ensure_lookup_table()
+
+                    perimiterEdges = []
+                    dim['perimeterEdgeBuffer'] = perimiterEdges 
+                    for faceIdx in templist:
+                        face = faces[faceIdx]
+                        edges = face.edges
+                        for edge in edges:
+                            adjFaces = edge.link_faces
+                            if adjFaces[0].index in templist and adjFaces[1].index in templist:
+                                pass
+                            else:
+                                perimiterEdges.append(edge.index)
+
+                    # Add perimeter edges to buffer
+                    dim['perimeterEdgeBuffer'] = perimiterEdges 
+                    return{'FINISHED'}
+            return{'CANCLED'}
+
+class RemoveFaceFromArea(Operator):   
+    bl_idname = "measureit_arch.removefacefromarea"
+    bl_label = "Remove Selected Faces from Area Dimension"
+    bl_description = "(EDIT MODE) Removes the currently selected faces from the active Area Dimension"
+    bl_category = 'MeasureitArch'
+
+    # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        myobj = context.object
+        if myobj is None:
+            return False
+        else:
+            if myobj.type == "MESH":
+                if bpy.context.mode == 'EDIT_MESH':
+                    dimGen = myobj.DimensionGenerator[0]
+                    activeIndex = dimGen.active_dimension_index
+                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+
+                    if activeWrapperItem.itemType == 'D-AREA':
+                        return True
+                    else:
+                       return False
+                else:
+                    return False
+            else:
+                return False
+
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+         for window in bpy.context.window_manager.windows:
+            screen = window.screen
+
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    # get selected
+
+                    myobj = context.object
+                    mylist =  get_selected_faces(myobj)
+                    dimGen = myobj.DimensionGenerator[0]
+                    activeIndex = dimGen.active_dimension_index
+                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+                    
+                    if activeWrapperItem.itemType == 'D-AREA':
+                        dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
+                    else:
+                        return{'CANCLED'}
+
+                    # remove faces from buffer
+                    templist = dim['facebuffer'].to_list()
+                    for idx in mylist:
+                        if idx in templist:
+                            idxToRemove = templist.index(idx)
+                            del templist[idxToRemove]
+
+                    dim['facebuffer'] = templist
+
+
+                    # reCalc Perimeter edges
+                    bm = bmesh.from_edit_mesh(myobj.data)
+                    faces = bm.faces
+
+                    bm.faces.ensure_lookup_table()
+
+                    perimiterEdges = []
+                    dim['perimeterEdgeBuffer'] = perimiterEdges 
+                    for faceIdx in templist:
+                        face = faces[faceIdx]
+                        edges = face.edges
+                        for edge in edges:
+                            adjFaces = edge.link_faces
+                            if adjFaces[0].index in templist and adjFaces[1].index in templist:
+                                pass
+                            else:
+                                perimiterEdges.append(edge.index)
+
+                    # Add perimeter edges to buffer
+                    dim['perimeterEdgeBuffer'] = perimiterEdges 
+                    return{'FINISHED'}
+            return{'CANCLED'}
 
 class M_ARCH_UL_dimension_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
@@ -1082,10 +1268,20 @@ class OBJECT_MT_dimension_menu(bpy.types.Menu):
 
     def draw(self,context):
         layout = self.layout
+        
+        op = layout.operator('measureit_arch.addfacetoarea', text="Add To Area", icon='ADD')
+        op = layout.operator('measureit_arch.removefacefromarea', text="Remove From Area", icon='REMOVE')
+
+        layout.separator()
+
+        op = layout.operator('measureit_arch.cursortoarcorigin',text="Cursor to Arc Origin", icon='MOD_THICKNESS')
+
+        layout.separator()
 
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Dimensions", icon="X")
         delOp.is_style = False
         delOp.item_type = 'D'
+
 
 def draw_aligned_dimension_settings(dim,layout):
     col = layout.column()    
@@ -1185,7 +1381,6 @@ def draw_bounds_dimension_settings(dim,layout):
       
     col.prop(dim,'calcAxisAligned', text='Always Use Axis Aligned Bounds')
  
-
 def draw_axis_dimension_settings(dim,layout):
     col = layout.column()    
 
@@ -1264,7 +1459,6 @@ def draw_angle_dimension_settings(dim,layout):
 
 def draw_arc_dimension_settings(dim,layout):
     col = layout.column()
-    op = col.operator('measureit_arch.cursortoarcorigin')
 
     if dim.uses_style is False:
         split = layout.split(factor=0.485)
@@ -1305,7 +1499,7 @@ def draw_arc_dimension_settings(dim,layout):
 
 def draw_area_dimension_settings(dim,layout):
     col = layout.column(align=True)    
-
+    
     col.prop(dim,"fillColor", text='Fill Color')
     col.prop(dim,'fillAlpha', text='Fill Amount')
 
