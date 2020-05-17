@@ -50,42 +50,50 @@ dashedBatch3D = {}
 hiddenBatch3D = {}
 
 # define Shaders
-shader = gpu.types.GPUShader(
-    Base_Shader_2D.vertex_shader,
-    Base_Shader_2D.fragment_shader)
+
+# Alter which frag shader is used depending on the blender version
+# https://wiki.blender.org/wiki/Reference/Release_Notes/2.83/Python_API
+# https://developer.blender.org/T74139
+
+if bpy.app.version > (2,83,0):
+    aafrag = Frag_Shaders_3D_B283.aa_fragment_shader
+    basefrag = Frag_Shaders_3D_B283.base_fragment_shader
+    dashedfrag = Frag_Shaders_3D_B283.dashed_fragment_shader
+    textfrag = Frag_Shaders_3D_B283.text_fragment_shader
+else:
+    aafrag = Base_Shader_3D_AA.fragment_shader
+    basefrag = Base_Shader_3D.fragment_shader
+    dashedfrag = Dashed_Shader_3D.fragment_shader
+    textfrag = Text_Shader.fragment_shader
+
 
 lineShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
-    Line_Shader_3D.fragment_shader,
+    aafrag,
     geocode=Line_Shader_3D.geometry_shader)
-
-if bpy.app.version > (2,83,0):
-    lgsfrag = Line_Group_Shader_3D_B283.fragment_shader
-else:
-    lgsfrag = Line_Group_Shader_3D.fragment_shader
     
 lineGroupShader = gpu.types.GPUShader(
     Line_Group_Shader_3D.vertex_shader,
-    lgsfrag,
+    aafrag,
     geocode=Line_Group_Shader_3D.geometry_shader)
 
 triShader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader,
-    Base_Shader_3D.fragment_shader)
+    basefrag)
 
 dashedLineShader = gpu.types.GPUShader(
     Dashed_Shader_3D.vertex_shader,
-    Dashed_Shader_3D.fragment_shader,
+    dashedfrag,
     geocode=Dashed_Shader_3D.geometry_shader)
 
 pointShader = gpu.types.GPUShader(
     Point_Shader_3D.vertex_shader,
-    Point_Shader_3D.fragment_shader,
+    aafrag,
     geocode=Point_Shader_3D.geometry_shader)
 
 textShader = gpu.types.GPUShader(
     Text_Shader.vertex_shader,
-    Text_Shader.fragment_shader)
+    textfrag)
 
 fontSizeMult = 6
 
@@ -1298,6 +1306,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         pointShader.uniform_float("Viewport",viewport)
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         pointShader.uniform_float("thickness", lineWeight)
+        pointShader.uniform_float("depthPass", False)
         pointShader.uniform_float("offset", -0.001)
         gpu.shader.unbind()
 
@@ -1625,7 +1634,8 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         pointShader.bind()
         pointShader.uniform_float("Viewport",viewport)
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("offset", -offset)
+        pointShader.uniform_float("offset", 0)
+        pointShader.uniform_float("depthPass", False)
         pointShader.uniform_float("thickness",lineWeight)
         batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords})
         batch.program_set(pointShader)
@@ -1637,7 +1647,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         lineShader.uniform_float("Viewport",viewport)
         lineShader.uniform_float("thickness",lineWeight)
         lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", -offset)
+        lineShader.uniform_float("offset", -0.005)
 
         batch = batch_for_shader(lineShader, 'LINES', {"pos": draw_coords})
         batch.program_set(lineShader)
@@ -1665,6 +1675,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         pointShader.uniform_float("Viewport",viewport)
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         pointShader.uniform_float("offset", -offset)
+        pointShader.uniform_float("depthPass", False)
         pointShader.uniform_float("thickness",lineWeight*3)
         batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords2})
         batch.program_set(pointShader)
@@ -1686,6 +1697,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
             pointShader.uniform_float("Viewport",viewport)
             pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             pointShader.uniform_float("offset", -0.01)
+            pointShader.uniform_float("depthPass", False)
             batch = batch_for_shader(pointShader, 'POINTS', {"pos": pointCenter})
             batch.program_set(pointShader)
             batch.draw()
@@ -2115,16 +2127,6 @@ def draw_line_group(context, myobj, lineGen, mat):
                         rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
                         rgb[3] = 1.0
 
-            # if the Blender version is greater than 2.83, redo the gamma correction because
-            # it's corrected for in the source code now.
-            # https://wiki.blender.org/wiki/Reference/Release_Notes/2.83/Python_API
-            # https://developer.blender.org/T74139
-            # Eventually I should do this properly in shader with "blender_srgb_to_framebuffer_space()"", but right now that breaks compatibility
-            # with versions less than 2.83, so for backwards compatibility we do this here.
-
-            #if bpy.app.version > (2,83,0):
-            #    rgb = [pow(rgb[0],(2.2)),pow(rgb[1],(2.2)),pow(rgb[2],(2.2)),rgb[3]]
-
             #set other line properties
             isOrtho = False
             if sceneProps.is_render_draw:
@@ -2349,6 +2351,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
             pointShader.uniform_float("Viewport",viewport)
             pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
             pointShader.uniform_float("thickness", lineWeight)
+            pointShader.uniform_float("depthPass", False)
             pointShader.uniform_float("offset", -0.001)
             gpu.shader.unbind()
 
@@ -2462,6 +2465,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
                 pointShader.uniform_float("Viewport",viewport)
                 pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 pointShader.uniform_float("thickness", endcapSize)
+                pointShader.uniform_float("depthPass", False)
                 pointShader.uniform_float("offset", -0.01)
                 gpu.shader.unbind()
                 

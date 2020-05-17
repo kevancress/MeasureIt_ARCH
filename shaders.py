@@ -80,6 +80,42 @@ class Base_Shader_3D ():
         }
     '''
 
+
+class Base_Shader_3D_AA ():
+    fragment_shader = '''
+        in vec2 mTexCoord;
+        in vec4 fcolor;
+        in vec4 gl_FragCoord;
+        uniform vec4 finalColor;
+        uniform bool depthPass;
+        out vec4 fragColor;
+
+        void main()
+        {
+            vec4 aaColor = finalColor;
+            vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
+
+            vec2 center = vec2(0,0.5);
+            float dist = length(mTexCoord - center);
+            float distFromEdge = 1-(dist*2);
+
+            float delta = fwidth(distFromEdge);
+            float threshold = 1.5 * delta;
+            float aa = clamp((distFromEdge/threshold)+0.5,0,1);
+            aa = smoothstep(0,1,aa*aa);
+
+            aaColor = mix(mixColor,finalColor,aa);
+
+            if(depthPass){
+                if (aa<1){
+                    discard;
+                }
+            }
+            
+            fragColor = aaColor; 
+        }
+    '''
+
 class Line_Shader_3D ():
     geometry_shader = '''
         layout(lines) in;
@@ -136,33 +172,6 @@ class Line_Shader_3D ():
             }
             EndPrimitive();
         }  
-    '''
-
-    fragment_shader = '''
-        in vec2 mTexCoord;
-        uniform vec4 finalColor;
-        out vec4 fragColor;
-
-        void main()
-        {
-            vec4 aaColor = finalColor;
-
-            vec2 center = vec2(0,0.5);
-            float dist = length(mTexCoord - center);
-            float distFromEdge = 1-(dist*2);
-
-            float delta = fwidth(distFromEdge);
-            float threshold = 2*delta;
-            float aa = clamp((distFromEdge/threshold)+0.5,0,1);
-            aa = aa -clamp(0.5*fwidth(aa),0,1);
-            aa = smoothstep(0,1,aa);
-
-            aaColor[3] = mix(0,finalColor[3],aa);
-
-            fragColor = aaColor;
-
-            fragColor = aaColor;
-        }
     '''
 
 class Line_Group_Shader_3D ():
@@ -323,7 +332,18 @@ class Line_Group_Shader_3D ():
         }  
     '''
 
-    fragment_shader = '''
+class Frag_Shaders_3D_B283 ():
+    base_fragment_shader = '''
+        uniform vec4 finalColor;
+        out vec4 fragColor;
+
+        void main()
+        {
+            fragColor = blender_srgb_to_framebuffer_space(finalColor);
+        }
+    '''
+    
+    aa_fragment_shader = '''
         in vec2 mTexCoord;
         in vec4 fcolor;
         in vec4 gl_FragCoord;
@@ -353,46 +373,58 @@ class Line_Group_Shader_3D ():
                 }
             }
             
-            fragColor = aaColor; 
+            fragColor = blender_srgb_to_framebuffer_space(aaColor); 
         }
     '''
 
+    dashed_fragment_shader = '''
+        in vec2 mTexCoord;
+        uniform float u_Scale;
+        uniform vec4 finalColor;
+        uniform float dashSpace;
+        
+        in float g_ArcLength;
+        out vec4 fragColor;
 
-class Line_Group_Shader_3D_B283 ():
+        void main()
+        {   
+            vec4 aaColor = finalColor;
 
-        fragment_shader = '''
-            in vec2 mTexCoord;
-            in vec4 fcolor;
-            in vec4 gl_FragCoord;
-            uniform vec4 finalColor;
-            uniform bool depthPass;
-            out vec4 fragColor;
+            vec2 center = vec2(0,0.5);
+            float dist = length(mTexCoord - center);
+            float distFromEdge = 1-(dist*2);
 
-            void main()
-            {
-                vec4 aaColor = finalColor;
-                vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
+            float delta = fwidth(distFromEdge);
+            float threshold = 2*delta;
+            float aa = clamp((distFromEdge/threshold)+0.5,0,1);
+            aa = aa -clamp(0.5*fwidth(aa),0,1);
+            aa = smoothstep(0,1,aa);
 
-                vec2 center = vec2(0,0.5);
-                float dist = length(mTexCoord - center);
-                float distFromEdge = 1-(dist*2);
+            aaColor[3] = mix(0,finalColor[3],aa);
 
-                float delta = fwidth(distFromEdge);
-                float threshold = 1.5 * delta;
-                float aa = clamp((distFromEdge/threshold)+0.5,0,1);
-                aa = smoothstep(0,1,aa*aa);
+            fragColor = aaColor;
+            
+            float mapdashSpace = 2*dashSpace - 1;
+            if (step(sin(g_ArcLength * u_Scale), mapdashSpace) == 1) discard;
+            fragColor = blender_srgb_to_framebuffer_space(aaColor);
+        }
+    '''
 
-                aaColor = mix(mixColor,finalColor,aa);
+    text_fragment_shader = '''
+        uniform sampler2D image;
 
-                if(depthPass){
-                    if (aa<1){
-                        discard;
-                    }
-                }
-                
-                fragColor = blender_srgb_to_framebuffer_space(aaColor); 
+        in vec2 uvInterp;
+        out vec4 fragColor;
+
+        void main()
+        {   
+            vec4 color = texture(image, uvInterp);
+            if (color[3]<0.5){
+                discard;
             }
-        '''
+            fragColor = blender_srgb_to_framebuffer_space(color);
+        }
+    '''
 
 class Dashed_Shader_3D ():
 
@@ -559,6 +591,7 @@ class Point_Shader_3D ():
         void main() {
 
             gl_Position = gl_in[0].gl_Position;
+            mTexCoord = vec2(0,0.5);
             EmitVertex();
             
             segments = clamp(segments,0,24);
@@ -569,43 +602,18 @@ class Point_Shader_3D ():
                 // Offset from center of point
                 vec2 offset = vec2(cos(ang)*radius, -sin(ang)*radius);
                 offset.x /= aspect;
-                mTexCoord = normalize(offset - ssp1);
+                mTexCoord = vec2(0,1);
                 gl_Position = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
                 EmitVertex();
 
                 gl_Position = gl_in[0].gl_Position;
-                mTexCoord = vec2(0,0);
+                mTexCoord = vec2(0,0.5);
                 EmitVertex();
 
             }
 
             EndPrimitive();
         }  
-    '''
-
-    fragment_shader = '''
-        in vec2 mTexCoord;
-        uniform vec4 finalColor;
-        out vec4 fragColor;
-
-        void main()
-        {
-            vec4 aaColor = finalColor;
-
-            vec2 center = vec2(0,0);
-            float dist = length(mTexCoord - center);
-            float distFromEdge = 1-(dist);
-
-            float delta = fwidth(distFromEdge);
-            float threshold = 2*delta;
-            float aa = clamp((distFromEdge/threshold)+0.5,0,1);
-            aa = aa -clamp(0.5*fwidth(aa),0,1);
-            aa = smoothstep(0,1,aa);
-
-            aaColor[3] = mix(0,finalColor[3],aa);
-
-            fragColor = aaColor;
-        }
     '''
 
 class Text_Shader():
