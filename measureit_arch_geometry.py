@@ -325,7 +325,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         dist = distVector.length
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
-        absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
+        absNormDistVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
 
 
         # Compute offset vector from face normal and user input
@@ -384,17 +384,51 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         cardX = normDistVector.normalized() * sx
         cardY = userOffsetVector.normalized() *sy
 
+       # Flip endcaps if they're going to overlap the dim
         flipCaps = False
-        if (cardX.length + capSize/100) > dist:
+        if (cardX.length + capSize/80) > dist:
             flipCaps=True
-            origin = Vector(dimLineEnd) - Vector(cardX/2 + cardX.normalized()*capSize/100) -Vector(cardY/2)
+
+        # Move dim to ext temporarily if the text is wider than the dimension line
+        tempExtFlag = False
+        if (cardX.length) > dist:
+            if dim.textAlignment == 'C':
+                tempExtFlag = True
+
+        # Set Text Alignment 
+        dimLineExtension = 0 # add some extension to the line if the dimension is ext
+        if dim.textAlignment == 'L' :
+            flipCaps=True
+            dimLineExtension = capSize/50
+            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
+            
+        elif dim.textAlignment == 'R':
+            flipCaps=True
+            dimLineExtension = capSize/50
+            origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) - Vector(cardY/2)
+            
+        elif tempExtFlag:
+            flipCaps=True
+            dimLineExtension = capSize/50
+            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
+
+        if flipCaps:
+            dimLineExtension = capSize/50
+
+            
+        # Add the Extension to the dimension line
+        dimLineVec = dimLineStart - dimLineEnd
+        dimLineVec.normalize()
+        dimLineEndCoord = dimLineEnd - dimLineVec * dimLineExtension 
+        dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension 
         
-        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
+        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
+
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dimText,dimProps,myobj,square)
 
         #Collect coords and endcaps
-        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
+        coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStartCoord,dimLineEndCoord]
         filledCoords = []
         pos = (dimLineStart,dimLineEnd)
         i=0
@@ -684,7 +718,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 dist = distVector.length
                 midpoint = interpolate3d(p1, p2, fabs(dist / 2))
                 normDistVector = distVector.normalized()
-                absNormDisVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
+                absNormDistVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
 
 
                 # Compute offset vector from face normal and user input
@@ -750,20 +784,52 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 origin = Vector(textLoc)
                 cardX = normDistVector.normalized() * sx
                 cardY = userOffsetVector.normalized() *sy
-
+                # Flip endcaps if they're going to overlap the dim
                 flipCaps = False
-                if (cardX.length + capSize/100) > dist:
+                if (cardX.length + capSize/80) > dist:
                     flipCaps=True
-                    origin = Vector(dimLineEnd) - Vector(cardX/2 + cardX.normalized()*capSize/100) -Vector(cardY/2)
+
+                # Move dim to ext temporarily if the text is wider than the dimension line
+                tempExtFlag = False
+                if (cardX.length) > dist:
+                    if dim.textAlignment == 'C':
+                        tempExtFlag = True
+
+                # Set Text Alignment 
+                dimLineExtension = 0 # add some extension to the line if the dimension is ext
+                if dim.textAlignment == 'L' :
+                    flipCaps=True
+                    dimLineExtension = capSize/50
+                    origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
+                    
+                elif dim.textAlignment == 'R':
+                    flipCaps=True
+                    dimLineExtension = capSize/50
+                    origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) - Vector(cardY/2)
+                    
+                elif tempExtFlag:
+                    flipCaps=True
+                    dimLineExtension = capSize/50
+                    origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
+
+                if flipCaps:
+                    dimLineExtension = capSize/50
+
+                    
+                # Add the Extension to the dimension line
+                dimLineVec = dimLineStart - dimLineEnd
+                dimLineVec.normalize()
+                dimLineEndCoord = dimLineEnd - dimLineVec * dimLineExtension 
+                dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension 
                 
-                square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
+                square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
+
                 if scene.measureit_arch_gl_show_d:
                     draw_text_3D(context,dimText,dimProps,myobj,square)
-
-            
+        
 
                 #Collect coords and endcaps
-                coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStart,dimLineEnd]
+                coords = [leadStartA,leadEndA,leadStartB,leadEndB,dimLineStartCoord,dimLineEndCoord]
                 #coords.append((0,0,0))
                 #coords.append(axisViewVec)
                 filledCoords = []
@@ -997,7 +1063,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         if offsetDistance < geoOffsetDistance:
             offsetDistance = geoOffsetDistance
    
-        #Set Gi-zmo Props
+        #Set Gizmo Props
         dim.gizLoc = midpoint
         dim.gizRotDir = userOffsetVector
 
