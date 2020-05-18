@@ -1313,9 +1313,10 @@ def draw_aligned_dimension_settings(dim,layout):
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
         col.prop(dim,'textResolution',text='Resolution')
-        col.prop(dim,'textAlignment',text='Alignment')
+    col.prop(dim,'textAlignment',text='Alignment')
         #col.prop(dim,'textPosition',text='Position')
-
+        
+    if dim.uses_style is False:
         col = layout.column(align=True)
         col.prop(dim,'endcapA', text='Arrow Start')
         col.prop(dim,'endcapB', text='End')

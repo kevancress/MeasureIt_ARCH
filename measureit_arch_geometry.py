@@ -380,9 +380,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.1*size
-        origin = Vector(textLoc)
+       
         cardX = normDistVector.normalized() * sx
         cardY = userOffsetVector.normalized() *sy
+        origin = Vector(textLoc) + cardY.normalized()*0.05
 
        # Flip endcaps if they're going to overlap the dim
         flipCaps = False
@@ -464,10 +465,33 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         lineShader.uniform_float("offset", -0.001)
 
         # batch & Draw Shader   
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-        batch.program_set(lineShader)
-        batch.draw()
+        batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+
+        if rgb[3] == 1:
+            bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+            bgl.glDepthMask(True)
+            lineShader.uniform_float("depthPass",True)
+            batch3d.program_set(lineShader)
+            batch3d.draw()
+
+
+        if sceneProps.is_render_draw:
+            bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+            #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+            bgl.glBlendEquation(bgl.GL_MAX)
+
+        bgl.glDepthMask(False)
+        lineShader.uniform_float("depthPass",False)
+        batch3d.program_set(lineShader)
+        batch3d.draw()
+
+
         gpu.shader.unbind()
+    
+
+
+
+
         
         #Reset openGL Settings
 
@@ -781,9 +805,10 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
                 size = dimProps.fontSize/fontSizeMult
                 sx = (width/resolution)*0.1*size
                 sy = (height/resolution)*0.1*size
-                origin = Vector(textLoc)
                 cardX = normDistVector.normalized() * sx
                 cardY = userOffsetVector.normalized() *sy
+                origin = Vector(textLoc) + cardY.normalized()*0.05
+
                 # Flip endcaps if they're going to overlap the dim
                 flipCaps = False
                 if (cardX.length + capSize/80) > dist:
@@ -1130,10 +1155,10 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.1*size
-        origin = Vector(textLoc)
         cardX = Vector((abs(normDistVector[0]),-abs(normDistVector[1]),-abs(normDistVector[2]))) * sx
         cardY = userOffsetVector *sy
 
+        origin = Vector(textLoc) + cardY.normalized()*0.05
         # Flip endcaps if they're going to overlap the dim
         flipCaps = False
         if (cardX.length + capSize/80) > dist:
@@ -2474,8 +2499,8 @@ def draw_annotation(context, myobj, annotationGen, mat):
 
             for textField in annotation.textFields:
                 textcard = generate_text_card(context,textField,annotationProps,annotation.annotationRotation,(0,0,0))
-                yoff = Vector(textcard[1] - textcard[0]).normalized()
-                heightOffset = (textcard[1] - textcard[0]) + yoff*0.01
+                yoff = (Vector(textcard[1] - textcard[0]).normalized())
+                heightOffset = (textcard[1] - textcard[0]) + yoff*0.05
                 # Transform Text Card with Composed Matrix
                 textcard[0] = rotLocMatrix @ (textcard[0] + offset - (heightOffset*fieldIdx)) + diff
                 textcard[1] = rotLocMatrix @ (textcard[1] + offset - (heightOffset*fieldIdx)) + diff
@@ -2552,7 +2577,7 @@ def draw_annotation(context, myobj, annotationGen, mat):
                     line.rotate(Quaternion(axis,rotangle))
                     coords.append(line.copy() + Vector(p1))
 
-                bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+                bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
                 triShader.bind()
                 triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 triShader.uniform_float("offset", (0,0,0))
