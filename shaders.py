@@ -419,7 +419,7 @@ class Frag_Shaders_3D_B283 ():
         void main()
         {   
             vec4 color = texture(image, uvInterp);
-            if (color[3]<0.5){
+            if (color[3]<0.1){
                 discard;
             }
             fragColor = blender_srgb_to_framebuffer_space(color);
@@ -644,7 +644,7 @@ class Text_Shader():
         void main()
         {   
             vec4 color = texture(image, uvInterp);
-            if (color[3]<0.5){
+            if (color[3]<0.1){
                 discard;
             }
             fragColor = color;
