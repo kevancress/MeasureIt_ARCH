@@ -688,12 +688,13 @@ def get_selected_vertex(myobject):
         flag = True
 
     bm = from_edit_mesh(myobject.data)
-    for v in bm.select_history:
-        if len(mylist)==0:mylist.extend([v.index])
-        else:
-            mylist.extend([v.index])
-            mylist.extend([v.index])
-        
+    bmhistory = bm.select_history
+    if len(bmhistory) > 0:
+        for v in bmhistory:
+            if len(mylist)==0: mylist.extend([v.index])
+            else:
+                mylist.extend([v.index])
+                mylist.extend([v.index])
 
     if flag is True:
         bpy.ops.object.editmode_toggle()

@@ -234,6 +234,9 @@ class AddAlignedDimensionButton(Operator):
                         mylist = get_smart_selected(mainobject) # Operates on Bmesh Edges
                     elif selectionMode[0]:
                         mylist = get_selected_vertex(mainobject) 
+                        if len(mylist) < 2:
+                            self.report({'ERROR'},
+                                    "MeasureIt-ARCH: Vertices must be selected in order, (for general selection, switch to EDGE mode)")
                     if len(mylist) >= 2:
                         #Check Generators
                         if 'DimensionGenerator' not in mainobject:
@@ -293,9 +296,7 @@ class AddAlignedDimensionButton(Operator):
                         # redraw
                         recalc_dimWrapper_index(self,context)
                         context.area.tag_redraw()
-                    else:
-                        self.report({'ERROR'},
-                                    "MeasureIt-ARCH: Select at least two vertices for creating measure segment.")
+                        
             
             # Object Context
             elif bpy.context.mode == 'OBJECT':

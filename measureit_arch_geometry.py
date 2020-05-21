@@ -3502,7 +3502,6 @@ def get_mesh_vertex(myobj,idx,evalMods):
             coord = myobj.location
             
     # free Bmesh and return
-    bm.free()
     return coord
         
 
