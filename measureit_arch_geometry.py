@@ -51,7 +51,7 @@ hiddenBatch3D = {}
 
 # define Shaders
 
-# Alter which frag shader is used depending on the blender version
+# Alter which frag shaders are used depending on the blender version
 # https://wiki.blender.org/wiki/Reference/Release_Notes/2.83/Python_API
 # https://developer.blender.org/T74139
 
@@ -282,9 +282,9 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
             bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat
 
         # get points positions from indicies
-        # noinspection PyBroadException
-        p1Local = Vector((0,0,0))
-        p2Local = Vector((0,0,0))
+
+        p1Local = None
+        p2Local = None
 
         deleteFlag = False
         try:
@@ -3477,32 +3477,34 @@ def get_line_vertex(idx,verts,mat):
 
 def get_mesh_vertex(myobj,idx,evalMods):
     sceneProps = bpy.context.scene.MeasureItArchProps
-    try:
-        verts=[]
-        if myobj.type == 'MESH':
-            if myobj.mode == 'EDIT':
-                bm = bmesh.from_edit_mesh(myobj.data)
-                verts = bm.verts
-            else:     
-                eval_res = sceneProps.eval_mods
-                if (eval_res or evalMods) and check_mods(myobj):
-                    deps = bpy.context.view_layer.depsgraph
-                    obj_eval = myobj.evaluated_get(deps)
-                    mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
-                    verts = mesh.vertices          
-                else:
-                    verts = myobj.data.vertices
-            if idx < len(verts):
-                return verts[idx].co
-            else:
-                if idx != 9999999:
-                    raise IndexError
-                return myobj.location
-        else: 
-            return Vector((0,0,0))
-    except AttributeError:
-        print("Get Point Error")
-        return None
+    verts=[]
+    coord = Vector((0,0,0))
+    bm = bmesh.new()
+
+    if myobj.type == 'MESH':
+        # Get Vertices
+        verts = myobj.data.vertices
+        if myobj.mode == 'EDIT': # From Edit Mesh
+            bm = bmesh.from_edit_mesh(myobj.data)
+            verts = bm.verts
+        else:
+            eval_res = sceneProps.eval_mods
+            if (eval_res or evalMods) and check_mods(myobj): # From Evaluated Deps Graph
+                bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
+                bm.verts.ensure_lookup_table()
+                verts= bm.verts               
+        # Get Co-ordinate for Index in Vertices
+        if idx < len(verts):
+            coord = verts[idx].co
+        else:
+            if idx != 9999999:
+                raise IndexError
+            coord = myobj.location
+            
+    # free Bmesh and return
+    bm.free()
+    return coord
+        
 
 def check_mods(myobj):
     goodMods = ["DATA_TRANSFER ", "NORMAL_EDIT", "WEIGHTED_NORMAL",
