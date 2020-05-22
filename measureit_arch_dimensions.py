@@ -731,8 +731,9 @@ class AddAreaButton(Operator):
                     edges = face.edges
                     for edge in edges:
                         adjFaces = edge.link_faces
-                        if adjFaces[0].index in mylist and adjFaces[1].index in mylist:
-                            pass
+                        if len(adjFaces)>1:
+                            if adjFaces[0].index in mylist and adjFaces[1].index in mylist:
+                                pass
                         else:
                             perimiterEdges.append(edge.index)
 
