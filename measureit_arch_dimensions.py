@@ -262,8 +262,14 @@ class AddAlignedDimensionButton(Operator):
                                 # Set Distance Dependant Properties
                                 idxA = mylist[x+1]
                                 idxB = mylist[x]
-                                p1 = Vector(mainobject.data.vertices[idxA].co)
-                                p2 = Vector(mainobject.data.vertices[idxB].co)
+
+                                bm = bmesh.new()
+                                bm = bmesh.from_edit_mesh(mainobject.data)
+                                verts = bm.verts
+                                verts.ensure_lookup_table()
+
+                                p1 = Vector(verts[idxA].co)
+                                p2 = Vector(verts[idxB].co)
                                 distVector = Vector(p1)-Vector(p2)
                                 dist = distVector.length
 
@@ -534,8 +540,14 @@ class AddAxisDimensionButton(Operator):
                                 # Set Distance Dependant Properties
                                 idxA = mylist[x+1]
                                 idxB = mylist[x]
-                                p1 = Vector(mainobject.data.vertices[idxA].co)
-                                p2 = Vector(mainobject.data.vertices[idxB].co)
+                                
+                                bm = bmesh.new()
+                                bm = bmesh.from_edit_mesh(mainobject.data)
+                                verts = bm.verts
+                                verts.ensure_lookup_table()
+
+                                p1 = Vector(verts[idxA].co)
+                                p2 = Vector(verts[idxB].co)
                                 distVector = Vector(p1)-Vector(p2)
                                 dist = distVector.length
 
