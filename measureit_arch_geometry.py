@@ -1856,7 +1856,11 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat):
 
         bm = bmesh.new()
         if myobj.mode != 'EDIT':
-            bm.from_mesh(myobj.data)
+            eval_res = sceneProps.eval_mods
+            if (eval_res or dim.evalMods) and check_mods(myobj): # From Evaluated Deps Graph
+                bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
+            else:             
+                bm.from_mesh(myobj.data)
         else:
             bm = bmesh.from_edit_mesh(myobj.data)
         
