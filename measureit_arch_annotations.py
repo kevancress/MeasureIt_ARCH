@@ -105,7 +105,7 @@ class AnnotationContainer(PropertyGroup):
     num_annotations: IntProperty(name='Number of Annotations', min=0, max=1000, default=0,
                                 description='Number total of Annotations')
     active_annotation_index: IntProperty(name='Active Annotation Index')
-    show_anotation_settings: BoolProperty(name='Show Annotation Settings',default=False)
+    show_annotation_settings: BoolProperty(name='Show Annotation Settings',default=False)
     # Array of segments
     annotations: CollectionProperty(type=AnnotationProperties)
 bpy.utils.register_class(AnnotationContainer)
@@ -244,7 +244,7 @@ class M_ARCH_UL_annotations_list(UIList):
 
 class OBJECT_PT_UIAnnotations(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "MeasureIt-ARCH Anotations"
+    bl_label = "MeasureIt-ARCH Annotations"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
@@ -282,16 +282,16 @@ class OBJECT_PT_UIAnnotations(Panel):
                 if len(annoGen.annotations) > 0 and  annoGen.active_annotation_index < len(annoGen.annotations):
                     annotation = annoGen.annotations[annoGen.active_annotation_index]
 
-                    if annoGen.show_anotation_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
+                    if annoGen.show_annotation_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                     else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
                     
                     box = layout.box()
                     col = box.column()
                     row = col.row()
-                    row.prop(annoGen, 'show_anotation_settings', text="", icon=settingsIcon,emboss=False)
+                    row.prop(annoGen, 'show_annotation_settings', text="", icon=settingsIcon,emboss=False)
                     row.label(text= annotation.name + ' Settings:')
 
-                    if annoGen.show_anotation_settings:
+                    if annoGen.show_annotation_settings:
                     
                         fieldIdx = 1
                         col = box.column(align=True)
