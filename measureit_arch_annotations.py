@@ -244,7 +244,7 @@ class M_ARCH_UL_annotations_list(UIList):
 
 class OBJECT_PT_UIAnnotations(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "MeasureIt-ARCH Anotations"
+    bl_label = "MeasureIt-ARCH Annotations"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
