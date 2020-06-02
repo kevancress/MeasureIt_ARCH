@@ -353,6 +353,7 @@ def draw_line_style_settings(line,layout):
     col = layout.column(align=True)
     col.prop(line, 'lineDrawDashed', text="Draw Dashed")
     col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
+    col.prop(line, 'lineDashSpace',text="Dash Spacing")
     col.prop(line, 'inFront', text="Draw In Front")
     col.prop(line,'evalMods')
 
