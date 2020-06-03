@@ -305,9 +305,11 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col.alignment ='RIGHT'
                             col.label(text='Font')
                             col = split.column(align=True)
-                            col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")                            
+                            col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
+                                                   
 
                             col = box.column(align=True)
+                            col.prop_search(annotation,'visibleInView', bpy.data, 'cameras',text='Visible In View')  
                             col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
                             col.prop(annotation, 'textResolution', text="Resolution")
                             col.prop(annotation, 'fontSize', text="Size") 

@@ -58,6 +58,7 @@ class BaseProp:
                 description= 'Draw this element In front of other objects',
                 default = False)
 
+    visibleInView: PointerProperty(type= bpy.types.Camera)
 
     is_style: BoolProperty(name= "is Style",
                 description= "This property Group is a Style",
@@ -221,8 +222,6 @@ class BaseDim(BaseWithText):
                     description='Offset for Dimension',
                     default= (0.05),
                     subtype='DISTANCE')
-
-    dimVisibleInView: PointerProperty(type= bpy.types.Camera)
 
     dimViewPlane: EnumProperty(
                     items=(('99', "None", "None",'EMPTY_AXIS',0),

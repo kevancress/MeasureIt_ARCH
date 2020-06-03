@@ -329,6 +329,8 @@ def draw_line_style_row(line,layout):
 
 def draw_line_style_settings(line,layout):
     col=layout.column()
+    col.prop_search(line,'visibleInView', bpy.data, 'cameras',text='Visible In View')
+
     col.prop(line, 'color', text="Color")
     col.prop(line, 'lineWeight', text="Lineweight" )
     col.prop(line, 'lineDepthOffset', text="Z Offset")
@@ -381,6 +383,8 @@ def draw_annotation_style_settings(annotation,layout):
     col.label(text='Font')
     col = split.column(align=True)
     col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
+    col.prop_search(annotation,'visibleInView', bpy.data, 'cameras',text='Visible In View')
+    
 
     col = layout.column(align=True)
     col.prop(annotation, 'textResolution', text="Resolution")
@@ -429,7 +433,7 @@ def draw_dim_style_settings(dim,layout):
 
     col = layout.column(align=True)
     col.prop(dim,'dimViewPlane', text='View Plane')
-    col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+    col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
     col.prop(dim,'lineWeight',text='Line Weight')
 
     col = layout.column(align=True)

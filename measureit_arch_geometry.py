@@ -250,7 +250,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
 
     lineWeight = dimProps.lineWeight
     # check all visibility conditions
-    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
         inView = True        
     else:
         inView = False    
@@ -517,7 +517,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
 
     lineWeight = dimProps.lineWeight
     # check all visibility conditions
-    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
         inView = True        
     else:
         inView = False    
@@ -926,7 +926,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
 
     lineWeight = dimProps.lineWeight
     #check all visibility conditions
-    if dimProps.dimVisibleInView is None or dimProps.dimVisibleInView.name == context.scene.camera.data.name:
+    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
         inView = True        
     else:
         inView = False    
@@ -1267,7 +1267,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
     #check all visibility conditions
     inView = False
 
-    if dimProps.dimVisibleInView is None or dimProps.dimVisibleInView.name == context.scene.camera.data.name:
+    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
         inView = True        
     else:
         inView = False    
@@ -1467,7 +1467,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
 
     # Check Visibility Conditions
     inView = False
-    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
         inView = True
     
     if inView and dim.visible and dimProps.visible:
@@ -1829,7 +1829,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat):
 
     # Check Visibility Conditions
     inView = False
-    if dim.dimVisibleInView is None or dim.dimVisibleInView.name == context.scene.camera.data.name:
+    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
         inView = True
     
     if inView and dim.visible and dimProps.visible:
@@ -2186,8 +2186,13 @@ def draw_line_group(context, myobj, lineGen, mat):
             for lineStyle in context.scene.StyleGenerator.line_groups:
                 if lineStyle.name == lineGroup.style:
                     lineProps= lineStyle
+
+        if lineProps.visibleInView is None or lineProps.visibleInView.name == context.scene.camera.data.name:
+            inView = True        
+        else:
+            inView = False  
             
-        if lineGroup.visible and lineProps.visible:
+        if lineGroup.visible and lineProps.visible and inView:
             bgl.glEnable(bgl.GL_DEPTH_TEST)
             if lineProps.inFront:
                 bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -2433,7 +2438,12 @@ def draw_annotation(context, myobj, annotationGen, mat):
         endcap = annotationProps.endcapA
         endcapSize = annotationProps.endcapSize
 
-        if annotation.visible and annotationProps.visible:
+        if annotation.visibleInView is None or annotation.visibleInView.name == context.scene.camera.data.name:
+            inView = True        
+        else:
+            inView = False    
+
+        if annotation.visible and annotationProps.visible and inView:
             lineWeight = annotationProps.lineWeight
             rawRGB = annotationProps.color
             #undo blenders Default Gamma Correction

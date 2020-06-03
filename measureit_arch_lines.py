@@ -300,6 +300,9 @@ class OBJECT_PT_UILines(Panel):
                             col.prop(line, 'weightGroupInfluence', text="Influence")
 
                             col = box.column(align=True)
+                            col.prop_search(line,'visibleInView', bpy.data, 'cameras',text='Visible In View')  
+
+                            col = box.column(align=True)
                             col.prop(line, 'lineDepthOffset', text="Z Offset")
 
                             col = box.column(align=True)

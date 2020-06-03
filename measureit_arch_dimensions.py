@@ -388,7 +388,7 @@ class AddAlignedDimensionButton(Operator):
                 
                 newDimension.lineWeight = 1
                 if 'camera' in scene:
-                    newDimension.dimVisibleInView = scene.camera.data
+                    newDimension.visibleInView = scene.camera.data
                 newDimension.dimViewPlane = scene.viewPlane
 
                 # text
@@ -660,7 +660,7 @@ class AddAxisDimensionButton(Operator):
                     newDimension.uses_style = False
 
                 if 'camera' in scene:
-                    newDimension.dimVisibleInView = scene.camera.data
+                    newDimension.visibleInView = scene.camera.data
                 newDimension.dimViewPlane = scene.viewPlane
 
                 newDimension.dimAxis = scene.measureit_arch_dim_axis
@@ -820,7 +820,7 @@ class AddAngleButton(Operator):
                 newWrapper.itemType = 'D-ANGLE'
                 recalc_dimWrapper_index(self,context)
 
-                newDimension.dimVisibleInView = scene.camera.data
+                newDimension.visibleInView = scene.camera.data
 
                 newDimension.style = scene.measureit_arch_default_dimension_style
                 if scene.measureit_arch_default_dimension_style is not '':
@@ -1319,7 +1319,7 @@ def draw_aligned_dimension_settings(dim,layout):
         col.prop(dim,'dimViewPlane', text='View Plane Overide')
 
     if dim.uses_style is False:
-        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
         col.prop(dim,'lineWeight',text='Line Weight')
 
     col = layout.column(align=True)
@@ -1362,7 +1362,7 @@ def draw_bounds_dimension_settings(dim,layout):
         col.prop(dim,'dimViewPlane', text='View Plane Overide')
 
     if dim.uses_style is False:
-        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
         col.prop(dim,'lineWeight',text='Line Weight')
 
 
@@ -1421,7 +1421,7 @@ def draw_axis_dimension_settings(dim,layout):
     
     col = layout.column(align=True)
     if dim.uses_style is False:
-        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
         
         col.prop(dim,'lineWeight',text='Line Weight')
 
@@ -1457,7 +1457,7 @@ def draw_angle_dimension_settings(dim,layout):
 
             col = layout.column()
 
-        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
         if dim.uses_style is False:
             col = layout.column(align=True)
             col.prop(dim,'lineWeight',text='Line Weight')
@@ -1495,7 +1495,7 @@ def draw_arc_dimension_settings(dim,layout):
 
         col = layout.column()
 
-    col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+    col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
     if dim.uses_style is False:
         col = layout.column(align=True)
         col.prop(dim,'lineWeight',text='Line Weight')
@@ -1542,7 +1542,7 @@ def draw_area_dimension_settings(dim,layout):
         col.prop(dim,'dimViewPlane', text='View Plane Overide')
 
     if dim.uses_style is False:
-        col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
         col.prop(dim,'lineWeight',text='Line Weight')
 
     col = layout.column(align=True)
