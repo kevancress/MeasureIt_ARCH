@@ -83,6 +83,8 @@ class AxisDimensionProperties(BaseDim, PropertyGroup):
 
     dimObjectB: PointerProperty(type=Object)
 
+    dimAxisObject: PointerProperty(type=Object)
+
     dimAxis: EnumProperty(
                     items=(('X', "X Axis", "Measure only the X Axis"),
                            ('Y', "Y Axis", "Measure only the Y Axis"),
@@ -1413,9 +1415,12 @@ def draw_axis_dimension_settings(dim,layout):
     else:
         col.prop(dim,'dimViewPlane', text='View Plane Overide')
     col.prop(dim,'dimAxis', text='Measurement Axis')
+    col.prop_search(dim,'dimAxisObject', bpy.data, 'objects',text='Custom Axis Object')
     
+    col = layout.column(align=True)
     if dim.uses_style is False:
         col.prop_search(dim,'dimVisibleInView', bpy.data, 'cameras',text='Visible In View')
+        
         col.prop(dim,'lineWeight',text='Line Weight')
 
     col = layout.column(align=True)

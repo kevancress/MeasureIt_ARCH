@@ -988,9 +988,6 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             recalc_dimWrapper_index(dimGen)
             return
 
-            
-
-
         p1 = get_point(p1Local, dim.dimObjectA,aMatrix)
         p2 = get_point(p2Local, dim.dimObjectB,bMatrix)
 
@@ -1026,15 +1023,11 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         # define axis relatd values
         #basicThreshold = 0.5773
         if axis =='X':
-            p1axis = (p1[0],0,0)
-            p2axis = (p2[0],0,0)
             xThreshold = 0.95796
             yThreshold = 0.22146
             zThreshold = 0.197568
             axisVec = i
         elif axis == 'Y':
-            p1axis = (0,p1[1],0)
-            p2axis = (0,p2[1],0)
             xThreshold = 0.22146
             yThreshold = 0.95796
             zThreshold = 0.197568
@@ -1043,8 +1036,6 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
             xThreshold = 0.24681
             yThreshold = 0.24681
             zThreshold = 0.93800
-            p1axis = (0,0,p1[2])
-            p2axis = (0,0,p2[2])
             axisVec = k
 
         # Divide the view space into four sectors by threshold
@@ -1063,8 +1054,17 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         elif viewAxis[2] < -zThreshold:
             viewSector = (0,0,-1)
 
-        #calculate distance & Midpoint
-        distVector = Vector(p1axis)-Vector(p2axis)
+        #rotate the axis vector if necessary
+        if dim.dimAxisObject != None:
+            customMat = dim.dimAxisObject.matrix_world
+            rot = customMat.to_quaternion()
+            axisVec.rotate(rot)
+
+        #calculate distance by projecting the distance vector onto the axis vector
+
+        alignedDistVector = Vector(p1)-Vector(p2)
+        distVector = alignedDistVector.project(axisVec)
+
         
         dist = distVector.length
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
@@ -1102,12 +1102,12 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         if p1Dir[domAxis] >= p2Dir[domAxis]:
             basePoint = p1
             secondPoint = p2
-            secondPointAxis = Vector(p1axis) - Vector(p2axis)
+            secondPointAxis = distVector
             alignedDistVector = Vector(p2)-Vector(p1)
         else: 
             basePoint = p2
             secondPoint = p1
-            secondPointAxis = Vector(p2axis) - Vector(p1axis)
+            secondPointAxis = -distVector
             alignedDistVector = Vector(p1)-Vector(p2)
 
 
@@ -1155,7 +1155,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         size = dimProps.fontSize/fontSizeMult
         sx = (width/resolution)*0.1*size
         sy = (height/resolution)*0.1*size
-        cardX = Vector((abs(normDistVector[0]),-abs(normDistVector[1]),-abs(normDistVector[2]))) * sx
+        cardX = Vector(secondPointAxis.normalized()) * sx
         cardY = userOffsetVector *sy
 
         origin = Vector(textLoc) + cardY.normalized()*0.05
