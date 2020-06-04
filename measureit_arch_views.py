@@ -202,6 +202,22 @@ class ViewContainer(PropertyGroup):
 bpy.utils.register_class(ViewContainer)
 Scene.ViewGenerator = bpy.props.PointerProperty(type=ViewContainer)
 
+class DeleteViewButton(Operator):
+    bl_idname = "measureit_arch.deleteviewbutton"
+    bl_label = "Delete View"
+    bl_description = "Delete a View"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'} 
+    tag: IntProperty()
+
+
+    def execute(self, context):
+        # Add properties
+
+        Generator = context.scene.ViewGenerator
+        Generator.views.remove(Generator.active_index)
+
+        return {'FINISHED'}
 
 class M_ARCH_UL_Views_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
@@ -242,10 +258,9 @@ class SCENE_PT_Views(Panel):
         # Operators Next to List
         col = row.column(align=True)
         col.operator("measureit_arch.addviewbutton", icon='ADD', text="")
-        #op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
-        #op.tag = StyleGen.active_style_index  # saves internal data
-        #op.is_style = True
-
+        op = col.operator("measureit_arch.deleteviewbutton", text="", icon="X")
+        op.tag = ViewGen.active_index  # saves internal data
+        
         #col.separator()
         #col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 
@@ -461,32 +476,3 @@ class AddPaperScalePreset(Custom_Preset_Base, Operator):
 
     # where to store the preset
     preset_subdir = "scale_paper"
-
-class Bind_Marker(bpy.types.Operator):
-    bl_idname = "bind_marker.bind_marker"
-    bl_label = "Bind Marker"
-    bl_description = "Makes this camera the active camera on your current frame"
-    bl_options = {"REGISTER"}
-
-    @classmethod
-    def poll(cls, context):
-        return True
-
-    def execute(self, context):
-        scene = context.scene
-        frame = scene.frame_current
-        camera = context.camera
-        
-        for marker in scene.timeline_markers:
-            if marker.name == camera.name:
-                scene.timeline_markers.remove(marker)
-       
-        for marker in scene.timeline_markers:
-            if marker.frame == frame:
-                scene.timeline_markers.remove(marker)
-        
-        marker = scene.timeline_markers.new(camera.name,frame=frame)
-        scene.camera = context.object
-        marker.camera = context.object
-        
-        return {"FINISHED"}
