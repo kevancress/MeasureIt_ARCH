@@ -52,6 +52,7 @@ def load_handler(dummy):
     ShowHideViewportButton.handle_remove(None, bpy.context)
 
 
+
 # ------------------------------------------------------
 # Handler to detect save Blend
 # Clear not used measured
@@ -105,6 +106,10 @@ def save_handler(dummy):
 
 bpy.app.handlers.load_post.append(load_handler)
 bpy.app.handlers.save_pre.append(save_handler)
+
+
+
+
 
 # Rough Attempts to add a m-ARCH tab to the properties panel navigation bar
 # Not solved yet (not entirely sure its possible), but kept for future reference.
