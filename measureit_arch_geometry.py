@@ -115,7 +115,6 @@ def get_dim_tag(self,obj):
                     return idx
         idx += 1
 
-
 def recalc_dimWrapper_index(dimGen):
     wrappedDimensions = dimGen.wrappedDimensions
     id_aligned = 0
@@ -135,7 +134,6 @@ def recalc_dimWrapper_index(dimGen):
         elif dim.itemType == 'D-ARC':
             dim.itemIndex = id_arc
             id_axis += 1
-
 
 def clear_batches():
     lineBatch3D.clear()

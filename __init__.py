@@ -81,7 +81,6 @@ from bpy.props import (
         FloatProperty,
         EnumProperty,
         )
-from .measureit_arch_camera import Initialize_Camera_Properties
 from . import auto_load
 auto_load.init()
 
@@ -461,7 +460,6 @@ def register():
     wm = WindowManager
     # register internal property
     wm.measureit_arch_run_opengl = BoolProperty(default=False)
-    bpy.app.handlers.frame_change_pre.append(measureit_arch_camera.Initialize_Camera_Properties.update_manager)
     
 def unregister():
     auto_load.unregister()
@@ -524,7 +522,6 @@ def unregister():
 
     # remove OpenGL data
     measureit_arch_main.ShowHideViewportButton.handle_remove(measureit_arch_main.ShowHideViewportButton, bpy.context)
-    bpy.app.handlers.frame_change_pre.remove(measureit_arch_camera.Initialize_Camera_Properties.update_manager)
     wm = bpy.context.window_manager
     p = 'measureit_arch_run_opengl'
     if p in wm:
