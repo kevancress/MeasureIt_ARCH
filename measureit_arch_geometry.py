@@ -172,7 +172,7 @@ def update_text(textobj, props, context):
             text = textField.text
 
             # Calculate Optimal Dimensions for Text Texture.
-            fheight = blf.dimensions(font_id, 'Tp')[1]
+            fheight = blf.dimensions(font_id, text)[1]
             fwidth = blf.dimensions(font_id, text)[0]
             width = math.ceil(fwidth)
             height = math.ceil(fheight)
@@ -202,7 +202,7 @@ def update_text(textobj, props, context):
                     gpu.matrix.load_matrix(view_matrix)
                     gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-                    blf.position(font_id, 0, height/5, 0)
+                    blf.position(font_id, 0, 0, 0)
                     blf.draw(font_id, text)
                     
                     # Read Offscreen To Texture Buffer
@@ -487,12 +487,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         gpu.shader.unbind()
     
 
-
-
-
-        
         #Reset openGL Settings
-
+        bgl.glBlendEquation(bgl.GL_FUNC_ADD)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
 
@@ -2651,7 +2647,7 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
     card[1] = Vector(card[1])
     card[2] = Vector(card[2])
     card[3] = Vector(card[3])
-    normalizedDeviceUVs= [(-1,-1),(-1,1),(1,1),(1,-1)]
+    normalizedDeviceUVs= [(-1.1,-1.1),(-1.1,1.1),(1.1,1.1),(1.1,-1.1)]
 
     #i,j,k Basis Vectors
     i = Vector((1,0,0))
@@ -2776,16 +2772,26 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
 
     if 'texture' in textobj and textobj.text != "":
         # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
-        buffer = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(textobj['texture'], dtype=np.uint8))
-        bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width, height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
+        texArray = bgl.Buffer(bgl.GL_INT,[1])
+        bgl.glGenTextures(1,texArray)
+
+        bgl.glActiveTexture(bgl.GL_TEXTURE0)
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, texArray[0])
+
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_S, bgl.GL_CLAMP_TO_BORDER)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_T, bgl.GL_CLAMP_TO_BORDER)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+
+        tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(textobj['texture'], dtype=np.uint8))
+        bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width, height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
+       
+
         textobj.texture_updated=False
      
     # Draw Shader
     textShader.bind()
     textShader.uniform_float("image", 0)
     batch.draw(textShader)
-    #bgl.glDeleteTextures(1, texBuf)
     gpu.shader.unbind()
 
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
