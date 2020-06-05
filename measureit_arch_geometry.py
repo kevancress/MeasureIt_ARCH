@@ -3326,15 +3326,19 @@ def format_distance(fmt, value, factor=1,isArea=False):
             inches += 1
 
         # Check values and compose string
-        if feet != 0:
-            feetString = str(feet) + "' "
-        else: feetString = ""
+        if inches == 12:
+            feet += 1
+            inches = 0
 
         if inches !=0:
             inchesString = str(inches)
             if frac != 0: inchesString += "-"
             else: inchesString += "\""
         else: inchesString = ""
+
+        if feet != 0:
+            feetString = str(feet) + "' "
+        else: feetString = ""
 
         if frac != 0:
             fracString = str(frac) + "/" + str(base) +"\""
