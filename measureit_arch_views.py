@@ -345,6 +345,15 @@ class SCENE_PT_Views(Panel):
                         row = col.row(align=True)
                         row.prop(view, 'pixel_scale', text = "Scale")
                         row.prop(view, 'model_scale', text = ":")
+
+                    # A quick Test, If BlenderBIM is available, add its view specific properties here too
+                    #try:
+                    #    col = box.column(align=True)
+                    #    col.prop(camera.BIMCameraProperties,'diagram_scale', text= 'BlenderBIM Scale')
+                    #    col.operator('bim.cut_section')
+                    #except:
+                    #    pass
+ 
                           
 class AddViewButton(Operator):
     bl_idname = "measureit_arch.addviewbutton"

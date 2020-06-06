@@ -271,6 +271,10 @@ class MeasureItARCHSceneProps(PropertyGroup):
     is_render_draw: BoolProperty(name="Is Render",
                                 description="Flag to use render size for draw aspect ratio",
                                 default=False)
+    
+    is_vector_draw: BoolProperty(name="Is Vector Render",
+                                description="Flag to use svg draw code",
+                                default=False)
 
     show_gizmos: BoolProperty(name="Show Gizmos",
                                 description="(EXPERIMENTAL) Display Measureit-ARCH Gizmos",

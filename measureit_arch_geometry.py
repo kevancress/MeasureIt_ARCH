@@ -43,6 +43,7 @@ import time
 import numpy as np
 from array import array
 import random
+from . import svg_shaders
 
 lastMode = None
 lineBatch3D = {}
@@ -227,7 +228,7 @@ def update_text(textobj, props, context):
                 image.pixels = [v / 255 for v in texture_buffer]
     textobj.text_updated = False    
 
-def draw_alignedDimension(context, myobj, measureGen, dim, mat):
+def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
@@ -482,9 +483,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         lineShader.uniform_float("depthPass",False)
         batch3d.program_set(lineShader)
         batch3d.draw()
-
-
         gpu.shader.unbind()
+
+        if sceneProps.is_vector_draw:
+            svg_shaders.svg_line_shader(coords,lineWeight,rgb,svg)
     
 
         #Reset openGL Settings
@@ -492,7 +494,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat):
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
 
-def draw_boundsDimension(context, myobj, measureGen, dim, mat):
+def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
@@ -896,7 +898,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat):
         bgl.glDepthMask(True)
 
 
-def draw_axisDimension(context, myobj, measureGen,dim, mat):
+def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
     # GL Settings
 
     #start = time.perf_counter()
@@ -1250,7 +1252,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat):
         #end = time.perf_counter()
         #print(("draw time: "+ "%.3f"%((end-start)*1000)) + ' ms')  
 
-def draw_angleDimension(context, myobj, DimGen, dim,mat):
+def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
     dimProps = dim
     sceneProps = context.scene.MeasureItArchProps
     if dim.uses_style:
@@ -1450,7 +1452,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat):
         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
 
-def draw_arcDimension(context, myobj, DimGen, dim,mat):
+def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
     
     dimProps = dim
     sceneProps = context.scene.MeasureItArchProps
@@ -1812,7 +1814,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat):
         bgl.glDisable(bgl.GL_DEPTH_TEST)
         bgl.glDepthMask(True)
 
-def draw_areaDimension(context, myobj, DimGen, dim, mat):
+def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
     dimProps = dim
     sceneProps = context.scene.MeasureItArchProps
     scene = context.scene
@@ -2144,7 +2146,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     bestNormal.normalize()
     return bestNormal 
         
-def draw_line_group(context, myobj, lineGen, mat):
+def draw_line_group(context, myobj, lineGen, mat, svg=None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
@@ -2390,6 +2392,9 @@ def draw_line_group(context, myobj, lineGen, mat):
                     #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
                     bgl.glBlendEquation(bgl.GL_MAX)
 
+                if sceneProps.is_vector_draw:
+                    svg_shaders.svg_line_group_shader(coords,lineWeight,rgb,mat,svg)
+
                 bgl.glDepthMask(False)
                 lineGroupShader.uniform_float("depthPass",False)
                 batch3d.program_set(lineGroupShader)
@@ -2404,7 +2409,7 @@ def draw_line_group(context, myobj, lineGen, mat):
     bgl.glDisable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(True)
 
-def draw_annotation(context, myobj, annotationGen, mat):
+def draw_annotation(context, myobj, annotationGen, mat, svg=None):
     scene = context.scene
     bgl.glEnable(bgl.GL_MULTISAMPLE)
     bgl.glEnable(bgl.GL_BLEND)
@@ -3220,22 +3225,7 @@ def get_scale_txt_location(context):
     return pos_x, pos_y
 
 
-# --------------------------------------------------------------------
-# Get position in final render image
-# (Z < 0 out of camera)
-# return 2d position
-# --------------------------------------------------------------------
-def get_render_location(mypoint):
 
-    v1 = Vector(mypoint)
-    scene = bpy.context.scene
-    co_2d = object_utils.world_to_camera_view(scene, scene.camera, v1)
-    # Get pixel coords
-    render_scale = scene.render.resolution_percentage / 100
-    render_size = (int(scene.render.resolution_x * render_scale),
-                   int(scene.render.resolution_y * render_scale))
-
-    return [round(co_2d.x * render_size[0]), round(co_2d.y * render_size[1])]
 
 
 # ---------------------------------------------------------

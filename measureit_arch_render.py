@@ -31,6 +31,7 @@ import gpu
 import blf
 from os import path, remove
 from sys import exc_info
+import svgwrite
 
 import bpy_extras.image_utils as img_utils
 
@@ -47,6 +48,8 @@ from .measureit_arch_geometry import *
 from .measureit_arch_main import draw_main, draw_main_3d
 from bpy.props import IntProperty
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
+
+global svg
 
 # ------------------------------------------------------------------
 # Define panel class for render functions.
@@ -80,6 +83,7 @@ class MeasureitArchRenderPanel(Panel):
         col.scale_y = 1.5
         col.operator("measureit_arch.rendersegmentbutton", icon='RENDER_STILL', text= "MeasureIt-ARCH Image")
         col.operator("measureit_arch.render_anim", icon='RENDER_ANIMATION', text= "MeasureIt-ARCH Animation")
+        col.operator("measureit_arch.rendersvgbutton", icon='DOCUMENTS', text= "MeasureIt-ARCH Vector")
         col = layout.column()
 
         col.prop(scene, "measureit_arch_render", text="Save Render to Output")
@@ -214,6 +218,68 @@ class MeasureitRenderAnim(bpy.types.Operator):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
         return {'CANCELLED'}
+
+
+class RenderSvgButton(Operator):
+    bl_idname = "measureit_arch.rendersvgbutton"
+    bl_label = "Render"
+    bl_description = "WARNING: EXPERIMENTAL - Create a Vector Drawing. Saved to Render output path"
+    bl_category = 'MeasureitArch'
+    tag: IntProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    def execute(self, context):
+        scene = context.scene
+        msg = "New Svg created with measures. Saved to Output Path"
+        camera_msg = "Unable to render. No camera found"
+        # -----------------------------
+        # Check camera
+        # -----------------------------
+        if scene.camera is None:
+            self.report({'ERROR'}, camera_msg)
+            return {'FINISHED'}
+        # -----------------------------
+        # Use default render
+        # -----------------------------
+
+        print("MeasureIt-ARCH: Rendering image")
+        #bpy.ops.render.render()
+        if render_main_svg(self, context) is True:
+            self.report({'INFO'}, msg)
+
+        return {'FINISHED'}
+
+    # ---------------------
+    # Set cameraView
+    # ---------------------
+    # noinspection PyMethodMayBeStatic
+    def set_camera_view(self):
+        for area in bpy.context.screen.areas:
+            if area.type == 'VIEW_3D':
+                area.spaces[0].region_3d.view_perspective = 'CAMERA'
+
+    # -------------------------------------
+    # Set only render status
+    # -------------------------------------
+    # noinspection PyMethodMayBeStatic
+    def set_only_render(self, status):
+        screen = bpy.context.screen
+
+        v3d = False
+        s = None
+        # get spaceview_3d in current screen
+        for a in screen.areas:
+            if a.type == 'VIEW_3D':
+                for s in a.spaces:
+                    if s.type == 'VIEW_3D':
+                        v3d = s
+                        break
+
+        if v3d is not False:
+            s.show_only_render = status
 
 
 # -------------------------------------------------------------
@@ -420,7 +486,6 @@ def save_image(self, filepath, myimage):
         self.report({'ERROR'}, "MeasureIt-ARCH: Unable to save render image")
         return
 
-
 #--------------------------------------
 # Draw Scene Geometry for Depth Buffer
 #--------------------------------------
@@ -480,3 +545,111 @@ def draw_scene(self, context, projection_matrix):
         image.pixels = [v / 255 for v in buffer]
 
     bgl.glDisable(bgl.GL_DEPTH_TEST)
+
+
+def render_main_svg(self, context, animation=False):
+
+    # Save old info
+    scene = context.scene
+    sceneProps= scene.MeasureItArchProps
+    sceneProps.is_render_draw = True
+    sceneProps.is_vector_draw = True
+
+    clipdepth = context.scene.camera.data.clip_end
+    path = scene.render.filepath
+    objlist = context.view_layer.objects
+
+    # --------------------
+    # Get resolution
+    # --------------------
+
+    render_scale = scene.render.resolution_percentage / 100
+    width = int(scene.render.resolution_x * render_scale)
+    height = int(scene.render.resolution_y * render_scale)
+
+    # Setup Output Path
+    ren_path = bpy.context.scene.render.filepath
+    filename = "mit_vector"
+    ftxt = "%04d" % scene.frame_current
+    outpath = (ren_path + filename + ftxt + '.svg')
+
+    # Setup basic svg
+    svg = svgwrite.Drawing(
+            outpath,
+            debug=False,
+            size=('{}mm'.format(width), '{}mm'.format(height)),
+            viewBox=('0 0 {} {}'.format(width,height)),
+            id='root',
+        )
+
+
+
+    # -----------------------------
+    # Loop to draw all objects
+    # -----------------------------
+    for myobj in objlist:
+        if myobj.visible_get() is True:
+            mat = myobj.matrix_world
+            if 'DimensionGenerator' in myobj:
+                measureGen = myobj.DimensionGenerator[0]
+                if 'alignedDimensions' in measureGen:
+                    for linDim in measureGen.alignedDimensions:
+                        draw_alignedDimension(context, myobj, measureGen,linDim,mat,svg=svg)
+                if 'angleDimensions' in measureGen:
+                    for dim in measureGen.angleDimensions:
+                        draw_angleDimension(context, myobj, measureGen,dim,mat,svg=svg)
+                if 'axisDimensions' in measureGen:
+                    for dim in measureGen.axisDimensions:
+                        draw_axisDimension(context, myobj, measureGen,dim,mat,svg=svg)
+                if 'boundsDimensions' in measureGen:
+                    for dim in measureGen.boundsDimensions:
+                        draw_boundsDimension(context, myobj, measureGen,dim,mat,svg=svg)
+                if 'arcDimensions' in measureGen:
+                    for dim in measureGen.arcDimensions:
+                        draw_arcDimension(context, myobj, measureGen,dim,mat,svg=svg)
+                if 'areaDimensions' in measureGen:
+                    for dim in measureGen.areaDimensions:
+                        draw_areaDimension(context, myobj, measureGen,dim,mat,svg=svg)
+
+            if 'LineGenerator' in myobj:
+                # Draw Line Groups
+                op = myobj.LineGenerator[0]
+                draw_line_group(context, myobj, op, mat,svg=svg)
+            
+            #if 'AnnotationGenerator' in myobj:
+            #    op = myobj.AnnotationGenerator[0]
+            #    draw_annotation(context, myobj, op, mat)                
+        
+        if False:
+            # Draw Instance 
+            deps = bpy.context.view_layer.depsgraph
+            for obj_int in deps.object_instances:
+                if obj_int.is_instance:
+                    myobj = obj_int.object
+                    mat = obj_int.matrix_world
+
+                    if 'LineGenerator' in myobj:
+                        lineGen = myobj.LineGenerator[0]
+                        draw_line_group(context,myobj,lineGen,mat)
+                    
+                    if sceneProps.instance_dims:
+                        if 'AnnotationGenerator' in myobj:
+                            annotationGen = myobj.AnnotationGenerator[0]
+                            draw_annotation(context,myobj,annotationGen,mat)
+
+                        if 'DimensionGenerator' in myobj:
+                            DimGen = myobj.DimensionGenerator[0]
+                            for alignedDim in DimGen.alignedDimensions:
+                                draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
+                            for angleDim in DimGen.angleDimensions:
+                                draw_angleDimension(context, myobj, DimGen, angleDim,mat)
+                            for axisDim in DimGen.axisDimensions:
+                                draw_axisDimension(context,myobj,DimGen,axisDim,mat)
+            
+ 
+
+    svg.save(pretty=True)
+    # restore default value
+    sceneProps.is_render_draw = False
+    sceneProps.is_vector_draw = False
+    return True
