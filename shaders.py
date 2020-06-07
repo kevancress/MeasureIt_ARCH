@@ -653,11 +653,13 @@ class Text_Shader():
 
 class DepthOnlyFrag():
     fragment_shader = ''' 
+        uniform mat4 ModelViewProjectionMatrix;
         out vec4 fragColor;
 
         void main()
-        {
-            fragColor = vec4(gl_FragCoord.z,gl_FragCoord.z,gl_FragCoord.z,1.0);
+        {   
+            float depth = gl_FragCoord.z;
+            fragColor = vec4(depth, depth, depth, 1.0);
         }
     '''
 

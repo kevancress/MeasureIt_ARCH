@@ -173,10 +173,10 @@ def update_text(textobj, props, context):
             text = textField.text
 
             # Calculate Optimal Dimensions for Text Texture.
-            fheight = blf.dimensions(font_id, text)[1]
+            fheight = blf.dimensions(font_id, 'Tpg"')[1]
             fwidth = blf.dimensions(font_id, text)[0]
             width = math.ceil(fwidth)
-            height = math.ceil(fheight)
+            height = math.ceil(fheight*1.3)
             
 
             # Save Texture size to textobj Properties
@@ -203,7 +203,7 @@ def update_text(textobj, props, context):
                     gpu.matrix.load_matrix(view_matrix)
                     gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-                    blf.position(font_id, 0, 0, 0)
+                    blf.position(font_id, 0, height*0.3, 0)
                     blf.draw(font_id, text)
                     
                     # Read Offscreen To Texture Buffer
@@ -486,7 +486,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         gpu.shader.unbind()
 
         if sceneProps.is_vector_draw:
-            svg_shaders.svg_line_shader(coords,lineWeight,rgb,svg)
+            svg_dim = svg.add(svg.g(id=dim.name))
+            svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dim, dimText.text, origin, rgb, svg, parent=svg_dim)
     
 
         #Reset openGL Settings
@@ -2391,9 +2394,9 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
                     #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
                     bgl.glBlendEquation(bgl.GL_MAX)
-
+                
                 if sceneProps.is_vector_draw:
-                    svg_shaders.svg_line_group_shader(coords,lineWeight,rgb,mat,svg)
+                    svg_shaders.svg_line_group_shader(lineGroup, coords,lineWeight,rgb,mat,svg)
 
                 bgl.glDepthMask(False)
                 lineGroupShader.uniform_float("depthPass",False)
@@ -2541,10 +2544,10 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 coords.append(p2)
 
                 textcard = annotation.textFields[0]['textcard']
-                if annotation.textPosition == 'T':
+                if annotationProps.textPosition == 'T':
                     coords.append(textcard[3])
                     pointcoords = [p2]
-                elif annotation.textPosition == 'B':
+                elif annotationProps.textPosition == 'B':
                     coords.append(textcard[2])
                     pointcoords = [p2]
 
@@ -2555,7 +2558,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 
                 # Again This is Super Lazy, gotta write up a shader that handles
                 # Mitered thick lines, but for now this works.
-                if annotation.textPosition == 'T' or annotation.textPosition == 'B':
+                if annotationProps.textPosition == 'T' or annotationProps.textPosition == 'B':
                     batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoords})
                     batch3d.program_set(pointShader)
                     batch3d.draw()
@@ -2652,7 +2655,7 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
     card[1] = Vector(card[1])
     card[2] = Vector(card[2])
     card[3] = Vector(card[3])
-    normalizedDeviceUVs= [(-1.1,-1.1),(-1.1,1.1),(1.1,1.1),(1.1,-1.1)]
+    normalizedDeviceUVs= [(-1.3,-1.3),(-1.3,1.3),(1.3,1.3),(1.3,-1.3)]
 
     #i,j,k Basis Vectors
     i = Vector((1,0,0))
