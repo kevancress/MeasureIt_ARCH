@@ -489,7 +489,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, dimText.text, origin, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
     
 
         #Reset openGL Settings
@@ -2396,7 +2396,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     bgl.glBlendEquation(bgl.GL_MAX)
                 
                 if sceneProps.is_vector_draw:
-                    svg_shaders.svg_line_group_shader(lineGroup, coords,lineWeight,rgb,mat,svg)
+                    svg_shaders.svg_line_shader(lineGroup, coords, lineWeight, rgb, svg, mat=mat)
 
                 bgl.glDepthMask(False)
                 lineGroupShader.uniform_float("depthPass",False)

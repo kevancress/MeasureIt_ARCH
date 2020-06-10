@@ -275,6 +275,10 @@ class MeasureItARCHSceneProps(PropertyGroup):
     is_vector_draw: BoolProperty(name="Is Vector Render",
                                 description="Flag to use svg draw code",
                                 default=False)
+    
+    vector_depthtest: BoolProperty(name="Use Vector Depth Test",
+                                description="Check for Occlusion when rending to SVG",
+                                default=False)
 
     show_gizmos: BoolProperty(name="Show Gizmos",
                                 description="(EXPERIMENTAL) Display Measureit-ARCH Gizmos",

@@ -26,23 +26,26 @@
 # ----------------------------------------------------------
 import bpy
 from mathutils import Vector, Matrix, Euler, Quaternion
+import math
 import bpy_extras.object_utils as object_utils
 import svgwrite
 import gpu
 
-def svg_line_shader(item, coords,thickness,color,svg,parent=None):
-    coords_2d = []
+def svg_line_shader(item, coords,thickness,color,svg,parent=None,mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
     svgColor = svgwrite.rgb(color[0]*255, color[1]*255, color[2]*255, '%')
     lines = svg.g(id=idName,stroke=svgColor, stroke_width=thickness)
-    parent.add(lines)
+    if parent:
+        parent.add(lines)
+    else:
+        svg.add(lines)
 
-    for coord in coords:
-        coords_2d.append(get_render_location(coord))
-    
-    for x in range(0, len(coords_2d) - 1, 2):
-        line = svg.line(start=tuple(coords_2d[x]),end=tuple(coords_2d[x+1]))
-        lines.add(line)
+    for x in range(0, len(coords) - 1, 2):
+        if check_visible(coords[x],coords[x+1],mat,item):
+            p1ss = get_render_location(mat@Vector(coords[x]))
+            p2ss = get_render_location(mat@Vector(coords[x+1]))
+            line = svg.line(start=tuple(p1ss),end=tuple(p2ss))
+            lines.add(line)
     
 
 def svg_fill_shader(item, coords,color,svg,parent=None):
@@ -59,27 +62,25 @@ def svg_fill_shader(item, coords,color,svg,parent=None):
         tri = svg.polygon(points=[coords_2d[x],coords_2d[x+1],coords_2d[x+2]])
         fills.add(tri)
 
-def svg_line_group_shader(item,coords,thickness,color,mat,svg):
-    idName = item.name
-    svgColor = svgwrite.rgb(color[0]*255, color[1]*255, color[2]*255, '%')
-    lines = svg.add(svg.g(id=idName,stroke=svgColor, stroke_width=thickness))
 
-    for x in range(0, len(coords) - 1, 2):
-        if check_visible(coords[x],coords[x+1],mat):
-            p1ss = get_render_location(mat@Vector(coords[x]))
-            p2ss = get_render_location(mat@Vector(coords[x+1]))
-            line = svg.line(start=tuple(p1ss),end=tuple(p2ss))
-            lines.add(line)
-
-def svg_text_shader(item, text, mid ,color,svg,parent=None):
+def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
     text_position = get_render_location(mid)
     svgColor = svgwrite.rgb(color[0]*255, color[1]*255, color[2]*255, '%')
+    ssp1 = get_render_location(textCard[0])
+    ssp2 = get_render_location(textCard[3])
+    ssp3 = get_render_location(textCard[2])
+
+    dirVec = Vector(ssp1) - Vector(ssp2)
+
+    text_position  = (Vector(ssp1) + Vector(ssp3)) / 2 
+
+    rotation = math.degrees(dirVec.angle_signed(Vector((1, 0))))
   
     parent.add(svg.text(text, insert=tuple(text_position), fill=svgColor, **{
             'transform': 'rotate({} {} {})'.format(
-                0,
-                0,
-                0
+                rotation,
+                text_position[0],
+                text_position[1]
             ),
             'font-size': 12,
             'font-family': 'OpenGost Type B TT',
@@ -141,10 +142,19 @@ def get_clip_space_coord(mypoint):
            
     #return modelview_matrix @ projection_matrix @ Vector((mypoint[0], mypoint[1], mypoint[2], 1))
 
-def check_visible(p1,p2,mat):
+def check_visible(p1,p2,mat,item):
     scene = bpy.context.scene
     camera = scene.camera
     render = scene.render
+
+    if not scene.MeasureItArchProps.vector_depthtest:
+        return True
+
+    print('Drawing: ' + item.name)  
+    if 'lineDepthOffset' in item:
+        z_offset = 1.0
+    else:
+        z_offset = 1.0
 
     p1Visible = True
     p2Visible = True
@@ -157,34 +167,47 @@ def check_visible(p1,p2,mat):
     width = int(render.resolution_x * render_scale)
     height = int(render.resolution_y * render_scale)
 
+    # Get Screen Space Points
     p1ss = get_render_location(mat@Vector(p1))
     p1ss = Vector((p1ss[0], height-p1ss[1]))
     p2ss = get_render_location(mat@Vector(p2))
     p2ss = Vector((p2ss[0], height-p2ss[1]))
 
+
+
+    ## Get Clip Space Points
     p1clip = get_clip_space_coord(mat@ Vector(p1))
     p2clip = get_clip_space_coord(mat@ Vector(p2))
     
+    # Get Buffer Index and depthbuffer value based on SS Point
     p1pxIdx = int((width * (p1ss[1]) + p1ss[0]-1)*4)
+    p2pxIdx = int((width * (p2ss[1]) + p2ss[0]-1)*4)
+
+    try:
+        p1depth = depthbuffer[p1pxIdx]/255
+        p2depth = depthbuffer[p2pxIdx]/255
+    except IndexError:
+        print('Index not in Depth Buffer ')
+        return False
+    
+    # Get Depth From Clip Space point
     p1vecdepth = (p1clip[2])
-    p1depth = depthbuffer[p1pxIdx]/255
+    p2vecdepth = (p2clip[2])
+
+    # Check Clip space point against depth buffer value
     print('p1')
     print(p1clip)
     print(str(p1depth) + ' at Coords: ' + str(p1ss[0]) + "," + str(p1ss[1]) + 'Index :' + str(p1pxIdx))
-    if p1depth > p1vecdepth-0.01:
+    if p1depth > p1vecdepth-z_offset/100 or p1depth == 0.0:
         p1Visible = True
     else:
         p1Visible = False
         print('p1 not visible')
 
-
-    p2pxIdx = int((width * (p2ss[1]) + p2ss[0]-1)*4)
-    p2vecdepth = (p2clip[2])
-    p2depth = depthbuffer[p2pxIdx]/255
     print('p2')
     print(p2clip)
     print(str(p2depth) + ' at Coords: ' + str(p2ss[0]) + "," + str(p2ss[1]) + 'Index :' + str(p2pxIdx))
-    if p2depth > p2vecdepth-0.01:
+    if p2depth > p2vecdepth-z_offset/100 or p2depth == 0.0:
         p2Visible = True
     else:
         p2Visible = False

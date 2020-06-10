@@ -75,6 +75,7 @@ class MeasureitArchRenderPanel(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
         scene = context.scene
+        sceneProps = scene.MeasureItArchProps
 
         # Render settings
         col = layout.column()
@@ -86,6 +87,7 @@ class MeasureitArchRenderPanel(Panel):
         col.operator("measureit_arch.rendersvgbutton", icon='DOCUMENTS', text= "MeasureIt-ARCH Vector")
         col = layout.column()
 
+        col.prop(sceneProps, "vector_depthtest", text="Use Vector DepthTest")
         col.prop(scene, "measureit_arch_render", text="Save Render to Output")
         #col.prop(scene, "measureit_arch_use_depth_clipping")
 
