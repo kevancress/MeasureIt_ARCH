@@ -110,18 +110,36 @@ def get_render_location(mypoint):
 
 
 def get_clip_space_coord(mypoint):
+    context = bpy.context
     scene = bpy.context.scene
     camera = scene.camera
     render = scene.render
 
-    render_scale = scene.render.resolution_percentage / 100
-    width = int(render.resolution_x * render_scale)
-    height = int(render.resolution_y * render_scale)
 
-    modelview_matrix = gpu.matrix.get_model_view_matrix()
-    projection_matrix = gpu.matrix.get_projection_matrix()
+    clip_end = camera.data.clip_end
+    clip_start = camera.data.clip_start
+
+    v1 = Vector(mypoint)
+    co_camera_space = object_utils.world_to_camera_view(scene, scene.camera, v1)
+
+    clip_space_z = (co_camera_space.z - clip_start)/ clip_end-clip_start
+
+    co_clip = Vector((co_camera_space.x,co_camera_space.y,co_camera_space.z/100))
+
+    return co_clip
+
+    
+
+
+
+    #render_scale = scene.render.resolution_percentage / 100
+    #width = int(render.resolution_x * render_scale)
+    #height = int(render.resolution_y * render_scale)
+
+    #modelview_matrix = camera.matrix_world.inverted()
+    #projection_matrix = camera.calc_matrix_camera(context.evaluated_depsgraph_get(), x=width, y=height)
            
-    return modelview_matrix @ projection_matrix @ Vector((mypoint[0], mypoint[1], mypoint[2], 1))
+    #return modelview_matrix @ projection_matrix @ Vector((mypoint[0], mypoint[1], mypoint[2], 1))
 
 def check_visible(p1,p2,mat):
     scene = bpy.context.scene
@@ -142,25 +160,31 @@ def check_visible(p1,p2,mat):
     p1ss = get_render_location(mat@Vector(p1))
     p1ss = Vector((p1ss[0], height-p1ss[1]))
     p2ss = get_render_location(mat@Vector(p2))
-    p1ss = Vector((p2ss[0], height-p2ss[1]))
+    p2ss = Vector((p2ss[0], height-p2ss[1]))
 
     p1clip = get_clip_space_coord(mat@ Vector(p1))
     p2clip = get_clip_space_coord(mat@ Vector(p2))
     
-    p1pxIdx = int((p1ss[0] * (p1ss[1]-1) + p1ss[1])*4)
-    p1vecdepth = (abs(p1clip[2])/100) +.01
+    p1pxIdx = int((width * (p1ss[1]) + p1ss[0]-1)*4)
+    p1vecdepth = (p1clip[2])
     p1depth = depthbuffer[p1pxIdx]/255
-    if p1depth > p1vecdepth:
+    print('p1')
+    print(p1clip)
+    print(str(p1depth) + ' at Coords: ' + str(p1ss[0]) + "," + str(p1ss[1]) + 'Index :' + str(p1pxIdx))
+    if p1depth > p1vecdepth-0.01:
         p1Visible = True
     else:
         p1Visible = False
         print('p1 not visible')
 
 
-    p2pxIdx = int((p2ss[0] * (p2ss[1]-1) + p2ss[1])*4)
-    p2vecdepth = (abs(p2clip[2])/100) +.01
+    p2pxIdx = int((width * (p2ss[1]) + p2ss[0]-1)*4)
+    p2vecdepth = (p2clip[2])
     p2depth = depthbuffer[p2pxIdx]/255
-    if p2depth > p2vecdepth:
+    print('p2')
+    print(p2clip)
+    print(str(p2depth) + ' at Coords: ' + str(p2ss[0]) + "," + str(p2ss[1]) + 'Index :' + str(p2pxIdx))
+    if p2depth > p2vecdepth-0.01:
         p2Visible = True
     else:
         p2Visible = False
