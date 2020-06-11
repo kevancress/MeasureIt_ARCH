@@ -72,6 +72,9 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
 
     dirVec = Vector(ssp1) - Vector(ssp2)
 
+    if dirVec.length == 0:
+        return
+
     text_position  = (Vector(ssp1) + Vector(ssp3)) / 2 
 
     rotation = math.degrees(dirVec.angle_signed(Vector((1, 0))))
