@@ -128,34 +128,6 @@ class RenderSegmentButton(Operator):
 
         return {'FINISHED'}
 
-    # ---------------------
-    # Set cameraView
-    # ---------------------
-    # noinspection PyMethodMayBeStatic
-    def set_camera_view(self):
-        for area in bpy.context.screen.areas:
-            if area.type == 'VIEW_3D':
-                area.spaces[0].region_3d.view_perspective = 'CAMERA'
-
-    # -------------------------------------
-    # Set only render status
-    # -------------------------------------
-    # noinspection PyMethodMayBeStatic
-    def set_only_render(self, status):
-        screen = bpy.context.screen
-
-        v3d = False
-        s = None
-        # get spaceview_3d in current screen
-        for a in screen.areas:
-            if a.type == 'VIEW_3D':
-                for s in a.spaces:
-                    if s.type == 'VIEW_3D':
-                        v3d = s
-                        break
-
-        if v3d is not False:
-            s.show_only_render = status
 
 class MeasureitRenderAnim(bpy.types.Operator):
     """Operator which runs its self from a timer"""
@@ -254,34 +226,6 @@ class RenderSvgButton(Operator):
 
         return {'FINISHED'}
 
-    # ---------------------
-    # Set cameraView
-    # ---------------------
-    # noinspection PyMethodMayBeStatic
-    def set_camera_view(self):
-        for area in bpy.context.screen.areas:
-            if area.type == 'VIEW_3D':
-                area.spaces[0].region_3d.view_perspective = 'CAMERA'
-
-    # -------------------------------------
-    # Set only render status
-    # -------------------------------------
-    # noinspection PyMethodMayBeStatic
-    def set_only_render(self, status):
-        screen = bpy.context.screen
-
-        v3d = False
-        s = None
-        # get spaceview_3d in current screen
-        for a in screen.areas:
-            if a.type == 'VIEW_3D':
-                for s in a.spaces:
-                    if s.type == 'VIEW_3D':
-                        v3d = s
-                        break
-
-        if v3d is not False:
-            s.show_only_render = status
 
 
 # -------------------------------------------------------------
@@ -298,7 +242,6 @@ def render_main(self, context, animation=False):
 
     
     clipdepth = context.scene.camera.data.clip_end
-    path = scene.render.filepath
     objlist = context.view_layer.objects
 
     # --------------------
@@ -414,20 +357,6 @@ def render_main(self, context, animation=False):
                         for axisDim in DimGen.axisDimensions:
                             draw_axisDimension(context,myobj,DimGen,axisDim,mat)
         
-        # -----------------------------
-        # Draw a rectangle frame
-        # -----------------------------
-        if scene.measureit_arch_rf is True:
-            rfcolor = scene.measureit_arch_rf_color
-            rfborder = scene.measureit_arch_rf_border
-            rfline = scene.measureit_arch_rf_line
-
-            bgl.glLineWidth(rfline)
-            x1 = rfborder
-            x2 = width - rfborder
-            y1 = int(ceil(rfborder / (width / height)))
-            y2 = height - y1
-            draw_rectangle((x1, y1), (x2, y2))
 
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
         bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
@@ -448,8 +377,6 @@ def render_main(self, context, animation=False):
 
     # Saves image
     if image is not None and (scene.measureit_arch_render is True or animation is True):
-        settings = bpy.context.scene.render.image_settings
-        myformat = settings.file_format
         ren_path = bpy.context.scene.render.filepath
         filename = "mit_frame"
         ftxt = "%04d" % scene.frame_current

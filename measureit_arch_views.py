@@ -354,6 +354,41 @@ class SCENE_PT_Views(Panel):
                     #except:
                     #    pass
  
+
+class M_ARCH_OP_Render_Preview(Operator):
+    bl_idname = "measureit_arch.renderpreviewbutton"
+    bl_label = "Render"
+    bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
+    bl_category = 'MeasureitArch'
+    tag: IntProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    def execute(self, context):
+        scene = context.scene
+        msg = "New image created with measures. Open it in UV/image editor"
+        camera_msg = "Unable to render. No camera found"
+        # -----------------------------
+        # Check camera
+        # -----------------------------
+        if scene.camera is None:
+            self.report({'ERROR'}, camera_msg)
+            return {'FINISHED'}
+        # -----------------------------
+        # Use default render
+        # -----------------------------
+
+        print("MeasureIt-ARCH: Rendering image")
+        #bpy.ops.render.render()
+        if measureit_arch_render.render_main(self, context) is True:
+            self.report({'INFO'}, msg)
+            
+
+        return {'FINISHED'}
+
+
                           
 class AddViewButton(Operator):
     bl_idname = "measureit_arch.addviewbutton"
