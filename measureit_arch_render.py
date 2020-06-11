@@ -123,7 +123,8 @@ class RenderSegmentButton(Operator):
 
         print("MeasureIt-ARCH: Rendering image")
         #bpy.ops.render.render()
-        if render_main(self, context) is True:
+        render_result = render_main(self, context)
+        if render_result[0] is True:
             self.report({'INFO'}, msg)
 
         return {'FINISHED'}
@@ -291,6 +292,11 @@ def render_main(self, context, animation=False):
         for myobj in objlist:
             if myobj.visible_get() is True:
                 mat = myobj.matrix_world
+
+                sheetGen = myobj.SheetGenerator
+                for sheet_view in sheetGen.sheet_views:
+                    draw_sheet_views(context,myobj,sheetGen,sheet_view,mat)
+
                 if 'DimensionGenerator' in myobj:
                     measureGen = myobj.DimensionGenerator[0]
                     if 'alignedDimensions' in measureGen:
@@ -385,7 +391,7 @@ def render_main(self, context, animation=False):
 
     # restore default value
     sceneProps.is_render_draw = False
-    return True
+    return True, buffer
 # -------------------------------------
 # Save image to file
 # -------------------------------------

@@ -228,6 +228,103 @@ def update_text(textobj, props, context):
                 image.pixels = [v / 255 for v in texture_buffer]
     textobj.text_updated = False    
 
+def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
+
+    if sheet_view.scene == None:
+        return
+    
+    if sheet_view.view == "":
+        return
+
+    refScene = sheet_view.scene
+    refView = None
+    for view in refScene.ViewGenerator.views:
+        if view.name == sheet_view.view:
+            refView = view
+
+    card = [(0.0, 0.0, 0.0),(0.0, 1.0, 0.0),(1.0, 1.0, 0.0),(1.0, 0.0, 0.0)]
+
+    normalizedDeviceUVs= [(-1.3,-1.3),(-1.3,1.3),(1.3,1.3),(1.3,-1.3)]
+    uvs = []
+    for normUV in normalizedDeviceUVs:
+        uv = (Vector(normUV) + Vector((1,1)))*0.5
+        uvs.append(uv)
+
+    # Scale Card
+    scaled_card =[]
+    if refView.res_type == 'res_type_paper':
+        sx = refView.width
+        sy = refView.height
+    else:
+        percentScale = refView.percent_scale/100
+        sx = (refView.width_px * percentScale)/1200
+        sy = (refView.height_px * percentScale)/1200
+    scaleMatrix = Matrix([
+        [sx,0 ,0,0],
+        [0 ,sy,0,0],
+        [0 ,0 ,1,0],
+        [0 ,0 ,0,1]
+    ])
+
+    loc = mat.to_translation()
+    loc.z = 0.0
+    locMatrix = Matrix.Translation(loc)
+
+    for coord in card:
+        sCoord = scaleMatrix@ Vector(coord)
+        sCoord += sheet_view.location
+        sCoord = locMatrix @ sCoord 
+        scaled_card.append(sCoord)
+    card = scaled_card
+
+
+
+    # Gets Texture from Object
+    if refView.res_type == 'res_type_paper':
+        paperWidth = refView.width
+        paperHeight = refView.height
+        ppi = refView.res
+
+        width = int(paperWidth *  ppi * 39.3701)
+        height = int(paperHeight * ppi * 39.3701)
+    else:
+        percentScale = refView.percent_scale/100
+        width = int(refView.width_px * percentScale)
+        height = int(refView.height_px * percentScale)
+    
+    dim = int(width) * int(height) * 4
+
+    if 'preview' in refView:
+        # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
+        texArray = bgl.Buffer(bgl.GL_INT,[1])
+        bgl.glGenTextures(1,texArray)
+
+        bgl.glActiveTexture(bgl.GL_TEXTURE0)
+        bgl.glBindTexture(bgl.GL_TEXTURE_2D, texArray[0])
+
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_S, bgl.GL_CLAMP_TO_BORDER)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_T, bgl.GL_CLAMP_TO_BORDER)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+
+        tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(refView['preview'], dtype=np.uint8))
+        bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width, height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
+       
+            # Batch Geometry
+        batch = batch_for_shader(
+            textShader, 'TRI_FAN',
+            {
+                "pos": card,
+                "uv": uvs,
+            },
+        )
+     
+        # Draw Shader
+        textShader.bind()
+        textShader.uniform_float("image", 0)
+        batch.draw(textShader)
+        bgl.glDeleteTextures(1,texArray)
+    gpu.shader.unbind()
+
 def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
     # GL Settings
     bgl.glEnable(bgl.GL_MULTISAMPLE)
@@ -2796,10 +2893,11 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
 
         textobj.texture_updated=False
      
-    # Draw Shader
-    textShader.bind()
-    textShader.uniform_float("image", 0)
-    batch.draw(textShader)
+        # Draw Shader
+        textShader.bind()
+        textShader.uniform_float("image", 0)
+        batch.draw(textShader)
+        bgl.glDeleteTextures(1,texArray)
     gpu.shader.unbind()
 
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):

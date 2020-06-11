@@ -38,7 +38,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 from bpy.app.handlers import persistent
 from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_areaDimension, \
                         draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, \
-                        get_mesh_vertices, printTime
+                        get_mesh_vertices, printTime, draw_sheet_views
 
 draw_instanced = True
 
@@ -590,6 +590,9 @@ def draw_main_3d (context):
         if myobj.visible_get() is True:
             mat = myobj.matrix_world
             
+            sheetGen = myobj.SheetGenerator
+            for sheet_view in sheetGen.sheet_views:
+                draw_sheet_views(context,myobj,sheetGen,sheet_view,mat)
 
             if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
                 lineGen = myobj.LineGenerator[0]

@@ -17,6 +17,7 @@ from bpy.props import (
         BoolVectorProperty
         )
 
+from .measureit_arch_render import render_main
 
 def update(self,context):
     if context == None:
@@ -284,8 +285,11 @@ class SCENE_PT_Views(Panel):
                 col = box.column()
                 if view.camera !=None:
                     camera = view.camera.data
+                    col.operator("measureit_arch.renderpreviewbutton", icon='RENDER_STILL', text="Render View Preview")
                     #col.operator("bind_marker.bind_marker", text = "Bind Camera To Frame", icon = 'CAMERA_DATA')
                     col.prop(camera, "type", text="Camera Type")
+                    
+                    
                     col.row().prop(view, 'res_type', expand=True)
                     
                     if view.res_type == 'res_type_paper':
@@ -355,41 +359,6 @@ class SCENE_PT_Views(Panel):
                     #    pass
  
 
-class M_ARCH_OP_Render_Preview(Operator):
-    bl_idname = "measureit_arch.renderpreviewbutton"
-    bl_label = "Render"
-    bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
-    bl_category = 'MeasureitArch'
-    tag: IntProperty()
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def execute(self, context):
-        scene = context.scene
-        msg = "New image created with measures. Open it in UV/image editor"
-        camera_msg = "Unable to render. No camera found"
-        # -----------------------------
-        # Check camera
-        # -----------------------------
-        if scene.camera is None:
-            self.report({'ERROR'}, camera_msg)
-            return {'FINISHED'}
-        # -----------------------------
-        # Use default render
-        # -----------------------------
-
-        print("MeasureIt-ARCH: Rendering image")
-        #bpy.ops.render.render()
-        if measureit_arch_render.render_main(self, context) is True:
-            self.report({'INFO'}, msg)
-            
-
-        return {'FINISHED'}
-
-
-                          
 class AddViewButton(Operator):
     bl_idname = "measureit_arch.addviewbutton"
     bl_label = "Add"
@@ -413,6 +382,52 @@ class AddViewButton(Operator):
                     context.area.tag_redraw()
                     return {'FINISHED'}
         return {'FINISHED'}
+
+class M_ARCH_OP_Render_Preview(Operator):
+    bl_idname = "measureit_arch.renderpreviewbutton"
+    bl_label = "Render Veiw Preview"
+    bl_description = " Create A Preview Render of this view to be used in sheet layouts. \n The Results can also be accessed in the Image Editor"
+    bl_category = 'MeasureitArch'
+    tag: IntProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    def execute(self, context):
+        scene = context.scene
+        ViewGen = scene.ViewGenerator
+        view = ViewGen.views[ViewGen.active_index]
+
+        msg = "New image created with measures. Open it in UV/image editor"
+        camera_msg = "Unable to render. No camera found"
+        # -----------------------------
+        # Check camera
+        # -----------------------------
+        if scene.camera is None:
+            self.report({'ERROR'}, camera_msg)
+            return {'FINISHED'}
+        # -----------------------------
+        # Use default render
+        # -----------------------------
+
+        print("MeasureIt-ARCH: Rendering image")
+        #bpy.ops.render.render()
+        render_results = render_main(self, context)
+        if render_results[0] is True:
+            self.report({'INFO'}, msg)
+            if 'preview' in view:
+                del view['preview']
+            view['preview'] = render_results[1]
+
+            
+
+        return {'FINISHED'}
+
+
+############################
+#### LEGACY PRESET CODE ####
+############################
 
 class CAMERA_PX_Presets(Menu):
     bl_label = "Resolution Presets"
