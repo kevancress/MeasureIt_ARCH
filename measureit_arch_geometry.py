@@ -2752,7 +2752,7 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
     card[1] = Vector(card[1])
     card[2] = Vector(card[2])
     card[3] = Vector(card[3])
-    normalizedDeviceUVs= [(-1.3,-1.3),(-1.3,1.3),(1.3,1.3),(1.3,-1.3)]
+    normalizedDeviceUVs= [(-1.1,-1.1),(-1.1,1.1),(1.1,1.1),(1.1,-1.1)]
 
     #i,j,k Basis Vectors
     i = Vector((1,0,0))
