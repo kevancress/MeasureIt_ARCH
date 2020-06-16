@@ -497,17 +497,17 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         if dim.textAlignment == 'L' :
             flipCaps=True
             dimLineExtension = capSize/50
-            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
+            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* normDistVector) + Vector(cardY/2)
             
         elif dim.textAlignment == 'R':
             flipCaps=True
             dimLineExtension = capSize/50
-            origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) - Vector(cardY/2)
+            origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* normDistVector) - Vector(cardY/2)
             
         elif tempExtFlag:
             flipCaps=True
             dimLineExtension = capSize/50
-            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
+            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* normDistVector) + Vector(cardY/2)
 
         if flipCaps:
             dimLineExtension = capSize/50

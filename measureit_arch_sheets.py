@@ -133,6 +133,10 @@ class SCENE_PT_Sheet(Panel):
     bl_region_type = 'WINDOW'
     bl_context = "object"
 
+    @classmethod
+    def poll(cls, context):
+        return (context.object.type == 'CAMERA')
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -178,4 +182,4 @@ class SCENE_PT_Sheet(Panel):
                 col.prop_search(view,'view', viewGen, 'views',text="View", icon='CAMERA_DATA')
                     
                 col.prop(view, 'location', text='Location')
-                col.prop(view, 'rotation', text='Rotation')
+                #col.prop(view, 'rotation', text='Rotation')
