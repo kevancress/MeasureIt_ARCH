@@ -3588,7 +3588,60 @@ def get_line_vertex(idx,verts,mat):
     return vert
 
 
+def is_valid(o):
+    """ Invalid object no more return None
+    :param o:
+    :return:
+    """
+    try:
+        o.id_data
+        res = True
+    except:
+        res = False
+        pass
+    return res
+
+
+def archipack_datablock(o):
+    """
+     Return archipack datablock from object
+    """
+    d = None
+    if is_valid(o):
+        if o.data is not None:
+            try:
+                for key in o.data.keys():
+                    if "archipack_" in key:
+                        d = getattr(o.data, key)[0]
+                        break
+            except:
+                pass
+        if d is None:
+            try:
+                for key in o.keys():
+                    if "archipack_" in key:
+                        d = getattr(o, key)[0]
+                        break
+            except:
+                pass
+    return d
+
+
+def get_archipack_loc(myobj, idx):
+    d = archipack_datablock(myobj)
+    if d is not None and hasattr(d, "dimension_points"):
+        pos = d.dimension_point(myobj, idx)
+        if pos is not None:
+            return myobj.matrix_world.inverted() @ pos
+    return None
+
+
 def get_mesh_vertex(myobj,idx,evalMods):
+        
+    coord = get_archipack_loc(myobj, idx)
+    if coord is not None:
+        return coord
+
     sceneProps = bpy.context.scene.MeasureItArchProps
     verts=[]
     coord = Vector((0,0,0))
