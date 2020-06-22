@@ -241,7 +241,6 @@ def render_main(self, context, animation=False):
     sceneProps.is_render_draw = True
     bgl.glEnable(bgl.GL_MULTISAMPLE)
 
-    
     clipdepth = context.scene.camera.data.clip_end
     objlist = context.view_layer.objects
 

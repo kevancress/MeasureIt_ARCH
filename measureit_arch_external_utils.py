@@ -25,6 +25,8 @@
 # ----------------------------------------------------------
 
 
+from .measureit_arch_geometry import get_mesh_vertex, get_point, sortPoints
+
 def blenderBIM_get_coords (context):
     dim_coords_list = []
    
@@ -76,5 +78,39 @@ def blenderBIM_get_coords (context):
             #    for areaDim in DimGen.areaDimensions:
             #        draw_areaDimension(context,myobj,DimGen,areaDim,mat)
 
+    print(dim_coords_list)
+
 def get_dim_coords(context, myobj, DimGen, dim, mat):
-    pass
+    dimProps = dim
+    if dim.uses_style:
+        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
+            if alignedDimStyle.name == dim.style:
+                dimProps = alignedDimStyle
+
+    # get points positions from indicies
+    aMatrix = dim.dimObjectA.matrix_world
+    bMatrix = dim.dimObjectB.matrix_world
+
+    # get points positions from indicies
+    p1Local = None
+    p2Local = None
+
+    try:
+        p1Local = get_mesh_vertex(dim.dimObjectA,dim.dimPointA,dimProps.evalMods)
+    except IndexError:
+        print('p1 excepted for ' + dim.name + ' on ' + myobj.name)
+
+    try:
+        p2Local = get_mesh_vertex(dim.dimObjectB,dim.dimPointB,dimProps.evalMods)
+    except IndexError:
+        print('p2 excepted for ' + dim.name + ' on ' + myobj.name)
+
+    p1 = get_point(p1Local, dim.dimObjectA,aMatrix)
+    p2 = get_point(p2Local, dim.dimObjectB,bMatrix)
+        
+    #check dominant Axis
+    sortedPoints = sortPoints(p1, p2)
+    p1 = sortedPoints[0]
+    p2 = sortedPoints[1]
+
+    return [p1,p2]
