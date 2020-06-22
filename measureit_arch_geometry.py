@@ -3070,16 +3070,16 @@ def sortPoints (p1, p2):
     domAxis = get_dom_axis(tempDirVec)
 
     #check dom axis alignment for text
-    if domAxis==0:
-        if p2[domAxis] > p1[domAxis]:
-            switchTemp = p1
-            p1 = p2
-            p2 = switchTemp
-    else:
-        if p2[domAxis] < p1[domAxis]:
-            switchTemp = p1
-            p1 = p2
-            p2 = switchTemp
+    #if domAxis==0:
+    #    if p2[domAxis] > p1[domAxis]:
+    #        switchTemp = p1
+    #        p1 = p2
+    #        p2 = switchTemp
+    #else:
+    if p2[domAxis] < p1[domAxis]:
+        switchTemp = p1
+        p1 = p2
+        p2 = switchTemp
     
     return p1,p2
 
