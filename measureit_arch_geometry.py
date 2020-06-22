@@ -372,9 +372,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         geoOffset = dim.dimLeaderOffset
 
         # get points positions from indicies
-        aMatrix = dim.dimObjectA.matrix_world
-        bMatrix = dim.dimObjectB.matrix_world
-           
+        aMatrix = mat
+        bMatrix = mat
+        if dim.dimObjectB != dim.dimObjectA:
+            bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat
 
         # get points positions from indicies
 
