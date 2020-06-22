@@ -602,7 +602,6 @@ def draw_main_3d (context):
                 annotationGen = myobj.AnnotationGenerator[0]
                 draw_annotation(context,myobj,annotationGen,mat)
 
-
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator[0]
                 

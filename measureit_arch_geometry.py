@@ -372,10 +372,9 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         geoOffset = dim.dimLeaderOffset
 
         # get points positions from indicies
-        aMatrix = mat
-        bMatrix = mat
-        if dim.dimObjectB != dim.dimObjectA:
-            bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat
+        aMatrix = dim.dimObjectA.matrix_world
+        bMatrix = dim.dimObjectB.matrix_world
+           
 
         # get points positions from indicies
 
@@ -2055,6 +2054,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
 
         #Draw Fill
         bgl.glDepthMask(False)
+        if fillRGB[3] == 1:
+            bgl.glDepthMask(True)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
         triShader.bind()
