@@ -12,47 +12,58 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 def update_flag(self,context):
     self.text_updated = True
 
-def update_active_dim(self,context):
-    dimGen = context.object.DimensionGenerator[0]
-    itemType = self.itemType
-    idx = 0
-    for wrap in dimGen.wrappedDimensions:
-        if itemType == wrap.itemType:
-            if itemType == 'D-ALIGNED':
-                if self == dimGen.alignedDimensions[wrap.itemIndex]:
-                    dimGen.active_dimension_index = idx
-                    return
-            elif itemType == 'D-AXIS':
-                if self == dimGen.axisDimensions[wrap.itemIndex]:
-                    dimGen.active_dimension_index = idx
-                    return
-        idx += 1
-    
-def recalc_dimWrapper_index(self,context):
-    dimGen = context.object.DimensionGenerator[0]
-    wrappedDimensions = dimGen.wrappedDimensions
-    id_aligned = 0
-    id_angle = 0
-    id_axis = 0
-    id_arc = 0
-    id_area = 0
-    for dim in wrappedDimensions:
-        if dim.itemType == 'D-ALIGNED':
-            dim.itemIndex = id_aligned
-            id_aligned += 1
-        elif dim.itemType == 'D-ANGLE':
-            dim.itemIndex = id_angle
-            id_angle += 1
-        elif dim.itemType == 'D-AXIS':
-            dim.itemIndex = id_axis
-            id_axis += 1
-        elif dim.itemType == 'D-ARC':
-            dim.itemIndex = id_arc
-            id_arc += 1
-        elif dim.itemType == 'D-AREA':
-            dim.itemIndex = id_area
-            id_area += 1
 
+def has_dimension_generator(context):
+    return context.object is not None and \
+    hasattr(context.object, "DimensionGenerator") and \
+    len(context.object.DimensionGenerator) > 0
+
+
+def update_active_dim(self,context):
+    if has_dimension_generator(context):
+        dimGen = context.object.DimensionGenerator[0]
+        itemType = self.itemType
+        idx = 0
+        for wrap in dimGen.wrappedDimensions:
+            if itemType == wrap.itemType:
+                if itemType == 'D-ALIGNED':
+                    if self == dimGen.alignedDimensions[wrap.itemIndex]:
+                        dimGen.active_dimension_index = idx
+                        return
+                elif itemType == 'D-AXIS':
+                    if self == dimGen.axisDimensions[wrap.itemIndex]:
+                        dimGen.active_dimension_index = idx
+                        return
+            idx += 1
+
+
+def recalc_dimWrapper_index(self,context):
+    if has_dimension_generator(context):
+        dimGen = context.object.DimensionGenerator[0]
+        wrappedDimensions = dimGen.wrappedDimensions
+        id_aligned = 0
+        id_angle = 0
+        id_axis = 0
+        id_arc = 0
+        id_area = 0
+        for dim in wrappedDimensions:
+            if dim.itemType == 'D-ALIGNED':
+                dim.itemIndex = id_aligned
+                id_aligned += 1
+            elif dim.itemType == 'D-ANGLE':
+                dim.itemIndex = id_angle
+                id_angle += 1
+            elif dim.itemType == 'D-AXIS':
+                dim.itemIndex = id_axis
+                id_axis += 1
+            elif dim.itemType == 'D-ARC':
+                dim.itemIndex = id_arc
+                id_arc += 1
+            elif dim.itemType == 'D-AREA':
+                dim.itemIndex = id_area
+                id_area += 1
+
+                
 class BaseProp:
     inFront: BoolProperty(name='inFront',
                 description= 'Draw this element In front of other objects',
