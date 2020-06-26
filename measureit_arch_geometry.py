@@ -2230,10 +2230,14 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
             if bestNormal.dot(sumNormal)<0:
                 bestNormal.negate()
 
-    # If Face Normals aren't available;
-    # use the cross product of the View Plane Normal and the dimensions distance vector.
-    if myobj.type != 'MESH' or badNormals:
+    
+    if archipack_datablock(myobj):
+        # Use archipack dimension matrix y vector
+        bestNormal = myobj.matrix_world.col[1].to_3d()
 
+    elif myobj.type != 'MESH' or badNormals:
+        # If Face Normals aren't available;
+        # use the cross product of the View Plane Normal and the dimensions distance vector.
         bestNormal = viewAxis.cross(normDistVector)
         if bestNormal.length == 0:
             bestNormal = centerRay
@@ -3587,51 +3591,21 @@ def get_line_vertex(idx,verts,mat):
     return vert
 
 
-def is_valid(o):
-    """ Invalid object no more return None
-    :param o:
-    :return:
-    """
-    try:
-        o.id_data
-        res = True
-    except:
-        res = False
-        pass
-    return res
-
-
 def archipack_datablock(o):
     """
      Return archipack datablock from object
     """
-    d = None
-    if is_valid(o):
-        if o.data is not None:
-            try:
-                for key in o.data.keys():
-                    if "archipack_" in key:
-                        d = getattr(o.data, key)[0]
-                        break
-            except:
-                pass
-        if d is None:
-            try:
-                for key in o.keys():
-                    if "archipack_" in key:
-                        d = getattr(o, key)[0]
-                        break
-            except:
-                pass
-    return d
+    try:
+        return o.data.archipack_dimension_auto[0]
+    except:
+        pass
+    return None
 
 
-def get_archipack_loc(myobj, idx):
+def get_archipack_loc(context, myobj, idx):
     d = archipack_datablock(myobj)
-    if d is not None and hasattr(d, "dimension_points"):
-        pos = d.dimension_point(myobj, idx)
-        if pos is not None:
-            return myobj.matrix_world.inverted() @ pos
+    if d is not None:
+        return d.location(context, myobj, idx)
     return None
 
 
