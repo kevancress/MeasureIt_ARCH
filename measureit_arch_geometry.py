@@ -3610,8 +3610,8 @@ def get_archipack_loc(context, myobj, idx):
 
 
 def get_mesh_vertex(myobj,idx,evalMods):
-        
-    coord = get_archipack_loc(myobj, idx)
+    context = bpy.context
+    coord = get_archipack_loc(context, myobj, idx)
     if coord is not None:
         return coord
 

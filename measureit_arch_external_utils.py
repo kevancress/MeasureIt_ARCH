@@ -29,7 +29,7 @@ from .measureit_arch_geometry import get_mesh_vertex, get_point, sortPoints
 
 def blenderBIM_get_coords (context):
     dim_coords_list = []
-   
+    
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
