@@ -2906,7 +2906,7 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
     capCoords = []
     filledCoords = []
-    size = capSize/100
+    size = capSize/1000
     distVector = Vector(pos-Vector(midpoint)).normalized()
     norm = distVector.cross(userOffsetVector).normalized()
     line = distVector*size
@@ -3587,7 +3587,11 @@ def get_mesh_vertices(myobj):
 
 ## A streamlined version of get mesh vertex for line drawing
 def get_line_vertex(idx,verts,mat):
-    vert = verts[idx].co
+    try:
+        vert = verts[idx].co
+    except:
+        print("Broken Vertex!!!")
+        vert = Vector((0,0,0))
     return vert
 
 

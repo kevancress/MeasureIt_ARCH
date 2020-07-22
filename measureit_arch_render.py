@@ -48,6 +48,7 @@ from .measureit_arch_geometry import *
 from .measureit_arch_main import draw_main, draw_main_3d
 from bpy.props import IntProperty
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
+depthOnlyshader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
 
 global svg
 
@@ -124,8 +125,17 @@ class RenderSegmentButton(Operator):
         print("MeasureIt-ARCH: Rendering image")
         #bpy.ops.render.render()
         render_result = render_main(self, context)
+        #render_result = [True, 0]
         if render_result[0] is True:
             self.report({'INFO'}, msg)
+        del render_result
+
+        for area in context.screen.areas:
+            area.tag_redraw()
+            for region in area.regions:
+                region.tag_redraw()
+        
+        bpy.context.view_layer.update()
 
         return {'FINISHED'}
 
@@ -235,53 +245,46 @@ class RenderSvgButton(Operator):
 # -------------------------------------------------------------
 def render_main(self, context, animation=False):
 
-    # Save old info
     scene = context.scene
     sceneProps= scene.MeasureItArchProps
     sceneProps.is_render_draw = True
-    bgl.glEnable(bgl.GL_MULTISAMPLE)
 
     clipdepth = context.scene.camera.data.clip_end
     objlist = context.view_layer.objects
 
-    # --------------------
-    # Get resolution
-    # --------------------
 
+    # Get resolution
     render_scale = scene.render.resolution_percentage / 100
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
 
 
-    # --------------------------------------
     # Draw all lines in Offsecreen
-    # --------------------------------------
-    offscreen = gpu.types.GPUOffScreen(width, height)
+    renderoffscreen = gpu.types.GPUOffScreen(width, height)
     
-    view_matrix = Matrix([
-        [2 / width, 0, 0, -1],
-        [0, 2 / height, 0, -1],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]])
-
     view_matrix_3d = scene.camera.matrix_world.inverted()
     projection_matrix = scene.camera.calc_matrix_camera(context.view_layer.depsgraph, x=width, y=height)
-    
-    with offscreen.bind():
+    print("rendering offscreen")
+    with renderoffscreen.bind(save=True):
+
+        print("setting gl props")
         # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
         bgl.glClearDepth(clipdepth)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthFunc(bgl.GL_LEQUAL)  
 
+        print("loading matrix")
         gpu.matrix.reset()
         gpu.matrix.load_matrix(view_matrix_3d)
         gpu.matrix.load_projection_matrix(projection_matrix)
 
+
+        # Draw Scene for the depth buffer
         draw_scene(self, context, projection_matrix) 
 
         
-        # Clear Color Keep on depth info
+        # Clear Color Buffer, we only need the depth info
         bgl.glClearColor(0,0,0,0)
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
@@ -318,25 +321,15 @@ def render_main(self, context, animation=False):
                             draw_areaDimension(context, myobj, measureGen,dim,mat)
 
                 if 'LineGenerator' in myobj:
-                    # Set 3D Projection Martix
-                    gpu.matrix.reset()
-                    gpu.matrix.load_matrix(view_matrix_3d)
-                    gpu.matrix.load_projection_matrix(projection_matrix)
-
                     # Draw Line Groups
                     op = myobj.LineGenerator[0]
                     draw_line_group(context, myobj, op, mat)
-             
+            
                 if 'AnnotationGenerator' in myobj:
-                    # Set 3D Projection Martix
-                    gpu.matrix.reset()
-                    gpu.matrix.load_matrix(view_matrix_3d)
-                    gpu.matrix.load_projection_matrix(projection_matrix)
-
                     # Draw Line Groups
                     op = myobj.AnnotationGenerator[0]
                     draw_annotation(context, myobj, op, mat)                
-       
+    
         # Draw Instance 
         deps = bpy.context.view_layer.depsgraph
         for obj_int in deps.object_instances:
@@ -362,13 +355,14 @@ def render_main(self, context, animation=False):
                         for axisDim in DimGen.axisDimensions:
                             draw_axisDimension(context,myobj,DimGen,axisDim,mat)
         
-
+        print("reading offscreen")
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
         bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
-    offscreen.free()
-
     
+    print("freeing offscreen")
+    renderoffscreen.free()
+
     # -----------------------------
     # Create image
     # -----------------------------
@@ -376,6 +370,7 @@ def render_main(self, context, animation=False):
     if image_name not in bpy.data.images:
         bpy.data.images.new(image_name, width, height)
 
+    print("writing buffer to image")
     image = bpy.data.images[image_name]
     image.scale(width, height)
     image.pixels = [v / 255 for v in buffer]
@@ -397,7 +392,6 @@ def render_main(self, context, animation=False):
 def save_image(self, filepath, myimage):
     # noinspection PyBroadException
     try:
-
         # Save old info
         settings = bpy.context.scene.render.image_settings
         myformat = settings.file_format
@@ -429,7 +423,6 @@ def draw_scene(self, context, projection_matrix):
     bgl.glDepthFunc(bgl.GL_LESS)   
 
     # Get List of Mesh Objects
-    objs = []
     deps = bpy.context.view_layer.depsgraph
     for obj_int in deps.object_instances:
         obj = obj_int.object
@@ -450,12 +443,10 @@ def draw_scene(self, context, projection_matrix):
             for tri in tris:
                 indices.append(tri.vertices)      
 
-            #shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-            shader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
-            batch = batch_for_shader(shader, 'TRIS', {"pos": vertices}, indices=indices)
-            batch.program_set(shader)
+           
+            batch = batch_for_shader(depthOnlyshader, 'TRIS', {"pos": vertices}, indices=indices)
+            batch.program_set(depthOnlyshader)
             batch.draw()
-            gpu.shader.unbind()
             obj_eval.to_mesh_clear()
 
     #Write to Image for Debug
@@ -478,7 +469,6 @@ def draw_scene(self, context, projection_matrix):
         image.scale(width, height)
         image.pixels = [v / 255 for v in buffer]
 
-    bgl.glDisable(bgl.GL_DEPTH_TEST)
 
 
 def render_main_svg(self, context, animation=False):

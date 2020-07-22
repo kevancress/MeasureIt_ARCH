@@ -169,7 +169,6 @@ class MeasureitArchMainPanel(Panel):
         row.prop(scene, "measureit_arch_gl_ghost", text="", icon='GHOST_ENABLED')
         row.prop(sceneProps, "show_gizmos", text="", icon='GIZMO')
 
-
         # ------------------------------
         # Tool Buttons
         # ------------------------------

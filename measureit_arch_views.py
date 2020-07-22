@@ -419,6 +419,7 @@ class M_ARCH_OP_Render_Preview(Operator):
             if 'preview' in view:
                 del view['preview']
             view['preview'] = render_results[1]
+        del render_results
 
             
 
