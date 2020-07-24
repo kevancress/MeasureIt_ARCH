@@ -366,15 +366,21 @@ def render_main(self, context, animation=False):
     print("freeing offscreen")
     renderoffscreen.free()
 
+    bgl.glDisable(bgl.GL_DEPTH_TEST)
+
     # -----------------------------
     # Create image
     # -----------------------------
     image_name = "measureit_arch_output"
+    image = None
     if image_name not in bpy.data.images:
-        bpy.data.images.new(image_name, width, height)
+        print("creating Image")
+        image = bpy.data.images.new(image_name, width, height)
+    else:
+        print("getting Image")
+        image = bpy.data.images[image_name]
 
     print("writing buffer to image")
-    image = bpy.data.images[image_name]
     image.scale(width, height)
     image.pixels = [v / 255 for v in buffer]
 
