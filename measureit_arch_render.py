@@ -267,17 +267,14 @@ def render_main(self, context, animation=False):
     
     view_matrix_3d = scene.camera.matrix_world.inverted()
     projection_matrix = scene.camera.calc_matrix_camera(context.view_layer.depsgraph, x=width, y=height)
-    print("rendering offscreen")
     with renderoffscreen.bind(save=True):
 
-        print("setting gl props")
         # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
         bgl.glClearDepth(clipdepth)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthFunc(bgl.GL_LEQUAL)  
 
-        print("loading matrix")
         gpu.matrix.reset()
         gpu.matrix.load_matrix(view_matrix_3d)
         gpu.matrix.load_projection_matrix(projection_matrix)
@@ -358,14 +355,12 @@ def render_main(self, context, animation=False):
                         for axisDim in DimGen.axisDimensions:
                             draw_axisDimension(context,myobj,DimGen,axisDim,mat)
         
-        print("reading offscreen")
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
         bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
     
-    print("freeing offscreen")
-    renderoffscreen.free()
 
+    renderoffscreen.free()
     bgl.glDisable(bgl.GL_DEPTH_TEST)
 
     # -----------------------------
@@ -374,13 +369,10 @@ def render_main(self, context, animation=False):
     image_name = "measureit_arch_output"
     image = None
     if image_name not in bpy.data.images:
-        print("creating Image")
         image = bpy.data.images.new(image_name, width, height)
     else:
-        print("getting Image")
         image = bpy.data.images[image_name]
 
-    print("writing buffer to image")
     image.scale(width, height)
     image.pixels = [v / 255 for v in buffer]
 
