@@ -39,6 +39,10 @@ bl_info = {
 
 import sys
 import os
+import site
+
+cwd = os.path.dirname(os.path.realpath(__file__))
+site.addsitedir(os.path.join(cwd, "libs", "site", "packages"))
 
 # ----------------------------------------------
 # Import modules
