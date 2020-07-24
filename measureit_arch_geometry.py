@@ -96,7 +96,7 @@ textShader = gpu.types.GPUShader(
     Text_Shader.vertex_shader,
     textfrag)
 
-fontSizeMult = 6
+fontSizeMult = 20
 
 
 def get_dim_tag(self,obj):
@@ -1215,15 +1215,13 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
 
         #Lines
         leadStartA = Vector(basePoint) + geoOffsetDistance
-        leadEndA = Vector(basePoint) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
+        leadEndA = Vector(basePoint) + offsetDistance + (offsetDistance.normalized()*0.0005*capSize)
 
         leadEndB =  leadEndA - Vector(secondPointAxis)
         leadStartB = Vector(secondPoint) - viewAxisDiff + geoOffsetDistance
 
         viewDiffStartB = leadStartB
         viewDiffEndB = leadStartB + viewAxisDiff
-
-        
 
         dimLineStart = Vector(basePoint) + offsetDistance
         dimLineEnd = dimLineStart - Vector(secondPointAxis)
@@ -1246,15 +1244,15 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
 
         resolution = dimProps.textResolution
         size = dimProps.fontSize/fontSizeMult
-        sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.1*size
+        sx = (width/resolution)*size
+        sy = (height/resolution)*size
         cardX = Vector(secondPointAxis.normalized()) * sx
         cardY = userOffsetVector *sy
 
-        origin = Vector(textLoc) + cardY.normalized()*0.05
+        origin = Vector(textLoc)
         # Flip endcaps if they're going to overlap the dim
         flipCaps = False
-        if (cardX.length + capSize/80) > dist:
+        if (cardX.length + capSize/800) > dist:
             flipCaps=True
 
         # Move dim to ext temporarily if the text is wider than the dimension line
@@ -1267,21 +1265,21 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
         dimLineExtension = 0 # add some extension to the line if the dimension is ext
         if dim.textAlignment == 'L' :
             flipCaps=True
-            dimLineExtension = capSize/50
+            dimLineExtension = capSize/500
             origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
             
         elif dim.textAlignment == 'R':
             flipCaps=True
-            dimLineExtension = capSize/50
+            dimLineExtension = capSize/500
             origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) - Vector(cardY/2)
              
         elif tempExtFlag:
             flipCaps=True
-            dimLineExtension = capSize/50
+            dimLineExtension = capSize/500
             origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
 
         if flipCaps:
-            dimLineExtension = capSize/50
+            dimLineExtension = capSize/500
 
             
 
@@ -1716,10 +1714,10 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
 
          # Add A and C Extension Lines
         coords.append(A)
-        coords.append((((A).normalized())*(offsetRadius + arrowoffset/100)))
+        coords.append((((A).normalized())*(offsetRadius + arrowoffset/1000)))
         
         coords.append(C)
-        coords.append((((C).normalized())*(offsetRadius + arrowoffset/100)))
+        coords.append((((C).normalized())*(offsetRadius + arrowoffset/1000)))
 
          # Add Radius leader
         if dim.showRadius:

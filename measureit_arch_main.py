@@ -326,6 +326,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(scene, "measureit_arch_debug_text")
         col.prop(sceneProps, "eval_mods")
         col.prop(sceneProps, "instance_dims")
+        col.prop(sceneProps, "enable_experimental")
         #col.prop(sceneProps, "debug_flip_text")
 
 

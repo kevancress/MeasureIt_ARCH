@@ -85,10 +85,13 @@ class MeasureitArchRenderPanel(Panel):
         col.scale_y = 1.5
         col.operator("measureit_arch.rendersegmentbutton", icon='RENDER_STILL', text= "MeasureIt-ARCH Image")
         col.operator("measureit_arch.render_anim", icon='RENDER_ANIMATION', text= "MeasureIt-ARCH Animation")
-        col.operator("measureit_arch.rendersvgbutton", icon='DOCUMENTS', text= "MeasureIt-ARCH Vector")
-        col = layout.column()
+        if sceneProps.enable_experimental:
+            col.operator("measureit_arch.rendersvgbutton", icon='DOCUMENTS', text= "MeasureIt-ARCH Vector")
+            col = layout.column()
 
-        col.prop(sceneProps, "vector_depthtest", text="Use Vector DepthTest")
+            col.prop(sceneProps, "vector_depthtest", text="Use Vector DepthTest")
+        col = layout.column()
+        
         col.prop(scene, "measureit_arch_render", text="Save Render to Output")
         #col.prop(scene, "measureit_arch_use_depth_clipping")
 

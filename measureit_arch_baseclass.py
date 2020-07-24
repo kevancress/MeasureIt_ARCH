@@ -292,8 +292,13 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 default=False)
 
     show_gizmos: BoolProperty(name="Show Gizmos",
-                                description="(EXPERIMENTAL) Display Measureit-ARCH Gizmos",
+                                description="Display Measureit-ARCH Gizmos",
                                 default=False)
+
+    enable_experimental: BoolProperty(name="Enable Experimental",
+                                description="Enable Experimental Features like SVG Rendering",
+                                default=False)
+
 
 
 bpy.utils.register_class(MeasureItARCHSceneProps)
