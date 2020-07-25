@@ -326,11 +326,7 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
     gpu.shader.unbind()
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
-    # GL Settings
-    bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glDepthFunc(bgl.GL_LEQUAL)
-    bgl.glDepthMask(True)
+   
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
@@ -340,9 +336,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    if dimProps.inFront:
-         bgl.glDisable(bgl.GL_DEPTH_TEST)
+    # Enable GL Settings
+    set_OpenGL_Settings(True,dimProps)
 
     lineWeight = dimProps.lineWeight
     # check all visibility conditions
@@ -531,50 +526,12 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
             for filledCoord in capCoords[1]:
                 filledCoords.append(filledCoord)
 
-        
-        # Keep this out of the loop to avoid extra draw calls 
+        # Filled Coords Call
         if len(filledCoords) != 0:
-            #bind shader
-            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-            triShader.bind()
-            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", -0.001)
+            draw_filled_coords(filledCoords, rgb)
 
-            batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
-            batch.program_set(triShader)
-            batch.draw()
-            gpu.shader.unbind()
-            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-        
-        #bind shader
-        
-        lineShader.bind()
-        lineShader.uniform_float("Viewport",viewport)
-        lineShader.uniform_float("thickness",lineWeight)
-        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", -0.001)
-
-        # batch & Draw Shader   
-        batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-
-        if rgb[3] == 1:
-            bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
-            bgl.glDepthMask(True)
-            lineShader.uniform_float("depthPass",True)
-            batch3d.program_set(lineShader)
-            batch3d.draw()
-
-
-        if sceneProps.is_render_draw:
-            bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
-            #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-            bgl.glBlendEquation(bgl.GL_MAX)
-
-        bgl.glDepthMask(False)
-        lineShader.uniform_float("depthPass",False)
-        batch3d.program_set(lineShader)
-        batch3d.draw()
-        gpu.shader.unbind()
+        # Line Shader Call
+        draw_lines(viewport,lineWeight,rgb,coords, twoPass = True)
 
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
@@ -582,36 +539,24 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
             svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
     
-
-        #Reset openGL Settings
-        bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(True)
+    set_OpenGL_Settings(False)
 
 def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
-    # GL Settings
-    bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glDepthFunc(bgl.GL_LEQUAL)
-    bgl.glDepthMask(True)
+
+    scene = context.scene
     sceneProps = context.scene.MeasureItArchProps
+
     dimProps = dim
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    if dim.inFront:
-         bgl.glDisable(bgl.GL_DEPTH_TEST)
+    set_OpenGL_Settings(True,dimProps)
 
     lineWeight = dimProps.lineWeight
-    # check all visibility conditions
-    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
-        inView = True        
-    else:
-        inView = False    
-    if dim.visible and dimProps.visible and inView:
+
+    if check_vis(dim,dimProps):
 
         if sceneProps.is_render_draw:
             viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
@@ -961,58 +906,28 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 
                 # Keep this out of the loop to avoid extra draw calls 
                 if len(filledCoords) != 0:
-                    #bind shader
-                    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-                    triShader.bind()
-                    triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                    triShader.uniform_float("offset", -0.001)
-
-                    batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
-                    batch.program_set(triShader)
-                    batch.draw()
-                    gpu.shader.unbind()
-                    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+                    draw_filled_coords(filledCoords,rgb)
                 
                 #bind shader
-                
-                lineShader.bind()
-                lineShader.uniform_float("Viewport",viewport)
-                lineShader.uniform_float("thickness",lineWeight)
-                lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                lineShader.uniform_float("offset", -0.001)
+                draw_lines(viewport,lineWeight,rgb,coords, twoPass=True)
 
-                # batch & Draw Shader   
-                batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-                batch.program_set(lineShader)
-                batch.draw()
-                gpu.shader.unbind()
             idx+=1
-        #Reset openGL Settings
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(True)
+
+    #Reset openGL Settings
+    set_OpenGL_Settings(False)
 
 
 def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
-    # GL Settings
 
-    #start = time.perf_counter()
-    bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glDepthFunc(bgl.GL_LEQUAL)
-    bgl.glDepthMask(True)
+    sceneProps = context.scene.MeasureItArchProps
 
     dimProps = dim
-
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    sceneProps = context.scene.MeasureItArchProps
-
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    if dimProps.inFront:
-         bgl.glDisable(bgl.GL_DEPTH_TEST)
+    set_OpenGL_Settings(True,dimProps)
 
     lineWeight = dimProps.lineWeight
   
@@ -1306,39 +1221,16 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
                 filledCoords.append(filledCoord)
 
         
-        # Keep this out of the loop to avoid extra draw calls 
-        if len(filledCoords) != 0:
-            #bind shader
-            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-            triShader.bind()
-            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", -0.001)
 
-            batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
-            batch.program_set(triShader)
-            batch.draw()
-            gpu.shader.unbind()
-            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+        if len(filledCoords) != 0:
+           draw_filled_coords(filledCoords,rgb)
         
         #bind shader
-        lineShader.bind()
-        lineShader.uniform_float("Viewport",viewport)
-        lineShader.uniform_float("thickness",lineWeight)
-        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", -0.001)
+        draw_lines(viewport,lineWeight,rgb,coords, twoPass=True)
 
-        # batch & Draw Shader   
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-        batch.program_set(lineShader)
-        batch.draw()
-        gpu.shader.unbind()
-
-        #Reset openGL Settings
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(True)
-
-        #end = time.perf_counter()
-        #print(("draw time: "+ "%.3f"%((end-start)*1000)) + ' ms')  
+    #Reset openGL Settings
+    set_OpenGL_Settings(False)
+ 
 
 def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
     dimProps = dim
@@ -1348,16 +1240,9 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    #check all visibility conditions
-  
+    set_OpenGL_Settings(True,dimProps)
+    
     if check_vis(dim,dimProps):
-         # GL Settings
-        bgl.glEnable(bgl.GL_MULTISAMPLE)
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        if dimProps.inFront:
-            bgl.glDisable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(False)
 
         lineWeight = dimProps.lineWeight
         if sceneProps.is_render_draw:
@@ -1451,16 +1336,6 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
             draw_text_3D(context,dim.textFields[0],dimProps,myobj,square)
 
 
-
-
-        
-
-        lineShader.bind()
-        lineShader.uniform_float("Viewport",viewport)
-        lineShader.uniform_float("thickness",lineWeight)
-        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", -offset)
-
         # Draw Point Pass for Clean Corners
         # I'm being lazy here, should do a proper lineadjacency
         # with miters and do this in one pass
@@ -1471,18 +1346,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
             pointCoords.append((vert*radius)+p2)
         pointCoords.append((endVec*radius)+p2)
 
-        #configure shaders
-        pointShader.bind()
-        pointShader.uniform_float("Viewport",viewport)
-        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("thickness", lineWeight)
-        pointShader.uniform_float("depthPass", False)
-        pointShader.uniform_float("offset", -0.001)
-        gpu.shader.unbind()
 
-        batch3d = batch_for_shader(pointShader, 'POINTS', {"pos":pointCoords})
-        batch3d.program_set(pointShader)
-        batch3d.draw()
 
         
 
@@ -1511,29 +1375,15 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
                 filledCoords.append(filledCoord)
 
 
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-        batch.program_set(lineShader)
-        batch.draw()
-        gpu.shader.unbind()
 
         # Draw Filled Faces after
         if len(filledCoords) != 0:
-            #bind shader
-            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-            triShader.bind()
-            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", -offset) #z offset this a little to avoid zbuffering
+            draw_filled_coords(filledCoords,rgb)
 
-            batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
-            batch.program_set(triShader)
-            batch.draw()
-            gpu.shader.unbind()
-            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+        draw_lines(viewport,lineWeight,rgb,coords,twoPass=True, pointPass=True, pointCoords=pointCoords)
 
-
-        #Reset openGL Settings
-        bgl.glDisable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(True)
+    #Reset openGL Settings
+    set_OpenGL_Settings(False)
 
 def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
     
@@ -1544,15 +1394,9 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    # Check Visibility Conditions
+    set_OpenGL_Settings(True,dimProps)
     
     if check_vis(dim,dimProps):
-        # GL Settings
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        if dimProps.inFront:
-            bgl.glDisable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(True)
 
         lineWeight = dimProps.lineWeight
         if sceneProps.is_render_draw:
@@ -1790,35 +1634,14 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim.textFields[1],dimProps,myobj,square)
 
-        draw_coords = []
-        point_coords = []
+        measure_coords = []
+        measure_pointCoords = []
         for coord in coords:
-            draw_coords.append(coord+center)
-            point_coords.append(coord+center)
+            measure_coords.append(coord+center)
+            measure_pointCoords.append(coord+center)
 
         # Draw Our Measurement
-        pointShader.bind()
-        pointShader.uniform_float("Viewport",viewport)
-        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("offset", 0)
-        pointShader.uniform_float("depthPass", False)
-        pointShader.uniform_float("thickness",lineWeight)
-        batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords})
-        batch.program_set(pointShader)
-        batch.draw()
-        gpu.shader.unbind()
-
-
-        lineShader.bind()
-        lineShader.uniform_float("Viewport",viewport)
-        lineShader.uniform_float("thickness",lineWeight)
-        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineShader.uniform_float("offset", -0.005)
-
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": draw_coords})
-        batch.program_set(lineShader)
-        batch.draw()
-        gpu.shader.unbind()
+        draw_lines(viewport,lineWeight,rgb,measure_coords, twoPass= True, pointPass= True, pointCoords= measure_pointCoords)
 
         # Draw the arc itself
         coords = []
@@ -1831,86 +1654,42 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         coords.append(endVec)
 
         
-        draw_coords = []
-        point_coords2 = []
+        arc_coords = []
+        arc_pointCoords = []
         for coord in coords:
-            draw_coords.append(coord+center)
-            point_coords2.append(coord+center)  
+            arc_coords.append(coord+center)
+            arc_pointCoords.append(coord+center)  
 
-        pointShader.bind()
-        pointShader.uniform_float("Viewport",viewport)
-        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("offset", -offset)
-        pointShader.uniform_float("depthPass", False)
-        pointShader.uniform_float("thickness",lineWeight*3)
-        batch = batch_for_shader(pointShader, 'POINTS', {"pos": point_coords2})
-        batch.program_set(pointShader)
-        batch.draw()
-        gpu.shader.unbind()
-
-        lineShader.bind()
-        lineShader.uniform_float("thickness",lineWeight*3)
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": draw_coords})
-        batch.program_set(lineShader)
-        batch.draw()
-        gpu.shader.unbind()
+        draw_lines(viewport, lineWeight*2, rgb, arc_coords, twoPass=True, pointPass=True, pointCoords=arc_pointCoords)
 
 
         if dim.showRadius:
             pointCenter = [center]
-            pointShader.bind()
-            pointShader.uniform_float("thickness",lineWeight*5)
-            pointShader.uniform_float("Viewport",viewport)
-            pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            pointShader.uniform_float("offset", -0.01)
-            pointShader.uniform_float("depthPass", False)
-            batch = batch_for_shader(pointShader, 'POINTS', {"pos": pointCenter})
-            batch.program_set(pointShader)
-            batch.draw()
-            gpu.shader.unbind()
+            draw_points(viewport,lineWeight*5,rgb,pointCenter)
 
         if len(filledCoords) != 0:
-            #bind shader
-            bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-            triShader.bind()
-            triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            triShader.uniform_float("offset", -0.01) #z offset this a little to avoid zbuffering
-
             mappedFilledCoords = []
             for coord in filledCoords:
                 mappedFilledCoords.append(coord+center)
-
-
-            batch = batch_for_shader(triShader, 'TRIS', {"pos": mappedFilledCoords})
-            batch.program_set(triShader)
-            batch.draw()
-            gpu.shader.unbind()
-            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+            draw_filled_coords(filledCoords,rgb)
         
-
- 
-        #Reset openGL Settings
-        bgl.glDisable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(True)
+    #Reset openGL Settings
+    set_OpenGL_Settings(False)
 
 def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
     dimProps = dim
     sceneProps = context.scene.MeasureItArchProps
     scene = context.scene
+
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
+    set_OpenGL_Settings(True,dimProps)
+
     # Check Visibility Conditions    
     if check_vis(dim,dimProps):
-        # GL Settings
-        bgl.glEnable(bgl.GL_MULTISAMPLE)
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        if dimProps.inFront:
-            bgl.glDisable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthMask(True)
 
         lineWeight = dimProps.lineWeight
         if sceneProps.is_render_draw:
@@ -2029,55 +1808,13 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
 
 
         #Draw Fill
-        bgl.glDepthMask(False)
-        if fillRGB[3] == 1:
-            bgl.glDepthMask(True)
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
-        triShader.bind()
-        triShader.uniform_float("finalColor", fillRGB)
-        triShader.uniform_float("offset", -0.001) #z offset this a little to avoid zbuffering
-
-        batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
-        batch.program_set(triShader)
-        batch.draw()
-        gpu.shader.unbind()
+        draw_filled_coords(filledCoords,fillRGB,polySmooth=False)
 
 
         # Draw Perimeter
-        lineGroupShader.bind()
-        lineGroupShader.uniform_float("Viewport",viewport)
-        lineGroupShader.uniform_float("objectMatrix",mat)
-        lineGroupShader.uniform_float("thickness",dimProps.lineWeight)
-        lineGroupShader.uniform_float("extension",0)
-        lineGroupShader.uniform_float("weightInfluence", 1)
-        lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        lineGroupShader.uniform_float("zOffset", -0.001)
-        
-        tempWeights = [1.0] * len(perimeterCoords)
+        draw_lines(viewport,lineWeight,rgb,perimeterCoords,twoPass=True,pointPass=True)
 
-        batch3d = batch_for_shader(lineGroupShader, 'LINES', {"pos": perimeterCoords,"weight":tempWeights})
-
-        bgl.glDepthMask(True)
-        lineGroupShader.uniform_float("depthPass", True)
-        batch3d.program_set(lineGroupShader)
-        batch3d.draw()
-
-        if sceneProps.is_render_draw:
-            bgl.glBlendEquation(bgl.GL_MAX)
-
-        bgl.glDepthMask(False)
-        lineGroupShader.uniform_float("depthPass", False)
-        batch3d.program_set(lineGroupShader)
-        batch3d.draw()
-        gpu.shader.unbind()
-
-
-    gpu.shader.unbind()
-    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
-    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-    bgl.glDisable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthMask(True)
+    set_OpenGL_Settings(False)
 
 # takes a set of co-ordinates returns the min and max value for each axis
 def get_axis_aligned_bounds(coords):
@@ -2230,16 +1967,6 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 def draw_line_group(context, myobj, lineGen, mat, svg=None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-
-    # Blending Settings
-    bgl.glEnable(bgl.GL_BLEND)
-
-    # Depth Settings
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthFunc(bgl.GL_LEQUAL) 
-
-
-    
     
     if sceneProps.is_render_draw:
         viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
@@ -2264,11 +1991,9 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 if lineStyle.name == lineGroup.style:
                     lineProps= lineStyle
 
-        if check_vis(lineGroup,lineProps):
-            bgl.glEnable(bgl.GL_DEPTH_TEST)
-            if lineProps.inFront:
-                bgl.glDisable(bgl.GL_DEPTH_TEST)
+        set_OpenGL_Settings(True,lineProps)
 
+        if check_vis(lineGroup,lineProps):
 
             rawRGB = lineProps.color        
             alpha = 1.0   
@@ -2479,19 +2204,14 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
 
                 gpu.shader.unbind()
-    
+        
+        set_OpenGL_Settings(False)
+
     gpu.shader.unbind()
-    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
-    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-    bgl.glDisable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthMask(True)
+    set_OpenGL_Settings(False)
 
 def draw_annotation(context, myobj, annotationGen, mat, svg=None):
     scene = context.scene
-    bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_BLEND)
-
-    bgl.glDepthMask(False)
     sceneProps = scene.MeasureItArchProps
 
     if sceneProps.is_render_draw:
@@ -2507,9 +2227,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 if annotationStyle.name == annotation.style:
                     annotationProps= annotationStyle
 
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        if annotationProps.inFront:
-            bgl.glDisable(bgl.GL_DEPTH_TEST)
+        set_OpenGL_Settings(True,annotationProps)
 
         endcap = annotationProps.endcapA
         endcapSize = annotationProps.endcapSize
@@ -2519,20 +2237,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             rawRGB = annotationProps.color
             #undo blenders Default Gamma Correction
             rgb = rgb_gamma_correct(rawRGB)
-
-            pointShader.bind()
-            pointShader.uniform_float("Viewport",viewport)
-            pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-            pointShader.uniform_float("thickness", lineWeight)
-            pointShader.uniform_float("depthPass", False)
-            pointShader.uniform_float("offset", -0.001)
-            gpu.shader.unbind()
-
-            lineShader.bind()
-            lineShader.uniform_float("Viewport",viewport)
-            lineShader.uniform_float("thickness",lineWeight)
-            lineShader.uniform_float("offset", -0.001)
-            lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
 
             # Get Points
             deleteFlag = False
@@ -2549,8 +2253,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                         annotationGen.annotations.remove(idx)
                         return
                     idx += 1
-
-
 
 
             loc = mat.to_translation()
@@ -2605,7 +2307,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 # Move end of line Back if arrow endcap
                 if endcap == 'T':
                     axis = Vector(p1) - Vector(p2)
-                    lineEnd = Vector(p1) - axis * 0.02 * lineWeight
+                    lineEnd = Vector(p1) - axis * 0.005 * endcapSize
                 else: lineEnd = p1
 
                 coords.append(lineEnd)
@@ -2613,39 +2315,18 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 coords.append(p2)
 
                 textcard = annotation.textFields[0]['textcard']
+
                 if annotationProps.textPosition == 'T':
                     coords.append(textcard[3])
-                    pointcoords = [p2]
                 elif annotationProps.textPosition == 'B':
                     coords.append(textcard[2])
-                    pointcoords = [p2]
-
-                batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-                batch3d.program_set(lineShader)
-                batch3d.draw()
-                gpu.shader.unbind()
-                
-                # Again This is Super Lazy, gotta write up a shader that handles
-                # Mitered thick lines, but for now this works.
-                if annotationProps.textPosition == 'T' or annotationProps.textPosition == 'B':
-                    batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoords})
-                    batch3d.program_set(pointShader)
-                    batch3d.draw()
+                 
+                draw_lines(viewport,lineWeight,rgb,coords, twoPass=True,pointPass=True)
             
             # Draw Line Endcaps
-            if endcap == 'D':
-                pointShader.bind()
-                pointShader.uniform_float("Viewport",viewport)
-                pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                pointShader.uniform_float("thickness", endcapSize)
-                pointShader.uniform_float("depthPass", False)
-                pointShader.uniform_float("offset", -0.01)
-                gpu.shader.unbind()
-                
+            if endcap == 'D':                
                 pointcoords = [p1]
-                batch3d = batch_for_shader(pointShader, 'POINTS', {"pos": pointcoords})
-                batch3d.program_set(pointShader)
-                batch3d.draw()
+                draw_points(viewport,endcapSize,rgb,pointcoords,depthpass=True)
             
             if endcap == 'T':
                 axis = Vector(p1) - Vector(p2)
@@ -2654,32 +2335,22 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 perp = line.orthogonal()
                 rotangle = annotationProps.endcapArrowAngle-radians(5)
                 line.rotate(Quaternion(perp,rotangle))
-                coords = []
+                filledCoords = []
                 for idx in range (12):
                     rotangle = radians(360/12)
-                    coords.append(line.copy() + Vector(p1))
-                    coords.append(Vector((0,0,0)) + Vector(p1))
+                    filledCoords.append(line.copy() + Vector(p1))
+                    filledCoords.append(Vector((0,0,0)) + Vector(p1))
                     line.rotate(Quaternion(axis,rotangle))
-                    coords.append(line.copy() + Vector(p1))
+                    filledCoords.append(line.copy() + Vector(p1))
 
-                bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-                triShader.bind()
-                triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                triShader.uniform_float("offset", (0,0,0))
-
-                batch = batch_for_shader(triShader, 'TRIS', {"pos": coords})
-                batch.program_set(triShader)
-                batch.draw()
-                gpu.shader.unbind()
-                bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+                draw_filled_coords(filledCoords,rgb,polySmooth=False)
 
             if scene.measureit_arch_gl_show_d:
                 for textField in annotation.textFields:
                     textcard = textField['textcard']
                     draw_text_3D(context,textField,annotationProps,myobj,textcard)                
 
-    bgl.glDisable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthMask(True)
+        set_OpenGL_Settings(False)
 
 def draw_arc(basis,init_angle,current_angle):
     i = Vector((1,0,0))
@@ -3144,34 +2815,7 @@ def get_2d_point(region, rv3d, point3d):
         return get_render_location(point3d)
 
 
-
-# -------------------------------------------------------------
-# Draw a GPU line
-# LEGACY
-# -------------------------------------------------------------
-def draw_line(v1, v2):
-    # noinspection PyBroadException
-    if v1 is not None and v2 is not None:
-        bgl.glEnable(bgl.GL_MULTISAMPLE)
-        bgl.glEnable(bgl.GL_LINE_SMOOTH)
-        bgl.glEnable(bgl.GL_BLEND)
-
-
-
-
-        coords = [v1,v2]
-        batch = batch_for_shader(shader, 'LINE_STRIP', {"pos": coords})
-        #rgb = bpy.context.scene.measureit_arch_default_color
-        batch.program_set(shader)
-        batch.draw()
-        
-        #bgl.glBegin(bgl.GL_LINES)
-        #bgl.glVertex2f(*v1)
-        #bgl.glVertex2f(*v2)
-        #bgl.glEnd()
-    
-
-
+  
 # -------------------------------------------------------------
 # Draw an OpenGL Rectangle
 # LEGACY
@@ -3581,6 +3225,7 @@ def printTime(start,end,post):
     print(mystring)
 
 def check_vis(item,props):
+    context = bpy.context
     inView = False  
     if props.visibleInView is None or props.visibleInView.name == context.scene.camera.data.name:
         inView = True                
@@ -3592,4 +3237,111 @@ def check_vis(item,props):
 
 def rgb_gamma_correct(rawRGB):
     rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
-    return rgb
+    return Vector(rgb)
+
+def set_OpenGL_Settings(toggleBool,props=None):
+    if toggleBool:
+        bgl.glEnable(bgl.GL_MULTISAMPLE)
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+        bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthFunc(bgl.GL_LEQUAL)
+        bgl.glDepthMask(True)
+
+        if props and props.inFront:
+            bgl.glDisable(bgl.GL_DEPTH_TEST)
+    
+    else:
+        bgl.glDisable(bgl.GL_MULTISAMPLE)
+        bgl.glDisable(bgl.GL_BLEND)
+        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
+        bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+
+        bgl.glDisable(bgl.GL_DEPTH_TEST)
+        bgl.glDepthFunc(bgl.GL_LEQUAL)
+        bgl.glDepthMask(False)
+
+        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+
+
+def draw_points(viewport,lineWeight,rgb,coords,offset = -0.001,depthpass=False):
+    pointShader.bind()
+    pointShader.uniform_float("thickness",lineWeight)
+    pointShader.uniform_float("Viewport",viewport)
+    pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+    pointShader.uniform_float("offset", offset)
+    pointShader.uniform_float("depthPass", depthpass)
+    batch = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
+    batch.program_set(pointShader)
+    batch.draw()
+    gpu.shader.unbind()
+
+
+def draw_filled_coords(filledCoords, rgb, offset = -0.001, polySmooth = True):
+    context = bpy.context
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
+    if not polySmooth:
+        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+
+
+    if rgb[3] != 1:
+        bgl.glDepthMask(False)
+
+    if sceneProps.is_render_draw:
+        bgl.glBlendEquation(bgl.GL_MAX)
+        
+  
+    triShader.bind()
+    triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+    triShader.uniform_float("offset", offset)
+
+    batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
+    batch.program_set(triShader)
+    batch.draw()
+    gpu.shader.unbind()
+
+    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+
+def draw_lines(viewport, lineWeight, rgb, coords, offset = -0.001, twoPass = False, pointPass = False, pointCoords = None):
+    context = bpy.context
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    lineShader.bind()
+    lineShader.uniform_float("Viewport",viewport)
+    lineShader.uniform_float("thickness",lineWeight)
+    lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+    lineShader.uniform_float("offset",offset)
+    gpu.shader.unbind()
+
+    # batch & Draw Shader   
+    batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+
+    if rgb[3] == 1 and twoPass:
+
+        bgl.glDepthMask(True)
+        lineShader.uniform_float("depthPass",True)
+        batch3d.program_set(lineShader)
+        batch3d.draw()
+
+    if sceneProps.is_render_draw:
+        bgl.glBlendEquation(bgl.GL_MAX)
+
+    bgl.glDepthMask(False)
+    lineShader.uniform_float("depthPass",False)
+    batch3d.program_set(lineShader)
+    batch3d.draw()
+    gpu.shader.unbind()
+
+    if pointPass:
+        if pointCoords == None:
+            pointCoords = coords
+        draw_points(viewport,lineWeight,rgb,pointCoords,offset)
+        
+    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
