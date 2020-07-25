@@ -344,10 +344,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
 
     if check_vis(dim,dimProps):
 
-        if sceneProps.is_render_draw:
-            viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
-        else:
-            viewport = [context.area.width, context.area.height]
 
         # Obj Properties
         scene = context.scene
@@ -531,7 +527,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
             draw_filled_coords(filledCoords, rgb)
 
         # Line Shader Call
-        draw_lines(viewport,lineWeight,rgb,coords, twoPass = True)
+        draw_lines(lineWeight,rgb,coords, twoPass = True)
 
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
@@ -557,11 +553,6 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
     lineWeight = dimProps.lineWeight
 
     if check_vis(dim,dimProps):
-
-        if sceneProps.is_render_draw:
-            viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
-        else:
-            viewport = [context.area.width, context.area.height]
 
         # Obj Properties
         # For Collection Bounding Box
@@ -909,7 +900,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                     draw_filled_coords(filledCoords,rgb)
                 
                 #bind shader
-                draw_lines(viewport,lineWeight,rgb,coords, twoPass=True)
+                draw_lines(lineWeight,rgb,coords, twoPass=True)
 
             idx+=1
 
@@ -933,12 +924,10 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
   
     if check_vis(dim,dimProps):
 
-        # Get Viewport and CameraLoc or ViewRot
+        # Get CameraLoc or ViewRot
         if sceneProps.is_render_draw:
-            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
             cameraLoc = context.scene.camera.location.normalized()
         else:
-            viewport = [context.area.width,context.area.height]
             viewRot = context.area.spaces[0].region_3d.view_rotation
 
 
@@ -1226,7 +1215,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
            draw_filled_coords(filledCoords,rgb)
         
         #bind shader
-        draw_lines(viewport,lineWeight,rgb,coords, twoPass=True)
+        draw_lines(lineWeight,rgb,coords, twoPass=True)
 
     #Reset openGL Settings
     set_OpenGL_Settings(False)
@@ -1245,11 +1234,6 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
     if check_vis(dim,dimProps):
 
         lineWeight = dimProps.lineWeight
-        if sceneProps.is_render_draw:
-            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
-        else:
-            viewport = [context.area.width,context.area.height]
-
 
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
@@ -1380,7 +1364,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
         if len(filledCoords) != 0:
             draw_filled_coords(filledCoords,rgb)
 
-        draw_lines(viewport,lineWeight,rgb,coords,twoPass=True, pointPass=True, pointCoords=pointCoords)
+        draw_lines(lineWeight,rgb,coords,twoPass=True, pointPass=True, pointCoords=pointCoords)
 
     #Reset openGL Settings
     set_OpenGL_Settings(False)
@@ -1399,11 +1383,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
     if check_vis(dim,dimProps):
 
         lineWeight = dimProps.lineWeight
-        if sceneProps.is_render_draw:
-            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
-        else:
-            viewport = [context.area.width,context.area.height]
-
+        
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
         a_code = "\u00b0"  # degree
@@ -1641,7 +1621,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             measure_pointCoords.append(coord+center)
 
         # Draw Our Measurement
-        draw_lines(viewport,lineWeight,rgb,measure_coords, twoPass= True, pointPass= True, pointCoords= measure_pointCoords)
+        draw_lines(lineWeight,rgb,measure_coords, twoPass= True, pointPass= True, pointCoords= measure_pointCoords)
 
         # Draw the arc itself
         coords = []
@@ -1660,12 +1640,12 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             arc_coords.append(coord+center)
             arc_pointCoords.append(coord+center)  
 
-        draw_lines(viewport, lineWeight*2, rgb, arc_coords, twoPass=True, pointPass=True, pointCoords=arc_pointCoords)
+        draw_lines(lineWeight*2, rgb, arc_coords, twoPass=True, pointPass=True, pointCoords=arc_pointCoords)
 
 
         if dim.showRadius:
             pointCenter = [center]
-            draw_points(viewport,lineWeight*5,rgb,pointCenter)
+            draw_points(lineWeight*5,rgb,pointCenter)
 
         if len(filledCoords) != 0:
             mappedFilledCoords = []
@@ -1692,10 +1672,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
     if check_vis(dim,dimProps):
 
         lineWeight = dimProps.lineWeight
-        if sceneProps.is_render_draw:
-            viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
-        else:
-            viewport = [context.area.width,context.area.height]
 
         rawRGB = dim.fillColor
         rgb = rgb_gamma_correct(rawRGB)
@@ -1812,7 +1788,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
 
 
         # Draw Perimeter
-        draw_lines(viewport,lineWeight,rgb,perimeterCoords,twoPass=True,pointPass=True)
+        draw_lines(lineWeight,rgb,perimeterCoords,twoPass=True,pointPass=True)
 
     set_OpenGL_Settings(False)
 
@@ -1968,20 +1944,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     
-    if sceneProps.is_render_draw:
-        viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
-    else:
-        ## Use render resolution scaled to viewport aspect ratio
-        rv3d = context.area.spaces[0].region_3d
-        zoom = (rv3d.view_camera_zoom+30)/63
-        viewport = [context.scene.render.resolution_x/zoom,context.scene.render.resolution_y/zoom]
-        viewport = [context.area.width,context.area.height]
-        #viewAspect = viewport[0]/viewport[1]
-        #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
-        #renderAspect = render[0]/render[1]
-        #apsectDiff = (viewAspect/renderAspect)/2
-        #render = [render[0]*apsectDiff,render[1]/apsectDiff]
-        #viewport = render
+    viewport = get_viewport(renderScale=True)
 
     for idx in range(0, lineGen.line_num):
         lineGroup = lineGen.line_groups[idx]
@@ -2212,13 +2175,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
 def draw_annotation(context, myobj, annotationGen, mat, svg=None):
     scene = context.scene
-    sceneProps = scene.MeasureItArchProps
-
-    if sceneProps.is_render_draw:
-        viewport = [context.scene.render.resolution_x,context.scene.render.resolution_y]
-    else:
-        viewport = [context.area.width,context.area.height]
-    
+    sceneProps = scene.MeasureItArchProps    
 
     for annotation in annotationGen.annotations:
         annotationProps = annotation
@@ -2321,12 +2278,12 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 elif annotationProps.textPosition == 'B':
                     coords.append(textcard[2])
                  
-                draw_lines(viewport,lineWeight,rgb,coords, twoPass=True,pointPass=True)
+                draw_lines(lineWeight,rgb,coords, twoPass=True,pointPass=True)
             
             # Draw Line Endcaps
             if endcap == 'D':                
                 pointcoords = [p1]
-                draw_points(viewport,endcapSize,rgb,pointcoords,depthpass=True)
+                draw_points(endcapSize,rgb,pointcoords,depthpass=True)
             
             if endcap == 'T':
                 axis = Vector(p1) - Vector(p2)
@@ -2438,7 +2395,6 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
         normalizedDeviceUVs = flippedUVs
     
     #Draw View Axis in Red and Card Axis in Green for debug
-    scene = bpy.context.scene
     autoflipdebug = sceneProps.debug_flip_text
     if autoflipdebug == True:
         viewport = [context.area.width,context.area.height]
@@ -3148,7 +3104,9 @@ def set_OpenGL_Settings(toggleBool,props=None):
 
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
-def draw_points(viewport,lineWeight,rgb,coords,offset = -0.001,depthpass=False):
+def draw_points(lineWeight,rgb,coords,offset = -0.001,depthpass=False):
+    viewport = get_viewport()
+
     pointShader.bind()
     pointShader.uniform_float("thickness",lineWeight)
     pointShader.uniform_float("Viewport",viewport)
@@ -3189,10 +3147,11 @@ def draw_filled_coords(filledCoords, rgb, offset = -0.001, polySmooth = True):
     bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
     bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
-def draw_lines(viewport, lineWeight, rgb, coords, offset = -0.001, twoPass = False, pointPass = False, pointCoords = None):
+def draw_lines(lineWeight, rgb, coords, offset = -0.001, twoPass = False, pointPass = False, pointCoords = None):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
+    viewport = get_viewport()
 
     lineShader.bind()
     lineShader.uniform_float("Viewport",viewport)
@@ -3223,6 +3182,33 @@ def draw_lines(viewport, lineWeight, rgb, coords, offset = -0.001, twoPass = Fal
     if pointPass:
         if pointCoords == None:
             pointCoords = coords
-        draw_points(viewport,lineWeight,rgb,pointCoords,offset)
+        draw_points(lineWeight,rgb,pointCoords,offset)
         
     bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+
+def get_viewport(renderScale = False):
+    context = bpy.context
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    if sceneProps.is_render_draw:
+        viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
+    else:
+        viewport = [context.area.width, context.area.height]
+        if renderScale:
+            # This does nothing for now
+            rv3d = context.area.spaces[0].region_3d
+            zoom = (rv3d.view_camera_zoom+30)/63
+            viewport = [context.scene.render.resolution_x/zoom,context.scene.render.resolution_y/zoom]
+            viewport = [context.area.width,context.area.height]
+            #viewAspect = viewport[0]/viewport[1]
+            #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+            #renderAspect = render[0]/render[1]
+            #apsectDiff = (viewAspect/renderAspect)/2
+            #render = [render[0]*apsectDiff,render[1]/apsectDiff]
+            #viewport = render
+
+
+        
+    
+    return viewport
