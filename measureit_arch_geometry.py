@@ -346,11 +346,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
 
     lineWeight = dimProps.lineWeight
     # check all visibility conditions
-    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
-        inView = True        
-    else:
-        inView = False    
-    if dim.visible and dimProps.visible and inView:
+
+    if check_vis(dim,dimProps):
 
         if sceneProps.is_render_draw:
             viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
@@ -362,7 +359,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
+        rgb = rgb_gamma_correct(rawRGB)
         
         # Define Caps as a tuple of capA and capB to reduce code duplications
         caps = (dimProps.endcapA, dimProps.endcapB)
@@ -1018,12 +1015,8 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
          bgl.glDisable(bgl.GL_DEPTH_TEST)
 
     lineWeight = dimProps.lineWeight
-    #check all visibility conditions
-    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
-        inView = True        
-    else:
-        inView = False    
-    if dim.visible and dimProps.visible and inView:
+  
+    if check_vis(dim,dimProps):
 
         # Get Viewport and CameraLoc or ViewRot
         if sceneProps.is_render_draw:
@@ -1039,7 +1032,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
         pr = scene.measureit_arch_gl_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        rgb = rgb_gamma_correct(rawRGB)
         
         axis = dim.dimAxis
 
@@ -1356,13 +1349,8 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
                 dimProps = alignedDimStyle
 
     #check all visibility conditions
-    inView = False
-
-    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
-        inView = True        
-    else:
-        inView = False    
-    if dim.visible and dimProps.visible and inView:
+  
+    if check_vis(dim,dimProps):
          # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_BLEND)
@@ -1383,7 +1371,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
         a_code = "\u00b0"  # degree
         fmt = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        rgb = rgb_gamma_correct(rawRGB)
         radius = dim.dimRadius
         offset = 0.001
 
@@ -1557,13 +1545,9 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
                 dimProps = alignedDimStyle
 
     # Check Visibility Conditions
-    inView = False
-    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
-        inView = True
     
-    if inView and dim.visible and dimProps.visible:
+    if check_vis(dim,dimProps):
         # GL Settings
-        bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_BLEND)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
         if dimProps.inFront:
@@ -1583,7 +1567,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         arc_code = ""
         fmt = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        rgb = rgb_gamma_correct(rawRGB)
         offset = 0.001
         radius = dim.dimOffset
 
@@ -1918,12 +1902,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    # Check Visibility Conditions
-    inView = False
-    if dimProps.visibleInView is None or dimProps.visibleInView.name == context.scene.camera.data.name:
-        inView = True
-    
-    if inView and dim.visible and dimProps.visible:
+    # Check Visibility Conditions    
+    if check_vis(dim,dimProps):
         # GL Settings
         bgl.glEnable(bgl.GL_MULTISAMPLE)
         bgl.glEnable(bgl.GL_BLEND)
@@ -1939,11 +1919,11 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             viewport = [context.area.width,context.area.height]
 
         rawRGB = dim.fillColor
-        rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),1)
+        rgb = rgb_gamma_correct(rawRGB)
         fillRGB = (rgb[0],rgb[1],rgb[2],dim.fillAlpha)
 
         rawRGB = dimProps.color
-        textRGB = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+        textRGB = rgb_gamma_correct(rawRGB)
 
         bm = bmesh.new()
         if myobj.mode != 'EDIT':
@@ -2284,12 +2264,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 if lineStyle.name == lineGroup.style:
                     lineProps= lineStyle
 
-        if lineProps.visibleInView is None or lineProps.visibleInView.name == context.scene.camera.data.name:
-            inView = True        
-        else:
-            inView = False  
-            
-        if lineGroup.visible and lineProps.visible and inView:
+        if check_vis(lineGroup,lineProps):
             bgl.glEnable(bgl.GL_DEPTH_TEST)
             if lineProps.inFront:
                 bgl.glDisable(bgl.GL_DEPTH_TEST)
@@ -2303,7 +2278,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 alpha = rawRGB[3]
 
             #undo blenders Default Gamma Correction
-            rgb = [pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),alpha]
+            rgb = rgb_gamma_correct(rawRGB)
+            rgb[3] = alpha
 
             #overide line color with theme selection colors when selected
             if not sceneProps.is_render_draw:
@@ -2538,16 +2514,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
         endcap = annotationProps.endcapA
         endcapSize = annotationProps.endcapSize
 
-        if annotation.visibleInView is None or annotation.visibleInView.name == context.scene.camera.data.name:
-            inView = True        
-        else:
-            inView = False    
-
-        if annotation.visible and annotationProps.visible and inView:
+        if check_vis(annotation,annotationProps):
             lineWeight = annotationProps.lineWeight
             rawRGB = annotationProps.color
             #undo blenders Default Gamma Correction
-            rgb = (pow(rawRGB[0],(1/2.2)),pow(rawRGB[1],(1/2.2)),pow(rawRGB[2],(1/2.2)),rawRGB[3])
+            rgb = rgb_gamma_correct(rawRGB)
 
             pointShader.bind()
             pointShader.uniform_float("Viewport",viewport)
@@ -3489,64 +3460,6 @@ def format_distance(fmt, value, factor=1,isArea=False):
     return tx_dist
 
 
-def draw_text(myobj, pos2d, display_text, rgb, fsize, align='L', text_rot=0.0):
-    if pos2d is None:
-        return
-
-    # dpi = bpy.context.user_preferences.system.dpi
-    gap = 12
-    x_pos, y_pos = pos2d
-    font_id = 0
-    blf.size(font_id, fsize, 72)
-    # blf.size(font_id, fsize, dpi)
-    # height of one line
-    mwidth, mheight = blf.dimensions(font_id, "Tp")  # uses high/low letters
-
-    # Calculate sum groups
-    m = 0
-    while "<#" in display_text:
-        m += 1
-        if m > 10:   # limit loop
-            break
-        i = display_text.index("<#")
-        tag = display_text[i:i + 4]
-        #display_text = display_text.replace(tag, get_group_sum(myobj, tag.upper()))
-
-    # split lines
-    mylines = display_text.split("|")
-    idx = len(mylines) - 1
-    maxwidth = 0
-    maxheight = len(mylines) * mheight
-    # -------------------
-    # Draw all lines
-    # -------------------
-    for line in mylines:
-        text_width, text_height = blf.dimensions(font_id, line)
-        if align is 'C':
-            newx = x_pos - text_width / 2
-        elif align is 'R':
-            newx = x_pos - text_width - gap
-        else:
-            newx = x_pos
-            blf.enable(font_id, ROTATION)
-            blf.rotation(font_id, text_rot)
-        # calculate new Y position
-        new_y = y_pos + (mheight * idx)
-        # Draw
-        blf.position(font_id, newx, new_y, 0)
-        blf.color(0,rgb[0], rgb[1], rgb[2], rgb[3])
-        blf.draw(font_id, " " + line)
-        # sub line
-        idx -= 1
-        # saves max width
-        if maxwidth < text_width:
-            maxwidth = text_width
-
-    if align is 'L':
-        blf.disable(font_id, ROTATION)
-
-    return maxwidth, maxheight
-
 
 # --------------------------------------------------------------------
 # Get vertex data
@@ -3603,13 +3516,11 @@ def archipack_datablock(o):
         pass
     return None
 
-
 def get_archipack_loc(context, myobj, idx):
     d = archipack_datablock(myobj)
     if d is not None:
         return d.location(context, myobj, idx)
     return None
-
 
 def get_mesh_vertex(myobj,idx,evalMods):
     context = bpy.context
@@ -3645,7 +3556,6 @@ def get_mesh_vertex(myobj,idx,evalMods):
     # free Bmesh and return
     return coord
         
-
 def check_mods(myobj):
     goodMods = ["DATA_TRANSFER ", "NORMAL_EDIT", "WEIGHTED_NORMAL",
                 'UV_PROJECT', 'UV_WARP', 'ARRAY', 
@@ -3669,3 +3579,17 @@ def printTime(start,end,post):
     mystring = '{:.2f}'.format(totalTime) +' ms'
     mystring += post
     print(mystring)
+
+def check_vis(item,props):
+    inView = False  
+    if props.visibleInView is None or props.visibleInView.name == context.scene.camera.data.name:
+        inView = True                
+
+    if item.visible and props.visible and inView:
+        return True
+    else:
+        return False
+
+def rgb_gamma_correct(rawRGB):
+    rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
+    return rgb
