@@ -2352,42 +2352,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
         set_OpenGL_Settings(False)
 
-def draw_arc(basis,init_angle,current_angle):
-    i = Vector((1,0,0))
-    k = Vector((0,0,1))
-
-    startrot = Quaternion(k,init_angle)
-    endrot = Quaternion(k,current_angle)
-
-    arcStart = i.copy()
-    arcStart.rotate(startrot)
-
-    angle = init_angle - current_angle
-    radius = 1
-
-    numCircleVerts = math.ceil(radius/.4)+ int((degrees(angle))/10)
-    verts = []
-    verts.append(Vector((0,0,0)))
-    for idx in range (numCircleVerts+1):
-        rotangle= (angle/(numCircleVerts+1))*idx
-        point = arcStart.copy()
-        point.rotate(Quaternion(k,rotangle))
-        point = basis @ point
-        verts.append(Vector((0,0,0)))
-        verts.append(point)
-        
-
-    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-    triShader.bind()
-    triShader.uniform_float("finalColor", (1, 1, 1, 1))
-    triShader.uniform_float("offset", 0)
-
-    batch = batch_for_shader(triShader, 'TRIS', {"pos": verts})
-    batch.program_set(triShader)
-    batch.draw()
-    gpu.shader.unbind()
-    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-
 def draw_text_3D(context,textobj,textprops,myobj,card):
     #get props
     sceneProps = context.scene.MeasureItArchProps
@@ -2738,62 +2702,9 @@ def get_dom_axis (vector):
     
     return domAxis
 
-# ------------------------------------------
-# Get polygon area and paint area
-# LEGACY
-# ------------------------------------------
-def get_area_and_paint(myvertices, myobj, obverts, region, rv3d):
-    mymesh = myobj.data
-    totarea = 0
-    if len(myvertices) > 3:
-        # Tessellate the polygon
-        if myobj.mode != 'EDIT':
-            tris = mesh_utils.ngon_tessellate(mymesh, myvertices)
-        else:
-            bm = bmesh.from_edit_mesh(myobj.data)
-            myv = []
-            for v in bm.verts:
-                myv.extend([v.co])
-            tris = mesh_utils.ngon_tessellate(myv, myvertices)
-
-        for t in tris:
-            v1, v2, v3 = t
-            p1 = get_point(obverts[myvertices[v1]], myobj,mat)
-            p2 = get_point(obverts[myvertices[v2]], myobj,mat)
-            p3 = get_point(obverts[myvertices[v3]], myobj,mat)
-
-            screen_point_p1 = get_2d_point(region, rv3d, p1)
-            screen_point_p2 = get_2d_point(region, rv3d, p2)
-            screen_point_p3 = get_2d_point(region, rv3d, p3)
-            draw_triangle(screen_point_p1, screen_point_p2, screen_point_p3)
-
-            # Area
-            area = get_triangle_area(p1, p2, p3)
-
-            totarea += area
-    elif len(myvertices) == 3:
-        v1, v2, v3 = myvertices
-        p1 = get_point(obverts[v1], myobj,mat)
-        p2 = get_point(obverts[v2], myobj,mat)
-        p3 = get_point(obverts[v3], myobj,mat)
-
-        screen_point_p1 = get_2d_point(region, rv3d, p1)
-        screen_point_p2 = get_2d_point(region, rv3d, p2)
-        screen_point_p3 = get_2d_point(region, rv3d, p3)
-        draw_triangle(screen_point_p1, screen_point_p2, screen_point_p3)
-
-        # Area
-        area = get_triangle_area(p1, p2, p3)
-        totarea += area
-    else:
-        return 0.0
-
-    return totarea
-
 
 # ------------------------------------------
 # Get area using Heron formula
-# LEGACY
 # ------------------------------------------
 def get_triangle_area(p1, p2, p3):
     d1, dn = distance(p1, p2)
@@ -2806,7 +2717,6 @@ def get_triangle_area(p1, p2, p3):
 
 # ------------------------------------------
 # Get point in 2d space
-# LEGACY
 # ------------------------------------------
 def get_2d_point(region, rv3d, point3d):
     if rv3d is not None and region is not None:
@@ -2816,28 +2726,9 @@ def get_2d_point(region, rv3d, point3d):
 
 
   
-# -------------------------------------------------------------
-# Draw an OpenGL Rectangle
-# LEGACY
-# v1, v2 are corners (bottom left / top right)
-# -------------------------------------------------------------
-def draw_rectangle(v1, v2):
-    # noinspection PyBroadException
-    try:
-        if v1 is not None and v2 is not None:
-            v1b = (v2[0], v1[1])
-            v2b = (v1[0], v2[1])
-            draw_line(v1, v1b)
-            draw_line(v1b, v2)
-            draw_line(v2, v2b)
-            draw_line(v2b, v1)
-    except:
-        pass
-
 
 # -------------------------------------------------------------
 # format a point as (x, y, z) for display
-#
 # -------------------------------------------------------------
 def format_point(mypoint, pr):
     pf = "%1." + str(pr) + "f"
@@ -2955,12 +2846,6 @@ def get_scale_txt_location(context):
 # Return:
 # ang: angle (radians)
 # len: len of arc
-
-    
-
-
-
-
 #
 # ---------------------------------------------------------
 def get_arc_data(pointa, pointb, pointc, pointd):
@@ -3139,7 +3024,6 @@ def get_mesh_vertices(myobj):
     except AttributeError:
         return None
 
-
 ## A streamlined version of get mesh vertex for line drawing
 def get_line_vertex(idx,verts,mat):
     try:
@@ -3148,7 +3032,6 @@ def get_line_vertex(idx,verts,mat):
         print("Broken Vertex!!!")
         vert = Vector((0,0,0))
     return vert
-
 
 def archipack_datablock(o):
     """
@@ -3265,7 +3148,6 @@ def set_OpenGL_Settings(toggleBool,props=None):
 
         bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
-
 def draw_points(viewport,lineWeight,rgb,coords,offset = -0.001,depthpass=False):
     pointShader.bind()
     pointShader.uniform_float("thickness",lineWeight)
@@ -3277,7 +3159,6 @@ def draw_points(viewport,lineWeight,rgb,coords,offset = -0.001,depthpass=False):
     batch.program_set(pointShader)
     batch.draw()
     gpu.shader.unbind()
-
 
 def draw_filled_coords(filledCoords, rgb, offset = -0.001, polySmooth = True):
     context = bpy.context

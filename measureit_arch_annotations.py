@@ -42,7 +42,6 @@ from bpy.props import (
         )
 from .measureit_arch_baseclass import BaseProp, BaseWithText
 from .measureit_arch_main import get_smart_selected, get_selected_vertex
-from .measureit_arch_geometry import draw_arc
 from mathutils import Vector, Matrix
 import math
 
