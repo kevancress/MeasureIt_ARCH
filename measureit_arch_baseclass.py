@@ -192,8 +192,8 @@ class BaseWithText(BaseProp):
                 name="align Font",
                 description="Set Font Position")
 
-    fontSize: IntProperty(name='annotationSize',
-                description="Annotation Size",
+    fontSize: IntProperty(name='Font Size',
+                description="Font Size in pt (1pt = 1/72\") \nNote: Font size is relative to the current scale \nScale is defined in your active view, or in the Scene unit settings ",
                 default=18)
 
     textResolution: IntProperty(name="Annotation Resolution",
@@ -318,7 +318,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 default=False)
 
     default_scale: IntProperty(name='Default Paper Scale', min=1, default=25,
-                                               description="Default Paper Scale (used for font sizing)")
+                                               description="Default Paper Scale (used for font sizing)",
+                                               subtype = 'FACTOR')
     
     metric_precision: IntProperty(name='Precision', min=0, max=5, default=2,
                                                description="Metric decimal precision")
