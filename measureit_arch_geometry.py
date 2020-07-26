@@ -2386,13 +2386,31 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
     height = textobj.textHeight
     resolution = textProps.textResolution
     size = textProps.fontSize/fontSizeMult
+    viewport = get_viewport()
+
+    scene = context.scene
+    ViewGen = scene.ViewGenerator
+
+    try:
+        view = ViewGen.views[ViewGen.active_index]
+    except:
+        view = None
+
+    scale = 25
+
+    # Ref Note: 1 pt = 1/72 of an inch
+
+    if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
+        scale = view.model_scale / view.paper_scale
+
+
     #Define annotation Card Geometry
-
     resolution = textProps.textResolution
-    size = textProps.fontSize/fontSizeMult
+    size = textProps.fontSize / 393.701 # get font size in pt
+    size *= scale
 
-    sx = (width/resolution)*0.1*size
-    sy = (height/resolution)*0.1*size
+    sx = (width/resolution)*size
+    sy = (height/resolution)*size
 
     cardX = xDir.normalized() * sx
     cardY = yDir.normalized() *sy
