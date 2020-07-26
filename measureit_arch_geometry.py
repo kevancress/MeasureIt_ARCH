@@ -1392,7 +1392,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             for coord in capCoords[0]:
                 coords.append(coord)
             for filledCoord in capCoords[1]:
-                filledCoords.append(filledCoord)
+                filledCoords.append(center + filledCoord)
 
          # Add A and C Extension Lines
         coords.append(A)
@@ -1593,10 +1593,21 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         # get text location
         # We're using the active face center and normal for 
         # initial text placement 
+
+        #Get local Rotation and Translation
+        rot = mat.to_quaternion()
+
+        #Compose Rotation and Translation Matrix
+        rotMatrix = Matrix.Identity(3)
+        rotMatrix.rotate(rot)
+        rotMatrix.resize_4x4()
+
+
         originFace = faces[dim.originFaceIdx]
         origin = originFace.calc_center_bounds()
-        normal = originFace.normal
-        tangent = originFace.calc_tangent_edge()
+        normal = rotMatrix @ originFace.normal
+        tangent = rotMatrix @ originFace.calc_tangent_edge()
+
         origin += dim.dimTextPos + normal*0.001
 
         vecY = normal.cross(tangent)
@@ -1609,8 +1620,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         vecX.rotate(Quaternion(normal,dim.dimRotation))
 
         origin = mat@origin
-        vecY = mat@ vecY
-        vecX = mat@ vecX
+        #vecY = mat@ vecY
+        #vecX = mat@ vecX
 
         dimProps.textAlignment = 'C'
         dimProps.textPosition = 'M'
