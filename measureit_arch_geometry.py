@@ -483,7 +483,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
                 dimLineExtension = dim_line_extension(capSize)
                 origin += distVector*-0.5 - (dimLineExtension*normDistVector) - cardX/2 - cardY/2
                 square = generate_text_card(context,dimText,dimProps,basePoint= origin, xDir= normDistVector, yDir= offsetDistance)
-        # Move dim to ext temporarily if the text is wider than the dimension line
+    
       
 
 
