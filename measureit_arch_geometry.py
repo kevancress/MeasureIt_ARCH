@@ -455,39 +455,13 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         origin = Vector(textLoc)
 
 
-        # Set Text Alignment 
-        flipCaps = False
-        dimProps.textPosition = 'T'
-        dimLineExtension = 0 # add some extension to the line if the dimension is ext
-        if dim.textAlignment == 'L' :
-            dimProps.textPosition = 'M'
-            flipCaps=True
-            dimLineExtension = dim_line_extension(capSize)
-            origin += Vector((dist/2 + dimLineExtension*1.2)* normDistVector)
-            
-        elif dim.textAlignment == 'R':
-            flipCaps=True
-            dimProps.textPosition = 'M'
-            dimLineExtension = dim_line_extension(capSize)
-            origin -= Vector((dist/2 + dimLineExtension*1.2)* normDistVector)
-        
-        
-        square = generate_text_card(context,dimText,dimProps,basePoint= origin, xDir= normDistVector, yDir= offsetDistance)
-        cardX = square[3] - square[0]
-        cardY = square[1] - square[0]
-
-        # Flip if smaller than distance 
-        if (cardX.length) > dist:
-            if dimProps.textAlignment == 'C':
-                flipCaps=True
-                dimLineExtension = dim_line_extension(capSize)
-                origin += distVector*-0.5 - (dimLineExtension*normDistVector) - cardX/2 - cardY/2
-                square = generate_text_card(context,dimText,dimProps,basePoint= origin, xDir= normDistVector, yDir= offsetDistance)
-    
-      
+        placementResults = dim_text_placement(dim,dimProps,origin,dist,distVector,offsetDistance,capSize)
+        square = placementResults[0]
+        flipCaps = placementResults[1]
+        dimLineExtension = placementResults[2]
+        origin = placementResults[3]
 
 
-            
         # Add the Extension to the dimension line
         dimLineVec = dimLineStart - dimLineEnd
         dimLineVec.normalize()
@@ -797,6 +771,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 dimLineStart = Vector(p1)+offsetDistance
                 dimLineEnd = Vector(p2)+offsetDistance
                 textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
+                origin = Vector(textLoc)
 
                 #i,j,k as card axis
                 i = Vector((1,0,0))
@@ -813,48 +788,11 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                     dimText.text = str(distanceText)
                     dimText.text_updated = True
                 
-                width = dimText.textWidth
-                height = dimText.textHeight 
-                
-
-                resolution = dimProps.textResolution
-                size = dimProps.fontSize/fontSizeMult
-                sx = (width/resolution)*0.1*size
-                sy = (height/resolution)*0.1*size
-                cardX = normDistVector.normalized() * sx
-                cardY = userOffsetVector.normalized() *sy
-                origin = Vector(textLoc) + cardY.normalized()*0.05
-
-                # Flip endcaps if they're going to overlap the dim
-                flipCaps = False
-                if (cardX.length + capSize/80) > dist:
-                    flipCaps=True
-
-                # Move dim to ext temporarily if the text is wider than the dimension line
-                tempExtFlag = False
-                if (cardX.length) > dist:
-                    if dim.textAlignment == 'C':
-                        tempExtFlag = True
-
-                # Set Text Alignment 
-                dimLineExtension = 0 # add some extension to the line if the dimension is ext
-                if dim.textAlignment == 'L' :
-                    flipCaps=True
-                    dimLineExtension = capSize/50
-                    origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
-                    
-                elif dim.textAlignment == 'R':
-                    flipCaps=True
-                    dimLineExtension = capSize/50
-                    origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) - Vector(cardY/2)
-                    
-                elif tempExtFlag:
-                    flipCaps=True
-                    dimLineExtension = capSize/50
-                    origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
-
-                if flipCaps:
-                    dimLineExtension = capSize/50
+                placementResults = dim_text_placement(dim,dimProps,origin,dist,distVector,offsetDistance,capSize)
+                square = placementResults[0]
+                flipCaps = placementResults[1]
+                dimLineExtension = placementResults[2]
+                origin = placementResults[3]
 
                     
                 # Add the Extension to the dimension line
@@ -863,7 +801,6 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 dimLineEndCoord = dimLineEnd - dimLineVec * dimLineExtension 
                 dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension 
                 
-                square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
 
                 if scene.measureit_arch_gl_show_d:
                     draw_text_3D(context,dimText,dimProps,myobj,square)
@@ -1113,6 +1050,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
         dimLineStart = Vector(basePoint) + offsetDistance
         dimLineEnd = dimLineStart - Vector(secondPointAxis)
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
+        origin = Vector(textLoc)
        
        # Check for text field
         if len(dim.textFields) == 0:
@@ -1126,47 +1064,11 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
             dimText.text = str(distanceText)
             dimText.text_updated = True
         
-        width = dimText.textWidth
-        height = dimText.textHeight 
-
-        resolution = dimProps.textResolution
-        size = dimProps.fontSize/fontSizeMult
-        sx = (width/resolution)*size
-        sy = (height/resolution)*size
-        cardX = Vector(secondPointAxis.normalized()) * sx
-        cardY = userOffsetVector *sy
-
-        origin = Vector(textLoc)
-        # Flip endcaps if they're going to overlap the dim
-        flipCaps = False
-        if (cardX.length + capSize/800) > dist:
-            flipCaps=True
-
-        # Move dim to ext temporarily if the text is wider than the dimension line
-        tempExtFlag = False
-        if (cardX.length) > dist:
-            if dim.textAlignment == 'C':
-                tempExtFlag = True
-
-        # Set Text Alignment 
-        dimLineExtension = 0 # add some extension to the line if the dimension is ext
-        if dim.textAlignment == 'L' :
-            flipCaps=True
-            dimLineExtension = capSize/500
-            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
-            
-        elif dim.textAlignment == 'R':
-            flipCaps=True
-            dimLineExtension = capSize/500
-            origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) - Vector(cardY/2)
-             
-        elif tempExtFlag:
-            flipCaps=True
-            dimLineExtension = capSize/500
-            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* absNormDistVector) + Vector(cardY/2)
-
-        if flipCaps:
-            dimLineExtension = capSize/500
+        placementResults = dim_text_placement(dim,dimProps,origin,dist,distVector,offsetDistance,capSize)
+        square = placementResults[0]
+        flipCaps = placementResults[1]
+        dimLineExtension = placementResults[2]
+        origin = placementResults[3]
 
             
 
@@ -1174,7 +1076,6 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
         dimLineEndCoord = dimLineEnd - dimLineExtension * secondPointAxis.normalized()
         dimLineStartCoord = dimLineStart + dimLineExtension * secondPointAxis.normalized()
         
-        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
         
 
        # end = time.perf_counter()
@@ -1263,7 +1164,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
             startVec = vecB.copy()
             endVec = vecA.copy()
             midVec.rotate(Quaternion(norm,radians(180)))
-            midPoint = (midVec*radius*1.05) + p2
+            midPoint = Vector((midVec*radius*1.05) + p2)
 
         #making it a circle
         numCircleVerts = math.ceil(radius/.2)+ int((degrees(angle))/2)
@@ -1295,34 +1196,17 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
         
         #make text card
         vecX = midVec.cross(norm).normalized()
-        width = dim.textFields[0].textWidth
-        height = dim.textFields[0].textHeight 
-        resolution = dimProps.textResolution
-        size = dimProps.fontSize/fontSizeMult
-        sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.1*size
-        origin = Vector(midPoint)
-        cardX = vecX * sx
-        cardY = midVec *sy
-        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
+        square = generate_text_card(context,dim.textFields[0],dimProps,basePoint=midPoint, xDir=vecX, yDir= midVec)
 
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim.textFields[0],dimProps,myobj,square)
-
-
-        # Draw Point Pass for Clean Corners
-        # I'm being lazy here, should do a proper lineadjacency
-        # with miters and do this in one pass
         
+        # Get coords for point pass
         pointCoords = []
         pointCoords.append((startVec*radius)+p2)
         for vert in verts:
             pointCoords.append((vert*radius)+p2)
         pointCoords.append((endVec*radius)+p2)
-
-
-
-        
 
         # batch & Draw Shader
         coords = []
@@ -1559,47 +1443,23 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
                 radiusText.text = str(radStr)
                 radiusText.text_updated = True
             
-            #make Radius text card
-            width = radiusText.textWidth
-            height = radiusText.textHeight 
-        
+            #make Radius text card        
             midPoint = Vector(interpolate3d(zeroVec,radiusLeader,radius/2))
             vecY =  midPoint.cross(norm).normalized()
             vecX = midPoint.normalized()
-            resolution = dimProps.textResolution
-            size = dimProps.fontSize/fontSizeMult
-            sx = (width/resolution)*0.1*size
-            sy = (height/resolution)*0.1*size
-            origin = Vector(midPoint) + 0.04*vecY
-            cardX = vecX * sx
-            cardY = vecY *sy
-            tmp = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
-            square = []
-            for coord in tmp:
-                square.append(coord+center)
+            origin = Vector(midPoint) + 0.04*vecY + center
+            dim.textAlignment = 'C'
+            square = generate_text_card(context,radiusText,dimProps,basePoint=origin,xDir=vecX,yDir=vecY)
                 
             if scene.measureit_arch_gl_show_d:
                 draw_text_3D(context,dim.textFields[0],dimProps,myobj,square)
 
-        #make Length text card
-
-        width = lengthText.textWidth
-        height = lengthText.textHeight 
-        
+        #make Length text card        
         midPoint = radiusLeader.normalized()*offsetRadius
         vecX =  midPoint.cross(norm).normalized()
         vecY = midPoint.normalized()
-        resolution = dimProps.textResolution
-        size = dimProps.fontSize/fontSizeMult
-        sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.1*size
-        origin = Vector(midPoint)
-        cardX = vecX * sx
-        cardY = vecY *sy
-        tmp = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
-        square = []
-        for coord in tmp:
-            square.append(coord+center)
+        origin = Vector(midPoint) + center
+        square = square = generate_text_card(context,lengthText,dimProps,basePoint=origin,xDir=vecX,yDir=vecY)
             
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim.textFields[1],dimProps,myobj,square)
@@ -1730,9 +1590,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             dimText.text = str(areaText)
             dimText.text_updated = True
         
-        width = dimText.textWidth
-        height = dimText.textHeight 
-
         # get text location
         # We're using the active face center and normal for 
         # initial text placement 
@@ -1742,40 +1599,28 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         tangent = originFace.calc_tangent_edge()
         origin += dim.dimTextPos + normal*0.001
 
-        y= normal.cross(tangent)
-        x= normal.cross(y)
+        vecY = normal.cross(tangent)
+        vecX = normal.cross(vecY)
         
         #y.rotate(Quaternion(normal,radians(-45)))
         #x.rotate(Quaternion(normal,radians(-45)))
 
-        y.rotate(Quaternion(normal,dim.dimRotation))
-        x.rotate(Quaternion(normal,dim.dimRotation))
+        vecY.rotate(Quaternion(normal,dim.dimRotation))
+        vecX.rotate(Quaternion(normal,dim.dimRotation))
 
-        # get card vectors
-        resolution = dimProps.textResolution
-        size = dimProps.fontSize/fontSizeMult
-        sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.1*size
+        origin = mat@origin
+        vecY = mat@ vecY
+        vecX = mat@ vecX
 
-        cardX = x*sx
-        cardY = y*sy
-
-        # Create card & Draw text
-        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY),(origin+(cardX/2)+cardY),(origin+(cardX/2))]
-        # account for obj mat
-        tempCoords = []
-        for coord in square:
-            tempCoords.append(mat@coord)
-        square = tempCoords
-        del tempCoords
+        dimProps.textAlignment = 'C'
+        dimProps.textPosition = 'M'
+        square = generate_text_card(context,dimText,dimProps,basePoint=origin,xDir=vecX,yDir=vecY)
 
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dimText,dimProps,myobj,square)
 
-
         #Draw Fill
         draw_filled_coords(filledCoords,fillRGB,polySmooth=False)
-
 
         # Draw Perimeter
         draw_lines(lineWeight,rgb,perimeterCoords,twoPass=True,pointPass=True)
@@ -3132,6 +2977,42 @@ def cap_extension(dirVec,capSize):
 
 def dim_line_extension(capSize):
     return capSize/700
+
+def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize = 0):
+    # Set Text Alignment 
+    context = bpy.context
+    flipCaps = False
+    dimProps.textPosition = 'T'
+    dimLineExtension = 0 # add some extension to the line if the dimension is ext
+    normDistVector = distVec.normalized()
+    dimText = dim.textFields[0]
+    
+    if dim.textAlignment == 'L' :
+        dimProps.textPosition = 'M'
+        flipCaps=True
+        dimLineExtension = dim_line_extension(capSize)
+        origin += Vector((dist/2 + dimLineExtension*1.2)* normDistVector)
+        
+    elif dim.textAlignment == 'R':
+        flipCaps=True
+        dimProps.textPosition = 'M'
+        dimLineExtension = dim_line_extension(capSize)
+        origin -= Vector((dist/2 + dimLineExtension*1.2)* normDistVector)
+    
+    
+    square = generate_text_card(context,dimText,dimProps,basePoint= origin, xDir= normDistVector, yDir= offsetDistance)
+    cardX = square[3] - square[0]
+    cardY = square[1] - square[0]
+
+    # Flip if smaller than distance 
+    if (cardX.length) > dist:
+        if dimProps.textAlignment == 'C':
+            flipCaps=True
+            dimLineExtension = dim_line_extension(capSize)
+            origin += distVec*-0.5 - (dimLineExtension*normDistVector) - cardX/2 - cardY/2
+            square = generate_text_card(context,dimText,dimProps,basePoint= origin, xDir= normDistVector, yDir= offsetDistance)
+    
+    return (square, flipCaps, dimLineExtension, origin)
 
 def get_viewport(renderScale = False):
     context = bpy.context

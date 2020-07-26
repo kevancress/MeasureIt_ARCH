@@ -142,6 +142,20 @@ class TextField(PropertyGroup):
                 description="Text Source",
                 update=update_flag)
 
+    textAlignment:EnumProperty(
+                items=(('L', "Left", "",'ALIGN_LEFT',1),
+                        ('C', "Center", "",'ALIGN_CENTER',2),
+                        ('R', "Right", "",'ALIGN_RIGHT',3)),
+                name="align Font",
+                description="Set Font alignment")
+    
+    textPosition:EnumProperty(
+                items=(('T', "Top", "",'ALIGN_TOP',1),
+                        ('M', "Mid", "",'ALIGN_MIDDLE',2),
+                        ('B', "Bottom", "",'ALIGN_BOTTOM',3)),
+                name="align Font",
+                description="Set Font Position")
+
     textWidth: IntProperty(name='annotationWidth',
                 description= 'Width of annotation')
         
