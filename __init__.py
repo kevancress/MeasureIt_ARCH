@@ -88,6 +88,8 @@ from bpy.props import (
 from . import auto_load
 auto_load.init()
 
+from .measureit_arch_main import precision_ui
+
 # --------------------------------------------------------------
 # Register all operators and panels
 # --------------------------------------------------------------
@@ -118,27 +120,13 @@ def update_panel(self, context):
         pass
 
 
-# Append Precision settings to units panel
-def precision_ui(self, context):
-    layout = self.layout
-    layout.use_property_decorate = False
-    layout.use_property_split = True
 
-    
-    scene = context.scene
-    col = layout.column()
-    col.alignment = 'RIGHT'
-    col.label(text="MeasureIt-ARCH Precision")
-    col = layout.column()
-    col.prop(scene, 'measureit_arch_gl_precision', text="Metric Precision")
-    col.prop(scene, 'measureit_arch_imperial_precision', text="Imperial Precision")
 
 
 # Define menu
 # noinspection PyUnusedLocal
 def register():
     auto_load.register()
-    bpy.types.SCENE_PT_unit.append(precision_ui)
     # Define properties
     Scene.measureit_arch_bound_x = BoolProperty()
     Scene.measureit_arch_bound_y = BoolProperty()
@@ -162,17 +150,8 @@ def register():
                            ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
                     name="View Plane",
                     description="View Plane")   
-    
-    Scene.measureit_arch_imperial_precision= EnumProperty(
-                items=(('1', "1\"", "1 Inch"),
-                        ('2', "1/2\"", "1/2 Inch"),
-                        ('4', "1/4\"", "1/4 Inch"),
-                        ('8', "1/8\"", "1/8th Inch"),
-                        ('16', "1/16\"", "1/16th Inch"),
-                        ('32', "1/32\"", "1/32th Inch"),
-                        ('64', "1/64\"", "1/64th Inch")),
-                name="Imperial Precision",
-                description="Measurement Precision for Imperial Units")                  
+      
+
     Scene.measureit_arch_use_depth_clipping = BoolProperty(name="Use Depth Clipping",
                                              description="Lines Behind Objects Won't Be Rendered (Slower)",
                                              default=True)
@@ -225,8 +204,6 @@ def register():
                                             description="Default Line Weight",
                                             default=3, min=0, max=20)
 
-    Scene.measureit_arch_gl_precision = IntProperty(name='Precision', min=0, max=5, default=2,
-                                               description="Number of decimal precision")
     Scene.measureit_arch_gl_show_d = BoolProperty(name="Show Dimension Text",
                                              description="Display Dimension Text",
                                              default=True)
@@ -474,7 +451,6 @@ def unregister():
     del Scene.measureit_arch_hint_space
     del Scene.measureit_arch_gl_ghost
     del Scene.measureit_arch_gl_txt
-    del Scene.measureit_arch_gl_precision
     del Scene.measureit_arch_gl_show_d
     del Scene.measureit_arch_gl_show_n
     del Scene.measureit_arch_scale

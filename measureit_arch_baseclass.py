@@ -194,7 +194,7 @@ class BaseWithText(BaseProp):
 
     fontSize: IntProperty(name='annotationSize',
                 description="Annotation Size",
-                default=12)
+                default=18)
 
     textResolution: IntProperty(name="Annotation Resolution",
                 description="Annotation Resolution",
@@ -312,7 +312,27 @@ class MeasureItARCHSceneProps(PropertyGroup):
     enable_experimental: BoolProperty(name="Enable Experimental",
                                 description="Enable Experimental Features like SVG Rendering",
                                 default=False)
+    
+    enable_experimental: BoolProperty(name="Enable Experimental",
+                                description="Enable Experimental Features like SVG Rendering",
+                                default=False)
 
+    default_scale: IntProperty(name='Default Paper Scale', min=1, default=25,
+                                               description="Default Paper Scale (used for font sizing)")
+    
+    metric_precision: IntProperty(name='Precision', min=0, max=5, default=2,
+                                               description="Metric decimal precision")
+
+    imperial_precision: EnumProperty(
+            items=(('1', "1\"", "1 Inch"),
+                    ('2', "1/2\"", "1/2 Inch"),
+                    ('4', "1/4\"", "1/4 Inch"),
+                    ('8', "1/8\"", "1/8th Inch"),
+                    ('16', "1/16\"", "1/16th Inch"),
+                    ('32', "1/32\"", "1/32th Inch"),
+                    ('64', "1/64\"", "1/64th Inch")),
+            name="Imperial Precision",
+            description="Measurement Precision for Imperial Units")   
 
 
 bpy.utils.register_class(MeasureItARCHSceneProps)

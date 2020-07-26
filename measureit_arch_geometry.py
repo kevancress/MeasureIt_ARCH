@@ -346,7 +346,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
 
         # Obj Properties
         scene = context.scene
-        pr = scene.measureit_arch_gl_precision
+        pr = sceneProps.metric_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
         rgb = rgb_gamma_correct(rawRGB)
@@ -671,7 +671,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
     
         measureAxis = []
         scene = context.scene
-        pr = scene.measureit_arch_gl_precision
+        pr = sceneProps.metric_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
         rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
@@ -860,7 +860,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
 
         # Obj Properties
         scene = context.scene
-        pr = scene.measureit_arch_gl_precision
+        pr = sceneProps.metric_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
         rgb = rgb_gamma_correct(rawRGB)
@@ -1127,7 +1127,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
         lineWeight = dimProps.lineWeight
 
         scene = context.scene
-        pr = scene.measureit_arch_gl_precision
+        pr = sceneProps.metric_precision
         a_code = "\u00b0"  # degree
         fmt = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
@@ -1259,7 +1259,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         lineWeight = dimProps.lineWeight
         
         scene = context.scene
-        pr = scene.measureit_arch_gl_precision
+        pr = sceneProps.metric_precision
         a_code = "\u00b0"  # degree
         #arc_code = "\u25e0" #arc
         arc_code = ""
@@ -1409,7 +1409,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         
         #### TEXT
         scene = context.scene
-        pr = scene.measureit_arch_gl_precision
+        pr = sceneProps.metric_precision
         textFormat = "%1." + str(pr) + "f"
 
         # Check for text field
@@ -1459,7 +1459,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         vecX =  midPoint.cross(norm).normalized()
         vecY = midPoint.normalized()
         origin = Vector(midPoint) + center
-        square = square = generate_text_card(context,lengthText,dimProps,basePoint=origin,xDir=vecX,yDir=vecY)
+        square = generate_text_card(context,lengthText,dimProps,basePoint=origin,xDir=vecX,yDir=vecY)
             
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dim.textFields[1],dimProps,myobj,square)
@@ -1583,7 +1583,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             dim.textFields.add()
 
         dimText = dim.textFields[0]
-        pr = scene.measureit_arch_gl_precision
+        pr = sceneProps.metric_precision
         textFormat = "%1." + str(pr) + "f"
         areaText = format_distance(textFormat,sumArea,isArea=True)
         if dimText.text != str(areaText):
@@ -2381,7 +2381,8 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
     return capCoords, filledCoords
 
 def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), basePoint = Vector((0,0,0)), xDir = Vector((1,0,0)), yDir = Vector((0,1,0)), cardIdx = 0): 
-   
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
     width = textobj.textWidth
     height = textobj.textHeight
     resolution = textProps.textResolution
@@ -2396,7 +2397,7 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
     except:
         view = None
 
-    scale = 25
+    scale = sceneProps.default_scale
 
     # Ref Note: 1 pt = 1/72 of an inch
 

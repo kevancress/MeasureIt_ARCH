@@ -279,7 +279,6 @@ class AddAlignedDimensionButton(Operator):
                                     newDimension.endcapSize= math.ceil(dist*3)
                                     masterDimEndCapSize = math.ceil(dist*3)
 
-                                    newDimension.fontSize= math.ceil(dist*15)
                                     masterDimFontSize = math.ceil(dist*15)
                                     
                                     newDimension.dimOffset = dist/4
@@ -290,7 +289,6 @@ class AddAlignedDimensionButton(Operator):
 
                                 else:
                                     newDimension.endcapSize= masterDimEndCapSize
-                                    newDimension.fontSize= masterDimFontSize
                                     newDimension.dimOffset = masterDimOffset
                                     newDimension.dimLeaderOffset = masterDimLeaderOffset
 
@@ -365,7 +363,6 @@ class AddAlignedDimensionButton(Operator):
                 dist = distVector.length
 
                 newDimension.endcapSize= math.ceil(dist*3)
-                newDimension.fontSize= math.ceil(dist*15)
                 newDimension.dimOffset = dist/4
                 newDimension.dimLeaderOffset = dist/30
 
@@ -452,7 +449,6 @@ class AddBoundingDimensionButton(Operator):
                 newBoundsDimension.drawAxis[1] = scene.measureit_arch_bound_y
                 newBoundsDimension.drawAxis[2] = scene.measureit_arch_bound_z
                 newBoundsDimension.textAlignment = 'C'
-                newBoundsDimension.fontSize = 55
 
                 #Add Text Field for each Axis
                 newBoundsDimension.textFields.add()
@@ -556,7 +552,6 @@ class AddAxisDimensionButton(Operator):
                                 dist = distVector.length
 
                                 newDimension.endcapSize= math.ceil(dist*3)
-                                newDimension.fontSize= math.ceil(dist*15)
                                 newDimension.dimOffset = dist/4
                                 newDimension.dimLeaderOffset = dist/30
                                 newDimensions.append(newDimension)
@@ -640,7 +635,6 @@ class AddAxisDimensionButton(Operator):
                 dist = distVector.length
 
                 newDimension.endcapSize= math.ceil(dist*3)
-                newDimension.fontSize= math.ceil(dist*15)
                 newDimension.dimOffset = dist/4
                 newDimension.dimLeaderOffset = dist/30
                 newDimensions.append(newDimension)
@@ -835,7 +829,6 @@ class AddAngleButton(Operator):
                 newDimension.lineWeight = 1
                 
                 # text
-                newDimension.fontSize = 7
                 newDimension.textResolution = 72
                 newDimension.textAlignment = 'C'
                 context.area.tag_redraw()

@@ -804,3 +804,22 @@ def get_selected_faces(myobject):
 
     return mylist
 
+# Append Precision settings to units panel
+def precision_ui(self, context):
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    layout = self.layout
+    layout.use_property_decorate = False
+    layout.use_property_split = True
+    
+    scene = context.scene
+    col = layout.column()
+    col.alignment = 'RIGHT'
+    col.label(text="MeasureIt-ARCH Unit Settings")
+    col = layout.column()
+    col.prop(sceneProps, 'default_scale', text="Default Scale 1:")
+    col.prop(sceneProps, 'metric_precision', text="Metric Precision")
+    col.prop(sceneProps, 'imperial_precision', text="Imperial Precision")
+
+bpy.types.SCENE_PT_unit.append(precision_ui)
