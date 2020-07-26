@@ -344,7 +344,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
 
     if check_vis(dim,dimProps):
 
-
         # Obj Properties
         scene = context.scene
         pr = scene.measureit_arch_gl_precision
@@ -427,10 +426,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         
         # Define Lines
         leadStartA = Vector(p1) + geoOffsetDistance
-        leadEndA = Vector(p1) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
+        leadEndA = Vector(p1) + offsetDistance + cap_extension(offsetDistance,capSize)
 
         leadStartB = Vector(p2) + geoOffsetDistance
-        leadEndB = Vector(p2) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
+        leadEndB = Vector(p2) + offsetDistance + cap_extension(offsetDistance,capSize)
 
         dimLineStart = Vector(p1)+offsetDistance
         dimLineEnd = Vector(p2)+offsetDistance
@@ -452,50 +451,41 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         if dimText.text != str(distanceText):
             dimText.text = str(distanceText)
             dimText.text_updated = True
-        
-        width = dimText.textWidth
-        height = dimText.textHeight 
-        
+           
+        origin = Vector(textLoc)
 
-        resolution = dimProps.textResolution
-        size = dimProps.fontSize/fontSizeMult
-        sx = (width/resolution)*0.1*size
-        sy = (height/resolution)*0.1*size
-       
-        cardX = normDistVector.normalized() * sx
-        cardY = userOffsetVector.normalized() *sy
-        origin = Vector(textLoc) + cardY.normalized()*0.05
-
-       # Flip endcaps if they're going to overlap the dim
-        flipCaps = False
-        if (cardX.length + capSize/80) > dist:
-            flipCaps=True
-
-        # Move dim to ext temporarily if the text is wider than the dimension line
-        tempExtFlag = False
-        if (cardX.length) > dist:
-            if dim.textAlignment == 'C':
-                tempExtFlag = True
 
         # Set Text Alignment 
+        flipCaps = False
+        dimProps.textPosition = 'T'
         dimLineExtension = 0 # add some extension to the line if the dimension is ext
         if dim.textAlignment == 'L' :
+            dimProps.textPosition = 'M'
             flipCaps=True
-            dimLineExtension = capSize/50
-            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* normDistVector) + Vector(cardY/2)
+            dimLineExtension = dim_line_extension(capSize)
+            origin += Vector((dist/2 + dimLineExtension*1.2)* normDistVector)
             
         elif dim.textAlignment == 'R':
             flipCaps=True
-            dimLineExtension = capSize/50
-            origin += Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* normDistVector) - Vector(cardY/2)
-            
-        elif tempExtFlag:
-            flipCaps=True
-            dimLineExtension = capSize/50
-            origin -= Vector((cardX.length/2 + dist/2 + dimLineExtension*1.2)* normDistVector) + Vector(cardY/2)
+            dimProps.textPosition = 'M'
+            dimLineExtension = dim_line_extension(capSize)
+            origin -= Vector((dist/2 + dimLineExtension*1.2)* normDistVector)
+        
+        
+        square = generate_text_card(context,dimText,dimProps,basePoint= origin, xDir= normDistVector, yDir= offsetDistance)
+        cardX = square[3] - square[0]
+        cardY = square[1] - square[0]
 
-        if flipCaps:
-            dimLineExtension = capSize/50
+        # Flip if smaller than distance 
+        if (cardX.length) > dist:
+            if dimProps.textAlignment == 'C':
+                flipCaps=True
+                dimLineExtension = dim_line_extension(capSize)
+                origin += distVector*-0.5 - (dimLineExtension*normDistVector) - cardX/2 - cardY/2
+                square = generate_text_card(context,dimText,dimProps,basePoint= origin, xDir= normDistVector, yDir= offsetDistance)
+        # Move dim to ext temporarily if the text is wider than the dimension line
+      
+
 
             
         # Add the Extension to the dimension line
@@ -504,7 +494,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         dimLineEndCoord = dimLineEnd - dimLineVec * dimLineExtension 
         dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension 
         
-        square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
+        #square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
 
         if scene.measureit_arch_gl_show_d:
             draw_text_3D(context,dimText,dimProps,myobj,square)
@@ -799,10 +789,10 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 
                 # Define Lines
                 leadStartA = Vector(p1) + geoOffsetDistance
-                leadEndA = Vector(p1) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
+                leadEndA = Vector(p1) + offsetDistance + cap_extension(offsetDistance,capSize)
 
                 leadStartB = Vector(p2) + geoOffsetDistance
-                leadEndB = Vector(p2) + offsetDistance + (offsetDistance.normalized()*0.005*capSize)
+                leadEndB = Vector(p2) + offsetDistance + cap_extension(offsetDistance,capSize)
 
                 dimLineStart = Vector(p1)+offsetDistance
                 dimLineEnd = Vector(p2)+offsetDistance
@@ -1112,7 +1102,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
 
         #Lines
         leadStartA = Vector(basePoint) + geoOffsetDistance
-        leadEndA = Vector(basePoint) + offsetDistance + (offsetDistance.normalized()*0.0005*capSize)
+        leadEndA = Vector(basePoint) + offsetDistance + cap_extension(offsetDistance,capSize)
 
         leadEndB =  leadEndA - Vector(secondPointAxis)
         leadStartB = Vector(secondPoint) - viewAxisDiff + geoOffsetDistance
@@ -1346,7 +1336,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
         caps = (dimProps.endcapA,dimProps.endcapB)
         capSize = dimProps.endcapSize
         pos = ((startVec*radius)+p2,(endVec*radius)+p2)
-        arrowoffset =  int(max(0, min(capSize, len(coords)/4))) #Clamp capsize between 0 and the length of the coords
+        arrowoffset =  int(max(0, min(capSize, len(coords)/4))) #Clamp cap size between 0 and the length of the coords
         mids = (coords[arrowoffset+1], coords[len(coords)-arrowoffset-1]) #offset the arrow direction as arrow size increases
         i=0
         for cap in caps:
@@ -2216,7 +2206,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             diff = Vector(p1) - Vector(loc)
             offset = annotation.annotationOffset
             
-            p2 =  Vector(offset)
+            offset =  Vector(offset)
 
             #Get local Rotation and Translation
             rot = mat.to_quaternion()
@@ -2226,11 +2216,10 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             rotMatrix = Matrix.Identity(3)
             rotMatrix.rotate(rot)
             rotMatrix.resize_4x4()
-            locMatrix = Matrix.Translation(loc)
-            rotLocMatrix = locMatrix @ rotMatrix
+            #locMatrix = Matrix.Translation(loc)
 
             # Transform offset with Composed Matrix
-            p2 = rotLocMatrix @ Vector(p2) + diff
+            p2 = (rotMatrix @ offset) + Vector(p1)
 
             fieldIdx = 0
             if 'textFields' not in annotation:
@@ -2242,14 +2231,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 annotation.name = annotation.text
 
             for textField in annotation.textFields:
-                textcard = generate_text_card(context,textField,annotationProps,annotation.annotationRotation,(0,0,0))
-                yoff = (Vector(textcard[1] - textcard[0]).normalized())
-                heightOffset = (textcard[1] - textcard[0]) + yoff*0.05
-                # Transform Text Card with Composed Matrix
-                textcard[0] = rotLocMatrix @ (textcard[0] + offset - (heightOffset*fieldIdx)) + diff
-                textcard[1] = rotLocMatrix @ (textcard[1] + offset - (heightOffset*fieldIdx)) + diff
-                textcard[2] = rotLocMatrix @ (textcard[2] + offset - (heightOffset*fieldIdx)) + diff
-                textcard[3] = rotLocMatrix @ (textcard[3] + offset - (heightOffset*fieldIdx)) + diff
+                origin = p2
+                xDir = rotMatrix @ Vector((1,0,0))
+                yDir = rotMatrix @ Vector((0,1,0))
+
+                textcard = generate_text_card(context,textField,annotationProps,rotation = annotation.annotationRotation, basePoint=origin, xDir=xDir, yDir=yDir,cardIdx=fieldIdx)
 
                 textField['textcard'] = textcard
                 fieldIdx += 1
@@ -2538,94 +2524,49 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
     
     return capCoords, filledCoords
 
-def generate_text_card(context,textobj,textProps,rotation,basePoint): 
+def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), basePoint = Vector((0,0,0)), xDir = Vector((1,0,0)), yDir = Vector((0,1,0)), cardIdx = 0): 
+   
     width = textobj.textWidth
     height = textobj.textHeight
     resolution = textProps.textResolution
     size = textProps.fontSize/fontSizeMult
     #Define annotation Card Geometry
-    square = [(-0.5, 0.0, 0.0),(-0.5, 1.0, 0.0),(0.5, 1.0, 0.0),(0.5, 0.0, 0.0)]
+
+    resolution = textProps.textResolution
+    size = textProps.fontSize/fontSizeMult
+
+    sx = (width/resolution)*0.1*size
+    sy = (height/resolution)*0.1*size
+
+    cardX = xDir.normalized() * sx
+    cardY = yDir.normalized() *sy
+
+
+    square = [(basePoint-(cardX/2)),(basePoint-(cardX/2)+cardY ),(basePoint+(cardX/2)+cardY ),(basePoint+(cardX/2))]
 
     #pick approprate card based on alignment
     if textProps.textAlignment == 'R':
-        aOff = (0.5,0.0,0.0)
+        aOff = 0.5*cardX
     elif textProps.textAlignment == 'L':
-        aOff = (-0.5,0.0,0.0)
+        aOff = -0.5*cardX
     else:
-        aOff = (0.0,0.0,0.0)
+        aOff = Vector((0.0,0.0,0.0))
 
     if textProps.textPosition == 'M':
-        pOff = (0.0,0.5,0.0)
+        pOff = 0.5*cardY
     elif textProps.textPosition == 'B':
-        pOff = (0.0,1.0,0.0)
+        pOff = 1.0*cardY
     else:
-        pOff = (0.0,0.0,0.0)
+        pOff = Vector((0.0,0.0,0.0))
 
+    cardOffset = cardIdx * cardY
     #Define Transformation Matricies
-
-    #x Rotation
-    rx = rotation[0]
-    rotateXMatrix = Matrix([
-        [1,   0,      0,     0],
-        [0,cos(rx) ,sin(rx), 0],
-        [0,-sin(rx),cos(rx), 0],
-        [0,   0,      0,     1]
-    ])
-
-    #y Rotation
-    ry = rotation[1]
-    rotateYMatrix = Matrix([
-        [cos(ry),0,-sin(ry),0],
-        [  0,    1,   0,    0],
-        [sin(ry),0,cos(ry), 0],
-        [  0,    0,   0,    1]
-    ])
-
-    #z Rotation
-    rz = rotation[2]
-    rotateZMatrix = Matrix([
-        [cos(rz) ,sin(rz),0,0],
-        [-sin(rz),cos(rz),0,0],
-        [   0    ,   0   ,1,0],
-        [   0    ,   0   ,0,1]
-    ])
-
-    #scale
-    sx = (width/resolution)*0.1*size
-    sy = (height/resolution)*0.1*size
-    scaleMatrix = Matrix([
-        [sx,0 ,0,0],
-        [0 ,sy,0,0],
-        [0 ,0 ,1,0],
-        [0 ,0 ,0,1]
-    ])
-
-    #Transform
-    tx = basePoint[0]
-    ty = basePoint[1]
-    tz = basePoint[2]
-    translateMatrix = Matrix([
-        [1,0,0,tx],
-        [0,1,0,ty],
-        [0,0,1,tz],
-        [0,0,0, 1]
-    ])
-
-    # Transform Card By Transformation Matricies (Scale -> XYZ Euler Rotation -> Translate)
-    xyzEulerRotMatrix = rotateXMatrix @ rotateYMatrix @ rotateZMatrix
 
     coords = []
     for coord in square:
-        coord= Vector(coord) - Vector(aOff)
-        coord= Vector(coord) - Vector(pOff)
-        coord = scaleMatrix@Vector(coord)
-        coord = rotateXMatrix@Vector(coord)
-        coord = rotateYMatrix@Vector(coord)
-        coord = rotateZMatrix@Vector(coord)
-        coord = translateMatrix@Vector(coord)
+        coord= Vector(coord) - aOff - pOff - cardOffset
         coords.append(coord)
 
-    
     return (coords)
 
 def sortPoints (p1, p2):
@@ -3185,6 +3126,12 @@ def draw_lines(lineWeight, rgb, coords, offset = -0.001, twoPass = False, pointP
         draw_points(lineWeight,rgb,pointCoords,offset)
         
     bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+
+def cap_extension(dirVec,capSize):
+    return dirVec.normalized() * 0.0005 * capSize
+
+def dim_line_extension(capSize):
+    return capSize/700
 
 def get_viewport(renderScale = False):
     context = bpy.context
