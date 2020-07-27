@@ -209,7 +209,7 @@ class BaseWithText(BaseProp):
     # endcap properties are defined here to ensure compatiblity but the enumProps are overwritten in child property groups
     endcapSize: IntProperty(name="dimEndcapSize",
                 description="End Cap size",
-                default=15, min=1, max=500)
+                default=3, min=1, max=500)
     
     endcapArrowAngle: FloatProperty(name="endcapArrowAngle",
                 description="End Cap Arrow Angle",

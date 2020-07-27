@@ -276,7 +276,6 @@ class AddAlignedDimensionButton(Operator):
                                 dist = distVector.length
 
                                 if len(mylist)<2 or masterDimOffset == 0:    
-                                    newDimension.endcapSize= math.ceil(dist*3)
                                     masterDimEndCapSize = math.ceil(dist*3)
 
                                     masterDimFontSize = math.ceil(dist*15)
@@ -288,7 +287,6 @@ class AddAlignedDimensionButton(Operator):
                                     masterDistance = dist/30
 
                                 else:
-                                    newDimension.endcapSize= masterDimEndCapSize
                                     newDimension.dimOffset = masterDimOffset
                                     newDimension.dimLeaderOffset = masterDimLeaderOffset
 
@@ -362,7 +360,6 @@ class AddAlignedDimensionButton(Operator):
                 distVector = Vector(p1)-Vector(p2)
                 dist = distVector.length
 
-                newDimension.endcapSize= math.ceil(dist*3)
                 newDimension.dimOffset = dist/4
                 newDimension.dimLeaderOffset = dist/30
 
@@ -551,7 +548,6 @@ class AddAxisDimensionButton(Operator):
                                 distVector = Vector(p1)-Vector(p2)
                                 dist = distVector.length
 
-                                newDimension.endcapSize= math.ceil(dist*3)
                                 newDimension.dimOffset = dist/4
                                 newDimension.dimLeaderOffset = dist/30
                                 newDimensions.append(newDimension)
@@ -634,7 +630,6 @@ class AddAxisDimensionButton(Operator):
                 distVector = Vector(p1)-Vector(p2)
                 dist = distVector.length
 
-                newDimension.endcapSize= math.ceil(dist*3)
                 newDimension.dimOffset = dist/4
                 newDimension.dimLeaderOffset = dist/30
                 newDimensions.append(newDimension)

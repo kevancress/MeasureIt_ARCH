@@ -2308,7 +2308,27 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
     capCoords = []
     filledCoords = []
-    size = capSize/1000
+
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+    ViewGen = scene.ViewGenerator
+
+    try:
+        view = ViewGen.views[ViewGen.active_index]
+    except:
+        view = None
+
+    scale = sceneProps.default_scale
+
+    # Ref Note: 1 pt = 1/72 of an inch
+
+    if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
+        scale = view.model_scale / view.paper_scale
+
+
+    size = capSize/ 393.701
+    size *= scale
+
     distVector = Vector(pos-Vector(midpoint)).normalized()
     norm = distVector.cross(userOffsetVector).normalized()
     line = distVector*size
@@ -2383,13 +2403,14 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
 def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), basePoint = Vector((0,0,0)), xDir = Vector((1,0,0)), yDir = Vector((0,1,0)), cardIdx = 0): 
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
+
     width = textobj.textWidth
     height = textobj.textHeight
     resolution = textProps.textResolution
     size = textProps.fontSize/fontSizeMult
     viewport = get_viewport()
 
-    scene = context.scene
+
     ViewGen = scene.ViewGenerator
 
     try:
@@ -2449,7 +2470,7 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
         coord.rotate(rotX)
         coord.rotate(rotY)
         coord.rotate(rotZ)
-        
+
         coord += basePoint
         coords.append(coord)
 
