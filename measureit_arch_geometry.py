@@ -2435,11 +2435,22 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
         pOff = Vector((0.0,0.0,0.0))
 
     cardOffset = cardIdx * cardY
+    
     #Define Transformation Matricies
+    rotX = Quaternion(xDir,rotation[0])
+    rotY = Quaternion(yDir,rotation[1])
+    rotZ = Quaternion(yDir.cross(xDir),rotation[2])
 
     coords = []
     for coord in square:
         coord= Vector(coord) - aOff - pOff - cardOffset
+        coord -= basePoint
+
+        coord.rotate(rotX)
+        coord.rotate(rotY)
+        coord.rotate(rotZ)
+        
+        coord += basePoint
         coords.append(coord)
 
     return (coords)
