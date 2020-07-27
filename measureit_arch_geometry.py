@@ -3038,11 +3038,30 @@ def cap_extension(dirVec,capSize):
     return dirVec.normalized() * 0.0005 * capSize
 
 def dim_line_extension(capSize):
-    return capSize/700
+    context = bpy.context
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    ViewGen = scene.ViewGenerator
+
+    try:
+        view = ViewGen.views[ViewGen.active_index]
+    except:
+        view = None
+
+    scale = sceneProps.default_scale
+
+    # Ref Note: 1 pt = 1/72 of an inch
+
+    if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
+        scale = view.model_scale / view.paper_scale
+
+    return (capSize / 200)*scale
 
 def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize = 0):
     # Set Text Alignment 
     context = bpy.context
+    sceneProps = context.scene.MeasureItArchProps
     flipCaps = False
     dimProps.textPosition = 'T'
     dimLineExtension = 0 # add some extension to the line if the dimension is ext
@@ -3067,7 +3086,7 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     cardY = square[1] - square[0]
 
     # Flip if smaller than distance 
-    if (cardX.length) > dist:
+    if (cardX.length) > dist and sceneProps.use_text_autoplacement:
         if dimProps.textAlignment == 'C':
             flipCaps=True
             dimLineExtension = dim_line_extension(capSize)

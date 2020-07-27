@@ -317,6 +317,10 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 description="Enable Experimental Features like SVG Rendering",
                                 default=False)
 
+    use_text_autoplacement: BoolProperty(name="Use Text Autoplacement",
+                                description="Adjust Dimension Text Placement Automatically",
+                                default=True)
+
     default_scale: IntProperty(name='Default Paper Scale', min=1, default=25,
                                                description="Default Paper Scale (used for font sizing)",
                                                subtype = 'FACTOR')
