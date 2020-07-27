@@ -821,6 +821,7 @@ def precision_ui(self, context):
     col = layout.column()
     col.prop(sceneProps, 'default_scale', text="Default Scale 1:")
     col.prop(sceneProps, 'metric_precision', text="Metric Precision")
+    col.prop(sceneProps, 'angle_precision', text="Angle Precision")
     col.prop(sceneProps, 'imperial_precision', text="Imperial Precision")
 
 bpy.types.SCENE_PT_unit.append(precision_ui)

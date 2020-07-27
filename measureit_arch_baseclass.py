@@ -327,6 +327,9 @@ class MeasureItARCHSceneProps(PropertyGroup):
     
     metric_precision: IntProperty(name='Precision', min=0, max=5, default=2,
                                                description="Metric decimal precision")
+    
+    angle_precision: IntProperty(name='Angle Precision', min=0, max=5, default=0,
+                                               description="Angle decimal precision")
 
     imperial_precision: EnumProperty(
             items=(('1', "1\"", "1 Inch"),

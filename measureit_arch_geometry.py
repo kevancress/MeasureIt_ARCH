@@ -1179,13 +1179,8 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
 
         
         #Format Angle
-        if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
-            angle = degrees(angle)
-        # format text
-        angleText = " " + fmt % angle
-        # Add degree symbol
-        if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
-            angleText += a_code
+        angleText = format_angle(angle)
+
         # Update if Necessary
         if len(dim.textFields) == 0:
             dim.textFields.add()
@@ -1260,8 +1255,6 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         
         scene = context.scene
         pr = sceneProps.metric_precision
-        a_code = "\u00b0"  # degree
-        #arc_code = "\u25e0" #arc
         arc_code = ""
         fmt = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
@@ -1425,13 +1418,9 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
 
         # format text and update if necessary
         lengthStr = arc_code + str(format_distance(textFormat,arc_length))
+        
         if dim.displayAsAngle:
-            if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
-                arc_angle = degrees(arc_angle)
-            else:
-                a_code = " rad"
-            lengthStr = " " + textFormat % arc_angle
-            lengthStr += a_code
+            lengthStr = format_angle(arc_angle)
 
         if lengthText.text != str(lengthStr):
             lengthText.text = str(lengthStr)
@@ -3117,7 +3106,21 @@ def get_viewport(renderScale = False):
             #render = [render[0]*apsectDiff,render[1]/apsectDiff]
             #viewport = render
 
-
-        
-    
     return viewport
+
+def format_angle(angle):
+    a_code = "\u00b0"  # degree
+    #arc_code = "\u25e0" #arc
+    scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
+    pr = sceneProps.angle_precision
+    textFormat = "%1." + str(pr) + "f"
+
+    if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
+        arc_angle = degrees(angle)
+    else:
+        a_code = " rad"
+    angleString = " " + textFormat % arc_angle
+    angleString += a_code
+
+    return angleString
