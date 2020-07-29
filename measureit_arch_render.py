@@ -481,7 +481,7 @@ def render_main_svg(self, context, animation=False):
     sceneProps.is_vector_draw = True
 
     clipdepth = context.scene.camera.data.clip_end
-    path = scene.render.filepath
+    path = bpy.path.abspath(scene.render.filepath)
     objlist = context.view_layer.objects
 
     # --------------------
@@ -531,7 +531,7 @@ def render_main_svg(self, context, animation=False):
 
 
     # Setup Output Path
-    ren_path = bpy.context.scene.render.filepath
+    ren_path = path
     filename = "mit_vector"
     ftxt = "%04d" % scene.frame_current
     outpath = (ren_path + filename + ftxt + '.svg')
