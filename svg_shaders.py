@@ -106,11 +106,8 @@ def get_render_location(mypoint):
 
     co_2d = object_utils.world_to_camera_view(scene, scene.camera, v1)
     # Get pixel coords
-    render_scale = scene.render.resolution_percentage / 100
-    render_size = (int(scene.render.resolution_x * render_scale),
-                   int(scene.render.resolution_y * render_scale))
 
-    return [round(co_2d.x * render_size[0]), height-round(co_2d.y * render_size[1])]
+    return [(co_2d.x * width), height-(co_2d.y * height)]
 
 
 def get_clip_space_coord(mypoint):
