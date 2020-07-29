@@ -1991,9 +1991,6 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
                     #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
                     bgl.glBlendEquation(bgl.GL_MAX)
-                
-                if sceneProps.is_vector_draw:
-                    svg_shaders.svg_line_shader(lineGroup, coords, lineWeight, rgb, svg, mat=mat)
 
                 bgl.glDepthMask(False)
                 lineGroupShader.uniform_float("depthPass",False)
@@ -2002,6 +1999,11 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
 
                 gpu.shader.unbind()
+                
+            if sceneProps.is_vector_draw:
+                svg_shaders.svg_line_shader(lineGroup, coords, lineWeight, rgb, svg, mat=mat)
+
+                
         
         set_OpenGL_Settings(False)
 
