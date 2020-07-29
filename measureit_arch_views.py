@@ -31,6 +31,10 @@ def update(self,context):
         update_camera(scene,camera)
     else:
         update_camera_px(scene,camera)
+
+    render = scene.render
+    if view.output_path is not "":
+        render.filepath = view.output_path
     
 def update_camera(scene,camera):
     render = scene.render
@@ -89,7 +93,7 @@ class ViewProperties(PropertyGroup):
     camera: PointerProperty(type= bpy.types.Object,
                             poll = camera_poll)
 
-    width: bpy.props.FloatProperty(name = "Width", 
+    width: FloatProperty(name = "Width", 
                                         description = "Camera Width in Units", 
                                         unit = 'LENGTH',
                                         default = 0.43, 
@@ -98,7 +102,7 @@ class ViewProperties(PropertyGroup):
                                         )
     
     #Height Property
-    height: bpy.props.FloatProperty(name = "Height", 
+    height: FloatProperty(name = "Height", 
                                         description = "Camera Height in Units", 
                                         unit = 'LENGTH', 
                                         default = 0.28, 
@@ -107,7 +111,7 @@ class ViewProperties(PropertyGroup):
                                         )
             
     #Width_px Property
-    width_px: bpy.props.IntProperty(name = "X", 
+    width_px: IntProperty(name = "X", 
                                         description = "Camera Width in Pixels", 
                                         subtype = 'PIXEL',
                                         default = 1920, 
@@ -117,7 +121,7 @@ class ViewProperties(PropertyGroup):
                                         )
         
     #Width_px Property
-    height_px: bpy.props.IntProperty(name = "Y", 
+    height_px: IntProperty(name = "Y", 
                                         description = "Camera Height in Pixels", 
                                         subtype = 'PIXEL',
                                         default = 1080, 
@@ -127,7 +131,7 @@ class ViewProperties(PropertyGroup):
                                         )
     
     #Percent Scale Property
-    percent_scale:  bpy.props.IntProperty(name = "Percent Scale", 
+    percent_scale: IntProperty(name = "Percent Scale", 
                                         description = "Percentage scale for render resolution", 
                                         subtype = 'PERCENTAGE',
                                         default = 50, 
@@ -138,7 +142,7 @@ class ViewProperties(PropertyGroup):
                                         )
         
     #PPI Property
-    res: bpy.props.IntProperty(name = "res_prop", 
+    res: IntProperty(name = "res_prop", 
                                         description = "Resolution in Pixels Per Inch", 
                                         subtype = 'FACTOR', 
                                         default = 150, 
@@ -150,7 +154,7 @@ class ViewProperties(PropertyGroup):
                                         )
     
     #Model Length
-    model_scale: bpy.props.IntProperty(
+    model_scale: IntProperty(
                                     name = "model_scale", 
                                     description = "Unit on Model", 
                                     default = 10, 
@@ -159,7 +163,7 @@ class ViewProperties(PropertyGroup):
                                     )
     
     #Paper Length
-    paper_scale: bpy.props.IntProperty(
+    paper_scale: IntProperty(
                                     name = "paper_scale",
                                     description = "Length on Paper",
                                     default = 1, min = 1, 
@@ -167,7 +171,7 @@ class ViewProperties(PropertyGroup):
                                     )
         
     #Pixel Length
-    pixel_scale: bpy.props.IntProperty(
+    pixel_scale: IntProperty(
                                     name = "Pixel Scale",
                                     subtype = 'PIXEL',
                                     default = 100, 
@@ -176,7 +180,7 @@ class ViewProperties(PropertyGroup):
                                     )
         
     #Resolution Type
-    res_type: bpy.props.EnumProperty(
+    res_type: EnumProperty(
                                 items=[
                                     ('res_type_paper','Paper','Define Resolution by Paper Size and Pixels Per Inch'), 
                                     ('res_type_pixels','Pixels','Blender Standard, Define Resolution in Pixels')
@@ -187,6 +191,14 @@ class ViewProperties(PropertyGroup):
                                 update = update
                                 #options = 'ENUM_FLAG'
                                 )
+
+    output_path: StringProperty(
+                name="Output Path",
+                description="Render Output Path for this View",
+                subtype = 'FILE_PATH',
+                default="",
+                update= update
+                )
         
 bpy.utils.register_class(ViewProperties)
 
@@ -288,7 +300,7 @@ class SCENE_PT_Views(Panel):
                     col.operator("measureit_arch.renderpreviewbutton", icon='RENDER_STILL', text="Render View Preview")
                     #col.operator("bind_marker.bind_marker", text = "Bind Camera To Frame", icon = 'CAMERA_DATA')
                     col.prop(camera, "type", text="Camera Type")
-                    
+                    col.prop(view, "output_path")
                     
                     col.row().prop(view, 'res_type', expand=True)
                     

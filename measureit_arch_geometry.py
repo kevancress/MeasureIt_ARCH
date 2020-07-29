@@ -2315,7 +2315,7 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
         scale = view.model_scale / view.paper_scale
 
 
-    size = capSize/ 393.701
+    size = (capSize/ 393.701)/4
     size *= scale
 
     distVector = Vector(pos-Vector(midpoint)).normalized()
@@ -2665,7 +2665,8 @@ def format_distance(fmt, value, factor=1,isArea=False):
     scaleFactor = bpy.context.scene.unit_settings.scale_length
     unit_system = bpy.context.scene.unit_settings.system
     unit_length = bpy.context.scene.unit_settings.length_unit
-    seperate_units = bpy.context.scene.unit_settings.use_separate
+    seperate_units = bpy.context.scene.unit_settings.use_separate 
+    sceneProps = bpy.context.scene.MeasureItArchProps
 
     toInches = 39.3700787401574887
     inPerFoot = 11.999
@@ -2678,7 +2679,7 @@ def format_distance(fmt, value, factor=1,isArea=False):
 
     # Imperial Formating
     if unit_system == "IMPERIAL":
-        base = int(bpy.context.scene.measureit_arch_imperial_precision)
+        base = int(sceneProps.imperial_precision)
         decInches = value * toInches
         
         # Seperate ft and inches
@@ -3120,7 +3121,8 @@ def format_angle(angle):
         arc_angle = degrees(angle)
     else:
         a_code = " rad"
-    angleString = " " + textFormat % arc_angle
+
+    angleString = "" + textFormat % arc_angle
     angleString += a_code
 
     return angleString
