@@ -1457,22 +1457,22 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             midPoint = Vector(interpolate3d(zeroVec,radiusLeader,radius/2))
             vecY =  midPoint.cross(norm).normalized()
             vecX = midPoint.normalized()
-            origin = Vector(midPoint) + 0.04*vecY + center
+            rad_origin = Vector(midPoint) + 0.04*vecY + center
             dim.textAlignment = 'C'
-            square = generate_text_card(context,radiusText,dimProps,basePoint=origin,xDir=vecX,yDir=vecY)
+            rad_square = generate_text_card(context,radiusText,dimProps,basePoint=rad_origin,xDir=vecX,yDir=vecY)
                 
             if scene.measureit_arch_gl_show_d:
-                draw_text_3D(context,dim.textFields[0],dimProps,myobj,square)
+                draw_text_3D(context,dim.textFields[0],dimProps,myobj,rad_square)
 
         #make Length text card        
         midPoint = radiusLeader.normalized()*offsetRadius
         vecX =  midPoint.cross(norm).normalized()
         vecY = midPoint.normalized()
-        origin = Vector(midPoint) + center
-        square = generate_text_card(context,lengthText,dimProps,basePoint=origin,xDir=vecX,yDir=vecY)
+        len_origin = Vector(midPoint) + center
+        len_square = generate_text_card(context,lengthText,dimProps,basePoint=len_origin,xDir=vecX,yDir=vecY)
             
         if scene.measureit_arch_gl_show_d:
-            draw_text_3D(context,dim.textFields[1],dimProps,myobj,square)
+            draw_text_3D(context,dim.textFields[1],dimProps,myobj,len_square)
 
         measure_coords = []
         measure_pointCoords = []
@@ -1507,18 +1507,18 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             pointCenter = [center]
             draw_points(lineWeight*5,rgb,pointCenter)
 
+
         if len(filledCoords) != 0:
-            mappedFilledCoords = []
-            for coord in filledCoords:
-                mappedFilledCoords.append(coord+center)
             draw_filled_coords(filledCoords,rgb)
 
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_line_shader(dim,measure_coords, lineWeight*2, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, lengthText.text, origin, square, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, radiusText.text, origin, square, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dim, lengthText.text, len_origin, len_square, rgb, svg, parent=svg_dim)
+            if dim.showRadius:
+                svg_shaders.svg_text_shader(dim, radiusText.text, rad_origin, rad_square, rgb, svg, parent=svg_dim)
         
     #Reset openGL Settings
     set_OpenGL_Settings(False)

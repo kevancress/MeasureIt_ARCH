@@ -73,6 +73,7 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
 
     
     dirVec = Vector(ssp1) - Vector(ssp2)
+    midVec = (Vector(ssp1) + Vector(ssp3))/2 
 
     if dirVec.length == 0:
         return
@@ -84,7 +85,7 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
         text_anchor = 'left'
 
     if item.textAlignment == 'C':
-        text_position  = (Vector(ssp1) + Vector(ssp3))/2 
+        text_position  = midVec
         text_anchor = 'middle'
 
     if item.textAlignment == 'R':
@@ -102,6 +103,7 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
                 text_position[0],
                 text_position[1]
             ),
+
             'font-size': item.fontSize*3.5,
             'font-family': 'OpenGost Type B TT',
             'text-anchor': text_anchor
