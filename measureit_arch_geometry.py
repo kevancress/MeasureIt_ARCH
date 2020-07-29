@@ -829,6 +829,12 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 #bind shader
                 draw_lines(lineWeight,rgb,coords, twoPass=True)
 
+                if sceneProps.is_vector_draw:
+                    svg_dim = svg.add(svg.g(id=dim.name))
+                    svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
+                    svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
+                    svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+
             idx+=1
 
     #Reset openGL Settings
@@ -1108,6 +1114,12 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
         #bind shader
         draw_lines(lineWeight,rgb,coords, twoPass=True)
 
+        if sceneProps.is_vector_draw:
+            svg_dim = svg.add(svg.g(id=dim.name))
+            svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+
     #Reset openGL Settings
     set_OpenGL_Settings(False)
  
@@ -1189,6 +1201,9 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
             dim.textFields[0].text = str(angleText)
             dim.textFields[0].text_updated = True
         
+        dimText = dim.textFields[0]
+        origin = midPoint
+
         #make text card
         vecX = midVec.cross(norm).normalized()
         square = generate_text_card(context,dim.textFields[0],dimProps,basePoint=midPoint, xDir=vecX, yDir= midVec)
@@ -1234,6 +1249,12 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
             draw_filled_coords(filledCoords,rgb)
 
         draw_lines(lineWeight,rgb,coords,twoPass=True, pointPass=True, pointCoords=pointCoords)
+
+        if sceneProps.is_vector_draw:
+            svg_dim = svg.add(svg.g(id=dim.name))
+            svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
 
     #Reset openGL Settings
     set_OpenGL_Settings(False)
@@ -1491,6 +1512,13 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             for coord in filledCoords:
                 mappedFilledCoords.append(coord+center)
             draw_filled_coords(filledCoords,rgb)
+
+        if sceneProps.is_vector_draw:
+            svg_dim = svg.add(svg.g(id=dim.name))
+            svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dim, lengthText.text, origin, square, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dim, radiusText.text, origin, square, rgb, svg, parent=svg_dim)
         
     #Reset openGL Settings
     set_OpenGL_Settings(False)
