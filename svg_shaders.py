@@ -33,7 +33,7 @@ import gpu
 
 def svg_line_shader(item, coords,thickness,color,svg,parent=None,mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
-    svgColor = svgwrite.rgb(color[0]*255, color[1]*255, color[2]*255, '%')
+    svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
     
     lines = svg.g(id=idName,stroke=svgColor, stroke_width=thickness, stroke_linecap = 'round')
     if parent:
@@ -52,7 +52,7 @@ def svg_line_shader(item, coords,thickness,color,svg,parent=None,mat=Matrix.Iden
 def svg_fill_shader(item, coords,color,svg,parent=None):
     coords_2d = []
     idName = item.name + "_fills"
-    svgColor = svgwrite.rgb(color[0]*255, color[1]*255, color[2]*255, '%')
+    svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
     fills = svg.g(id=idName,fill=svgColor)
     parent.add(fills)
 
@@ -66,7 +66,7 @@ def svg_fill_shader(item, coords,color,svg,parent=None):
 
 def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
     text_position = get_render_location(mid)
-    svgColor = svgwrite.rgb(color[0]*255, color[1]*255, color[2]*255, '%')
+    svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
     ssp1 = get_render_location(textCard[0])
     ssp2 = get_render_location(textCard[3])
     ssp3 = get_render_location(textCard[2])

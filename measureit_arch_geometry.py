@@ -495,9 +495,9 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
 
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
-            svg_shaders.svg_line_shader(dim,coords, lineWeight, rawRGB, svg, parent=svg_dim)
-            svg_shaders.svg_fill_shader(dim, filledCoords, rawRGB, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rawRGB, svg, parent=svg_dim)
+            svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
     
     set_OpenGL_Settings(False)
 
@@ -1517,6 +1517,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         fillRGB = (rgb[0],rgb[1],rgb[2],dim.fillAlpha)
 
         rawTextRGB = dimProps.color
+        textRGB = rgb_gamma_correct(rawTextRGB)
 
         bm = bmesh.new()
         if myobj.mode != 'EDIT':
@@ -1627,9 +1628,9 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         # Draw SVG
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
-            svg_shaders.svg_line_shader(dim, perimeterCoords, lineWeight, rawRGB, svg, parent=svg_dim)
-            svg_shaders.svg_fill_shader(dim, filledCoords, rawRGB, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rawTextRGB, svg, parent=svg_dim)
+            svg_shaders.svg_line_shader(dim, perimeterCoords, lineWeight, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_fill_shader(dim, filledCoords, fillRGB, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, textRGB, svg, parent=svg_dim)
     
     set_OpenGL_Settings(False)
 
@@ -2007,7 +2008,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 gpu.shader.unbind()
                 
             if sceneProps.is_vector_draw:
-                svg_shaders.svg_line_shader(lineGroup, coords, lineWeight, rawRGB, svg, mat=mat)
+                svg_shaders.svg_line_shader(lineGroup, coords, lineWeight, rgb, svg, mat=mat)
 
                 
         
@@ -2151,11 +2152,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
             if sceneProps.is_vector_draw:
                 svg_anno = svg.add(svg.g(id=annotation.name))
-                svg_shaders.svg_line_shader(annotation,coords, lineWeight, rawRGB, svg, parent=svg_anno)
-                svg_shaders.svg_fill_shader(annotation, filledCoords, rawRGB, svg, parent=svg_anno)
+                svg_shaders.svg_line_shader(annotation,coords, lineWeight, rgb, svg, parent=svg_anno)
+                svg_shaders.svg_fill_shader(annotation, filledCoords, rgb, svg, parent=svg_anno)
                 for textField in annotation.textFields:
                     textcard = textField['textcard']
-                    svg_shaders.svg_text_shader(annotation, textField.text, origin, textcard, rawRGB, svg, parent=svg_anno)
+                    svg_shaders.svg_text_shader(annotation, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
 
         set_OpenGL_Settings(False)
 

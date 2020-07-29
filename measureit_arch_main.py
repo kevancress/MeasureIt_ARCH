@@ -132,7 +132,7 @@ bpy.app.handlers.save_pre.append(save_handler)
 # ------------------------------------------------------------------
 class MeasureitArchMainPanel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
-    bl_label = "MeasureIt ARCH V0.4.1(Dev)"
+    bl_label = "MeasureIt ARCH V0.4.6(Dev)"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
     bl_category = 'MeasureIt-ARCH'
