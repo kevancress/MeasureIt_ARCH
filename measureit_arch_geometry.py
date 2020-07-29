@@ -2113,11 +2113,14 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                  
                 draw_lines(lineWeight,rgb,coords, twoPass=True,pointPass=True)
             
+        
             # Draw Line Endcaps
             if endcap == 'D':                
                 pointcoords = [p1]
                 draw_points(endcapSize,rgb,pointcoords,depthpass=True)
             
+
+            filledCoords = []
             if endcap == 'T':
                 axis = Vector(p1) - Vector(p2)
                 line = interpolate3d(Vector((0,0,0)), axis, -0.1)
@@ -2125,7 +2128,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 perp = line.orthogonal()
                 rotangle = annotationProps.endcapArrowAngle-radians(5)
                 line.rotate(Quaternion(perp,rotangle))
-                filledCoords = []
+                
                 for idx in range (12):
                     rotangle = radians(360/12)
                     filledCoords.append(line.copy() + Vector(p1))
@@ -2139,6 +2142,14 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 for textField in annotation.textFields:
                     textcard = textField['textcard']
                     draw_text_3D(context,textField,annotationProps,myobj,textcard)                
+
+            if sceneProps.is_vector_draw:
+                svg_anno = svg.add(svg.g(id=annotation.name))
+                svg_shaders.svg_line_shader(annotation,coords, lineWeight, rgb, svg, parent=svg_anno)
+                svg_shaders.svg_fill_shader(annotation, filledCoords, rgb, svg, parent=svg_anno)
+                for textField in annotation.textFields:
+                    textcard = textField['textcard']
+                    svg_shaders.svg_text_shader(annotation, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
 
         set_OpenGL_Settings(False)
 

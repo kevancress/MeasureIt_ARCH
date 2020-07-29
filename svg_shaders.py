@@ -79,6 +79,7 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
     text_position  = (Vector(ssp1) + Vector(ssp3)) / 2 
 
     rotation = math.degrees(dirVec.angle_signed(Vector((1, 0))))
+    rotation += 180 
   
     parent.add(svg.text(text, insert=tuple(text_position), fill=svgColor, **{
             'transform': 'rotate({} {} {})'.format(

@@ -579,9 +579,9 @@ def render_main_svg(self, context, animation=False):
                 op = myobj.LineGenerator[0]
                 draw_line_group(context, myobj, op, mat,svg=svg)
             
-            #if 'AnnotationGenerator' in myobj:
-            #    op = myobj.AnnotationGenerator[0]
-            #    draw_annotation(context, myobj, op, mat)                
+            if 'AnnotationGenerator' in myobj:
+                op = myobj.AnnotationGenerator[0]
+                draw_annotation(context, myobj, op, mat, svg=svg)                
         
         if False:
             # Draw Instance 
