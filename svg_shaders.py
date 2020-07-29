@@ -34,7 +34,8 @@ import gpu
 def svg_line_shader(item, coords,thickness,color,svg,parent=None,mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
     svgColor = svgwrite.rgb(color[0]*255, color[1]*255, color[2]*255, '%')
-    lines = svg.g(id=idName,stroke=svgColor, stroke_width=thickness)
+    
+    lines = svg.g(id=idName,stroke=svgColor, stroke_width=thickness, stroke_linecap = 'round')
     if parent:
         parent.add(lines)
     else:
