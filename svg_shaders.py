@@ -71,12 +71,26 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
     ssp2 = get_render_location(textCard[3])
     ssp3 = get_render_location(textCard[2])
 
+    
     dirVec = Vector(ssp1) - Vector(ssp2)
 
     if dirVec.length == 0:
         return
 
-    text_position  = (Vector(ssp1) + Vector(ssp3)) / 2 
+    text_position = (0,0)
+    text_anchor = 'left'
+    if item.textAlignment == 'L':
+        text_position  = Vector(ssp1)
+        text_anchor = 'left'
+
+    if item.textAlignment == 'C':
+        text_position  = (Vector(ssp1) + Vector(ssp3))/2 
+        text_anchor = 'middle'
+
+    if item.textAlignment == 'R':
+        text_position  =  Vector(ssp3) 
+        text_anchor = 'right'
+ 
 
     rotation = math.degrees(dirVec.angle_signed(Vector((1, 0))))
     rotation += 180 
@@ -87,9 +101,9 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
                 text_position[0],
                 text_position[1]
             ),
-            'font-size': 12,
+            'font-size': item.fontSize*3.5,
             'font-family': 'OpenGost Type B TT',
-            'text-anchor': 'middle'
+            'text-anchor': text_anchor
         }))
 
 
