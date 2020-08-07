@@ -154,7 +154,7 @@ class MeasureitArchMainPanel(Panel):
         # ------------------------------
        
         box = layout.box()
-        box.label(text="Show/Hide Measure-It")
+        box.label(text="Show/Hide MeasureIt-ARCH")
         row = box.row(align=True)
         
         if context.window_manager.measureit_arch_run_opengl is False:
