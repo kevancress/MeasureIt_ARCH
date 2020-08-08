@@ -19,7 +19,7 @@ There are two ways to install the add-on:
 
 ![image](docs/install-1.jpg)
 
- * Navigate to and double click on the "MeasureIt-ARCH_<downloaded version number>.zip"
+ * Navigate to and double click on the "MeasureIt-ARCH_VERSION.zip"
  * Click the Checkbox to enable the Add-on
 
 ### Latest git master
@@ -27,7 +27,7 @@ There are two ways to install the add-on:
  * [Install Blender 2.8 or higher](https://www.blender.org/download/)
  * Locate your platform and Blender installation specific Blender addons directory:
    * On Windows, this is usually `/Program Files/Blender Foundation/...`
-   * On Mac, this is usually `/Applications/Blender.app/Contents/Resources/<blender version number>/scripts/addons`
+   * On Mac, this is usually `/Applications/Blender.app/Contents/Resources/BLENDER_VERSION/scripts/addons`
    * There is alsoa  __major gotcha__ regarding the git master version should you wish to use the module in conjunction with other add-ons such as BlenderBIM. In this case, you will need to rename the directory as follows: `mv MeasureIt-ARCH MeasureIt_ARCH`. This is because Python does not support dashes in library names.
 
 
