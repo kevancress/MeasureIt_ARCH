@@ -264,7 +264,7 @@ MeasureIt-ARCH Unit Settings can be found in Blender's Scene Settings under the 
    * __Add Text Field__: Adds a text field to the selected Annotation.
    * __Remove Text Field__: Removes the last text field from the selected Annotation.
 
-#### Annotation Settings__
+#### Annotation Settings
 
 ![image](docs/ui-annotation-settings.jpg)
 
