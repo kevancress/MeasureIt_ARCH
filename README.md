@@ -108,33 +108,19 @@ The main tool panel is where you can add MeasureIt-ARCH Items to your 3D scene. 
 
 ##### Add Lines
 
-###### Line Group (Edit Mode Only)
-
- * Creates a Line Group from selected edges. Select the desired edges in edit mode and press the Line button.
-
-###### Line Group by Crease (Object Mode Only)
-
- * Creates a Line Group from any edges sharper than the specified crease angle.
-
+ * __Line Group (Edit Mode Only)__
+   * Creates a Line Group from selected edges. Select the desired edges in edit mode and press the Line button.
+ * __Line Group by Crease (Object Mode Only)__
+   * Creates a Line Group from any edges sharper than the specified crease angle.
 ![image](docs/ui-line-crease.jpg)
-
-##### Line Style (Color Swatch Icon)
-
- * Lets you select a style to be assigned to new Line Group on creation.
-   * This option only becomes visible once you create Styles in your Scene Settings.
+ * __Line Style (Color Swatch Icon)__: Style to be assigned to a new Line Group on creation.
+   * Only visible after creating a Style in the Scene Settings.
 
 ##### Add Annotations
 
-###### Annotation
-
- * Adds an Annotation to the selected Object or Vertex.
-
-![image](docs/ui-annotation-examples.jpg)
-
-###### Annotation Style (Color Swatch Icon)
-
- * Lets you select a Style to be assigned to new Annotation on creation.
- * *Note*: This option will not be visible if you have not created any styles in your scene.
+ * __Annotation__: * Adds an Annotation to the selected Object or Vertex.  ![image](docs/ui-annotation-examples.jpg)
+ * __Annotation Style (Color Swatch Icon)__: Style to be assigned to new Annotation on creation.
+   * Only visible after creating a Style in the Scene Settings.
 
 ### Scene Settings
 
