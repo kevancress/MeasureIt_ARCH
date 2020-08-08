@@ -118,7 +118,7 @@ The main tool panel is where you can add MeasureIt-ARCH Items to your 3D scene. 
 
 ##### Add Annotations
 
- * __Annotation__: * Adds an Annotation to the selected Object or Vertex.  ![image](docs/ui-annotation-examples.jpg)
+ * __Annotation__: Adds an Annotation to the selected Object or Vertex.  ![image](docs/ui-annotation-examples.jpg)
  * __Annotation Style (Color Swatch Icon)__: Style to be assigned to new Annotation on creation.
    * Only visible after creating a Style in the Scene Settings.
 
@@ -170,7 +170,7 @@ MeasureIt-ARCH Unit Settings can be found in Blender's Scene Settings under the 
  * Will Enable Dimension Instancing.
    * __WARNING__: Text on instanced Dimensions will not account for changes in the instances local scale or rotation.
 
-![image](ui-instance.jpg)
+![image](docs/ui-instance.jpg)
 
 #### Object Settings
 
