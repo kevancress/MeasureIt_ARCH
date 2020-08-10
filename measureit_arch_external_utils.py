@@ -25,9 +25,11 @@
 # ----------------------------------------------------------
 
 
-from .measureit_arch_geometry import get_mesh_vertex, get_point, sortPoints
+from .measureit_arch_geometry import get_mesh_vertex, get_point, sortPoints, select_normal, interpolate3d
+from mathutils import Vector, Matrix, Euler, Quaternion
+from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
 
-def blenderBIM_get_coords (context):
+def blenderBIM_get_coords (context, offset_pos=True):
     dim_coords_list = []
     
     scene = context.scene
@@ -61,7 +63,7 @@ def blenderBIM_get_coords (context):
                 DimGen = myobj.DimensionGenerator[0]
                 
                 for alignedDim in DimGen.alignedDimensions:
-                    dim_coords_list.append(get_dim_coords(context, myobj, DimGen, alignedDim, mat))
+                    dim_coords_list.append(get_dim_coords(context, myobj, DimGen, alignedDim, mat, offset_pos=offset_pos))
 
             #    for angleDim in DimGen.angleDimensions:
             #        draw_angleDimension(context, myobj, DimGen, angleDim,mat)
@@ -79,8 +81,9 @@ def blenderBIM_get_coords (context):
             #        draw_areaDimension(context,myobj,DimGen,areaDim,mat)
 
     print(dim_coords_list)
+    return dim_coords_list
 
-def get_dim_coords(context, myobj, DimGen, dim, mat):
+def get_dim_coords(context, myobj, DimGen, dim, mat, offset_pos = True):
     dimProps = dim
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
@@ -90,6 +93,9 @@ def get_dim_coords(context, myobj, DimGen, dim, mat):
     # get points positions from indicies
     aMatrix = dim.dimObjectA.matrix_world
     bMatrix = dim.dimObjectB.matrix_world
+
+    offset = dim.dimOffset
+    geoOffset = dim.dimLeaderOffset
 
     # get points positions from indicies
     p1Local = None
@@ -113,4 +119,27 @@ def get_dim_coords(context, myobj, DimGen, dim, mat):
     p1 = sortedPoints[0]
     p2 = sortedPoints[1]
 
-    return [p1,p2]
+    distVector = Vector(p1)-Vector(p2)
+    dist = distVector.length
+    midpoint = interpolate3d(p1, p2, fabs(dist / 2))
+    normDistVector = distVector.normalized()
+
+
+    # Compute offset vector from face normal and user input
+    rotationMatrix = Matrix.Rotation(dim.dimRotation, 4, normDistVector)
+    selectedNormal = Vector(select_normal(myobj, dim, normDistVector, midpoint, dimProps))
+    
+    userOffsetVector = rotationMatrix@selectedNormal
+    offsetDistance = userOffsetVector*offset
+    geoOffsetDistance = offsetDistance.normalized()*geoOffset
+
+    if offsetDistance < geoOffsetDistance:
+        offsetDistance = geoOffsetDistance
+
+    dimLineStart = Vector(p1)+offsetDistance
+    dimLineEnd = Vector(p2)+offsetDistance
+    
+    if offset_pos:
+        return [dimLineStart,dimLineEnd]
+    else:
+        return [p1,p2]

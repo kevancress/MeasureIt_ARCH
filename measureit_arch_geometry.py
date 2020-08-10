@@ -405,7 +405,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         dist = distVector.length
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
-        absNormDistVector = Vector((abs(normDistVector[0]),abs(normDistVector[1]),abs(normDistVector[2])))
 
 
         # Compute offset vector from face normal and user input
@@ -1592,8 +1591,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         for edgeIdx in dim['perimeterEdgeBuffer'].to_list():
             edge = bm.edges[edgeIdx]
             verts = edge.verts
-            perimeterCoords.append(verts[0].co)
-            perimeterCoords.append(verts[1].co)
+            perimeterCoords.append(mat@verts[0].co)
+            perimeterCoords.append(mat@verts[1].co)
 
         # Format and draw Text
         if 'textFields' not in dim:

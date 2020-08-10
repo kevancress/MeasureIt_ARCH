@@ -98,10 +98,11 @@ class BaseProp:
                 size=4,
                 update=update_flag)
 
-    lineWeight: IntProperty(name="Line Weight",
+    lineWeight: FloatProperty(name="Line Weight",
                 description="Lineweight",
                 default = 1,
                 soft_min = 1,
+                step = 0.25,
                 min = 0)
 
     free: BoolProperty(name="Free",

@@ -367,7 +367,6 @@ def render_main(self, context, animation=False):
     # Create image
     # -----------------------------
     image_name = "measureit_arch_output"
-    image = None
     if image_name not in bpy.data.images:
         image = bpy.data.images.new(image_name, width, height)
     else:
