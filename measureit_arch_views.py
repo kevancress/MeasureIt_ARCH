@@ -18,6 +18,8 @@ from bpy.props import (
         )
 
 from .measureit_arch_render import render_main
+from datetime import datetime
+
 
 def update(self,context):
     if context == None:
@@ -34,7 +36,17 @@ def update(self,context):
 
     render = scene.render
     if view.output_path is not "":
-        render.filepath = view.output_path
+        filenameStr = context.view_layer.name + '_' + view.name 
+        render.filepath = os.path.join(view.output_path, filenameStr)
+        if view.date_folder:
+            today = datetime.now()
+            renderpath = bpy.path.abspath(view.output_path)
+            datepath = os.path.join(renderpath, today.strftime('%Y%m%d'))
+            if not os.path.exists(datepath):
+                os.mkdir(renderpath + today.strftime('%Y%m%d'))
+            render.filepath = os.path.join(datepath, filenameStr)
+            
+
     
 def update_camera(scene,camera):
     render = scene.render
@@ -191,6 +203,9 @@ class ViewProperties(PropertyGroup):
                                 update = update
                                 #options = 'ENUM_FLAG'
                                 )
+    date_folder: BoolProperty(name= "Date Folder",
+                description= "Adds a Folder with todays date to the end of the output path",
+                default=False)
 
     output_path: StringProperty(
                 name="Output Path",
@@ -199,7 +214,7 @@ class ViewProperties(PropertyGroup):
                 default="",
                 update= update
                 )
-        
+            
 bpy.utils.register_class(ViewProperties)
 
 class ViewContainer(PropertyGroup):
@@ -301,6 +316,7 @@ class SCENE_PT_Views(Panel):
                     #col.operator("bind_marker.bind_marker", text = "Bind Camera To Frame", icon = 'CAMERA_DATA')
                     col.prop(camera, "type", text="Camera Type")
                     col.prop(view, "output_path")
+                    col.prop(view, "date_folder", text="Date Folder")
                     
                     col.row().prop(view, 'res_type', expand=True)
                     
