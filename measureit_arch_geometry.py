@@ -425,10 +425,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         
         # Define Lines
         leadStartA = Vector(p1) + geoOffsetDistance
-        leadEndA = Vector(p1) + offsetDistance + cap_extension(offsetDistance,capSize)
+        leadEndA = Vector(p1) + offsetDistance + cap_extension(offsetDistance,capSize,dimProps.endcapArrowAngle)
 
         leadStartB = Vector(p2) + geoOffsetDistance
-        leadEndB = Vector(p2) + offsetDistance + cap_extension(offsetDistance,capSize)
+        leadEndB = Vector(p2) + offsetDistance + cap_extension(offsetDistance,capSize,dimProps.endcapArrowAngle)
 
         dimLineStart = Vector(p1)+offsetDistance
         dimLineEnd = Vector(p2)+offsetDistance
@@ -762,10 +762,10 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 
                 # Define Lines
                 leadStartA = Vector(p1) + geoOffsetDistance
-                leadEndA = Vector(p1) + offsetDistance + cap_extension(offsetDistance,capSize)
+                leadEndA = Vector(p1) + offsetDistance + cap_extension(offsetDistance,capSize,dimProps.endcapArrowAngle)
 
                 leadStartB = Vector(p2) + geoOffsetDistance
-                leadEndB = Vector(p2) + offsetDistance + cap_extension(offsetDistance,capSize)
+                leadEndB = Vector(p2) + offsetDistance + cap_extension(offsetDistance,capSize,dimProps.endcapArrowAngle)
 
                 dimLineStart = Vector(p1)+offsetDistance
                 dimLineEnd = Vector(p2)+offsetDistance
@@ -1044,7 +1044,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
 
         #Lines
         leadStartA = Vector(basePoint) + geoOffsetDistance
-        leadEndA = Vector(basePoint) + offsetDistance + cap_extension(offsetDistance,capSize)
+        leadEndA = Vector(basePoint) + offsetDistance + cap_extension(offsetDistance,capSize,dimProps.endcapArrowAngle)
 
         leadEndB =  leadEndA - Vector(secondPointAxis)
         leadStartB = Vector(secondPoint) - viewAxisDiff + geoOffsetDistance
@@ -3071,8 +3071,8 @@ def draw_lines(lineWeight, rgb, coords, offset = -0.001, twoPass = False, pointP
         
     bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
-def cap_extension(dirVec,capSize):
-    return dirVec.normalized() * 0.0005 * capSize
+def cap_extension(dirVec,capSize, capAngle):
+    return dirVec.normalized() * 0.02 * capSize * sin(capAngle)
 
 def dim_line_extension(capSize):
     context = bpy.context
@@ -3093,7 +3093,7 @@ def dim_line_extension(capSize):
     if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
         scale = view.model_scale / view.paper_scale
 
-    return (capSize / 200)*scale
+    return (capSize / 750)*scale
 
 def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize = 0):
     # Set Text Alignment 
@@ -3105,13 +3105,13 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     normDistVector = distVec.normalized()
     dimText = dim.textFields[0]
     
-    if dim.textAlignment == 'L' :
+    if dimProps.textAlignment == 'L' :
         dimProps.textPosition = 'M'
         flipCaps=True
         dimLineExtension = dim_line_extension(capSize)
         origin += Vector((dist/2 + dimLineExtension*1.2)* normDistVector)
         
-    elif dim.textAlignment == 'R':
+    elif dimProps.textAlignment == 'R':
         flipCaps=True
         dimProps.textPosition = 'M'
         dimLineExtension = dim_line_extension(capSize)

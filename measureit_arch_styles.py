@@ -271,8 +271,9 @@ class AddStyleButton(Operator):
                     if self.styleType is 'A':
                         newStyle = annotationStyles.add()
                         newStyle.itemType = 'A'
-                        newStyle.fontSize = 24
+                        newStyle.fontSize = 18
                         newStyle.lineWeight = 1
+                        newStyle.textAlignment = 'L'
                         newStyle.name = 'Annotation Style ' + str(len(annotationStyles))
                         newWrapper.itemType = 'A'
 
@@ -287,7 +288,8 @@ class AddStyleButton(Operator):
                     else:
                         newStyle = alignedDimStyles.add()
                         newStyle.itemType = 'D'
-                        newStyle.fontSize = 24
+                        newStyle.fontSize = 18
+                        newStyle.textAlignment = 'C'
                         newStyle.lineWeight = 1
                         newStyle.name = 'Dimension Style ' + str(len(alignedDimStyles))
                         newWrapper.itemType = 'D'
@@ -439,7 +441,7 @@ def draw_dim_style_settings(dim,layout):
     col = layout.column(align=True)
     col.prop(dim,'fontSize',text='Font Size')
     col.prop(dim,'textResolution',text='Resolution')
-    #col.prop(dim,'textAlignment',text='Alignment')
+    col.prop(dim,'textAlignment',text='Alignment')
     #col.prop(dim,'textPosition',text='Position')
 
     col = layout.column(align=True)

@@ -248,8 +248,6 @@ class AddAlignedDimensionButton(Operator):
 
                         DimGen = mainobject.DimensionGenerator[0]
                         masterDimOffset = 0
-                        masterDimFontSize = 0
-                        masterDimEndCapSize = 0
                         masterDimLeaderOffset = 0
 
                         for x in range(0, len(mylist) - 1, 2):
