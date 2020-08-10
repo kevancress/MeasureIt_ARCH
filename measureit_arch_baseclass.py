@@ -102,7 +102,7 @@ class BaseProp:
                 description="Lineweight",
                 default = 1,
                 soft_min = 1,
-                step = 0.25,
+                step = 1,
                 min = 0)
 
     free: BoolProperty(name="Free",

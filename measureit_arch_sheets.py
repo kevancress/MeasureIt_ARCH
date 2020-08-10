@@ -178,8 +178,10 @@ class SCENE_PT_Sheet(Panel):
             if SheetGen.show_settings:
                 col = box.column()
                 col.prop(view,'scene',text="Scene")
-                viewGen = view.scene.ViewGenerator
-                col.prop_search(view,'view', viewGen, 'views',text="View", icon='CAMERA_DATA')
-                    
-                col.prop(view, 'location', text='Location')
-                #col.prop(view, 'rotation', text='Rotation')
+
+                if view.scene is not None:
+                    viewGen = view.scene.ViewGenerator
+                    col.prop_search(view,'view', viewGen, 'views',text="View", icon='CAMERA_DATA')
+                        
+                    col.prop(view, 'location', text='Location')
+                    #col.prop(view, 'rotation', text='Rotation')

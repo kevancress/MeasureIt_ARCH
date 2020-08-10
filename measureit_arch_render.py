@@ -83,12 +83,11 @@ class MeasureitArchRenderPanel(Panel):
         col.label(text="MeasureIt-ARCH Render")
         col = layout.column(align=True)
         col.scale_y = 1.5
-        col.operator("measureit_arch.rendersegmentbutton", icon='RENDER_STILL', text= "MeasureIt-ARCH Image")
+        col.operator("measureit_arch.render_image", icon='RENDER_STILL', text= "MeasureIt-ARCH Image")
         col.operator("measureit_arch.render_anim", icon='RENDER_ANIMATION', text= "MeasureIt-ARCH Animation")
+        col.operator("measureit_arch.rendersvgbutton", icon='DOCUMENTS', text= "MeasureIt-ARCH Vector")
         if sceneProps.enable_experimental:
-            col.operator("measureit_arch.rendersvgbutton", icon='DOCUMENTS', text= "MeasureIt-ARCH Vector")
             col = layout.column()
-
             col.prop(sceneProps, "vector_depthtest", text="Use Vector DepthTest")
         col = layout.column()
         
@@ -101,7 +100,7 @@ class MeasureitArchRenderPanel(Panel):
 # -------------------------------------------------------------
 
 class RenderSegmentButton(Operator):
-    bl_idname = "measureit_arch.rendersegmentbutton"
+    bl_idname = "measureit_arch.render_image"
     bl_label = "Render"
     bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
     bl_category = 'MeasureitArch'
@@ -132,13 +131,6 @@ class RenderSegmentButton(Operator):
         if render_result[0] is True:
             self.report({'INFO'}, msg)
         del render_result
-
-        for area in context.screen.areas:
-            area.tag_redraw()
-            for region in area.regions:
-                region.tag_redraw()
-        
-        bpy.context.view_layer.update()
 
         return {'FINISHED'}
 
@@ -263,17 +255,17 @@ def render_main(self, context, animation=False):
 
 
     # Draw all lines in Offsecreen
-    renderoffscreen = gpu.types.GPUOffScreen(width, height)
+    renderoffscreen = gpu.types.GPUOffScreen(width, height, samples = 0)
     
     view_matrix_3d = scene.camera.matrix_world.inverted()
     projection_matrix = scene.camera.calc_matrix_camera(context.view_layer.depsgraph, x=width, y=height)
-    with renderoffscreen.bind(save=True):
+
+    set_OpenGL_Settings(True)
+    with renderoffscreen.bind():
 
         # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-        bgl.glClearDepth(clipdepth)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthFunc(bgl.GL_LEQUAL)  
+        bgl.glClearDepth(clipdepth) 
 
         gpu.matrix.reset()
         gpu.matrix.load_matrix(view_matrix_3d)
@@ -321,7 +313,7 @@ def render_main(self, context, animation=False):
                             draw_areaDimension(context, myobj, measureGen,dim,mat)
 
                 if 'LineGenerator' in myobj:
-                    # Draw Line Groups
+                    # Draw Line Groups       
                     op = myobj.LineGenerator[0]
                     draw_line_group(context, myobj, op, mat)
             
@@ -360,21 +352,19 @@ def render_main(self, context, animation=False):
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
     
 
-    renderoffscreen.free()
-    bgl.glDisable(bgl.GL_DEPTH_TEST)
-
     # -----------------------------
     # Create image
     # -----------------------------
     image_name = "measureit_arch_output"
     if image_name not in bpy.data.images:
         image = bpy.data.images.new(image_name, width, height)
-    else:
-        image = bpy.data.images[image_name]
+
+    image = bpy.data.images[image_name]
 
     image.scale(width, height)
     image.pixels = [v / 255 for v in buffer]
 
+    renderoffscreen.free()
     # Saves image
     if image is not None and (scene.measureit_arch_render is True or animation is True):
         ren_path = bpy.context.scene.render.filepath
@@ -384,6 +374,7 @@ def render_main(self, context, animation=False):
         save_image(self, outpath, image)
 
     # restore default value
+    set_OpenGL_Settings(False)
     sceneProps.is_render_draw = False
     return True, buffer
 # -------------------------------------
@@ -419,9 +410,8 @@ def save_image(self, filepath, myimage):
 #--------------------------------------
 
 def draw_scene(self, context, projection_matrix):
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthFunc(bgl.GL_LESS)   
 
+    set_OpenGL_Settings(True)
     # Get List of Mesh Objects
     deps = bpy.context.view_layer.depsgraph
     for obj_int in deps.object_instances:
@@ -448,6 +438,7 @@ def draw_scene(self, context, projection_matrix):
             batch.program_set(depthOnlyshader)
             batch.draw()
             obj_eval.to_mesh_clear()
+            gpu.shader.unbind()
 
     #Write to Image for Debug
     debug=False
@@ -458,7 +449,7 @@ def draw_scene(self, context, projection_matrix):
         height = int(scene.render.resolution_y * render_scale)
 
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-        bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
+        bgl.glReadBuffer(bgl.COLOR_ATTACHMENT0)
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
 
         image_name = "measureit_arch_depth"
@@ -469,7 +460,7 @@ def draw_scene(self, context, projection_matrix):
         image.scale(width, height)
         image.pixels = [v / 255 for v in buffer]
 
-
+    set_OpenGL_Settings(False)
 
 def render_main_svg(self, context, animation=False):
 
