@@ -132,7 +132,7 @@ bpy.app.handlers.save_pre.append(save_handler)
 # ------------------------------------------------------------------
 class MeasureitArchMainPanel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
-    bl_label = "MeasureIt ARCH V0.4.6(Dev)"
+    bl_label = "MeasureIt-ARCH v0.4.6(git)"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
     bl_category = 'MeasureIt-ARCH'
@@ -154,7 +154,7 @@ class MeasureitArchMainPanel(Panel):
         # ------------------------------
        
         box = layout.box()
-        box.label(text="Show/Hide Measure-It")
+        box.label(text="Show/Hide MeasureIt-ARCH")
         row = box.row(align=True)
         
         if context.window_manager.measureit_arch_run_opengl is False:
