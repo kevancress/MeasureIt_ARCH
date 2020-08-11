@@ -514,7 +514,7 @@ def render_main_svg(self, context, animation=False):
         offscreen.free()
         set_OpenGL_Settings(False)
 
-        if True:
+        if False:
             imageName = 'depthBufferTest'
             if not imageName in bpy.data.images:
                 bpy.data.images.new(imageName, width, height, alpha=False, float_buffer=True, is_data=True)

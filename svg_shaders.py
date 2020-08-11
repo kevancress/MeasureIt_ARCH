@@ -27,9 +27,11 @@
 import bpy
 from mathutils import Vector, Matrix, Euler, Quaternion
 import math
+from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
 import bpy_extras.object_utils as object_utils
 import svgwrite
 import gpu
+from math import fabs
 
 def svg_line_shader(item, coords,thickness,color,svg,parent=None,mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
@@ -42,9 +44,10 @@ def svg_line_shader(item, coords,thickness,color,svg,parent=None,mat=Matrix.Iden
         svg.add(lines)
 
     for x in range(0, len(coords) - 1, 2):
-        if check_visible(coords[x],coords[x+1],mat,item):
-            p1ss = get_render_location(mat@Vector(coords[x]))
-            p2ss = get_render_location(mat@Vector(coords[x+1]))
+        vis, p1, p2 = check_visible(coords[x],coords[x+1],mat,item)
+        if vis:
+            p1ss = get_render_location(mat@Vector(p1))
+            p2ss = get_render_location(mat@Vector(p2))
             line = svg.line(start=tuple(p1ss),end=tuple(p2ss))
             lines.add(line)
     
@@ -164,16 +167,16 @@ def true_z_buffer(context,zValue):
         
 
 
-def check_visible(p1,p2,mat,item):
+def check_visible(p1,p2,mat,item,numIterations=0):
     context = bpy.context
     scene = bpy.context.scene
     camera = scene.camera
     render = scene.render
 
     if not scene.MeasureItArchProps.vector_depthtest:
-        return True
+        return True,p1,p2
 
-    print('Drawing: ' + item.name)  
+    #print('Drawing: ' + item.name)  
     z_offset = 0.1
     if 'lineDepthOffset' in item:
         z_offset += item.lineDepthOffset/10
@@ -208,10 +211,18 @@ def check_visible(p1,p2,mat,item):
 
     try:
         p1depth = depthbuffer[p1pxIdx]
+    except IndexError:
+        print('Index not in Depth Buffer: ' + str(p1pxIdx) + ', ' + str(p2pxIdx) )
+        p1Visible = True
+        p1depth = 0
+
+    try:
         p2depth = depthbuffer[p2pxIdx]
     except IndexError:
         print('Index not in Depth Buffer: ' + str(p1pxIdx) + ', ' + str(p2pxIdx) )
-        return False
+        p2Visible = True
+        p2depth = 0 
+
 
     p1depth = true_z_buffer(context,p1depth)
     p2depth = true_z_buffer(context,p2depth)
@@ -221,32 +232,98 @@ def check_visible(p1,p2,mat,item):
     p2vecdepth = (p2clip[2]) - z_offset
 
     # Check Clip space point against depth buffer value
-    print('')
-    print('p1')
-    print(p1clip)
-    print(str(p1depth) + ' vs ' + str(p1vecdepth) + ' at Coords: ' + str(p1ss[0]) + "," + str(p1ss[1]) + 'Index: ' + str(p1pxIdx))
+    #print('')
+    #print('p1')
+    #print(p1clip)
+    #print(str(p1depth) + ' vs ' + str(p1vecdepth) + ' at Coords: ' + str(p1ss[0]) + "," + str(p1ss[1]) + 'Index: ' + str(p1pxIdx))
     if p1depth > p1vecdepth:
         p1Visible = True
     else:
         p1Visible = False
-        print('p1 not visible')
+        #print('p1 not visible')
 
-    print('')
+    #print('')
 
-    print('p2')
-    print(p2clip)
-    print(str(p2depth) + ' vs ' + str(p2vecdepth) + ' at Coords: ' + str(p2ss[0]) + "," + str(p2ss[1]) + 'Index: ' + str(p2pxIdx))
+    #print('p2')
+    #print(p2clip)
+    #print(str(p2depth) + ' vs ' + str(p2vecdepth) + ' at Coords: ' + str(p2ss[0]) + "," + str(p2ss[1]) + 'Index: ' + str(p2pxIdx))
     if p2depth > p2vecdepth:
         p2Visible = True
     else:
         p2Visible = False
-        print('p2 not visible')
+        #print('p2 not visible')
 
 
     if p1Visible and p2Visible:
-        print('vis test passed')
-        return True
+        #print('vis test passed')
+        return True, p1, p2
+    elif not p1Visible and not p2Visible:
+        #print('vis test failed')
+        return False, p1, p2
     else:
-        print('vis test failed')
-        return False
-        
+        vis = False
+        maxIter = 7
+
+        if p1Visible and not p2Visible:
+            pass
+        else:
+            temp = p1
+            p1 = p2
+            p2 = temp
+
+        if numIterations <= maxIter:
+            numIterations += 1
+            distVector = Vector(p1)-Vector(p2)
+            dist = distVector.length
+            p3 = interpolate3d(p1,p2,fabs(dist - (dist/maxIter)*numIterations))
+            vis, p1, p2 = check_visible(p1,p3,mat,item,numIterations=numIterations)
+        return vis, p1, p2
+
+
+# --------------------------------------------------------------------
+# Interpolate 2 points in 3D space
+# v1: first point
+# v2: second point
+# d1: distance
+# return: interpolate point
+# --------------------------------------------------------------------
+def interpolate3d(v1, v2, d1):
+    # calculate vector
+    v = (v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2])
+    # calculate distance between points
+    d0, dloc = distance(v1, v2)
+
+    # calculate interpolate factor (distance from origin / distance total)
+    # if d1 > d0, the point is projected in 3D space
+    if d0 > 0:
+        x = d1 / d0
+    else:
+        x = d1
+
+    final = (v1[0] + (v[0] * x), v1[1] + (v[1] * x), v1[2] + (v[2] * x))
+    return final
+
+
+# --------------------------------------------------------------------
+# Distance between 2 points in 3D space
+# v1: first point
+# v2: second point
+# locx/y/z: Use this axis
+# return: distance
+# --------------------------------------------------------------------
+def distance(v1, v2, locx=True, locy=True, locz=True):
+    x = sqrt((v2[0] - v1[0]) ** 2 + (v2[1] - v1[1]) ** 2 + (v2[2] - v1[2]) ** 2)
+
+    # If axis is not used, make equal both (no distance)
+    v1b = [v1[0], v1[1], v1[2]]
+    v2b = [v2[0], v2[1], v2[2]]
+    if locx is False:
+        v2b[0] = v1b[0]
+    if locy is False:
+        v2b[1] = v1b[1]
+    if locz is False:
+        v2b[2] = v1b[2]
+
+    xloc = sqrt((v2b[0] - v1b[0]) ** 2 + (v2b[1] - v1b[1]) ** 2 + (v2b[2] - v1b[2]) ** 2)
+
+    return x, xloc
