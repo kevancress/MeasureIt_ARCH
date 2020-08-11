@@ -491,6 +491,7 @@ def render_main_svg(self, context, animation=False):
     if sceneProps.vector_depthtest:
         with offscreen.bind():
             # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
+            set_OpenGL_Settings(True)
             bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
             bgl.glClearDepth(clipdepth)
             bgl.glEnable(bgl.GL_DEPTH_TEST)
@@ -500,24 +501,27 @@ def render_main_svg(self, context, animation=False):
             gpu.matrix.load_matrix(view_matrix_3d)
             gpu.matrix.load_projection_matrix(projection_matrix)
 
-            texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+            texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
 
             draw_scene(self, context, projection_matrix) 
 
             bgl.glReadBuffer(bgl.GL_BACK)
-            bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
+            bgl.glReadPixels(0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
 
             if 'depthbuffer' in sceneProps:
                 del sceneProps['depthbuffer']
             sceneProps['depthbuffer'] = texture_buffer
         offscreen.free()
+        set_OpenGL_Settings(False)
 
         if True:
-            if not str('test') in bpy.data.images:
-                bpy.data.images.new(str('test'), width, height)
-            image = bpy.data.images[str('test')]
+            imageName = 'depthBufferTest'
+            if not imageName in bpy.data.images:
+                bpy.data.images.new(imageName, width, height, alpha=False, float_buffer=True, is_data=True)
+            image = bpy.data.images[imageName]
+
             image.scale(width, height)
-            image.pixels = [v / 255 for v in texture_buffer]
+            image.pixels = [v for v in texture_buffer]
 
 
 

@@ -130,38 +130,42 @@ def get_render_location(mypoint):
 
 
 def get_clip_space_coord(mypoint):
-    context = bpy.context
     scene = bpy.context.scene
     camera = scene.camera
-    render = scene.render
-
-
-    clip_end = camera.data.clip_end
-    clip_start = camera.data.clip_start
 
     v1 = Vector(mypoint)
     co_camera_space = object_utils.world_to_camera_view(scene, scene.camera, v1)
 
-    clip_space_z = (co_camera_space.z - clip_start)/ clip_end-clip_start
-
-    co_clip = Vector((co_camera_space.x,co_camera_space.y,co_camera_space.z/100))
+    co_clip = Vector((co_camera_space.x,co_camera_space.y,co_camera_space.z))
 
     return co_clip
 
+
+
+def true_z_buffer(context,zValue):
+    camera = context.scene.camera.data
+    if camera.type == 'ORTHO':
+        nearClip = camera.clip_start
+        farClip = camera.clip_end
+
+        depth = zValue * (farClip -nearClip) + nearClip
+        return depth
+
+    elif camera.type == 'PERSP':
+        nearClip = camera.clip_start
+        farClip = camera.clip_end
+
+        z_ndc = 2.0 * zValue - 1.0
+        depth = 2.0 * nearClip * farClip / (farClip + nearClip - z_ndc * (farClip - nearClip))
+        return depth
     
+    else:
+        return zValue
+        
 
-
-
-    #render_scale = scene.render.resolution_percentage / 100
-    #width = int(render.resolution_x * render_scale)
-    #height = int(render.resolution_y * render_scale)
-
-    #modelview_matrix = camera.matrix_world.inverted()
-    #projection_matrix = camera.calc_matrix_camera(context.evaluated_depsgraph_get(), x=width, y=height)
-           
-    #return modelview_matrix @ projection_matrix @ Vector((mypoint[0], mypoint[1], mypoint[2], 1))
 
 def check_visible(p1,p2,mat,item):
+    context = bpy.context
     scene = bpy.context.scene
     camera = scene.camera
     render = scene.render
@@ -170,10 +174,10 @@ def check_visible(p1,p2,mat,item):
         return True
 
     print('Drawing: ' + item.name)  
+    z_offset = 0.1
     if 'lineDepthOffset' in item:
-        z_offset = 1.0
-    else:
-        z_offset = 1.0
+        z_offset += item.lineDepthOffset/10
+        
 
     p1Visible = True
     p2Visible = True
@@ -199,34 +203,40 @@ def check_visible(p1,p2,mat,item):
     p2clip = get_clip_space_coord(mat@ Vector(p2))
     
     # Get Buffer Index and depthbuffer value based on SS Point
-    p1pxIdx = int((width * (p1ss[1]) + p1ss[0]-1)*4)
-    p2pxIdx = int((width * (p2ss[1]) + p2ss[0]-1)*4)
+    p1pxIdx = int(((width * round(p1ss[1])) + round(p1ss[0])-1)*1)
+    p2pxIdx = int(((width * round(p2ss[1])) + round(p2ss[0])-1)*1)
 
     try:
-        p1depth = depthbuffer[p1pxIdx]/255
-        p2depth = depthbuffer[p2pxIdx]/255
+        p1depth = depthbuffer[p1pxIdx]
+        p2depth = depthbuffer[p2pxIdx]
     except IndexError:
-        print('Index not in Depth Buffer ')
+        print('Index not in Depth Buffer: ' + str(p1pxIdx) + ', ' + str(p2pxIdx) )
         return False
+
+    p1depth = true_z_buffer(context,p1depth)
+    p2depth = true_z_buffer(context,p2depth)
     
     # Get Depth From Clip Space point
-    p1vecdepth = (p1clip[2])
-    p2vecdepth = (p2clip[2])
+    p1vecdepth = (p1clip[2]) - z_offset
+    p2vecdepth = (p2clip[2]) - z_offset
 
     # Check Clip space point against depth buffer value
+    print('')
     print('p1')
     print(p1clip)
-    print(str(p1depth) + ' at Coords: ' + str(p1ss[0]) + "," + str(p1ss[1]) + 'Index :' + str(p1pxIdx))
-    if p1depth > p1vecdepth-z_offset/100 or p1depth == 0.0:
+    print(str(p1depth) + ' vs ' + str(p1vecdepth) + ' at Coords: ' + str(p1ss[0]) + "," + str(p1ss[1]) + 'Index: ' + str(p1pxIdx))
+    if p1depth > p1vecdepth:
         p1Visible = True
     else:
         p1Visible = False
         print('p1 not visible')
 
+    print('')
+
     print('p2')
     print(p2clip)
-    print(str(p2depth) + ' at Coords: ' + str(p2ss[0]) + "," + str(p2ss[1]) + 'Index :' + str(p2pxIdx))
-    if p2depth > p2vecdepth-z_offset/100 or p2depth == 0.0:
+    print(str(p2depth) + ' vs ' + str(p2vecdepth) + ' at Coords: ' + str(p2ss[0]) + "," + str(p2ss[1]) + 'Index: ' + str(p2pxIdx))
+    if p2depth > p2vecdepth:
         p2Visible = True
     else:
         p2Visible = False
