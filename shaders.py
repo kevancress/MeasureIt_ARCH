@@ -138,7 +138,7 @@ class Line_Shader_3D ():
             vec2 ssp1 = vec2(p1.xy / p1.w);
             vec2 ssp2 = vec2(p2.xy / p2.w);
 
-            float width = 0.00118 * thickness * aspect;
+            float width = 0.00118 * thickness * 1.333 * aspect;
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
@@ -189,7 +189,7 @@ class Line_Group_Shader_3D ():
         void main()
         {
            gl_Position = vec4(pos, 1.0);
-           vs_out.weightOut = weight;
+           vs_out.weightOut = weight*1.333;
         }
 
         '''

@@ -2447,19 +2447,8 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
     viewport = get_viewport()
 
 
-    ViewGen = scene.ViewGenerator
 
-    try:
-        view = ViewGen.views[ViewGen.active_index]
-    except:
-        view = None
-
-    scale = sceneProps.default_scale
-
-    # Ref Note: 1 pt = 1/72 of an inch
-
-    if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
-        scale = view.model_scale / view.paper_scale
+    scale = get_scale()
 
 
     #Define annotation Card Geometry
@@ -3132,10 +3121,17 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     
     return (square, flipCaps, dimLineExtension, origin)
 
-def get_viewport(renderScale = False):
+def get_viewport(renderScale = True):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
+    
+    ViewGen = scene.ViewGenerator
+
+    try:
+        view = ViewGen.views[ViewGen.active_index]
+    except:
+        view = None
 
     if sceneProps.is_render_draw:
         viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
@@ -3145,9 +3141,10 @@ def get_viewport(renderScale = False):
             # This does nothing for now
             rv3d = context.area.spaces[0].region_3d
             zoom = (rv3d.view_camera_zoom+30)/63
-            viewport = [context.scene.render.resolution_x/zoom,context.scene.render.resolution_y/zoom]
-            viewport = [context.area.width,context.area.height]
-            #viewAspect = viewport[0]/viewport[1]
+            viewAspect = viewport[0]/viewport[1]
+            viewport = [context.scene.render.resolution_x/zoom, (context.scene.render.resolution_y/zoom)/viewAspect]
+            #viewport = [context.area.width,context.area.height]
+       
             #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
             #renderAspect = render[0]/render[1]
             #apsectDiff = (viewAspect/renderAspect)/2
@@ -3173,3 +3170,23 @@ def format_angle(angle):
     angleString += a_code
 
     return angleString
+
+def get_scale():
+    scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
+    
+    ViewGen = scene.ViewGenerator
+
+    try:
+        view = ViewGen.views[ViewGen.active_index]
+    except:
+        view = None
+
+    scale = sceneProps.default_scale
+
+    # Ref Note: 1 pt = 1/72 of an inch
+
+    if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
+        scale = view.model_scale / view.paper_scale
+    
+    return scale
