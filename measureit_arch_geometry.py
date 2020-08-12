@@ -2168,6 +2168,18 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 for e in bm.edges:
                     tempCoords.extend([e.verts[0].co])
                     tempCoords.extend([e.verts[1].co])
+
+                mesh = obj.data
+                mesh.calc_loop_triangles()
+                tris = mesh.loop_triangles
+                tempVertices = []
+                indices = []
+
+                for tri in tris:
+                    for vert in tri.vertices:
+                        indices.append(bm.verts[vert].co)      
+   
+
                 
                 scale = mat.to_scale()
                 scaleMat = Matrix.Identity(3)
@@ -2181,8 +2193,17 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                     newCoord = newCoord + Vector(p2)
 
                     customCoords.append(newCoord)
+                
+                filledCoords = []
+                for vert in indices:
+                    newVert = scaleMat @ vert
+                    newVert = newVert + Vector(p2)
+
+                    filledCoords.append(newVert)
+
 
                 draw_lines(lineWeight,rgb,customCoords, twoPass=True,pointPass=True)
+                draw_filled_coords(filledCoords,rgb,polySmooth=False)
                 
                 
 
@@ -2224,7 +2245,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 svg_shaders.svg_fill_shader(annotation, filledCoords, rgb, svg, parent=svg_anno)
                 for textField in annotation.textFields:
                     textcard = textField['textcard']
-                    svg_shaders.svg_text_shader(annotation, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
+                    svg_shaders.svg_text_shader(annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
 
         set_OpenGL_Settings(False)
 

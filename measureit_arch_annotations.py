@@ -323,7 +323,8 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                             col = box.column(align=True)
                             col.prop(annotation, 'lineWeight', text="Line Weight" )
-                            col.prop_search(annotation,'customShape', bpy.data, 'objects',text='Custom Shape')  
+                            
+                        col.prop_search(annotation,'customShape', bpy.data, 'objects',text='Custom Shape')  
                         col = box.column()
                         col.prop(annotation, 'annotationOffset', text='Offset')
                         col.prop(annotation, 'annotationRotation', text='Rotation')
