@@ -1717,7 +1717,15 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
             cameraLoc = context.scene.camera.location.normalized()
             viewAxis = cameraLoc
         else:
-            viewRot = context.area.spaces[0].region_3d.view_rotation
+            space3D = None
+            for space in context.area.spaces:
+                if space.type == 'VIEW_3D':
+                    space3D = space
+
+            if space3D == None:
+                return Vector((0,0,0))
+
+            viewRot = space3D.region_3d.view_rotation
             viewVec = k.copy()
             viewVec.rotate(viewRot)
             viewAxis = viewVec
@@ -3131,8 +3139,8 @@ def get_viewport(renderScale = True):
         rv3d = context.area.spaces[0].region_3d
         zoom = (rv3d.view_camera_zoom+30)/63
         viewport = [context.area.width,context.area.height]
-        viewAspect = viewport[0]/viewport[1]
-        viewport = [context.scene.render.resolution_x, (context.scene.render.resolution_y)/viewAspect]
+        #viewAspect = viewport[0]/viewport[1]
+        #viewport = [context.scene.render.resolution_x, (context.scene.render.resolution_y)/viewAspect]
 
     
         #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
