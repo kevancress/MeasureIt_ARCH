@@ -319,8 +319,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 default=True)
 
     default_scale: IntProperty(name='Default Paper Scale', min=1, default=25,
-                                description="Default Paper Scale (used for font sizing)",
-                                subtype = 'FACTOR')
+                                description="Default Paper Scale (used for font sizing)")
     
     default_resolution:  IntProperty(name='Default Resolution ', min=1,
                                 default=150,

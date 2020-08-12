@@ -138,7 +138,7 @@ class Line_Shader_3D ():
             vec2 ssp1 = vec2(p1.xy / p1.w);
             vec2 ssp2 = vec2(p2.xy / p2.w);
 
-            float width = 0.00118 * thickness * 1.3333;
+            float width = 0.00118 * thickness * aspect * 1.333;
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
@@ -248,7 +248,10 @@ class Line_Group_Shader_3D ():
             // Get Width per point
             float width1 = mix(width, gs_in[0].weightOut * width, weightInfluence);
             radius = width1;
+            
             float width2 = mix(width, gs_in[1].weightOut * width, weightInfluence);
+            
+
 
             // Screen Space direction and normal
             vec2 dir = normalize(ssp2 - ssp1);

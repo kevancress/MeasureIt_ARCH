@@ -96,9 +96,6 @@ textShader = gpu.types.GPUShader(
     Text_Shader.vertex_shader,
     textfrag)
 
-fontSizeMult = 20
-
-
 def get_dim_tag(self,obj):
     dimGen = obj.DimensionGenerator[0]
     itemType = self.itemType
@@ -2348,10 +2345,7 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
     filledCoords = []
 
     scene = context.scene
-    sceneProps = scene.MeasureItArchProps
 
-
-    view = get_view()
     scale = get_scale()
 
     size = (capSize/ 393.701)/4
@@ -2434,13 +2428,8 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
 
     width = textobj.textWidth
     height = textobj.textHeight
-    size = textProps.fontSize/fontSizeMult
-    viewport = get_viewport()
-
-
 
     scale = get_scale()
-
 
     #Define annotation Card Geometry
     resolution = get_resolution()
@@ -3052,27 +3041,11 @@ def draw_lines(lineWeight, rgb, coords, offset = -0.001, twoPass = False, pointP
     bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
 def cap_extension(dirVec,capSize, capAngle):
-    return dirVec.normalized() * 0.02 * capSize * sin(capAngle)
+    scale = get_scale()
+    return dirVec.normalized() /1000 * capSize * sin(capAngle) * scale
 
 def dim_line_extension(capSize):
-    context = bpy.context
-    scene = context.scene
-    sceneProps = scene.MeasureItArchProps
-
-    ViewGen = scene.ViewGenerator
-
-    try:
-        view = ViewGen.views[ViewGen.active_index]
-    except:
-        view = None
-
-    scale = sceneProps.default_scale
-
-    # Ref Note: 1 pt = 1/72 of an inch
-
-    if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
-        scale = view.model_scale / view.paper_scale
-
+    scale = get_scale()
     return (capSize / 750)*scale
 
 def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize = 0):
@@ -3117,21 +3090,15 @@ def get_viewport(renderScale = True):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     
-    ViewGen = scene.ViewGenerator
-
-    try:
-        view = ViewGen.views[ViewGen.active_index]
-    except:
-        view = None
-
     if sceneProps.is_render_draw:
         viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
+    
     else:
         rv3d = context.area.spaces[0].region_3d
         zoom = (rv3d.view_camera_zoom+30)/63
         viewport = [context.area.width,context.area.height]
         viewAspect = viewport[0]/viewport[1]
-        viewport = [context.scene.render.resolution_x/zoom, (context.scene.render.resolution_y/zoom)/viewAspect]
+        viewport = [context.scene.render.resolution_x, (context.scene.render.resolution_y)/viewAspect]
 
     
         #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
@@ -3172,7 +3139,6 @@ def get_view():
     
     return view
     
-
 def get_scale():
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps
@@ -3203,4 +3169,5 @@ def get_resolution():
     
     return resolution
 
-    
+def get_lineWeight():
+    pass
