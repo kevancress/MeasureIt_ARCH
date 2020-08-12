@@ -2146,6 +2146,26 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                  
                 draw_lines(lineWeight,rgb,coords, twoPass=True,pointPass=True)
             
+            # Draw Custom Shape
+            if annotation.customShape is not None:
+                obj = annotation.customShape
+                customCoords = []
+                bm = bmesh.new()
+                bm.from_object(obj, bpy.context.view_layer.depsgraph,deform=True)
+                bm.edges.ensure_lookup_table()
+                bm.verts.ensure_lookup_table()
+                for e in bm.edges:
+                    customCoords.extend([e.verts[0].co])
+                    customCoords.extend([e.verts[1].co])
+                
+                coords = []
+                for coord in customCoords:
+                    coords.append(coord + Vector(p2))
+                draw_lines(lineWeight,rgb,coords, twoPass=True,pointPass=True)
+                
+                print('drawing custom shape')
+                
+
         
             # Draw Line Endcaps
             if endcap == 'D':                

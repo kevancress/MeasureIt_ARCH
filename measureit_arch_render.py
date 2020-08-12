@@ -481,6 +481,7 @@ def render_main_svg(self, context, animation=False):
     render_scale = scene.render.resolution_percentage / 100
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
+  
 
     offscreen = gpu.types.GPUOffScreen(width, height)
     
@@ -531,11 +532,20 @@ def render_main_svg(self, context, animation=False):
     ftxt = "%04d" % scene.frame_current
     outpath = (ren_path + filename + ftxt + '.svg')
 
+    view = get_view()
+
+    paperWidth = width / sceneProps.default_resolution
+    paperHeight = height / sceneProps.default_resolution
+
+    if view.res_type == 'res_type_paper':
+        paperWidth = view.width * 39.370078740196853
+        paperHeight = view.height * 39.370078740196853
+
     # Setup basic svg
     svg = svgwrite.Drawing(
             outpath,
             debug=False,
-            size=('{}mm'.format(width), '{}mm'.format(height)),
+            size=('{}in'.format(paperWidth), '{}in'.format(paperHeight)),
             viewBox=('0 0 {} {}'.format(width,height)),
             id='root',
         )

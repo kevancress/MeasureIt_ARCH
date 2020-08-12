@@ -189,7 +189,7 @@ class Line_Group_Shader_3D ():
         void main()
         {
            gl_Position = vec4(pos, 1.0);
-           vs_out.weightOut = weight*1.333;
+           vs_out.weightOut = weight*1.333*4;
         }
 
         '''
