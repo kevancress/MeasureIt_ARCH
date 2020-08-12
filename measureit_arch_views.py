@@ -99,7 +99,7 @@ def change_scene_camera(self,context):
     camera = view.camera
     if camera != None:
         scene.camera = camera
-        update(self,context)
+        scene_text_update_flag(self,context)
 
 def camera_poll(self, object):
     return object.type == 'CAMERA'
@@ -173,7 +173,7 @@ class ViewProperties(PropertyGroup):
     model_scale: IntProperty(
                                     name = "model_scale", 
                                     description = "Unit on Model", 
-                                    default = 10, 
+                                    default = 25, 
                                     min = 1, 
                                     update = update
                                     )
@@ -190,7 +190,7 @@ class ViewProperties(PropertyGroup):
     pixel_scale: IntProperty(
                                     name = "Pixel Scale",
                                     subtype = 'PIXEL',
-                                    default = 100, 
+                                    default = 10000, 
                                     min = 1, 
                                     update = update
                                     )
@@ -203,7 +203,7 @@ class ViewProperties(PropertyGroup):
                                     ],
                                 name ="Resolution Type",
                                 description = 'Method For Defining Render Size', 
-                                default = 'res_type_pixels',
+                                default = 'res_type_paper',
                                 update = update
                                 #options = 'ENUM_FLAG'
                                 )

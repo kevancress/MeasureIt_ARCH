@@ -2349,20 +2349,10 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
 
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-    ViewGen = scene.ViewGenerator
 
-    try:
-        view = ViewGen.views[ViewGen.active_index]
-    except:
-        view = None
 
-    scale = sceneProps.default_scale
-
-    # Ref Note: 1 pt = 1/72 of an inch
-
-    if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
-        scale = view.model_scale / view.paper_scale
-
+    view = get_view()
+    scale = get_scale()
 
     size = (capSize/ 393.701)/4
     size *= scale
@@ -3188,9 +3178,12 @@ def get_scale():
     sceneProps = scene.MeasureItArchProps
 
     view = get_view()
-    scale = sceneProps.default_scale
+    scale = sceneProps.default_scale   
+    
+    if view is None or view.camera is None:
+        return scale
 
-    if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
+    if view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
         scale = view.model_scale / view.paper_scale
     
     return scale
@@ -3201,6 +3194,9 @@ def get_resolution():
 
     view = get_view()
     resolution = sceneProps.default_resolution
+
+    if view is None or view.camera is None:
+        return resolution
 
     if view is not None and view.res_type == 'res_type_paper':
          resolution = view.res
