@@ -2194,16 +2194,16 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
                     customCoords.append(newCoord)
                 
-                filledCoords = []
+                customFilledCoords = []
                 for vert in indices:
                     newVert = scaleMat @ vert
                     newVert = newVert + Vector(p2)
 
-                    filledCoords.append(newVert)
+                    customFilledCoords.append(newVert)
 
 
                 draw_lines(lineWeight,rgb,customCoords, twoPass=True,pointPass=True)
-                draw_filled_coords(filledCoords,rgb,polySmooth=False)
+                draw_filled_coords(customFilledCoords,rgb,polySmooth=False)
                 
                 
 
@@ -2242,6 +2242,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 svg_shaders.svg_line_shader(annotation,coords, lineWeight, rgb, svg, parent=svg_anno)
                 if annotation.customShape is not None:
                     svg_shaders.svg_line_shader(annotation,customCoords, lineWeight, rgb, svg, parent=svg_anno)
+                    svg_shaders.svg_fill_shader(annotation, customFilledCoords, rgb, svg, parent=svg_anno)
                 svg_shaders.svg_fill_shader(annotation, filledCoords, rgb, svg, parent=svg_anno)
                 for textField in annotation.textFields:
                     textcard = textField['textcard']
