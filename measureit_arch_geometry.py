@@ -2176,7 +2176,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
                 draw_lines(lineWeight,rgb,customCoords, twoPass=True,pointPass=True)
                 
-                print('drawing custom shape')
                 
 
         
