@@ -561,7 +561,7 @@ def draw_main(context):
                                     dimProps= dimStyle
                         update_text(textobj=arcDim,props=dimProps,context=context)
 
-    # Reset Style Update Flags
+    # Reset Style & Scene Update Flags
     StyleGen = context.scene.StyleGenerator
     dimStyles = StyleGen.alignedDimensions
     annoStyles = StyleGen.annotations
@@ -569,6 +569,10 @@ def draw_main(context):
         style.text_updated = False
     for style in dimStyles:
         style.text_updated = False
+    
+    sceneProps = scene.MeasureItArchProps
+    sceneProps.text_updated = False
+
 
 def draw_main_3d (context):
    
@@ -819,9 +823,13 @@ def precision_ui(self, context):
     col.alignment = 'RIGHT'
     col.label(text="MeasureIt-ARCH Unit Settings")
     col = layout.column()
-    col.prop(sceneProps, 'default_scale', text="Default Scale 1:")
+
     col.prop(sceneProps, 'metric_precision', text="Metric Precision")
     col.prop(sceneProps, 'angle_precision', text="Angle Precision")
     col.prop(sceneProps, 'imperial_precision', text="Imperial Precision")
+
+    col = layout.column(align=True)
+    col.prop(sceneProps, 'default_scale', text="Default Scale 1:")
+    col.prop(sceneProps, 'default_resolution', text="Default Resolution")
 
 bpy.types.SCENE_PT_unit.append(precision_ui)

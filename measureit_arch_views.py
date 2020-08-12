@@ -20,6 +20,10 @@ from bpy.props import (
 from .measureit_arch_render import render_main
 from datetime import datetime
 
+def scene_text_update_flag(self, context):
+    scene = context.scene
+    scene.MeasureItArchProps.text_updated = True
+    update(self,context)
 
 def update(self,context):
     if context == None:
@@ -161,7 +165,7 @@ class ViewProperties(PropertyGroup):
                                         min = 1, 
                                         soft_max = 600, 
                                         soft_min =50,
-                                        update = update, 
+                                        update = scene_text_update_flag, 
                                         step = 1, 
                                         )
     

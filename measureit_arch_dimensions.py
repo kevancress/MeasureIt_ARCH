@@ -822,7 +822,7 @@ class AddAngleButton(Operator):
                 newDimension.lineWeight = 1
                 
                 # text
-                newDimension.textResolution = 72
+
                 newDimension.textAlignment = 'C'
                 context.area.tag_redraw()
                 return {'FINISHED'}
@@ -1316,7 +1316,6 @@ def draw_aligned_dimension_settings(dim,layout):
     if dim.uses_style is False:
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
-        col.prop(dim,'textResolution',text='Resolution')
     col.prop(dim,'textAlignment',text='Alignment')
         #col.prop(dim,'textPosition',text='Position')
 
@@ -1370,7 +1369,6 @@ def draw_bounds_dimension_settings(dim,layout):
     if dim.uses_style is False:
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
-        col.prop(dim,'textResolution',text='Resolution')
         col.prop(dim,'textAlignment',text='Alignment')
         #col.prop(dim,'textPosition',text='Position')
 
@@ -1418,7 +1416,6 @@ def draw_axis_dimension_settings(dim,layout):
     if dim.uses_style is False:
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
-        col.prop(dim,'textResolution',text='Resolution')
         col.prop(dim,'textAlignment',text='Alignment')
         #col.prop(dim,'textPosition',text='Position')
 
@@ -1453,7 +1450,6 @@ def draw_angle_dimension_settings(dim,layout):
         if dim.uses_style is False:
             col = layout.column(align=True)
             col.prop(dim,'fontSize',text='Font Size')
-            col.prop(dim,'textResolution',text='Resolution')
             col.prop(dim,'textAlignment',text='Alignment')
            
             col.prop(dim,'endcapA', text='Arrow Start')
@@ -1491,7 +1487,6 @@ def draw_arc_dimension_settings(dim,layout):
     if dim.uses_style is False:
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
-        col.prop(dim,'textResolution',text='Resolution')
         col = layout.column(align=True)
         col.prop(dim,'endcapA', text='Arrow Start')
         col.prop(dim,'endcapB', text='End')
@@ -1538,7 +1533,6 @@ def draw_area_dimension_settings(dim,layout):
     if dim.uses_style is False:
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
-        col.prop(dim,'textResolution',text='Resolution')
         col.prop(dim,'textAlignment',text='Alignment')
         #col.prop(dim,'textPosition',text='Position')
 

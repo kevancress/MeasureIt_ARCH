@@ -143,17 +143,19 @@ def clear_batches():
 
 def update_text(textobj, props, context):
     update_flag = False
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
 
     for textField in textobj.textFields:
         if textobj.text_updated or props.text_updated:
             textField.text_updated = True
 
-        if textField.text_updated:
+        if textField.text_updated or sceneProps.text_updated:
             # Get textitem Properties
             rawRGB = props.color
             rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
             size = 20
-            resolution = props.textResolution
+            resolution = get_resolution()
 
             # Get Font Id
             badfonts = [None]
@@ -2442,7 +2444,6 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
 
     width = textobj.textWidth
     height = textobj.textHeight
-    resolution = textProps.textResolution
     size = textProps.fontSize/fontSizeMult
     viewport = get_viewport()
 
@@ -2452,7 +2453,7 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
 
 
     #Define annotation Card Geometry
-    resolution = textProps.textResolution
+    resolution = get_resolution()
     size = textProps.fontSize / 393.701 # get font size in pt
     size *= scale
 
@@ -2859,7 +2860,7 @@ def get_line_vertex(idx,verts,mat):
     try:
         vert = verts[idx].co
     except:
-        print("Broken Vertex!!!")
+        #print("Broken Vertex!!!")
         vert = Vector((0,0,0))
     return vert
 
@@ -3136,20 +3137,18 @@ def get_viewport(renderScale = True):
     if sceneProps.is_render_draw:
         viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
     else:
-        viewport = [context.area.width, context.area.height]
-        if renderScale:
-            # This does nothing for now
-            rv3d = context.area.spaces[0].region_3d
-            zoom = (rv3d.view_camera_zoom+30)/63
-            viewAspect = viewport[0]/viewport[1]
-            viewport = [context.scene.render.resolution_x/zoom, (context.scene.render.resolution_y/zoom)/viewAspect]
-            #viewport = [context.area.width,context.area.height]
-       
-            #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
-            #renderAspect = render[0]/render[1]
-            #apsectDiff = (viewAspect/renderAspect)/2
-            #render = [render[0]*apsectDiff,render[1]/apsectDiff]
-            #viewport = render
+        rv3d = context.area.spaces[0].region_3d
+        zoom = (rv3d.view_camera_zoom+30)/63
+        viewport = [context.area.width,context.area.height]
+        viewAspect = viewport[0]/viewport[1]
+        viewport = [context.scene.render.resolution_x/zoom, (context.scene.render.resolution_y/zoom)/viewAspect]
+
+    
+        #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
+        #renderAspect = render[0]/render[1]
+        #apsectDiff = (viewAspect/renderAspect)/2
+        #render = [render[0]*apsectDiff,render[1]/apsectDiff]
+        #viewport = render
 
     return viewport
 
@@ -3171,22 +3170,41 @@ def format_angle(angle):
 
     return angleString
 
-def get_scale():
-    scene = bpy.context.scene
-    sceneProps = scene.MeasureItArchProps
-    
+def get_view():
+    scene = bpy.context.scene    
     ViewGen = scene.ViewGenerator
+    view = None
 
     try:
         view = ViewGen.views[ViewGen.active_index]
     except:
         view = None
+    
+    return view
+    
 
+def get_scale():
+    scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    view = get_view()
     scale = sceneProps.default_scale
-
-    # Ref Note: 1 pt = 1/72 of an inch
 
     if view is not None and view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
         scale = view.model_scale / view.paper_scale
     
     return scale
+
+def get_resolution():
+    scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    view = get_view()
+    resolution = sceneProps.default_resolution
+
+    if view is not None and view.res_type == 'res_type_paper':
+         resolution = view.res
+    
+    return resolution
+
+    

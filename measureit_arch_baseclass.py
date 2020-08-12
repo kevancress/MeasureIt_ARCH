@@ -12,7 +12,6 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 def update_flag(self,context):
     self.text_updated = True
 
-
 def has_dimension_generator(context):
     return context.object is not None and \
     hasattr(context.object, "DimensionGenerator") and \
@@ -197,13 +196,6 @@ class BaseWithText(BaseProp):
                 description="Font Size in pt (1pt = 1/72\") \nNote: Font size is relative to the current scale \nScale is defined in your active view, or in the Scene unit settings ",
                 default=18)
 
-    textResolution: IntProperty(name="Annotation Resolution",
-                description="Annotation Resolution",
-                default=150,
-                soft_min=50,
-                soft_max=1200,
-                update = update_flag)
-
     font: PointerProperty(type= bpy.types.VectorFont,
                 update = update_flag)
 
@@ -281,6 +273,10 @@ class BaseDim(BaseWithText):
                             subtype='ANGLE')
 
 class MeasureItARCHSceneProps(PropertyGroup):
+
+    text_updated: BoolProperty(name='text_updated',
+                description= 'flag when text needs to be redrawn',
+                default = False)
     
     debug_flip_text: BoolProperty(name="Debug Text Flip Vectors",
                                 description="Displys Text Card and View Vectors used to Flip Text",
@@ -323,8 +319,15 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 default=True)
 
     default_scale: IntProperty(name='Default Paper Scale', min=1, default=25,
-                                               description="Default Paper Scale (used for font sizing)",
-                                               subtype = 'FACTOR')
+                                description="Default Paper Scale (used for font sizing)",
+                                subtype = 'FACTOR')
+    
+    default_resolution:  IntProperty(name='Default Resolution ', min=1,
+                                default=150,
+                                soft_min=50,
+                                soft_max=1200,
+                                description="Default Resolution (used for font sizing)",
+                                update= update_flag)
     
     metric_precision: IntProperty(name='Precision', min=0, max=5, default=2,
                                                description="Metric decimal precision")
