@@ -2143,25 +2143,38 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                     coords.append(textcard[3])
                 elif annotationProps.textPosition == 'B':
                     coords.append(textcard[2])
-                 
+                
+                if annotationProps.textAlignment == 'C':
+                    coords = []
+
                 draw_lines(lineWeight,rgb,coords, twoPass=True,pointPass=True)
             
             # Draw Custom Shape
             if annotation.customShape is not None:
                 obj = annotation.customShape
-                customCoords = []
+                tempCoords = []
                 bm = bmesh.new()
                 bm.from_object(obj, bpy.context.view_layer.depsgraph,deform=True)
                 bm.edges.ensure_lookup_table()
                 bm.verts.ensure_lookup_table()
                 for e in bm.edges:
-                    customCoords.extend([e.verts[0].co])
-                    customCoords.extend([e.verts[1].co])
+                    tempCoords.extend([e.verts[0].co])
+                    tempCoords.extend([e.verts[1].co])
                 
-                coords = []
-                for coord in customCoords:
-                    coords.append(coord + Vector(p2))
-                draw_lines(lineWeight,rgb,coords, twoPass=True,pointPass=True)
+                scale = mat.to_scale()
+                scaleMat = Matrix.Identity(3)
+                scaleMat[0][0] = scale[0]
+                scaleMat[1][1] = scale[1]
+                scaleMat[2][2] = scale[2]
+
+                customCoords = []
+                for coord in tempCoords:
+                    newCoord = scaleMat @ coord
+                    newCoord = newCoord + Vector(p2)
+
+                    customCoords.append(newCoord)
+
+                draw_lines(lineWeight,rgb,customCoords, twoPass=True,pointPass=True)
                 
                 print('drawing custom shape')
                 
@@ -2199,6 +2212,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             if sceneProps.is_vector_draw:
                 svg_anno = svg.add(svg.g(id=annotation.name))
                 svg_shaders.svg_line_shader(annotation,coords, lineWeight, rgb, svg, parent=svg_anno)
+                if annotation.customShape is not None:
+                    svg_shaders.svg_line_shader(annotation,customCoords, lineWeight, rgb, svg, parent=svg_anno)
                 svg_shaders.svg_fill_shader(annotation, filledCoords, rgb, svg, parent=svg_anno)
                 for textField in annotation.textFields:
                     textcard = textField['textcard']
