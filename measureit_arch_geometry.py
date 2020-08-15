@@ -3160,6 +3160,7 @@ def get_viewport(renderScale = True):
     else:
         rv3d = context.area.spaces[0].region_3d
         zoom = (rv3d.view_camera_zoom+30)/63
+        #viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
         viewport = [context.area.width,context.area.height]
         #viewAspect = viewport[0]/viewport[1]
         #viewport = [context.scene.render.resolution_x, (context.scene.render.resolution_y)/viewAspect]

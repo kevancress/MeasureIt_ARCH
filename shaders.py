@@ -126,8 +126,37 @@ class Line_Shader_3D ():
         uniform float thickness;
 
         out vec2 mTexCoord;
+        out float alpha;
 
         float aspect = Viewport.x/Viewport.y;
+
+        vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
+        float minLength = length(pxVec);
+
+        vec2 get_line_width(vec2 normal, float width){
+            vec2 offsetvec = vec2(normal * width);
+            offsetvec.x /= Viewport.x;
+            offsetvec.y /= Viewport.y;
+
+            if (length(offsetvec) < minLength){
+                offsetvec = normalize(offsetvec);
+                offsetvec *= minLength;
+            }
+            return(offsetvec);
+        }
+
+        float get_line_alpha(vec2 normal, float width){
+            vec2 offsetvec = vec2(normal * width);
+            offsetvec.x /= Viewport.x;
+            offsetvec.y /= Viewport.y;
+
+            float alpha = 1.0;
+            if (length(offsetvec) < minLength){
+                alpha *= (length(offsetvec)/minLength);
+            }
+            return alpha;
+        }
+
 
         void main() {
             //calculate line normal
@@ -138,16 +167,15 @@ class Line_Shader_3D ():
             vec2 ssp1 = vec2(p1.xy / p1.w);
             vec2 ssp2 = vec2(p2.xy / p2.w);
 
-            float width = 0.00118 * thickness * aspect * 2;
+            float width = thickness;
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
-            normal.x /= aspect;
             normal = normalize(normal);
 
             // get offset factor from normal and user input thickness
-            vec2 offset = vec2(normal * width);
-            offset.x /= aspect;
+            vec2 offset = get_line_width(normal,width);
+            float lineAlpha = get_line_alpha(normal,width);
             
 
             vec4 coords[4];
@@ -168,6 +196,7 @@ class Line_Shader_3D ():
             for (int i = 0; i < 4; ++i) {
                 mTexCoord = texCoords[i];
                 gl_Position = coords[i];
+                alpha = lineAlpha;
                 EmitVertex();
             }
             EndPrimitive();
@@ -189,7 +218,7 @@ class Line_Group_Shader_3D ():
         void main()
         {
            gl_Position = vec4(pos, 1.0);
-           vs_out.weightOut = weight*1.333*2;
+           vs_out.weightOut = weight;
         }
 
         '''
@@ -213,11 +242,41 @@ class Line_Group_Shader_3D ():
 
         const float PI = 3.1415926;
         out vec2 mTexCoord;
+        out float alpha;
 
         float width = thickness;
         float extAmount = extension * 0.01;
         vec4 vecOffset = vec4(0.0,0.0,zOffset,0.0);
         float radius = width;
+
+        vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
+
+        float minLength = length(pxVec);
+        
+        vec2 get_line_width(vec2 normal, float width){
+            vec2 offsetvec = vec2(normal * width);
+            offsetvec.x /= Viewport.x;
+            offsetvec.y /= Viewport.y;
+
+            if (length(offsetvec) < minLength){
+                offsetvec = normalize(offsetvec);
+                offsetvec *= minLength;
+            }
+            return(offsetvec);
+        }
+
+        float get_line_alpha(vec2 normal, float width){
+            vec2 offsetvec = vec2(normal * width);
+            offsetvec.x /= Viewport.x;
+            offsetvec.y /= Viewport.y;
+
+            float alpha = 1.0;
+            if (length(offsetvec) < minLength){
+                alpha *= (length(offsetvec)/minLength);
+            }
+            return alpha;
+        }
+
 
         void main() {
             //calculate world space line normal and extension
@@ -259,32 +318,36 @@ class Line_Group_Shader_3D ():
             normal = normalize(normal);
 
             // Screen Space line width offset
-            vec2 lineOffset1 = vec2(normal * width1);
-            lineOffset1.x /= Viewport.x;
-            lineOffset1.y /= Viewport.y;
+            vec2 lineOffset1 = get_line_width(normal,width1);
+            float alpha1 = get_line_alpha(normal,width1);
+
+            vec2 lineOffset2 = get_line_width(normal, width2);
+            float alpha2 = get_line_alpha(normal,width2);
 
 
-            vec2 lineOffset2 = vec2(normal * width2);
-            lineOffset2.x /= Viewport.x;
-            lineOffset2.y /= Viewport.y;
 
             
 
             // Generate the rectangle Coords
             vec4 coords[4];
             vec2 texCoords[4];
+            float alphas[4];
 
             coords[0] = vec4((ssp1 + lineOffset1)*p1Ext.w,p1Ext.z,p1Ext.w);
             texCoords[0] = vec2(0,1);
+            alphas[0] = alpha1;
 
             coords[1] = vec4((ssp1 - lineOffset1)*p1Ext.w,p1Ext.z,p1Ext.w);
             texCoords[1] = vec2(0,0);
+            alphas[1] = alpha1;
 
             coords[2] = vec4((ssp2 + lineOffset2)*p2Ext.w,p2Ext.z,p2Ext.w);
             texCoords[2] = vec2(0,1);
+            alphas[2] = alpha2;
 
             coords[3] = vec4((ssp2 - lineOffset2)*p2Ext.w,p2Ext.z,p2Ext.w);
             texCoords[3] = vec2(0,0);
+            alphas[3] = alpha2;
 
 
 
@@ -315,6 +378,7 @@ class Line_Group_Shader_3D ():
                 circleOffset.y /= Viewport.y;
                 mTexCoord = vec2(0,1);
                 gl_Position = vec4((sspC + circleOffset)*pointCenter.w, pointCenter.z, pointCenter.w);
+                alpha = alpha1;
                 EmitVertex();
 
                 gl_Position = pointCenter;
@@ -329,6 +393,7 @@ class Line_Group_Shader_3D ():
             for (int i = 0; i < 4; ++i) {
                 mTexCoord = texCoords[i];
                 gl_Position = coords[i];
+                alpha = alphas[i];
                 EmitVertex();
             }
             EndPrimitive();
@@ -339,10 +404,19 @@ class Frag_Shaders_3D_B283 ():
     base_fragment_shader = '''
         uniform vec4 finalColor;
         out vec4 fragColor;
+        uniform bool depthPass;
 
         void main()
         {
-            fragColor = blender_srgb_to_framebuffer_space(finalColor);
+            float aa = finalColor[3];
+
+            if(depthPass){
+                aa = 1.0;
+            }
+            
+            vec4 outColor = vec4(finalColor[0],finalColor[1],finalColor[2],aa);
+            fragColor = blender_srgb_to_framebuffer_space(outColor);
+
         }
     '''
     
@@ -350,8 +424,46 @@ class Frag_Shaders_3D_B283 ():
         in vec2 mTexCoord;
         in vec4 fcolor;
         in vec4 gl_FragCoord;
+        in float alpha;
         uniform vec4 finalColor;
         uniform bool depthPass;
+        out vec4 fragColor;
+
+        void main()
+        {
+            
+            vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha);
+            vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
+
+            vec2 center = vec2(0,0.5);
+            float dist = length(mTexCoord - center);
+            float distFromEdge = 1-(dist*2);
+
+            float delta = fwidth(distFromEdge);
+            float threshold = 1.5 * delta;
+            float aa = clamp((distFromEdge/threshold)+0.5,0,1);
+            aa = smoothstep(0,1,aa*aa);
+
+            aaColor = mix(mixColor,aaColor,aa);
+
+            if(depthPass){
+                if (aa<1){
+                    discard;
+                }
+            }
+            
+            fragColor = blender_srgb_to_framebuffer_space(aaColor); 
+        }
+    '''
+
+    line_fragment_shader = '''
+        in vec2 mTexCoord;
+        in vec4 fcolor;
+        in vec4 gl_FragCoord;
+        uniform vec4 finalColor;
+        uniform bool depthPass;
+        uniform float thickness;
+        uniform vec2 Viewport;
         out vec4 fragColor;
 
         void main()

@@ -100,7 +100,7 @@ class BaseProp:
     lineWeight: FloatProperty(name="Line Weight",
                 description="Lineweight",
                 default = 1,
-                soft_min = 1,
+                soft_min = 1.0,
                 step = 25,
                 min = 0)
 
