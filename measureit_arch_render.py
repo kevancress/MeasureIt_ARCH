@@ -255,7 +255,7 @@ def render_main(self, context, animation=False):
 
 
     # Draw all lines in Offsecreen
-    renderoffscreen = gpu.types.GPUOffScreen(width, height, samples = 0)
+    renderoffscreen = gpu.types.GPUOffScreen(width, height)
     
     view_matrix_3d = scene.camera.matrix_world.inverted()
     projection_matrix = scene.camera.calc_matrix_camera(context.view_layer.depsgraph, x=width, y=height)
@@ -537,9 +537,12 @@ def render_main_svg(self, context, animation=False):
     paperWidth = width / sceneProps.default_resolution
     paperHeight = height / sceneProps.default_resolution
 
-    if view.res_type == 'res_type_paper':
-        paperWidth = view.width * 39.370078740196853
-        paperHeight = view.height * 39.370078740196853
+    try:
+        if view.res_type == 'res_type_paper':
+            paperWidth = view.width * 39.370078740196853
+            paperHeight = view.height * 39.370078740196853
+    except:
+        print('No View Present, using default resolution')
 
     # Setup basic svg
     svg = svgwrite.Drawing(
