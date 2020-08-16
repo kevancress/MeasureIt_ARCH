@@ -105,7 +105,7 @@ class Base_Shader_3D_AA ():
             float delta = fwidth(distFromEdge);
             float threshold = 1.5 * delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
-            aa = smoothstep(0,1,aa*aa);
+            aa = smoothstep(0,1,aa);
 
             aaColor = mix(mixColor,aaColor,aa);
 
@@ -134,7 +134,7 @@ class Line_Shader_3D ():
         float aspect = Viewport.x/Viewport.y;
 
         vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
-        float minLength = length(pxVec);
+        float minLength =  length(pxVec);
 
         vec2 get_line_width(vec2 normal, float width){
             vec2 offsetvec = vec2(normal * width);
@@ -254,7 +254,7 @@ class Line_Group_Shader_3D ():
 
         vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
 
-        float minLength = length(pxVec);
+        float minLength = 1.5*length(pxVec);
         
         vec2 get_line_width(vec2 normal, float width){
             vec2 offsetvec = vec2(normal * width);
@@ -447,45 +447,9 @@ class Frag_Shaders_3D_B283 ():
             float delta = fwidth(distFromEdge);
             float threshold = 1.5 * delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
-            aa = smoothstep(0,1,aa*aa);
+            aa = smoothstep(0,1,aa);
 
             aaColor = mix(mixColor,aaColor,aa);
-
-            if(depthPass){
-                if (aa<1){
-                    discard;
-                }
-            }
-            
-            fragColor = blender_srgb_to_framebuffer_space(aaColor); 
-        }
-    '''
-
-    line_fragment_shader = '''
-        in vec2 mTexCoord;
-        in vec4 fcolor;
-        in vec4 gl_FragCoord;
-        uniform vec4 finalColor;
-        uniform bool depthPass;
-        uniform float thickness;
-        uniform vec2 Viewport;
-        out vec4 fragColor;
-
-        void main()
-        {
-            vec4 aaColor = finalColor;
-            vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
-
-            vec2 center = vec2(0,0.5);
-            float dist = length(mTexCoord - center);
-            float distFromEdge = 1-(dist*2);
-
-            float delta = fwidth(distFromEdge);
-            float threshold = 1.5 * delta;
-            float aa = clamp((distFromEdge/threshold)+0.5,0,1);
-            aa = smoothstep(0,1,aa*aa);
-
-            aaColor = mix(mixColor,finalColor,aa);
 
             if(depthPass){
                 if (aa<1){
@@ -502,28 +466,27 @@ class Frag_Shaders_3D_B283 ():
         uniform float u_Scale;
         uniform vec4 finalColor;
         uniform float dashSpace;
-        
+        in float alpha;
+
         in float g_ArcLength;
         out vec4 fragColor;
 
         void main()
         {   
-            vec4 aaColor = finalColor;
+            vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha);
+            vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
             vec2 center = vec2(0,0.5);
             float dist = length(mTexCoord - center);
             float distFromEdge = 1-(dist*2);
 
             float delta = fwidth(distFromEdge);
-            float threshold = 2*delta;
+            float threshold = 1.5*delta;
             float aa = clamp((distFromEdge/threshold)+0.5,0,1);
-            aa = aa -clamp(0.5*fwidth(aa),0,1);
             aa = smoothstep(0,1,aa);
 
-            aaColor[3] = mix(0,finalColor[3],aa);
-
-            fragColor = aaColor;
-            
+            aaColor = mix(mixColor,aaColor,aa);
+           
             float mapdashSpace = 2*dashSpace - 1;
             if (step(sin(g_ArcLength * u_Scale), mapdashSpace) == 1) discard;
             fragColor = blender_srgb_to_framebuffer_space(aaColor);
@@ -571,6 +534,7 @@ class Dashed_Shader_3D ():
         layout(triangle_strip, max_vertices = 10) out;
         in vec3 v_arcpos[];
         out float g_ArcLength;
+        out float alpha;
 
         uniform mat4 ModelViewProjectionMatrix;
         uniform vec2 Viewport;
@@ -579,6 +543,33 @@ class Dashed_Shader_3D ():
         out vec2 mTexCoord;
 
         float aspect = Viewport.x/Viewport.y;
+
+        vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
+        float minLength =  1.5* length(pxVec);
+
+        vec2 get_line_width(vec2 normal, float width){
+            vec2 offsetvec = vec2(normal * width);
+            offsetvec.x /= Viewport.x;
+            offsetvec.y /= Viewport.y;
+
+            if (length(offsetvec) < minLength){
+                offsetvec = normalize(offsetvec);
+                offsetvec *= minLength;
+            }
+            return(offsetvec);
+        }
+
+        float get_line_alpha(vec2 normal, float width){
+            vec2 offsetvec = vec2(normal * width);
+            offsetvec.x /= Viewport.x;
+            offsetvec.y /= Viewport.y;
+
+            float alpha = 1.0;
+            if (length(offsetvec) < minLength){
+                alpha *= (length(offsetvec)/minLength);
+            }
+            return alpha;
+        }
         
         void main() {
             //calculate line normal
@@ -589,14 +580,14 @@ class Dashed_Shader_3D ():
             vec2 ssp1 = vec2(p1.xy / p1.w);
             vec2 ssp2 = vec2(p2.xy / p2.w);
 
-            float width = 0.00118 * thickness * aspect;
+            float width = thickness;
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
             
             // get offset factor from normal and user input thicknes
-            vec2 offset = vec2(normal * width);
-            offset.x /= aspect;
+            vec2 offset = get_line_width(normal,width);
+            float lineAlpha = get_line_alpha(normal,width);
 
             vec4 coords[4];
             vec2 texCoords[4];
@@ -631,6 +622,7 @@ class Dashed_Shader_3D ():
                 mTexCoord = texCoords[i];
                 gl_Position = coords[i];
                 g_ArcLength = arcLengths[i];
+                alpha = lineAlpha;
                 EmitVertex();
             }
             EndPrimitive();

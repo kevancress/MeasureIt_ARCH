@@ -64,9 +64,11 @@ class LineProperties(BaseProp, PropertyGroup):
                         subtype='COLOR',
                         size=4) 
 
-    lineHiddenWeight: IntProperty(name="Hidden Line Lineweight",
+    lineHiddenWeight: FloatProperty(name="Hidden Line Lineweight",
                         description="Hidden Line Lineweight",
-                        default= 1,
+                        default= 1.0,
+                        soft_min = 1.0,
+                        step = 25,
                         min = 0)
 
     lineWeightGroup: StringProperty(name='Line Weight Group')
