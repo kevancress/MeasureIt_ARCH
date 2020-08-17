@@ -33,10 +33,20 @@ def update(self,context):
     view = ViewGen.views[ViewGen.active_index]
     camera = view.camera.data
 
+    if view.end_frame < view.start_frame:
+        view.end_frame = view.start_frame
+    scene.frame_end = view.end_frame
+    scene.frame_start = view.start_frame
+    scene.frame_current = view.start_frame
+
     if view.res_type == 'res_type_paper':
         update_camera(scene,camera)
     else:
         update_camera_px(scene,camera)
+
+    if view.view_layer != "":
+        vl = context.scene.view_layers[view.view_layer]
+        context.window.view_layer = vl
 
     render = scene.render
     if view.output_path is not "":
@@ -97,6 +107,7 @@ def change_scene_camera(self,context):
     ViewGen = scene.ViewGenerator
     view = ViewGen.views[ViewGen.active_index]
     camera = view.camera
+    update(self,context)
     if camera != None:
         scene.camera = camera
         scene_text_update_flag(self,context)
@@ -218,7 +229,35 @@ class ViewProperties(PropertyGroup):
                 default="",
                 update= update
                 )
-            
+    
+    view_layer: StringProperty(
+                name="View Layer",
+                description="View Layer to use with this view",
+                default="",
+                update= update
+                )
+    
+    titleBlock: StringProperty(
+            name="Title Block",
+            description="TitleBlock to use with this view layer",
+            default="",
+            update= update
+            )
+
+    start_frame: IntProperty(
+                name = "Start Frame",
+                default = 1, 
+                min = 1, 
+                update = update
+                )
+    
+    end_frame: IntProperty(
+                name = "End Frame",
+                default = 1, 
+                min = 1, 
+                update = update
+                )
+
 bpy.utils.register_class(ViewProperties)
 
 class ViewContainer(PropertyGroup):
@@ -315,10 +354,12 @@ class SCENE_PT_Views(Panel):
             if ViewGen.show_settings:
                 col = box.column()
                 if view.camera !=None:
+
                     camera = view.camera.data
                     col.operator("measureit_arch.renderpreviewbutton", icon='RENDER_STILL', text="Render View Preview")
                     #col.operator("bind_marker.bind_marker", text = "Bind Camera To Frame", icon = 'CAMERA_DATA')
                     col.prop(camera, "type", text="Camera Type")
+                    col.prop_search(view,'view_layer', context.scene, 'view_layers',text='View Layer')  
                     col.prop(view, "output_path")
                     col.prop(view, "date_folder", text="Date Folder")
                     
@@ -389,6 +430,11 @@ class SCENE_PT_Views(Panel):
                     #    col.operator('bim.cut_section')
                     #except:
                     #    pass
+
+                    col = box.column(align=True)
+                    row = col.row(align=True)
+                    row.prop(view, 'start_frame', text = "Frame Range")
+                    row.prop(view, 'end_frame', text = "")
  
 
 class AddViewButton(Operator):

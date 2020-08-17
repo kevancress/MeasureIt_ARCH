@@ -2123,7 +2123,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 today = datetime.now()
                 dateStr = today.strftime('%y') +'/'+ today.strftime('%m') +'/'+ today.strftime('%d')
                 annotation.textFields[0].text = dateStr
-
+            
+            if annotation.name == "<VIEW>":
+                view = get_view()
+                if view is not None:
+                    annotation.textFields[0].text = view.name
 
             for textField in annotation.textFields:
                 origin = p2
