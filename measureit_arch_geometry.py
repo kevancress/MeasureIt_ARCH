@@ -44,6 +44,7 @@ import numpy as np
 from array import array
 import random
 from . import svg_shaders
+from datetime import datetime
 
 lastMode = None
 lineBatch3D = {}
@@ -2117,6 +2118,12 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             if annotation.textFields[0].text == "" and annotation.name == "":
                 annotation.textFields[0].text = annotation.text
                 annotation.name = annotation.text
+            
+            if annotation.name == "<DATE>":
+                today = datetime.now()
+                dateStr = today.strftime('%y') +'/'+ today.strftime('%m') +'/'+ today.strftime('%d')
+                annotation.textFields[0].text = dateStr
+
 
             for textField in annotation.textFields:
                 origin = p2

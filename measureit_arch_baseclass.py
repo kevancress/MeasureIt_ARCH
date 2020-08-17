@@ -282,6 +282,15 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 description="Displys Text Card and View Vectors used to Flip Text",
                                 default=False)
 
+    default_color: FloatVectorProperty(name="Default Color",
+                description="Default Color for new Items",
+                default= (0.0,0.0,0.0, 1.0),
+                min=0,
+                max=1,
+                subtype='COLOR',
+                size=4,
+                update=update_flag)
+
     instance_dims: BoolProperty(name="Instance Dimensions",
                                 description="WARNING: Only the most recent Instance's Dimension text will adapt to local changes in scale or rotation",
                                 default=False)
@@ -299,7 +308,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 default=False)
     
     vector_depthtest: BoolProperty(name="Use Vector Depth Test",
-                                description="Check for Occlusion when rending to SVG",
+                                description="Check for Occlusion when rending to SVG \n WARNING: SLOW, open system console before rendering to view progress",
                                 default=False)
 
     show_gizmos: BoolProperty(name="Show Gizmos",

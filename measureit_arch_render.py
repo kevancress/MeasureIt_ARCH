@@ -489,6 +489,7 @@ def render_main_svg(self, context, animation=False):
     projection_matrix = scene.camera.calc_matrix_camera(context.view_layer.depsgraph, x=width, y=height)
 
     # Render Depth Buffer
+    print("Rendering Depth Buffer")
     if sceneProps.vector_depthtest:
         with offscreen.bind():
             # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
@@ -558,7 +559,11 @@ def render_main_svg(self, context, animation=False):
     # -----------------------------
     # Loop to draw all objects
     # -----------------------------
+    idx = 1
+    totalobjs = len(objlist)
     for myobj in objlist:
+        print("Rendering Object: " + str(idx) + " of: " + str(totalobjs) + " Name: " + myobj.name)
+        startTime = time.time()
         if myobj.visible_get() is True:
             mat = myobj.matrix_world
             if 'DimensionGenerator' in myobj:
@@ -616,7 +621,9 @@ def render_main_svg(self, context, animation=False):
                                 draw_angleDimension(context, myobj, DimGen, angleDim,mat)
                             for axisDim in DimGen.axisDimensions:
                                 draw_axisDimension(context,myobj,DimGen,axisDim,mat)
-            
+        endTime = time.time()
+        print("Time: " + str(endTime -startTime))
+        idx += 1    
  
 
     svg.save(pretty=True)
