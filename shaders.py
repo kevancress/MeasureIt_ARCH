@@ -247,14 +247,14 @@ class Line_Group_Shader_3D ():
         out vec2 mTexCoord;
         out float alpha;
 
-        float width = thickness;
+        float width = thickness*2;
         float extAmount = extension * 0.01;
         vec4 vecOffset = vec4(0.0,0.0,zOffset,0.0);
         float radius = width;
 
         vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
 
-        float minLength = 1.5*length(pxVec);
+        float minLength = 1.0*length(pxVec);
         
         vec2 get_line_width(vec2 normal, float width){
             vec2 offsetvec = vec2(normal * width);
@@ -437,7 +437,7 @@ class Frag_Shaders_3D_B283 ():
         void main()
         {
             
-            vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha);
+            vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha*finalColor[3]);
             vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
             vec2 center = vec2(0,0.5);
@@ -685,13 +685,14 @@ class Point_Shader_3D ():
         layout(points) in;
         layout(triangle_strip, max_vertices = 50) out;
         out vec2 mTexCoord;
+        out float alpha;
 
         uniform mat4 ModelViewProjectionMatrix;
         uniform vec2 Viewport;
         uniform float thickness;
 
         float aspect = Viewport.x/Viewport.y;
-        float radius = 0.00117 * thickness * aspect;
+
 
         vec4 p1 =  gl_in[0].gl_Position;
         vec2 ssp1 = vec2(p1.xy / p1.w);
@@ -700,10 +701,43 @@ class Point_Shader_3D ():
 
         const float PI = 3.1415926;
 
+        
+        vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
+        float minLength =  length(pxVec);
+
+        vec2 get_line_width(vec2 normal, float width){
+            vec2 offsetvec = vec2(normal * width);
+            offsetvec.x /= Viewport.x;
+            offsetvec.y /= Viewport.y;
+
+            if (length(offsetvec) < minLength){
+                offsetvec = normalize(offsetvec);
+                offsetvec *= minLength;
+            }
+            return(offsetvec);
+        }
+
+        float get_line_alpha(vec2 normal, float width){
+            vec2 offsetvec = vec2(normal * width);
+            offsetvec.x /= Viewport.x;
+            offsetvec.y /= Viewport.y;
+
+            float alpha = 1.0;
+            if (length(offsetvec) < minLength){
+                alpha *= (length(offsetvec)/minLength);
+            }
+            return alpha;
+        }
+        
+        float val = 0.8625;
+        float radius = length(get_line_width(vec2(val), thickness));
+        float lineAlpha = get_line_alpha(vec2(val), thickness);
+
         void main() {
 
             gl_Position = gl_in[0].gl_Position;
             mTexCoord = vec2(0,0.5);
+            alpha = lineAlpha;
             EmitVertex();
             
             segments = clamp(segments,0,24);
@@ -716,10 +750,12 @@ class Point_Shader_3D ():
                 offset.x /= aspect;
                 mTexCoord = vec2(0,1);
                 gl_Position = vec4((ssp1 + offset)*p1.w,p1.z,p1.w);
+                alpha=lineAlpha;
                 EmitVertex();
 
                 gl_Position = gl_in[0].gl_Position;
                 mTexCoord = vec2(0,0.5);
+                alpha=lineAlpha;
                 EmitVertex();
 
             }

@@ -3030,7 +3030,7 @@ def draw_points(lineWeight,rgb,coords,offset = -0.001,depthpass=False):
     pointShader.uniform_float("Viewport",viewport)
     pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
     pointShader.uniform_float("offset", offset)
-    pointShader.uniform_float("depthPass", depthpass)
+    pointShader.uniform_float("depthPass", False)
     batch = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
     batch.program_set(pointShader)
     batch.draw()

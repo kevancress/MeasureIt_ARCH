@@ -262,7 +262,7 @@ def check_visible(p1,p2,mat,item,numIterations=0):
         return False, p1, p2
     else:
         vis = False
-        maxIter = 7
+        maxIter = 3
 
         if p1Visible and not p2Visible:
             pass
