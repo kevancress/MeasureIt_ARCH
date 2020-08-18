@@ -1,9 +1,9 @@
-# MeasureIt-ARCH Dimension, Annotation and Linework tools for Blender 2.8
+# MeasureIt_ARCH Dimension, Annotation and Linework tools for Blender 2.8
 
-MeasureIt-ARCH is a fork of Antonio Vazquez's MeasureIt Addon.
+MeasureIt_ARCH is a fork of Antonio Vazquez's MeasureIt Addon.
 
 ## Click the image below to watch the latest update video
-[![MeasureIt-ARCH Intro Video](https://user-images.githubusercontent.com/16860574/54844536-8c651a00-4cad-11e9-8139-7c4e7be64797.png)](https://www.youtube.com/watch?v=MWo87QvcEPk)
+[![MeasureIt_ARCH Intro Video](https://user-images.githubusercontent.com/16860574/54844536-8c651a00-4cad-11e9-8139-7c4e7be64797.png)](https://www.youtube.com/watch?v=MWo87QvcEPk)
 
 ## Installation
 
@@ -14,12 +14,12 @@ There are two ways to install the add-on:
 ### Stable release
 
  * [Install Blender 2.8 or higher](https://www.blender.org/download/)
- * Download the latest zip file from [the releases page](https://github.com/kevancress/MeasureIt-ARCH/releases)
+ * Download the latest zip file from [the releases page](https://github.com/kevancress/MeasureIt_ARCH/releases)
  * Open the __Add-on Preferences (Edit -> Preferences -> Add-ons)__ and click install.
 
 ![image](docs/install-1.jpg)
 
- * Navigate to and double click on the "MeasureIt-ARCH_VERSION.zip"
+ * Navigate to and double click on the "MeasureIt_ARCH_VERSION.zip"
  * Click the Checkbox to enable the Add-on
 
 ### Latest git master
@@ -28,7 +28,7 @@ There are two ways to install the add-on:
  * Locate your platform and Blender installation specific Blender addons directory:
    * On Windows, this is usually `/Program Files/Blender Foundation/...`
    * On Mac, this is usually `/Applications/Blender.app/Contents/Resources/BLENDER_VERSION/scripts/addons`
-   * There is alsoa  __major gotcha__ regarding the git master version should you wish to use the module in conjunction with other add-ons such as BlenderBIM. In this case, you will need to rename the directory as follows: `mv MeasureIt-ARCH MeasureIt_ARCH`. This is because Python does not support dashes in library names.
+   * There is alsoa  __major gotcha__ regarding the git master version should you wish to use the module in conjunction with other add-ons such as BlenderBIM. In this case, you will need to rename the directory as follows: `mv MeasureIt_ARCH MeasureIt_ARCH`. This is because Python does not support dashes in library names.
 
 
 ## Features & User Interface
@@ -37,19 +37,19 @@ There are two ways to install the add-on:
 
 ![image](docs/ui-main-tool-panel.jpg)
 
-The main tool panel is where you can add MeasureIt-ARCH Items to your 3D scene. This panel is located on the right of the __3D Viewport__. Panel visibility can be toggled by pressing the "n" key.
+The main tool panel is where you can add MeasureIt_ARCH Items to your 3D scene. This panel is located on the right of the __3D Viewport__. Panel visibility can be toggled by pressing the "n" key.
 
-#### Show / Hide MeasureIt-ARCH Toggle
+#### Show / Hide MeasureIt_ARCH Toggle
 
- * Shows and hides all items created by MeasureIt-ARCH.
+ * Shows and hides all items created by MeasureIt_ARCH.
 
 #### Selected Object Only Toggle (Ghost Icon)
 
- * When disabled, MeasureIt-ARCH will only show items belonging to currently selected objects.
+ * When disabled, MeasureIt_ARCH will only show items belonging to currently selected objects.
 
 #### Show Gizmos (Arrow Icon)
 
- * When enabled MeasureIt-ARCH will show gizmos for the selected object.
+ * When enabled MeasureIt_ARCH will show gizmos for the selected object.
 
 #### Add Dimensions
 
@@ -124,21 +124,21 @@ The main tool panel is where you can add MeasureIt-ARCH Items to your 3D scene. 
 
 ### Scene Settings
 
-MeasureIt-ARCH Styles & Settings can be found in the Scene Tab of the Properties Editor.
+MeasureIt_ARCH Styles & Settings can be found in the Scene Tab of the Properties Editor.
 
 ![image](docs/ui-scene.jpg)
 
-#### MeasureIt-ARCH Styles
+#### MeasureIt_ARCH Styles
 
 Styles have a nearly identical user interface to their corresponding items. Style-able properties can be found in the item's settings.
 
 Note that some settings, like an Annotations Offset, or a Dimensions Distance, are still set per item, even when using a style.
 
-#### MeasureIt-ARCH Unit Settings
+#### MeasureIt_ARCH Unit Settings
 
 ![image](docs/ui-scene-units.jpg)
 
-MeasureIt-ARCH Unit Settings can be found in Blender's Scene Settings under the Units panel. MeasureIt-ARCH makes use of Blender's Scene Unit System.
+MeasureIt_ARCH Unit Settings can be found in Blender's Scene Settings under the Units panel. MeasureIt_ARCH makes use of Blender's Scene Unit System.
 
 ##### Metric Precision
 
@@ -148,7 +148,7 @@ MeasureIt-ARCH Unit Settings can be found in Blender's Scene Settings under the 
 
  * Fractional Precision to be used when using the Imperial Unit System.
 
-#### MeasureIt-ARCH Settings
+#### MeasureIt_ARCH Settings
 
 ![image](docs/ui-scene-settings.jpg)
 
@@ -162,8 +162,8 @@ MeasureIt-ARCH Unit Settings can be found in Blender's Scene Settings under the 
 
 ##### Evaluate Depsgraph
 
- * Evaluate Blender's Dependency Graph before drawing MeasureIt-ARCH elements.
-   * __WARNING__: By default, MeasureIt-ARCH does not evaluate the Dependency Graph as some generative modifiers can give unpredictable results. Enabling this setting will make MeasureIt-ARCH attempt to evaluate these modifiers during its calculations.
+ * Evaluate Blender's Dependency Graph before drawing MeasureIt_ARCH elements.
+   * __WARNING__: By default, MeasureIt_ARCH does not evaluate the Dependency Graph as some generative modifiers can give unpredictable results. Enabling this setting will make MeasureIt_ARCH attempt to evaluate these modifiers during its calculations.
 
 ##### Instance Dimensions
 
@@ -218,7 +218,7 @@ MeasureIt-ARCH Unit Settings can be found in Blender's Scene Settings under the 
  * __Arrow Size__: The size of the Dimension's terminations.
  * __Arrow Angle__: The angle the of Dimension's triangle and arrow terminations.
  * __Draw In Front__: Makes this element Ignore Visibility tests.
- * __Evaluate Depsgraph__: Evaluate Blender's Dependency Graph before drawing this MeasureIt-ARCH element.
+ * __Evaluate Depsgraph__: Evaluate Blender's Dependency Graph before drawing this MeasureIt_ARCH element.
 
 #### Line Groups
 
@@ -250,7 +250,7 @@ MeasureIt-ARCH Unit Settings can be found in Blender's Scene Settings under the 
  * __Draw Dashed__: Draws all lines in this Line Group as dashed lines, regardless of visibility.
  * __Screen Space Dashes__: Calculates Dash Spacing in Screen Space. Useful to achieve more even dashes in still renders when some lines are nearly parallel to the view. Can cause dashes to appear to 'slide' along edges when used in animations.
  * __Draw In Front__: Makes this element Ignore Visibility tests.
- * __Evaluate Depsgraph__: Evaluate Blender's Dependency Graph before drawing this MeasureIt-ARCH element.
+ * __Evaluate Depsgraph__: Evaluate Blender's Dependency Graph before drawing this MeasureIt_ARCH element.
 
 #### Annotations
 
@@ -271,8 +271,8 @@ MeasureIt-ARCH Unit Settings can be found in Blender's Scene Settings under the 
  * __Text Field__: Sets the text for the annotation.
    * Annotations can have multiple text fields, each new text field will display as a new line in the Annotation Text.
  * __Font__: Lets you select a custom font for the Annotation from your system.
- * __Text Source__: MeasureIt-ARCH can pull annotation text from an objects Custom Properties metadata. This field defines the source custom property.
-   * If two text fields are available, MeasureIt-ARCH will use the first to display the custom properties name, and the second to display the value.
+ * __Text Source__: MeasureIt_ARCH can pull annotation text from an objects Custom Properties metadata. This field defines the source custom property.
+   * If two text fields are available, MeasureIt_ARCH will use the first to display the custom properties name, and the second to display the value.
    * If only one text field is available, only the value will be displayed.
  * __Size__: The Annotation font size.
  * __Resolution__: The Annotation font resolution.
@@ -291,18 +291,18 @@ MeasureIt-ARCH Unit Settings can be found in Blender's Scene Settings under the 
 
 ![image](docs/ui-rendering.jpg)
 
-MeasureIt-ARCH Render Settings can be found in the Render Panel of the Properties Editor. Currently this renders all MeasureIt-ARCH items to an image file which can be layered over Blender's render in the compositor.
+MeasureIt_ARCH Render Settings can be found in the Render Panel of the Properties Editor. Currently this renders all MeasureIt_ARCH items to an image file which can be layered over Blender's render in the compositor.
 
-#### MeasureIt-ARCH Image
+#### MeasureIt_ARCH Image
 
  * Renders a Still Image.
    * __WARNING__: If 'Save Render to Output' is not enabled the rendered image will only be stored in an image data-block within Blender.
 
-#### MeasureIt-ARCH Animation
+#### MeasureIt_ARCH Animation
 
  * Renders the full frame range of the current scene.
    * Animation Renders can be Cancelled with the Esc key, or by Right Clicking in the 3D View.
-   * A 3D Viewport window must be open for MeasureIt-ARCH to render animations.
+   * A 3D Viewport window must be open for MeasureIt_ARCH to render animations.
    * Animation frames will be saved to the Output path defined in the Render Panel.
 
 #### Save Render to Output
