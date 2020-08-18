@@ -26,14 +26,14 @@
 # Define Addon info
 # ----------------------------------------------
 bl_info = {
-    "name": "MeasureIt-ARCH",
+    "name": "MeasureIt_ARCH",
     "author": "Kevan Cress, Antonio Vazquez (antonioya)",
     "location": "View3D > Tools Panel /Properties panel",
     "version": (0, 4, 6),
     "blender": (2, 83, 0),      
     "description": "Tools for adding Dimensions, Annotations and Linework to Objects",
     "warning": "",
-    "doc_url": "https://github.com/kevancress/MeasureIt-ARCH/wiki/Version-0.4-Documentation",
+    "doc_url": "https://github.com/kevancress/MeasureIt_ARCH/",
     "category": "3D View"
 }
 
@@ -105,7 +105,7 @@ panels = (
         )
 
 def update_panel(self, context):
-    message = "MeasureIt-ARCH: Updating Panel locations has failed"
+    message = "MeasureIt_ARCH: Updating Panel locations has failed"
     try:
         for panel in panels:
             if "bl_rna" in panel.__dict__:
