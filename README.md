@@ -26,7 +26,7 @@ There are two ways to install the add-on:
 
  * [Install Blender 2.8 or higher](https://www.blender.org/download/)
  * Locate your platform and Blender installation specific Blender addons directory:
-   * On Windows, this is usually `/Program Files/Blender Foundation/...`
+   * On Windows, this is usually `/Program Files/Blender Foundation/Blender BLENDER_VERSION/BLENDER_VERSION/scripts/addons`
    * On Mac, this is usually `/Applications/Blender.app/Contents/Resources/BLENDER_VERSION/scripts/addons`
 
 
