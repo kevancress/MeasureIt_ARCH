@@ -296,7 +296,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 default=False)
 
     eval_mods: BoolProperty(name="Evaluate Depsgraph",
-                                description="All MeasureIt-ARCH elements will attempt to evaluate the dependency graph (Modifiers, Shape Keys, etc.) before drawing, May make dimensions and linework unstable",
+                                description="All MeasureIt_ARCH elements will attempt to evaluate the dependency graph (Modifiers, Shape Keys, etc.) before drawing, May make dimensions and linework unstable",
                                 default=False)
 
     is_render_draw: BoolProperty(name="Is Render",
@@ -312,7 +312,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 default=False)
 
     show_gizmos: BoolProperty(name="Show Gizmos",
-                                description="Display Measureit-ARCH Gizmos",
+                                description="Display MeasureIt_ARCH Gizmos",
                                 default=False)
 
     enable_experimental: BoolProperty(name="Enable Experimental",

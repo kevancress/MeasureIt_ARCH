@@ -60,10 +60,10 @@ class MeasureitArchRenderPanel(Panel):
     bl_region_type = 'WINDOW'
     bl_context = "output"
     bl_options = {'HIDE_HEADER'}
-    bl_label = "MeasureIt-ARCH Render"
+    bl_label = "MeasureIt_ARCH Render"
 
     #bl_idname = "measureit_arch_render_panel"
-    #bl_label = "MeasureIt-ARCH Render"
+    #bl_label = "MeasureIt_ARCH Render"
     #bl_space_type = 'PROPERTIES'
     #bl_region_type = "WINDOW"
     #bl_context = "render"
@@ -80,12 +80,12 @@ class MeasureitArchRenderPanel(Panel):
 
         # Render settings
         col = layout.column()
-        col.label(text="MeasureIt-ARCH Render")
+        col.label(text="MeasureIt_ARCH Render")
         col = layout.column(align=True)
         col.scale_y = 1.5
-        col.operator("measureit_arch.render_image", icon='RENDER_STILL', text= "MeasureIt-ARCH Image")
-        col.operator("measureit_arch.render_anim", icon='RENDER_ANIMATION', text= "MeasureIt-ARCH Animation")
-        col.operator("measureit_arch.rendersvgbutton", icon='DOCUMENTS', text= "MeasureIt-ARCH Vector")
+        col.operator("measureit_arch.render_image", icon='RENDER_STILL', text= "MeasureIt_ARCH Image")
+        col.operator("measureit_arch.render_anim", icon='RENDER_ANIMATION', text= "MeasureIt_ARCH Animation")
+        col.operator("measureit_arch.rendersvgbutton", icon='DOCUMENTS', text= "MeasureIt_ARCH Vector")
         if sceneProps.enable_experimental:
             col = layout.column()
             col.prop(sceneProps, "vector_depthtest", text="Use Vector DepthTest")
@@ -124,7 +124,7 @@ class RenderSegmentButton(Operator):
         # Use default render
         # -----------------------------
 
-        print("MeasureIt-ARCH: Rendering image")
+        print("MeasureIt_ARCH: Rendering image")
         #bpy.ops.render.render()
         render_result = render_main(self, context)
         #render_result = [True, 0]
@@ -138,7 +138,7 @@ class RenderSegmentButton(Operator):
 class MeasureitRenderAnim(bpy.types.Operator):
     """Operator which runs its self from a timer"""
     bl_idname = "measureit_arch.render_anim"
-    bl_label = "Render Measureit-ARCH animation"
+    bl_label = "Render MeasureIt_ARCH animation"
 
     _timer = None
     _updating = False
@@ -157,7 +157,7 @@ class MeasureitRenderAnim(bpy.types.Operator):
             if scene.frame_current <= scene.frame_end:
                 scene.frame_set(scene.frame_current)
                 self.view3d.tag_redraw()      
-                print("MeasureIt-ARCH: Rendering frame: " + str(scene.frame_current))
+                print("MeasureIt_ARCH: Rendering frame: " + str(scene.frame_current))
                 render_main(self, context, True)
                 self._updating = False
                 scene.frame_current += 1
@@ -184,7 +184,7 @@ class MeasureitRenderAnim(bpy.types.Operator):
                 self.view3d = area
         
         if self.view3d == None:
-            self.report({'ERROR'}, 'A 3D Viewport must be open to render MeasureIt-ARCH Animations')
+            self.report({'ERROR'}, 'A 3D Viewport must be open to render MeasureIt_ARCH Animations')
             self.cancel(context)
             return {'CANCELLED'}
 
@@ -225,7 +225,7 @@ class RenderSvgButton(Operator):
         # Use default render
         # -----------------------------
 
-        print("MeasureIt-ARCH: Rendering image")
+        print("MeasureIt_ARCH: Rendering image")
         #bpy.ops.render.render()
         if render_main_svg(self, context) is True:
             self.report({'INFO'}, msg)
@@ -394,7 +394,7 @@ def save_image(self, filepath, myimage):
         settings.color_mode = "RGBA"
         settings.color_depth = '16'
         myimage.save_render(filepath)
-        print("MeasureIt-ARCH: Image " + filepath + " saved")
+        print("MeasureIt_ARCH: Image " + filepath + " saved")
 
         # Restore old info
         settings.file_format = myformat
@@ -402,7 +402,7 @@ def save_image(self, filepath, myimage):
         settings.color_depth = depth
     except:
         print("Unexpected error:" + str(exc_info()))
-        self.report({'ERROR'}, "MeasureIt-ARCH: Unable to save render image")
+        self.report({'ERROR'}, "MeasureIt_ARCH: Unable to save render image")
         return
 
 #--------------------------------------

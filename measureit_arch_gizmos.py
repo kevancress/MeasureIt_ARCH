@@ -35,7 +35,7 @@ from bpy.types import (
 
 class mArchGizmoGroup(GizmoGroup):
     bl_idname = "OBJECT_GG_mArch"
-    bl_label = "MeasureIt-ARCH Gizmo Group"
+    bl_label = "MeasureIt_ARCH Gizmo Group"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_options = {'3D', 'PERSISTENT'}

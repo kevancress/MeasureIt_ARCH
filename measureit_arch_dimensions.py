@@ -238,7 +238,7 @@ class AddAlignedDimensionButton(Operator):
                         mylist = get_selected_vertex(mainobject) 
                         if len(mylist) < 2:
                             self.report({'ERROR'},
-                                    "MeasureIt-ARCH: Vertices must be selected in order, (for general selection, switch to EDGE mode)")
+                                    "MeasureIt_ARCH: Vertices must be selected in order, (for general selection, switch to EDGE mode)")
                     if len(mylist) >= 2:
                         #Check Generators
                         if 'DimensionGenerator' not in mainobject:
@@ -305,7 +305,7 @@ class AddAlignedDimensionButton(Operator):
                 mainobject = context.object
                 if len(context.selected_objects) != 2:
                     self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select two objects only, and optionally 1 vertex or 2 vertices "
+                            "MeasureIt_ARCH: Select two objects only, and optionally 1 vertex or 2 vertices "
                             "(one of each object)")
                     return {'FINISHED'}
                 
@@ -321,7 +321,7 @@ class AddAlignedDimensionButton(Operator):
                         mylinkvertex.append(9999999)
                     else:
                         self.report({'ERROR'},
-                                    "MeasureIt-ARCH: The destination object has more than one vertex selected. "
+                                    "MeasureIt_ARCH: The destination object has more than one vertex selected. "
                                     "Select only 1")
                         return {'FINISHED'}
                 # Verify origin vertex
@@ -331,7 +331,7 @@ class AddAlignedDimensionButton(Operator):
                         myobjvertex.append(9999999)
                     else:
                         self.report({'ERROR'},
-                                    "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1")
+                                    "MeasureIt_ARCH: The active object has more than one vertex selected. Select only 1")
                         return {'FINISHED'}
 
                 # -------------------------------
@@ -559,14 +559,14 @@ class AddAxisDimensionButton(Operator):
                         context.area.tag_redraw()
                     else:
                         self.report({'ERROR'},
-                                    "MeasureIt-ARCH: Select at least two vertices for creating measure segment.")
+                                    "MeasureIt_ARCH: Select at least two vertices for creating measure segment.")
             
             # Object Context
             elif bpy.context.mode == 'OBJECT':
                 mainobject = context.object
                 if len(context.selected_objects) != 2:
                     self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select two objects only, and optionally 1 vertex or 2 vertices "
+                            "MeasureIt_ARCH: Select two objects only, and optionally 1 vertex or 2 vertices "
                             "(one of each object)")
                     return {'FINISHED'}
                 
@@ -582,7 +582,7 @@ class AddAxisDimensionButton(Operator):
                         mylinkvertex.append(9999999)
                     else:
                         self.report({'ERROR'},
-                                    "MeasureIt-ARCH: The destination object has more than one vertex selected. "
+                                    "MeasureIt_ARCH: The destination object has more than one vertex selected. "
                                     "Select only 1")
                         return {'FINISHED'}
                 # Verify origin vertex
@@ -592,7 +592,7 @@ class AddAxisDimensionButton(Operator):
                         myobjvertex.append(9999999)
                     else:
                         self.report({'ERROR'},
-                                    "MeasureIt-ARCH: The active object has more than one vertex selected. Select only 1")
+                                    "MeasureIt_ARCH: The active object has more than one vertex selected. Select only 1")
                         return {'FINISHED'}
 
                 # -------------------------------
@@ -750,7 +750,7 @@ class AddAreaButton(Operator):
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select at least one face for creating area measure. ")
+                            "MeasureIt_ARCH: Select at least one face for creating area measure. ")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -828,7 +828,7 @@ class AddAngleButton(Operator):
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select three vertices for creating angle measure")
+                            "MeasureIt_ARCH: Select three vertices for creating angle measure")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -894,7 +894,7 @@ class AddArcButton(Operator):
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select three vertices for creating arc measure")
+                            "MeasureIt_ARCH: Select three vertices for creating arc measure")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -1197,7 +1197,7 @@ class M_ARCH_UL_dimension_list(UIList):
 
 class OBJECT_PT_UIDimensions(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "MeasureIt-ARCH Dimensions"
+    bl_label = "MeasureIt_ARCH Dimensions"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"

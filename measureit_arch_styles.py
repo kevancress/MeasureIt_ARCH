@@ -60,7 +60,7 @@ def recalc_index(self,context):
             style.itemIndex = id_a
             id_a += 1
 
-# A Wrapper Object so multiple MeasureIt-ARCH element
+# A Wrapper Object so multiple MeasureIt_ARCH element
 # types can be shown in the same UI List
 
 class StyleWrapper(PropertyGroup):
@@ -120,7 +120,7 @@ class M_ARCH_UL_styles_list(UIList):
 
 class SCENE_PT_UIStyles(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "MeasureIt-ARCH Styles"
+    bl_label = "MeasureIt_ARCH Styles"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
