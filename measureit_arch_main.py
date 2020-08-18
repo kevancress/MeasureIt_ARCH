@@ -66,7 +66,7 @@ def save_handler(dummy):
         # Check all Scenes for phantom objects
         # Necessary because the pointer properties on Dimensions and annotations
         # count as an ID user and prevent the object from being removed normally
-        print("Measureit-ARCH: Cleaning Phantom Objects")
+        print("MeasureIt_ARCH: Cleaning Phantom Objects")
         objlist = []
         clear_batches()
         for scene in bpy.data.scenes:
@@ -293,7 +293,7 @@ class MeasureitArchMainPanel(Panel):
                 row.prop(scene, 'measureit_arch_debug_precision', text="Precision")
 
 
-# Measureit-ARCH settings
+# MeasureIt_ARCH settings
 class SCENE_PT_MARCH_Settings(Panel):
     bl_idname = "SCENE_PT_MARCH_Settings"
     bl_label = "MeasureIt_ARCH Settings"

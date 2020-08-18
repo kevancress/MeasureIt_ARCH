@@ -1915,7 +1915,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
             if 'coordBuffer' not in lineGroup or evalMods or recoordFlag:
-                # Handle line groups created with older versions of measureIt-ARCH
+                # Handle line groups created with older versions of MeasureIt_ARCH
                 if 'singleLine' in lineGroup and 'lineBuffer' not in lineGroup:
                     toLineBuffer = []
                     for line in lineGroup['singleLine']:

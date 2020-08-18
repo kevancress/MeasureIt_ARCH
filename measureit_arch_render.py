@@ -138,7 +138,7 @@ class RenderSegmentButton(Operator):
 class MeasureitRenderAnim(bpy.types.Operator):
     """Operator which runs its self from a timer"""
     bl_idname = "measureit_arch.render_anim"
-    bl_label = "Render Measureit-ARCH animation"
+    bl_label = "Render MeasureIt_ARCH animation"
 
     _timer = None
     _updating = False

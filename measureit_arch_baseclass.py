@@ -312,7 +312,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 default=False)
 
     show_gizmos: BoolProperty(name="Show Gizmos",
-                                description="Display Measureit-ARCH Gizmos",
+                                description="Display MeasureIt_ARCH Gizmos",
                                 default=False)
 
     enable_experimental: BoolProperty(name="Enable Experimental",
