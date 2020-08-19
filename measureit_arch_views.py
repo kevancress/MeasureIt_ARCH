@@ -306,7 +306,7 @@ class M_ARCH_UL_Views_list(UIList):
 
 class SCENE_PT_Views(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "MeasureIt-ARCH Views"
+    bl_label = "MeasureIt_ARCH Views"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
@@ -488,7 +488,7 @@ class M_ARCH_OP_Render_Preview(Operator):
         # Use default render
         # -----------------------------
 
-        print("MeasureIt-ARCH: Rendering image")
+        print("MeasureIt_ARCH: Rendering image")
         #bpy.ops.render.render()
         render_results = render_main(self, context)
         if render_results[0] is True:

@@ -66,7 +66,7 @@ def save_handler(dummy):
         # Check all Scenes for phantom objects
         # Necessary because the pointer properties on Dimensions and annotations
         # count as an ID user and prevent the object from being removed normally
-        print("Measureit-ARCH: Cleaning Phantom Objects")
+        print("MeasureIt_ARCH: Cleaning Phantom Objects")
         objlist = []
         clear_batches()
         for scene in bpy.data.scenes:
@@ -132,10 +132,10 @@ bpy.app.handlers.save_pre.append(save_handler)
 # ------------------------------------------------------------------
 class MeasureitArchMainPanel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
-    bl_label = "MeasureIt-ARCH v0.4.6(git)"
+    bl_label = "MeasureIt_ARCH v0.4.6(git)"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
-    bl_category = 'MeasureIt-ARCH'
+    bl_category = 'MeasureIt_ARCH'
 
     # ------------------------------
     # Draw UI
@@ -154,7 +154,7 @@ class MeasureitArchMainPanel(Panel):
         # ------------------------------
        
         box = layout.box()
-        box.label(text="Show/Hide MeasureIt-ARCH")
+        box.label(text="Show/Hide MeasureIt_ARCH")
         row = box.row(align=True)
         
         if context.window_manager.measureit_arch_run_opengl is False:
@@ -293,10 +293,10 @@ class MeasureitArchMainPanel(Panel):
                 row.prop(scene, 'measureit_arch_debug_precision', text="Precision")
 
 
-# Measureit-ARCH settings
+# MeasureIt_ARCH settings
 class SCENE_PT_MARCH_Settings(Panel):
     bl_idname = "SCENE_PT_MARCH_Settings"
-    bl_label = "MeasureIt-ARCH Settings"
+    bl_label = "MeasureIt_ARCH Settings"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'scene'
@@ -821,7 +821,7 @@ def precision_ui(self, context):
     scene = context.scene
     col = layout.column()
     col.alignment = 'RIGHT'
-    col.label(text="MeasureIt-ARCH Unit Settings")
+    col.label(text="MeasureIt_ARCH Unit Settings")
     col = layout.column()
 
     col.prop(sceneProps, 'metric_precision', text="Metric Precision")

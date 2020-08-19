@@ -165,7 +165,7 @@ class AddAnnotationButton(Operator):
                     update_custom_props(newAnnotation, context)
                 else:
                     self.report({'ERROR'},
-                                "MeasureIt-ARCH: Select one vertex for creating measure label")
+                                "MeasureIt_ARCH: Select one vertex for creating measure label")
                     return {'FINISHED'}
             else:
                 annotationGen.num_annotations +=1
@@ -245,7 +245,7 @@ class M_ARCH_UL_annotations_list(UIList):
 
 class OBJECT_PT_UIAnnotations(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "MeasureIt-ARCH Annotations"
+    bl_label = "MeasureIt_ARCH Annotations"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"

@@ -188,7 +188,7 @@ class AddLineButton(Operator):
                 return {'FINISHED'}
             else:
                 self.report({'ERROR'},
-                            "MeasureIt-ARCH: Select at least two vertices for creating measure segment.")
+                            "MeasureIt_ARCH: Select at least two vertices for creating measure segment.")
                 return {'FINISHED'}
         else:
             self.report({'WARNING'},
@@ -245,7 +245,7 @@ class M_ARCH_UL_lines_list(UIList):
 
 class OBJECT_PT_UILines(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "MeasureIt-ARCH Lines"
+    bl_label = "MeasureIt_ARCH Lines"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"

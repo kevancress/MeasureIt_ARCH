@@ -39,7 +39,7 @@ class Custom_Preset_Base:
 
             filename = self.as_filename(name)
 
-            preset_path = os.path.join("addons\MeasureIt-ARCH\presets", self.preset_subdir)
+            preset_path = os.path.join("addons\MeasureIt_ARCH\presets", self.preset_subdir)
             scripts_path = bpy.utils.script_path_user()
             target_path = os.path.join(scripts_path,preset_path)
             
@@ -83,7 +83,7 @@ class Custom_Preset_Base:
         else:
             preset_active = Custom_Preset_Base.as_filename(preset_menu_class.bl_label)
             print (preset_active)
-            preset_path = os.path.join("addons\MeasureIt-ARCH\presets", self.preset_subdir)
+            preset_path = os.path.join("addons\MeasureIt_ARCH\presets", self.preset_subdir)
             scripts_path = bpy.utils.script_path_user()
             target_path = os.path.join(scripts_path,preset_path)
             
@@ -127,7 +127,7 @@ class Custom_Preset_Base:
             ext_valid = getattr(self, "preset_extensions", {".py", ".xml"})
             props_default = getattr(self, "preset_operator_defaults", None)
             
-            preset_path = os.path.join("addons\MeasureIt-ARCH\presets", self.preset_subdir)
+            preset_path = os.path.join("addons\MeasureIt_ARCH\presets", self.preset_subdir)
             
             self.path_menu(bpy.utils.script_paths(preset_path),
                            self.preset_operator,
