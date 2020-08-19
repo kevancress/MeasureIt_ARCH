@@ -68,23 +68,36 @@ def svg_fill_shader(item, coords,color,svg,parent=None):
 
 
 def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
+
+    # Card Indicies:
+    #     
+    #     1----------------2
+    #     |                |
+    #     |                |
+    #     0----------------3
+
+
     text_position = get_render_location(mid)
     svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
-    ssp1 = get_render_location(textCard[0])
-    ssp2 = get_render_location(textCard[3])
-    ssp3 = get_render_location(textCard[2])
+    ssp0 = get_render_location(textCard[0])
+    ssp1 = get_render_location(textCard[1])
+    ssp2 = get_render_location(textCard[2])
+    ssp3 = get_render_location(textCard[3])
 
     
-    dirVec = Vector(ssp1) - Vector(ssp2)
-    midVec = (Vector(ssp1) + Vector(ssp3))/2 
-
+    dirVec = Vector(ssp0) - Vector(ssp3)
+    vertVec = (Vector(ssp0) - Vector(ssp1))/20
+    leftVec = (Vector(ssp0) + Vector(ssp1))/2 - vertVec
+    rightVec = (Vector(ssp3) + Vector(ssp2))/2 - vertVec
+    midVec = (leftVec + rightVec)/2 - vertVec
+    
     if dirVec.length == 0:
         return
 
     text_position = (0,0)
     text_anchor = 'left'
     if item.textAlignment == 'L':
-        text_position  = Vector(ssp1)
+        text_position  = leftVec
         text_anchor = 'left'
 
     if item.textAlignment == 'C':
@@ -92,7 +105,7 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
         text_anchor = 'middle'
 
     if item.textAlignment == 'R':
-        text_position  =  Vector(ssp3) 
+        text_position  = rightVec
         text_anchor = 'right'
  
 

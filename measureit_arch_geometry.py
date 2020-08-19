@@ -496,7 +496,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
     
     set_OpenGL_Settings(False)
 
@@ -832,13 +832,12 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                     svg_dim = svg.add(svg.g(id=dim.name))
                     svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
                     svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
-                    svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+                    svg_shaders.svg_text_shader(dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
 
             idx+=1
 
     #Reset openGL Settings
     set_OpenGL_Settings(False)
-
 
 def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
 
@@ -1117,12 +1116,11 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
 
     #Reset openGL Settings
     set_OpenGL_Settings(False)
  
-
 def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
     dimProps = dim
     sceneProps = context.scene.MeasureItArchProps
@@ -1253,7 +1251,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
 
     #Reset openGL Settings
     set_OpenGL_Settings(False)
@@ -1515,9 +1513,9 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             svg_shaders.svg_line_shader(dim,coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_line_shader(dim,measure_coords, lineWeight*2, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(dim, filledCoords, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, lengthText.text, len_origin, len_square, rgb, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dimProps, lengthText.text, len_origin, len_square, rgb, svg, parent=svg_dim)
             if dim.showRadius:
-                svg_shaders.svg_text_shader(dim, radiusText.text, rad_origin, rad_square, rgb, svg, parent=svg_dim)
+                svg_shaders.svg_text_shader(dimProps, radiusText.text, rad_origin, rad_square, rgb, svg, parent=svg_dim)
         
     #Reset openGL Settings
     set_OpenGL_Settings(False)
@@ -1657,7 +1655,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(dim, perimeterCoords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(dim, filledCoords, fillRGB, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(dim, dimText.text, origin, square, textRGB, svg, parent=svg_dim)
+            svg_shaders.svg_text_shader(dimProps, dimText.text, origin, square, textRGB, svg, parent=svg_dim)
     
     set_OpenGL_Settings(False)
 

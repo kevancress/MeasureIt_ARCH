@@ -59,9 +59,7 @@ def update(self,context):
             if not os.path.exists(datepath):
                 os.mkdir(renderpath + today.strftime('%Y%m%d'))
             render.filepath = os.path.join(datepath, filenameStr)
-            
-
-    
+              
 def update_camera(scene,camera):
     render = scene.render
     ViewGen = scene.ViewGenerator
@@ -359,7 +357,8 @@ class SCENE_PT_Views(Panel):
                     col.operator("measureit_arch.renderpreviewbutton", icon='RENDER_STILL', text="Render View Preview")
                     #col.operator("bind_marker.bind_marker", text = "Bind Camera To Frame", icon = 'CAMERA_DATA')
                     col.prop(camera, "type", text="Camera Type")
-                    col.prop_search(view,'view_layer', context.scene, 'view_layers',text='View Layer')  
+                    col.prop_search(view,'view_layer', context.scene, 'view_layers',text='View Layer')
+                    col.prop_search(view,'titleBlock', bpy.data, 'scenes', text='Title Block')  
                     col.prop(view, "output_path")
                     col.prop(view, "date_folder", text="Date Folder")
                     
