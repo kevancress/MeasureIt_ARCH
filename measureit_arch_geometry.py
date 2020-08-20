@@ -2259,6 +2259,9 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
         set_OpenGL_Settings(False)
 
+### This is a one of for a project where I need to preview the
+### "create dual mesh" Operator from Alessandro Zomparelli's tissue addon.
+### Keeping it here untill I can create a pull request for tissue to discuss adding it in there.
 def preview_dual(context):
     myobj = context.view_layer.objects.active
     mat = myobj.matrix_world

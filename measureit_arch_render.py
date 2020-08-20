@@ -45,7 +45,7 @@ from bgl import *
 import numpy as np
 import bmesh
 from .measureit_arch_geometry import *
-from .measureit_arch_main import draw_main, draw_main_3d
+from .measureit_arch_main import draw_main, draw_main_3d, draw3d_loop
 from bpy.props import IntProperty
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 depthOnlyshader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
@@ -283,69 +283,7 @@ def render_main(self, context, animation=False):
         # -----------------------------
         # Loop to draw all objects
         # -----------------------------
-        for myobj in objlist:
-            if myobj.visible_get() is True:
-                mat = myobj.matrix_world
-
-                sheetGen = myobj.SheetGenerator
-                for sheet_view in sheetGen.sheet_views:
-                    draw_sheet_views(context,myobj,sheetGen,sheet_view,mat)
-
-                if 'DimensionGenerator' in myobj:
-                    measureGen = myobj.DimensionGenerator[0]
-                    if 'alignedDimensions' in measureGen:
-                        for linDim in measureGen.alignedDimensions:
-                            draw_alignedDimension(context, myobj, measureGen,linDim,mat)
-                    if 'angleDimensions' in measureGen:
-                        for dim in measureGen.angleDimensions:
-                            draw_angleDimension(context, myobj, measureGen,dim,mat)
-                    if 'axisDimensions' in measureGen:
-                        for dim in measureGen.axisDimensions:
-                            draw_axisDimension(context, myobj, measureGen,dim,mat)
-                    if 'boundsDimensions' in measureGen:
-                        for dim in measureGen.boundsDimensions:
-                            draw_boundsDimension(context, myobj, measureGen,dim,mat)
-                    if 'arcDimensions' in measureGen:
-                        for dim in measureGen.arcDimensions:
-                            draw_arcDimension(context, myobj, measureGen,dim,mat)
-                    if 'areaDimensions' in measureGen:
-                        for dim in measureGen.areaDimensions:
-                            draw_areaDimension(context, myobj, measureGen,dim,mat)
-
-                if 'LineGenerator' in myobj:
-                    # Draw Line Groups       
-                    op = myobj.LineGenerator[0]
-                    draw_line_group(context, myobj, op, mat)
-            
-                if 'AnnotationGenerator' in myobj:
-                    # Draw Line Groups
-                    op = myobj.AnnotationGenerator[0]
-                    draw_annotation(context, myobj, op, mat)                
-    
-        # Draw Instance 
-        deps = bpy.context.view_layer.depsgraph
-        for obj_int in deps.object_instances:
-            if obj_int.is_instance:
-                myobj = obj_int.object
-                mat = obj_int.matrix_world
-
-                if 'LineGenerator' in myobj:
-                    lineGen = myobj.LineGenerator[0]
-                    draw_line_group(context,myobj,lineGen,mat)
-                
-                if sceneProps.instance_dims:
-                    if 'AnnotationGenerator' in myobj:
-                        annotationGen = myobj.AnnotationGenerator[0]
-                        draw_annotation(context,myobj,annotationGen,mat)
-
-                    if 'DimensionGenerator' in myobj:
-                        DimGen = myobj.DimensionGenerator[0]
-                        for alignedDim in DimGen.alignedDimensions:
-                            draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
-                        for angleDim in DimGen.angleDimensions:
-                            draw_angleDimension(context, myobj, DimGen, angleDim,mat)
-                        for axisDim in DimGen.axisDimensions:
-                            draw_axisDimension(context,myobj,DimGen,axisDim,mat)
+        draw3d_loop(context,objlist)
         
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
         bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
@@ -559,71 +497,8 @@ def render_main_svg(self, context, animation=False):
     # -----------------------------
     # Loop to draw all objects
     # -----------------------------
-    idx = 1
-    totalobjs = len(objlist)
-    for myobj in objlist:
-        print("Rendering Object: " + str(idx) + " of: " + str(totalobjs) + " Name: " + myobj.name)
-        startTime = time.time()
-        if myobj.visible_get() is True:
-            mat = myobj.matrix_world
-            if 'DimensionGenerator' in myobj:
-                measureGen = myobj.DimensionGenerator[0]
-                if 'alignedDimensions' in measureGen:
-                    for linDim in measureGen.alignedDimensions:
-                        draw_alignedDimension(context, myobj, measureGen,linDim,mat,svg=svg)
-                if 'angleDimensions' in measureGen:
-                    for dim in measureGen.angleDimensions:
-                        draw_angleDimension(context, myobj, measureGen,dim,mat,svg=svg)
-                if 'axisDimensions' in measureGen:
-                    for dim in measureGen.axisDimensions:
-                        draw_axisDimension(context, myobj, measureGen,dim,mat,svg=svg)
-                if 'boundsDimensions' in measureGen:
-                    for dim in measureGen.boundsDimensions:
-                        draw_boundsDimension(context, myobj, measureGen,dim,mat,svg=svg)
-                if 'arcDimensions' in measureGen:
-                    for dim in measureGen.arcDimensions:
-                        draw_arcDimension(context, myobj, measureGen,dim,mat,svg=svg)
-                if 'areaDimensions' in measureGen:
-                    for dim in measureGen.areaDimensions:
-                        draw_areaDimension(context, myobj, measureGen,dim,mat,svg=svg)
+    draw3d_loop(context,objlist,svg=svg)
 
-            if 'LineGenerator' in myobj:
-                # Draw Line Groups
-                op = myobj.LineGenerator[0]
-                draw_line_group(context, myobj, op, mat,svg=svg)
-            
-            if 'AnnotationGenerator' in myobj:
-                op = myobj.AnnotationGenerator[0]
-                draw_annotation(context, myobj, op, mat, svg=svg)                
-        
-        if False:
-            # Draw Instance 
-            deps = bpy.context.view_layer.depsgraph
-            for obj_int in deps.object_instances:
-                if obj_int.is_instance:
-                    myobj = obj_int.object
-                    mat = obj_int.matrix_world
-
-                    if 'LineGenerator' in myobj:
-                        lineGen = myobj.LineGenerator[0]
-                        draw_line_group(context,myobj,lineGen,mat)
-                    
-                    if sceneProps.instance_dims:
-                        if 'AnnotationGenerator' in myobj:
-                            annotationGen = myobj.AnnotationGenerator[0]
-                            draw_annotation(context,myobj,annotationGen,mat)
-
-                        if 'DimensionGenerator' in myobj:
-                            DimGen = myobj.DimensionGenerator[0]
-                            for alignedDim in DimGen.alignedDimensions:
-                                draw_alignedDimension(context, myobj, DimGen, alignedDim,mat)
-                            for angleDim in DimGen.angleDimensions:
-                                draw_angleDimension(context, myobj, DimGen, angleDim,mat)
-                            for axisDim in DimGen.axisDimensions:
-                                draw_axisDimension(context,myobj,DimGen,axisDim,mat)
-        endTime = time.time()
-        print("Time: " + str(endTime -startTime))
-        idx += 1    
  
 
     svg.save(pretty=True)
