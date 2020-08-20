@@ -437,7 +437,7 @@ def draw_main(context):
     text_update_loop(context,objlist)
 
     view = get_view()
-    if view != None:
+    if view != None and view.titleBlock != "":
         camera = view.camera
         titleblockScene = bpy.data.scenes[view.titleBlock]
         objlist = titleblockScene.objects
@@ -606,9 +606,11 @@ def draw_main_3d (context):
 
 def draw_titleblock(context,svg=None):
     view = get_view()
-    if view != None:
+    if view is not None and view.titleBlock !="":
         camera = view.camera
+        
         titleblockScene = bpy.data.scenes[view.titleBlock]
+
         objlist = titleblockScene.objects
 
         cameraMat = camera.matrix_world
