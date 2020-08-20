@@ -127,6 +127,7 @@ def update_panel(self, context):
 # noinspection PyUnusedLocal
 def register():
     auto_load.register()
+    bpy.types.SCENE_PT_unit.append(precision_ui)
     # Define properties
     Scene.measureit_arch_bound_x = BoolProperty()
     Scene.measureit_arch_bound_y = BoolProperty()

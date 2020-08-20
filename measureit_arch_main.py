@@ -38,7 +38,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 from bpy.app.handlers import persistent
 from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_areaDimension, \
                         draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, \
-                        get_mesh_vertices, printTime, draw_sheet_views
+                        get_mesh_vertices, printTime, draw_sheet_views, preview_dual
 
 draw_instanced = True
 
@@ -588,6 +588,8 @@ def draw_main_3d (context):
     # ---------------------------------------
     # Generate all OpenGL calls
     # ---------------------------------------
+    if False:
+        preview_dual(context)
     for myobj in objlist:
     
         #Stash Object Vertices for use in Draw functions
@@ -832,4 +834,4 @@ def precision_ui(self, context):
     col.prop(sceneProps, 'default_scale', text="Default Scale 1:")
     col.prop(sceneProps, 'default_resolution', text="Default Resolution")
 
-bpy.types.SCENE_PT_unit.append(precision_ui)
+

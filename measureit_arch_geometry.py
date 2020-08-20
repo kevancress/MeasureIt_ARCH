@@ -2259,6 +2259,32 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
         set_OpenGL_Settings(False)
 
+def preview_dual(context):
+    myobj = context.view_layer.objects.active
+    mat = myobj.matrix_world
+    mesh = myobj.data
+    bm = bmesh.new()
+    if myobj.mode == 'OBJECT':
+        bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
+    else:
+        bm = bmesh.from_edit_mesh(mesh)
+    
+    bm.edges.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
+    edges= bm.edges
+
+    coords = []
+    set_OpenGL_Settings(True)
+    for edge in edges:
+        faces = edge.link_faces
+        for face in faces:
+            center = face.calc_center_median()
+            coords.append(mat@center)
+    
+    draw_lines(3,(1,0,0,1),coords,twoPass=True,offset=-0.0005)
+    set_OpenGL_Settings(False)
+
+
 def draw_text_3D(context,textobj,textprops,myobj,card):
     #get props
     sceneProps = context.scene.MeasureItArchProps
