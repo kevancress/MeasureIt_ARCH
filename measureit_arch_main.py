@@ -30,6 +30,8 @@ import bgl
 import gpu
 import time
 import math
+
+from mathutils import Vector, Matrix, Euler, Quaternion
 from gpu_extras.batch import batch_for_shader
 
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
@@ -432,9 +434,31 @@ def draw_main(context):
     # ---------------------------------------
     # Generate all OpenGL calls for measures
     # ---------------------------------------
+    text_update_loop(context,objlist)
+
+    view = get_view()
+    if view != None:
+        camera = view.camera
+        titleblockScene = bpy.data.scenes[view.titleBlock]
+        objlist = titleblockScene.objects
+        text_update_loop(context,objlist)
+
+    # Reset Style & Scene Update Flags
+    StyleGen = context.scene.StyleGenerator
+    dimStyles = StyleGen.alignedDimensions
+    annoStyles = StyleGen.annotations
+    for style in annoStyles:
+        style.text_updated = False
+    for style in dimStyles:
+        style.text_updated = False
+    
+    sceneProps = scene.MeasureItArchProps
+    sceneProps.text_updated = False
+
+def text_update_loop(context,objlist):
 
     for myobj in objlist:
-        if myobj.visible_get() is True:
+        if myobj.hide_get() is False:
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator[0]
                 for alignedDim in DimGen.alignedDimensions:
@@ -561,18 +585,6 @@ def draw_main(context):
                                     dimProps= dimStyle
                         update_text(textobj=arcDim,props=dimProps,context=context)
 
-    # Reset Style & Scene Update Flags
-    StyleGen = context.scene.StyleGenerator
-    dimStyles = StyleGen.alignedDimensions
-    annoStyles = StyleGen.annotations
-    for style in annoStyles:
-        style.text_updated = False
-    for style in dimStyles:
-        style.text_updated = False
-    
-    sceneProps = scene.MeasureItArchProps
-    sceneProps.text_updated = False
-
 
 def draw_main_3d (context):
    
@@ -585,15 +597,38 @@ def draw_main_3d (context):
     else:
         objlist = context.view_layer.objects
 
+    draw3d_loop(context,objlist)
+
+    # Draw TitleBlock
+    draw_titleblock(context)
+
+
+
+def draw_titleblock(context,svg=None):
     view = get_view()
     if view != None:
         camera = view.camera
+        titleblockScene = bpy.data.scenes[view.titleBlock]
+        objlist = titleblockScene.objects
 
-    draw3d_loop(context,objlist)
+        cameraMat = camera.matrix_world
+        offsetVec = Vector((0,0,-1.1))
+        offsetVec *= camera.data.clip_start
+        #offsetVec = cameraMat @ offsetVec
+
+        transMat = Matrix.Translation(offsetVec)
+
+        scaleMat = Matrix.Identity(3)
+        scaleMat *= (view.model_scale / view.paper_scale)
+        scaleMat.resize_4x4()
+
+        extMat =  cameraMat @ transMat @ scaleMat
+        draw3d_loop(context,objlist,extMat=extMat,svg=svg)
 
 
 
-def draw3d_loop(context,objlist,svg = None,):
+
+def draw3d_loop(context,objlist,svg = None,extMat=None):
     # ---------------------------------------
     # Generate all OpenGL calls
     # ---------------------------------------
@@ -609,8 +644,11 @@ def draw3d_loop(context,objlist,svg = None,):
             print("Rendering Object: " + str(idx) + " of: " + str(totalobjs) + " Name: " + myobj.name)
             startTime = time.time()
           
-        if myobj.visible_get() is True:
+        if myobj.hide_get() is False:
             mat = myobj.matrix_world
+            if extMat is not None:
+                mat = extMat @ mat
+
             
             sheetGen = myobj.SheetGenerator
             for sheet_view in sheetGen.sheet_views:
