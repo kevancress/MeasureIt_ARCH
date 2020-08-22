@@ -327,7 +327,7 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
 
 def draw_hatches(context,myobj, hatchGen, mat, svg=None):
     sceneProps = context.scene.MeasureItArchProps
-    svg_hatch = svg.add(svg.g(id=myobj.name))
+    svg_obj = svg.add(svg.g(id=myobj.name))
 
     mat = myobj.matrix_world
     mesh = myobj.data
@@ -349,6 +349,7 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
 
     hatchMaterials = []
 
+    hatchDict = {}
 
     for hatch in hatchGen.hatches:
         hatchMaterials.append(hatch.material)
@@ -357,21 +358,35 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
         objMaterials.append(slot.material)
 
     for tri in tris:
-        filledCoords = []
-        for loop in tri:
-            face = loop.face
-            matIdx = face.material_index
-            faceMat = objMaterials[matIdx]
+ 
+        face = tri[1].face
+        matIdx = face.material_index
+        faceMat = objMaterials[matIdx]
             
-            if faceMat in hatchMaterials:
-                idx = hatchMaterials.index(faceMat)
-                hatch = hatchGen.hatches[idx]
-                vert = loop.vert
-                filledCoords.append(mat@vert.co)
+        if faceMat in hatchMaterials:
+            idx = hatchMaterials.index(faceMat)
+            hatch = hatchGen.hatches[idx]
             
-        if sceneProps.is_vector_draw:
             fillRGB = rgb_gamma_correct(hatch.color) 
-            svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg_hatch)
+            if hatch.name not in hatchDict:
+                hatchDict[hatch.name] = {}
+            if "coords" not in hatchDict[hatch.name]:
+                hatchDict[hatch.name]["coords"] = []
+            hatchDict[hatch.name]["color"] = fillRGB
+            hatchDict[hatch.name]["hatch"] = hatch
+            
+            for loop in tri:
+                vert = loop.vert
+                hatchDict[hatch.name]["coords"].append(mat@vert.co)
+            
+    print(hatchDict)
+    for key in hatchDict:
+        hatch = hatchDict[key]["hatch"]
+        svg_hatch = svg_obj.add(svg.g(id=hatch.name))
+        filledCoords = hatchDict[key]["coords"]
+        fillRGB = hatchDict[key]["color"]
+    
+        svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg_hatch)
 
 
 
