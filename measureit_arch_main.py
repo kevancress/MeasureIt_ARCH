@@ -647,13 +647,10 @@ def draw3d_loop(context,objlist,svg = None,extMat=None):
             print("Rendering Object: " + str(idx) + " of: " + str(totalobjs) + " Name: " + myobj.name)
             startTime = time.time()
           
-        if myobj.hide_get() is False:
+        if myobj.hide_get() is False and myobj.hide_render is False:
             mat = myobj.matrix_world
             if extMat is not None:
                 mat = extMat @ mat
-
-            if sceneProps.is_vector_draw and myobj.type=='MESH':
-                draw_hatches(context,myobj,scene.HatchGenerator,mat,svg=svg)
 
             sheetGen = myobj.SheetGenerator
             for sheet_view in sheetGen.sheet_views:
@@ -687,7 +684,9 @@ def draw3d_loop(context,objlist,svg = None,extMat=None):
 
                 for areaDim in DimGen.areaDimensions:
                     draw_areaDimension(context,myobj,DimGen,areaDim,mat,svg=svg)
-
+            
+            if sceneProps.is_vector_draw and myobj.type=='MESH':
+                draw_hatches(context,myobj,scene.HatchGenerator,mat,svg=svg)
         if sceneProps.is_render_draw:
             endTime = time.time()
             print("Time: " + str(endTime -startTime))

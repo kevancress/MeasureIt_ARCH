@@ -45,7 +45,7 @@ class HatchContainer(PropertyGroup):
     
     show_settings: BoolProperty(name='Show Hatch Settings', default=False)
 
-    # Array of hatchs
+    # Array of hatches
     hatches: CollectionProperty(type=HatchProperties) 
 
 bpy.utils.register_class(HatchContainer)
@@ -87,7 +87,7 @@ class M_ARCH_UL_Hatches_list(UIList):
 
 class SCENE_PT_Hatches(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_label = "MeasureIt_ARCH Hatchs"
+    bl_label = "MeasureIt_ARCH Hatches"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"

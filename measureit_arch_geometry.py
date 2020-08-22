@@ -361,7 +361,10 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
  
         face = tri[1].face
         matIdx = face.material_index
-        faceMat = objMaterials[matIdx]
+        try:
+            faceMat = objMaterials[matIdx]
+        except:
+            faceMat = None
             
         if faceMat in hatchMaterials:
             idx = hatchMaterials.index(faceMat)
@@ -379,7 +382,6 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                 vert = loop.vert
                 hatchDict[hatch.name]["coords"].append(mat@vert.co)
             
-    print(hatchDict)
     for key in hatchDict:
         hatch = hatchDict[key]["hatch"]
         svg_hatch = svg_obj.add(svg.g(id=hatch.name))
@@ -1958,7 +1960,6 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
             
             #Get line data to be drawn
-    
             evalMods = lineProps.evalMods
 
             # Flag for re-evaluation of batches & mesh data
@@ -1969,7 +1970,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
             if lastMode != myobj.mode or evalMods or evalModsGlobal:
                 recoordFlag = True
                 lastMode = myobj.mode
-                
+            
             if myobj.mode == 'EDIT':
                 bm = bmesh.from_edit_mesh(myobj.data)
                 verts = bm.verts
@@ -1984,7 +1985,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
-            if 'coordBuffer' not in lineGroup or evalMods or recoordFlag:
+            if 'coordBuffer' not in lineGroup or recoordFlag:
                 # Handle line groups created with older versions of MeasureIt_ARCH
                 if 'singleLine' in lineGroup and 'lineBuffer' not in lineGroup:
                     toLineBuffer = []
@@ -1996,9 +1997,49 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 if 'lineBuffer' in lineGroup:
                     tempCoords = [get_line_vertex(idx,verts,mat) for idx in lineGroup['lineBuffer']]
                     lineGroup['coordBuffer'] = tempCoords
+                
+                             ### Calculate dynamic lines
 
+                if lineGroup.useDynamicCrease:
+                    tempCoords = []
+                    # Create a Bmesh Instance from the selected object
+                    bm = bmesh.new()
+                    mesh = myobj.data
+                    if myobj.mode == 'OBJECT':
+                        bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
+                    else:
+                        bm = bmesh.from_edit_mesh(mesh)
+                        bm.edges.ensure_lookup_table()
+
+                    # For each edge get its linked faces and vertex indicies
+                    for edge in bm.edges:
+                        linked_faces = edge.link_faces
+                        pointA = edge.verts[0].co
+                        pointB = edge.verts[1].co
+                        if len(linked_faces) == 2:
+                            normalA = Vector(linked_faces[0].normal).normalized()
+                            normalB = Vector(linked_faces[1].normal).normalized()
+                            dotProd = (normalA.dot(normalB))
+                            
+                            if dotProd >= -1 and dotProd <= 1:
+                                creaseAngle = math.acos(dotProd)
+                                if creaseAngle > lineGroup.creaseAngle:
+                                    tempCoords.append(pointA)
+                                    tempCoords.append(pointB)
+
+                        # Any edge with greater or less 
+                        # than 2 linked faces is non manifold
+                        else:
+                            tempCoords.append(pointA)
+                            tempCoords.append(pointB)
+                        lineGroup['coordBuffer'] = tempCoords
+
+               
+                    
             coords = []            
             coords = lineGroup['coordBuffer']
+            
+
 
             ### line weight group setup
             tempWeights = []
@@ -2007,7 +2048,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 for idx in lineGroup['lineBuffer']:
                     tempWeights.append(vertexGroup.weight(idx))
             else:
-                tempWeights = [1.0] * len(lineGroup['lineBuffer'])
+                tempWeights = [1.0] * len(coords)
 
             
 

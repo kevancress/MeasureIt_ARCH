@@ -109,6 +109,16 @@ class LineProperties(BaseProp, PropertyGroup):
                                     default=0.0)
     randomSeed: IntProperty() 
 
+    useDynamicCrease: BoolProperty(name="Use Dynamic Crease",
+                        description='Dynamically update LineGroup by Crease (accounting for modifiers) \n WARNING: This can be quite slow for large meshes \n or complex modifier stacks',
+                        default = False)
+
+    creaseAngle: FloatProperty(name='Crease Angle',
+                    min=0,
+                    default=radians(30),
+                    subtype='ANGLE')
+    
+
 bpy.utils.register_class(LineProperties)
 
 class LineContainer(PropertyGroup):
@@ -294,8 +304,13 @@ class OBJECT_PT_UILines(Panel):
                     else: row.label(text= line.name + ' Uses Style Settings')
 
                     if lineGen.show_line_settings:
-                        if not line.uses_style:
+                        col = box.column(align=True)
+                        col.prop(line, 'useDynamicCrease', text="Dynamic Crease" )
+                        if line.useDynamicCrease:
+                            col.prop(line, 'creaseAngle', text="Crease Threshold" )
 
+                        if not line.uses_style:
+                            
                             col = box.column(align=True)
                             col.prop(line, 'lineWeight', text="Lineweight" )
                             col.prop_search(line, "lineWeightGroup", context.active_object, "vertex_groups", text="Line Weight Group")
