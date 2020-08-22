@@ -186,7 +186,7 @@ def update_text(textobj, props, context):
             # Start Offscreen Draw
             if width != 0 and height != 0:
                 textOffscreen = gpu.types.GPUOffScreen(width, height)
-                texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+
                 
                 with textOffscreen.bind():
                     # Clear Past Draw and Set 2D View matrix
@@ -202,19 +202,19 @@ def update_text(textobj, props, context):
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix)
                     gpu.matrix.load_projection_matrix(Matrix.Identity(4))
-
+                
                     blf.position(font_id, 0, height*0.3, 0)
                     blf.draw(font_id, text)
                     
                     # Read Offscreen To Texture Buffer
-                    bgl.glReadBuffer(bgl.GL_BACK)
+                    texture_buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+                    bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
                     bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, texture_buffer)
                     
                     # Write Texture Buffer to ID Property as List
                     if 'texture' in textField:
                         del textField['texture']
                     textField['texture'] = texture_buffer
-                    textOffscreen.free()
                     textField.text_updated = False
                     textField.texture_updated = True
             
@@ -324,6 +324,35 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
         batch.draw(textShader)
         bgl.glDeleteTextures(1,texArray)
     gpu.shader.unbind()
+
+def draw_hatch(context,myobj, hatchGen, hatch, mat, svg=None):
+
+    mat = myobj.matrix_world
+    mesh = myobj.data
+    bm = bmesh.new()
+    if myobj.mode == 'OBJECT':
+        bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
+    else:
+        bm = bmesh.from_edit_mesh(mesh)
+
+    bm.edges.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
+    faces= bm.faces
+
+    matSlots = myobj.material_slots
+    materials = []
+
+    for slot in matSlots:
+        materials.append(slot.material)
+
+    for face in faces:
+        matIdx = face.material_index
+        faceMat = materials[matIdx]
+        
+            
+    
+
+
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
    
@@ -2290,6 +2319,7 @@ def preview_dual(context):
 
 def draw_text_3D(context,textobj,textprops,myobj,card):
     #get props
+
     sceneProps = context.scene.MeasureItArchProps
     card[0] = Vector(card[0])
     card[1] = Vector(card[1])
@@ -2403,20 +2433,13 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
         uv = (Vector(normUV) + Vector((1,1)))*0.5
         uvs.append(uv)
 
-    # Batch Geometry
-    batch = batch_for_shader(
-        textShader, 'TRI_FAN',
-        {
-            "pos": card,
-            "uv": uvs,
-        },
-    )
-
     # Gets Texture from Object
     width = textobj.textWidth
     height = textobj.textHeight 
     dim = width * height * 4
 
+
+    set_OpenGL_Settings(True)
     if 'texture' in textobj and textobj.text != "":
         # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
         texArray = bgl.Buffer(bgl.GL_INT,[1])
@@ -2428,6 +2451,8 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_S, bgl.GL_CLAMP_TO_BORDER)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_T, bgl.GL_CLAMP_TO_BORDER)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
+
 
         tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(textobj['texture'], dtype=np.uint8))
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width, height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
@@ -2438,9 +2463,22 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
         # Draw Shader
         textShader.bind()
         textShader.uniform_float("image", 0)
+
+        
+        # Batch Geometry
+        batch = batch_for_shader(
+            textShader, 'TRI_FAN',
+            {
+                "pos": card,
+                "uv": uvs,
+            },
+        )
+
+
         batch.draw(textShader)
         bgl.glDeleteTextures(1,texArray)
     gpu.shader.unbind()
+    set_OpenGL_Settings(False)
 
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
     capCoords = []

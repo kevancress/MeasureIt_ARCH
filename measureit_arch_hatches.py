@@ -25,6 +25,16 @@ class HatchProperties(PropertyGroup):
 
     material: PointerProperty(type= bpy.types.Material)
 
+    color: FloatVectorProperty(name="Color",
+            description="Color for the Item",
+            default= (0.0,0.0,0.0, 1.0),
+            min=0,
+            max=1,
+            subtype='COLOR',
+            size=4,)
+
+
+
 
 
 bpy.utils.register_class(HatchProperties)
@@ -68,7 +78,8 @@ class M_ARCH_UL_Hatches_list(UIList):
                 row = layout.row(align=True)
                 subrow = row.row()
                 subrow.prop(hatch, "name", text="",emboss=False)
-                row.prop(hatch,'camera', text="", icon = 'CAMERA_DATA')
+                row.prop(hatch,'material', text="", icon = 'MATERIAL_DATA')
+                row.prop(hatch,'color', text="",)
 
             elif self.layout_type in {'GRID'}:
                 layout.alignment = 'CENTER'
@@ -105,26 +116,31 @@ class SCENE_PT_Hatches(Panel):
 
         
         # Settings Below List
-        if len(HatchGen.hatches) > 0 and  HatchGen.active_index < len(HatchGen.hatches):
+        # I'll bring this back, but right now hatches only do fills so
+        # Theres not really enough props for a full UI
+        if False:
+            if len(HatchGen.hatches) > 0 and  HatchGen.active_index < len(HatchGen.hatches):
 
-            hatch = HatchGen.hatches[HatchGen.active_index]
+                hatch = HatchGen.hatches[HatchGen.active_index]
 
-            if HatchGen.show_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
-            else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
-            
-            box = layout.box()
-            col = box.column()
-            row = col.row()
-            row.prop(HatchGen, 'show_settings', text="", icon=settingsIcon,emboss=False)
-
-            row.label(text= hatch.name + ' Settings:')
-
-            if HatchGen.show_settings:
+                if HatchGen.show_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
+                else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
+                
+                box = layout.box()
                 col = box.column()
+                row = col.row()
+                row.prop(HatchGen, 'show_settings', text="", icon=settingsIcon,emboss=False)
+
+                row.label(text= hatch.name + ' Settings:')
+
+                if HatchGen.show_settings:
+                    col = box.column()
+            
+
               
  
 
-class AddViewButton(Operator):
+class AddHatchButton(Operator):
     bl_idname = "measureit_arch.addhatchbutton"
     bl_label = "Add"
     bl_description = "Create A New Hatch"

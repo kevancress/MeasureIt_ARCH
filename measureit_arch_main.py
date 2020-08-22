@@ -598,6 +598,7 @@ def draw_main_3d (context):
         objlist = context.view_layer.objects
 
     draw3d_loop(context,objlist)
+    #preview_dual(context)
 
     # Draw TitleBlock
     draw_titleblock(context)
