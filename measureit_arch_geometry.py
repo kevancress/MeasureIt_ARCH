@@ -325,29 +325,56 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
         bgl.glDeleteTextures(1,texArray)
     gpu.shader.unbind()
 
-def draw_hatch(context,myobj, hatchGen, hatch, mat, svg=None):
+def draw_hatches(context,myobj, hatchGen, mat, svg=None):
+    sceneProps = context.scene.MeasureItArchProps
 
     mat = myobj.matrix_world
     mesh = myobj.data
+
     bm = bmesh.new()
     if myobj.mode == 'OBJECT':
         bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
     else:
         bm = bmesh.from_edit_mesh(mesh)
 
+    tris = bm.calc_loop_triangles()
     bm.edges.ensure_lookup_table()
     bm.faces.ensure_lookup_table()
     faces= bm.faces
+    verts = bm.verts
 
     matSlots = myobj.material_slots
-    materials = []
+    objMaterials = []
+
+    hatchMaterials = []
+
+
+    for hatch in hatchGen.hatches:
+        hatchMaterials.append(hatch.material)
 
     for slot in matSlots:
-        materials.append(slot.material)
+        objMaterials.append(slot.material)
 
-    for face in faces:
-        matIdx = face.material_index
-        faceMat = materials[matIdx]
+    for tri in tris:
+        filledCoords = []
+        for loop in tri:
+            face = loop.face
+            matIdx = face.material_index
+            faceMat = objMaterials[matIdx]
+            
+            if faceMat in hatchMaterials:
+                idx = hatchMaterials.index(faceMat)
+                hatch = hatchGen.hatches[idx]
+                vert = loop.vert
+                filledCoords.append(mat@vert.co)
+            
+        if sceneProps.is_vector_draw:
+            fillRGB = rgb_gamma_correct(hatch.color) 
+            svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg)
+
+
+
+
         
             
     

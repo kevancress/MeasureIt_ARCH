@@ -40,7 +40,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 from bpy.app.handlers import persistent
 from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_areaDimension, \
                         draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, \
-                        get_mesh_vertices, printTime, draw_sheet_views, preview_dual, get_view
+                        get_mesh_vertices, printTime, draw_sheet_views, preview_dual, get_view, draw_hatches
 
 draw_instanced = True
 
@@ -652,7 +652,9 @@ def draw3d_loop(context,objlist,svg = None,extMat=None):
             if extMat is not None:
                 mat = extMat @ mat
 
-            
+            if sceneProps.is_vector_draw and myobj.type=='MESH':
+                draw_hatches(context,myobj,scene.HatchGenerator,mat,svg=svg)
+
             sheetGen = myobj.SheetGenerator
             for sheet_view in sheetGen.sheet_views:
                 draw_sheet_views(context,myobj,sheetGen,sheet_view,mat,svg=svg)
