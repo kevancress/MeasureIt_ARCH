@@ -327,6 +327,7 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
 
 def draw_hatches(context,myobj, hatchGen, mat, svg=None):
     sceneProps = context.scene.MeasureItArchProps
+    svg_hatch = svg.add(svg.g(id=myobj.name))
 
     mat = myobj.matrix_world
     mesh = myobj.data
@@ -370,7 +371,7 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
             
         if sceneProps.is_vector_draw:
             fillRGB = rgb_gamma_correct(hatch.color) 
-            svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg)
+            svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg_hatch)
 
 
 
