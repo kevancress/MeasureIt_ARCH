@@ -45,7 +45,7 @@ from bgl import *
 import numpy as np
 import bmesh
 from .measureit_arch_geometry import *
-from .measureit_arch_main import draw_main, draw_main_3d, draw3d_loop,draw_titleblock
+from .measureit_arch_main import draw_main, draw_main_3d, draw_titleblock
 from bpy.props import IntProperty
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 depthOnlyshader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)

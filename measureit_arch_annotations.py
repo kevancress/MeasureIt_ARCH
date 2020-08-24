@@ -28,7 +28,7 @@ import blf
 import bgl
 import gpu
 from bpy_extras import view3d_utils
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, GizmoGroup
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, GizmoGroup, Collection
 from bpy.props import (
         CollectionProperty,
         FloatVectorProperty,
@@ -82,7 +82,7 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
                             description="Text Source",
                             update=annotation_update_flag)
 
-    customShape: PointerProperty(name = 'Custom Annotation Shape', type=Object)
+    customShape: PointerProperty(name = 'Custom Annotation Shape', type=Collection)
 
     annotationAnchorObject: PointerProperty(type=Object)
 
@@ -324,7 +324,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col = box.column(align=True)
                             col.prop(annotation, 'lineWeight', text="Line Weight" )
                             
-                        col.prop_search(annotation,'customShape', bpy.data, 'objects',text='Custom Shape')  
+                        col.prop_search(annotation,'customShape', bpy.data, 'collections',text='Custom Shape')  
                         col = box.column()
                         col.prop(annotation, 'annotationOffset', text='Offset')
                         col.prop(annotation, 'annotationRotation', text='Rotation')

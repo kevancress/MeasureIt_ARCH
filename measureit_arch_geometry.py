@@ -1969,7 +1969,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
             evalModsGlobal = sceneProps.eval_mods
             if lastMode != myobj.mode or evalMods or evalModsGlobal:
                 recoordFlag = True
-                lastMode = myobj.mode
+                lastMode = myobj.mode\
             
             if myobj.mode == 'EDIT':
                 bm = bmesh.from_edit_mesh(myobj.data)
@@ -2281,55 +2281,48 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             
             # Draw Custom Shape
             if annotation.customShape is not None:
-                obj = annotation.customShape
-                tempCoords = []
-                bm = bmesh.new()
-                bm.from_object(obj, bpy.context.view_layer.depsgraph,deform=True)
-                bm.edges.ensure_lookup_table()
-                bm.verts.ensure_lookup_table()
-                for e in bm.edges:
-                    tempCoords.extend([e.verts[0].co])
-                    tempCoords.extend([e.verts[1].co])
+                col = annotation.customShape
+                objs = col.objects
 
-                mesh = obj.data
-                mesh.calc_loop_triangles()
-                tris = mesh.loop_triangles
-                tempVertices = []
-                indices = []
-
-                for tri in tris:
-                    for vert in tri.vertices:
-                        indices.append(bm.verts[vert].co)      
-   
-
+                draw3d_loop(context,objs,svg=svg,extMat=mat)
                 
-                scale = mat.to_scale()
-                scaleMat = Matrix.Identity(3)
-                scaleMat[0][0] = scale[0]
-                scaleMat[1][1] = scale[1]
-                scaleMat[2][2] = scale[2]
+                for obj in objs:
+                    if obj.type =='MESH':
+                        tempCoords = []
+                        bm = bmesh.new()
+                        bm.from_object(obj, bpy.context.view_layer.depsgraph,deform=True)
+                        bm.edges.ensure_lookup_table()
+                        bm.verts.ensure_lookup_table()
+                        for e in bm.edges:
+                            tempCoords.extend([e.verts[0].co])
+                            tempCoords.extend([e.verts[1].co])
 
-                customCoords = []
-                for coord in tempCoords:
-                    newCoord = scaleMat @ coord
-                    newCoord = newCoord + Vector(p2)
+                        mesh = obj.data
+                        mesh.calc_loop_triangles()
+                        tris = mesh.loop_triangles
+                        tempVertices = []
+                        indices = []
 
-                    customCoords.append(newCoord)
-                
-                customFilledCoords = []
-                for vert in indices:
-                    newVert = scaleMat @ vert
-                    newVert = newVert + Vector(p2)
-
-                    customFilledCoords.append(newVert)
-
-
-                draw_lines(lineWeight,rgb,customCoords, twoPass=True,pointPass=True)
-                draw_filled_coords(customFilledCoords,rgb,polySmooth=False)
-                
-                
-
+                        for tri in tris:
+                            for vert in tri.vertices:
+                                indices.append(bm.verts[vert].co)      
         
+                        customCoords = []
+                        for coord in tempCoords:
+                            newCoord = mat @ coord
+                            customCoords.append(newCoord)
+                        
+                        customFilledCoords = []
+                        for vert in indices:
+                            newVert = mat @ vert
+                            customFilledCoords.append(newVert)
+
+
+                        draw_lines(lineWeight,rgb,customCoords, twoPass=True,pointPass=True)
+                        draw_filled_coords(customFilledCoords,rgb,polySmooth=False)
+                
+                
+
             # Draw Line Endcaps
             if endcap == 'D':                
                 pointcoords = [p1]
@@ -3396,3 +3389,96 @@ def get_resolution():
 
 def get_lineWeight():
     pass
+
+
+
+
+def draw3d_loop(context,objlist,svg = None,extMat=None):
+    # ---------------------------------------
+    # Generate all OpenGL calls
+    # ---------------------------------------
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    idx = 1
+    totalobjs = len(objlist)
+
+    for myobj in objlist:
+        
+        if sceneProps.is_render_draw:
+            print("Rendering Object: " + str(idx) + " of: " + str(totalobjs) + " Name: " + myobj.name)
+            startTime = time.time()
+          
+        if myobj.hide_get() is False and myobj.hide_render is False:
+            mat = myobj.matrix_world
+            if extMat is not None:
+                mat = extMat @ mat
+
+            sheetGen = myobj.SheetGenerator
+            for sheet_view in sheetGen.sheet_views:
+                draw_sheet_views(context,myobj,sheetGen,sheet_view,mat,svg=svg)
+
+            if 'LineGenerator' in myobj:
+                lineGen = myobj.LineGenerator[0]
+                draw_line_group(context,myobj,lineGen,mat,svg=svg)
+
+            if 'AnnotationGenerator' in myobj:
+                annotationGen = myobj.AnnotationGenerator[0]
+                draw_annotation(context,myobj,annotationGen,mat,svg=svg)
+
+            if 'DimensionGenerator' in myobj:
+                DimGen = myobj.DimensionGenerator[0]
+                
+                for alignedDim in DimGen.alignedDimensions:
+                    draw_alignedDimension(context, myobj, DimGen, alignedDim,mat,svg=svg)
+
+                for angleDim in DimGen.angleDimensions:
+                    draw_angleDimension(context, myobj, DimGen, angleDim,mat,svg=svg)
+
+                for axisDim in DimGen.axisDimensions:
+                    draw_axisDimension(context,myobj,DimGen,axisDim,mat,svg=svg)
+                
+                for boundsDim in DimGen.boundsDimensions:
+                    draw_boundsDimension(context,myobj,DimGen,boundsDim,mat,svg=svg)
+                
+                for arcDim in DimGen.arcDimensions:
+                    draw_arcDimension(context,myobj,DimGen,arcDim,mat,svg=svg)
+
+                for areaDim in DimGen.areaDimensions:
+                    draw_areaDimension(context,myobj,DimGen,areaDim,mat,svg=svg)
+            
+            if sceneProps.is_vector_draw and myobj.type=='MESH':
+                draw_hatches(context,myobj,scene.HatchGenerator,mat,svg=svg)
+        if sceneProps.is_render_draw:
+            endTime = time.time()
+            print("Time: " + str(endTime -startTime))
+        idx += 1    
+    # Draw Instanced Objects
+    if True:
+        deps = bpy.context.view_layer.depsgraph
+        for obj_int in deps.object_instances:
+            if obj_int.is_instance:
+                myobj = obj_int.object
+                
+                if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
+                    mat = obj_int.matrix_world
+
+                if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
+                    lineGen = myobj.LineGenerator[0]
+                    draw_line_group(context,myobj,lineGen,mat,svg=svg)
+                
+                if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator[0].num_annotations != 0:
+                    annotationGen = myobj.AnnotationGenerator[0]
+                    draw_annotation(context,myobj,annotationGen,mat,svg=svg)
+                    
+                if sceneProps.instance_dims:
+                    if 'DimensionGenerator' in myobj and myobj.DimensionGenerator[0].measureit_arch_num != 0:
+                        DimGen = myobj.DimensionGenerator[0]
+                        mat = obj_int.matrix_world
+                        for alignedDim in DimGen.alignedDimensions:
+                            draw_alignedDimension(context, myobj, DimGen, alignedDim,mat,svg=svg)
+                        for angleDim in DimGen.angleDimensions:
+                            draw_angleDimension(context, myobj, DimGen, angleDim,mat,svg=svg)
+                        for axisDim in DimGen.axisDimensions:
+                            draw_axisDimension(context,myobj,DimGen,axisDim,mat,svg=svg)
+    
