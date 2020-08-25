@@ -1972,8 +1972,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 lastMode = myobj.mode\
             
             if myobj.mode == 'EDIT':
-                bm = bmesh.from_edit_mesh(myobj.data)
-                verts = bm.verts
+                return
             else:     
                 if (evalModsGlobal or evalMods) and check_mods(myobj):
                     deps = bpy.context.view_layer.depsgraph
@@ -2283,6 +2282,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             if annotation.customShape is not None:
                 col = annotation.customShape
                 objs = col.objects
+
+                if col.objects[myobj.name] is not None:
+                    print("Annotations Cannot be a part of its custom shape collection")
+                    annotation.customShape = None
+                    return
 
                 draw3d_loop(context,objs,svg=svg,extMat=mat)
                 
