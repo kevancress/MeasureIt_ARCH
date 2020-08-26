@@ -2282,11 +2282,13 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             if annotation.customShape is not None:
                 col = annotation.customShape
                 objs = col.objects
-
-                if col.objects[myobj.name] is not None:
-                    print("Annotations Cannot be a part of its custom shape collection")
-                    annotation.customShape = None
-                    return
+                try:
+                    if col.objects[myobj.name] is not None:
+                        print("Annotations Cannot be a part of its custom shape collection")
+                        annotation.customShape = None
+                        return
+                except:
+                    pass
 
                 draw3d_loop(context,objs,svg=svg,extMat=mat)
                 
