@@ -85,44 +85,55 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
     ssp3 = get_render_location(textCard[3])
 
     
-    dirVec = Vector(ssp0) - Vector(ssp3)
-    vertVec = (Vector(ssp0) - Vector(ssp1))/20
-    leftVec = (Vector(ssp0) + Vector(ssp1))/2 - vertVec
-    rightVec = (Vector(ssp3) + Vector(ssp2))/2 - vertVec
-    midVec = (leftVec + rightVec)/2 - vertVec
+    dirVec = Vector(ssp3) - Vector(ssp0)
+
+    leftVec = Vector(ssp0) 
+    rightVec = Vector(ssp3)
+    midVec = (leftVec + rightVec)/2
     
     if dirVec.length == 0:
         return
 
     text_position = (0,0)
-    text_anchor = 'left'
+    text_anchor = 'start'
     if item.textAlignment == 'L':
         text_position  = leftVec
-        text_anchor = 'left'
+        text_anchor = 'start'
+        position_flip = rightVec
+        anchor_flip = 'end'
 
     if item.textAlignment == 'C':
         text_position  = midVec
         text_anchor = 'middle'
+        position_flip = midVec
+        anchor_flip = 'middle'
 
     if item.textAlignment == 'R':
         text_position  = rightVec
-        text_anchor = 'right'
+        text_anchor = 'end'
+        position_flip = leftVec
+        anchor_flip = 'start'
  
 
     rotation = math.degrees(dirVec.angle_signed(Vector((1, 0))))
     if rotation >= 90 or rotation <= -90:
-        rotation += 180
-  
+       rotation += 180
+       #text_position = position_flip
+       text_anchor = anchor_flip
+    
     parent.add(svg.text(text, insert=tuple(text_position), fill=svgColor, **{
             'transform': 'rotate({} {} {})'.format(
                 rotation,
                 text_position[0],
                 text_position[1]
             ),
-
-            'font-size': item.fontSize*3.5,
-            'font-family': 'OpenGost Type B TT',
-            'text-anchor': text_anchor
+            # I wish i could tell you why this fudge factor is necessary, but for some reason
+            # spec-ing svg units in inches and using this factor for text size is the only way to get
+            # sensible imports in both inkscape and illustrator
+            'font-size': round(item.fontSize * 4.166666667, 2),
+            'font-family': 'OpenSans Regular',
+            'text-anchor': text_anchor,
+            'text-align': text_anchor
         }))
 
 
@@ -134,6 +145,7 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
 def get_render_location(mypoint):
     scene = bpy.context.scene
     render_scale = scene.render.resolution_percentage / 100
+    
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
 

@@ -2408,7 +2408,8 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
     card[1] = Vector(card[1])
     card[2] = Vector(card[2])
     card[3] = Vector(card[3])
-    normalizedDeviceUVs= [(-1.05,-1.05),(-1.05,1.05),(1.05,1.05),(1.05,-1.05)]
+    uvVal = 1.0
+    normalizedDeviceUVs= [(-uvVal,-uvVal),(-uvVal,uvVal),(uvVal,uvVal),(uvVal,-uvVal)]
 
     #i,j,k Basis Vectors
     i = Vector((1,0,0))
@@ -2520,6 +2521,11 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
     width = textobj.textWidth
     height = textobj.textHeight 
     dim = width * height * 4
+
+    # Draw Text card for debug
+    if True:
+        coords=[card[0],card[1],card[1],card[2],card[2],card[3],card[3],card[0]]
+        draw_lines(1.0,(0.0, 1.0, 0.0, 1.0), coords)
 
 
     set_OpenGL_Settings(True)
@@ -2656,7 +2662,7 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
 
     #Define annotation Card Geometry
     resolution = get_resolution()
-    size = textProps.fontSize / 393.701 # get font size in pt
+    size = textProps.fontSize / 803 # get font size in pt more stupid fudge factors :(
     size *= scale
 
     sx = (width/resolution)*size

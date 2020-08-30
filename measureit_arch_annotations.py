@@ -66,6 +66,13 @@ class CustomProperties(PropertyGroup):
     name: StringProperty(name='Custom Properties')
 bpy.utils.register_class(CustomProperties)
 
+def custom_shape_poll(self, collection):
+    myobj = self.annotationAnchorObject
+    try:
+        col.objects[myobj.name]
+    except:
+        return collection
+
 class AnnotationProperties(BaseWithText,PropertyGroup):
     customProperties: CollectionProperty(type=CustomProperties)
     annotationRotation:FloatVectorProperty(name='annotationOffset',
@@ -82,7 +89,7 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
                             description="Text Source",
                             update=annotation_update_flag)
 
-    customShape: PointerProperty(name = 'Custom Annotation Shape', type=Collection)
+    customShape: PointerProperty(name = 'Custom Annotation Shape', type=Collection, poll = custom_shape_poll)
 
     annotationAnchorObject: PointerProperty(type=Object)
 

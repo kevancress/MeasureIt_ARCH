@@ -479,8 +479,8 @@ def render_main_svg(self, context, animation=False):
 
     try:
         if view.res_type == 'res_type_paper':
-            paperWidth = view.width * 39.370078740196853
-            paperHeight = view.height * 39.370078740196853
+            paperWidth = round(view.width * 39.370078740196853, 3)
+            paperHeight = round(view.height * 39.370078740196853, 3)
     except:
         print('No View Present, using default resolution')
 
