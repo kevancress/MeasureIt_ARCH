@@ -315,6 +315,10 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 description="Display MeasureIt_ARCH Gizmos",
                                 default=False)
 
+    show_text_cards: BoolProperty(name="Debug Text Cards",
+                            description="Display MeasureIt_ARCH Text Cards",
+                            default=False)
+
     enable_experimental: BoolProperty(name="Enable Experimental",
                                 description="Enable Experimental Features like SVG Rendering",
                                 default=False)
@@ -326,6 +330,10 @@ class MeasureItARCHSceneProps(PropertyGroup):
     use_text_autoplacement: BoolProperty(name="Use Text Autoplacement",
                                 description="Adjust Dimension Text Placement Automatically",
                                 default=True)
+
+    embed_scene_render: BoolProperty(name="Embed Scene Render",
+                            description="Render the scene and automatically combine the rendered image with the Measureit-ARCH render pass",
+                            default=False)
 
     default_scale: IntProperty(name='Default Paper Scale', min=1, default=25,
                                 description="Default Paper Scale (used for font sizing)")

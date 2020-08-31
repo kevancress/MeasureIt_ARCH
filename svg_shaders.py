@@ -31,6 +31,7 @@ from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
 import bpy_extras.object_utils as object_utils
 import svgwrite
 import gpu
+
 from math import fabs
 
 def svg_line_shader(item, coords,thickness,color,svg,parent=None,mat=Matrix.Identity(4)):
@@ -120,7 +121,12 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
        rotation += 180
        #text_position = position_flip
        text_anchor = anchor_flip
-    
+
+    view = get_view()
+    res = bpy.context.scene.MeasureItArchProps.default_resolution
+    if view is not None:
+        res = view.res
+
     parent.add(svg.text(text, insert=tuple(text_position), fill=svgColor, **{
             'transform': 'rotate({} {} {})'.format(
                 rotation,
@@ -130,7 +136,7 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
             # I wish i could tell you why this fudge factor is necessary, but for some reason
             # spec-ing svg units in inches and using this factor for text size is the only way to get
             # sensible imports in both inkscape and illustrator
-            'font-size': round(item.fontSize * 4.166666667, 2),
+            'font-size': round(item.fontSize * 4.166666667 / (300/res), 2),
             'font-family': 'OpenSans Regular',
             'text-anchor': text_anchor,
             'text-align': text_anchor
@@ -352,3 +358,16 @@ def distance(v1, v2, locx=True, locy=True, locz=True):
     xloc = sqrt((v2b[0] - v1b[0]) ** 2 + (v2b[1] - v1b[1]) ** 2 + (v2b[2] - v1b[2]) ** 2)
 
     return x, xloc
+
+
+def get_view():
+    scene = bpy.context.scene    
+    ViewGen = scene.ViewGenerator
+    view = None
+
+    try:
+        view = ViewGen.views[ViewGen.active_index]
+    except:
+        view = None
+    
+    return view

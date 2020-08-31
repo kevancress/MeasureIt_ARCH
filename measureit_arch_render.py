@@ -27,6 +27,7 @@ import bpy
 
 import bgl
 import gpu
+import os
 
 import blf
 from os import path, remove
@@ -91,6 +92,7 @@ class MeasureitArchRenderPanel(Panel):
             col.prop(sceneProps, "vector_depthtest", text="Use Vector DepthTest")
         col = layout.column()
         
+        col.prop(sceneProps, "embed_scene_render", text="Embed Scene Render")
         col.prop(scene, "measureit_arch_render", text="Save Render to Output")
         #col.prop(scene, "measureit_arch_use_depth_clipping")
 
@@ -420,8 +422,7 @@ def render_main_svg(self, context, animation=False):
     render_scale = scene.render.resolution_percentage / 100
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
-  
-
+    
     offscreen = gpu.types.GPUOffScreen(width, height)
     
     view_matrix_3d = scene.camera.matrix_world.inverted()
@@ -494,6 +495,23 @@ def render_main_svg(self, context, animation=False):
         )
 
 
+
+    if sceneProps.embed_scene_render:
+        lastformat = scene.render.image_settings.file_format
+        scene.render.image_settings.file_format = 'PNG'
+        scene.render.use_file_extension = True
+        bpy.ops.render.render(write_still=True)
+
+        image_path = bpy.context.scene.render.filepath
+        svg.add(svg.image(
+            os.path.basename(image_path + '.png'), **{
+            'width': width,
+            'height': height
+            }
+        ))
+
+        scene.render.image_settings.file_format = lastformat
+        
 
     # -----------------------------
     # Loop to draw all objects

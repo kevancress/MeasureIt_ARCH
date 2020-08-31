@@ -2523,7 +2523,7 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
     dim = width * height * 4
 
     # Draw Text card for debug
-    if True:
+    if sceneProps.show_text_cards:
         coords=[card[0],card[1],card[1],card[2],card[2],card[3],card[3],card[0]]
         draw_lines(1.0,(0.0, 1.0, 0.0, 1.0), coords)
 
