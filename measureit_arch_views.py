@@ -288,6 +288,41 @@ class DeleteViewButton(Operator):
 
         return {'FINISHED'}
 
+class DuplicateViewButton(Operator):
+    bl_idname = "measureit_arch.duplicateviewbutton"
+    bl_label = "Delete View"
+    bl_description = "Delete a View"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'} 
+    tag: IntProperty()
+
+    @classmethod
+    def poll(cls, context):
+        Generator = context.scene.ViewGenerator
+        try:
+            ActiveView = Generator.views[Generator.active_index]
+            return True
+        except:
+            return False
+
+    def execute(self, context):
+        # Add properties
+
+
+        Generator = context.scene.ViewGenerator
+        ActiveView = Generator.views[Generator.active_index]
+        newView = Generator.views.add()
+        newView.name = ActiveView.name + ' copy'
+
+        # Get props to loop through
+        for key in Generator.views[Generator.active_index].__annotations__.keys():
+            try:
+                newView[key] = ActiveView[key]
+            except:
+                pass
+
+        return {'FINISHED'}
+
 class M_ARCH_UL_Views_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
             scene = bpy.context.scene
@@ -330,8 +365,8 @@ class SCENE_PT_Views(Panel):
         op = col.operator("measureit_arch.deleteviewbutton", text="", icon="X")
         op.tag = ViewGen.active_index  # saves internal data
         
-        #col.separator()
-        #col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+        col.separator()
+        col.menu("SCENE_MT_Views_menu", icon='DOWNARROW_HLT', text="")
 
         
         # Settings Below List
@@ -435,6 +470,16 @@ class SCENE_PT_Views(Panel):
                     row.prop(view, 'start_frame', text = "Frame Range")
                     row.prop(view, 'end_frame', text = "")
  
+class SCENE_MT_Views_menu(bpy.types.Menu):
+    bl_label = "Custom Menu"
+
+    def draw(self,context):
+        layout = self.layout
+        scene = context.scene
+
+        op = layout.operator('measureit_arch.duplicateviewbutton', text="Duplicate Selected View", icon='DUPLICATE')
+
+
 
 class AddViewButton(Operator):
     bl_idname = "measureit_arch.addviewbutton"
