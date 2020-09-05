@@ -214,6 +214,7 @@ class MeasureitArchMainPanel(Panel):
 
         col = box.column(align=True)
         col.operator("measureit_arch.addlinebutton", text="Line Group", icon="MESH_CUBE")
+        col.operator("measureit_arch.adddynamiclinebutton", text="Dynamic Line Group", icon="MESH_CUBE")
         op = col.operator("measureit_arch.addlinebyproperty", text="Line Group by Crease", icon="MESH_CUBE")
         op.calledFromGroup = False
 

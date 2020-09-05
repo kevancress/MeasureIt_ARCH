@@ -1895,8 +1895,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
     
     viewport = get_viewport(renderScale=True)
 
-    for idx in range(0, lineGen.line_num):
-        lineGroup = lineGen.line_groups[idx]
+    for lineGroup in lineGen.line_groups:
         lineProps = lineGroup
         if lineGroup.uses_style:
             for lineStyle in context.scene.StyleGenerator.line_groups:
@@ -2006,32 +2005,30 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     mesh = myobj.data
                     if myobj.mode == 'OBJECT':
                         bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
-                    else:
-                        bm = bmesh.from_edit_mesh(mesh)
-                        bm.edges.ensure_lookup_table()
+  
 
-                    # For each edge get its linked faces and vertex indicies
-                    for edge in bm.edges:
-                        linked_faces = edge.link_faces
-                        pointA = edge.verts[0].co
-                        pointB = edge.verts[1].co
-                        if len(linked_faces) == 2:
-                            normalA = Vector(linked_faces[0].normal).normalized()
-                            normalB = Vector(linked_faces[1].normal).normalized()
-                            dotProd = (normalA.dot(normalB))
-                            
-                            if dotProd >= -1 and dotProd <= 1:
-                                creaseAngle = math.acos(dotProd)
-                                if creaseAngle > lineGroup.creaseAngle:
-                                    tempCoords.append(pointA)
-                                    tempCoords.append(pointB)
+                        # For each edge get its linked faces and vertex indicies
+                        for edge in bm.edges:
+                            linked_faces = edge.link_faces
+                            pointA = edge.verts[0].co
+                            pointB = edge.verts[1].co
+                            if len(linked_faces) == 2:
+                                normalA = Vector(linked_faces[0].normal).normalized()
+                                normalB = Vector(linked_faces[1].normal).normalized()
+                                dotProd = (normalA.dot(normalB))
+                                
+                                if dotProd >= -1 and dotProd <= 1:
+                                    creaseAngle = math.acos(dotProd)
+                                    if creaseAngle > lineGroup.creaseAngle:
+                                        tempCoords.append(pointA)
+                                        tempCoords.append(pointB)
 
-                        # Any edge with greater or less 
-                        # than 2 linked faces is non manifold
-                        else:
-                            tempCoords.append(pointA)
-                            tempCoords.append(pointB)
-                        lineGroup['coordBuffer'] = tempCoords
+                            # Any edge with greater or less 
+                            # than 2 linked faces is non manifold
+                            else:
+                                tempCoords.append(pointA)
+                                tempCoords.append(pointB)
+                            lineGroup['coordBuffer'] = tempCoords
 
                
                     

@@ -207,6 +207,67 @@ class AddLineButton(Operator):
         return {'CANCELLED'}
 
 
+class AddDynamicLineButton(Operator):
+    bl_idname = "measureit_arch.adddynamiclinebutton"
+    bl_label = "Add"
+    bl_description = "(EDITMODE) Creates a new Dynamic Line Group"
+    bl_category = 'MeasureitArch'
+
+    # ------------------------------
+    # Poll
+    # ------------------------------
+    @classmethod
+    def poll(cls, context):
+        o = context.object
+        if o is None:
+            return False
+        else:
+            if o.type == "MESH":
+                if bpy.context.mode == 'OBJECT':
+                    return True
+                else:
+                    return False
+            else:
+                return False
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+        if context.area.type == 'VIEW_3D':
+            # Add properties
+            scene = context.scene
+            mainobject = context.object
+        
+            if 'LineGenerator' not in mainobject:
+                mainobject.LineGenerator.add()
+
+            lineGen = mainobject.LineGenerator[0]
+            lGroup = lineGen.line_groups.add()
+
+            # Set values
+            lGroup.itemType = 'L'
+            lGroup.style = scene.measureit_arch_default_line_style
+            if scene.measureit_arch_default_line_style is not '':
+                lGroup.uses_style = True
+            else:
+                lGroup.uses_style = False
+            lGroup.lineWeight = 1     
+            lGroup.lineColor = scene.measureit_arch_default_color
+            lGroup.name = 'Line ' + str(len(lineGen.line_groups))
+            
+            lGroup.useDynamicCrease = True
+
+            # redraw
+            context.area.tag_redraw()
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'},
+                        "View3D not found, cannot run operator")
+
+        return {'CANCELLED'}
+
+
 class M_ARCH_UL_lines_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):    
         scene = bpy.context.scene
