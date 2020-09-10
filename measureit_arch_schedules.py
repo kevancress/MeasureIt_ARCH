@@ -55,6 +55,10 @@ class ScheduleProperties(PropertyGroup):
                 description= "Adds a Folder with todays date to the end of the output path",
                 default=False)
 
+    sort_subcollections: BoolProperty(name= "Sort Sub Collections",
+            description= "Adds A section Header to the .csv to Sub Collections",
+            default=False)
+
     output_path: StringProperty(
                 name="Output Path",
                 description="Render Output Path for this Schedule",
@@ -134,6 +138,45 @@ class GenerateSchedule(Operator):
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'} 
 
+    def check_collections(self,collection,schedule,depth=0):
+        rows = []
+        if schedule.sort_subcollections and depth > 0:
+            rows.append([str(collection.name)])
+
+        if len(collection.children) > 0:
+            for subCol in collection.children:
+                returned_rows = self.check_collections(subCol,schedule,depth = depth+1)
+                for row in returned_rows:
+                    rows.append(row)
+
+        for obj in collection.objects:
+            row = [] 
+            if schedule.sort_subcollections:
+                row.append("")
+            for column in schedule.columns:
+                row.append(self.get_column_data(column,obj))
+            rows.append(row)    
+
+        return rows 
+
+    def get_column_data(self,column,obj):
+        pr = bpy.context.scene.MeasureItArchProps.metric_precision
+        textFormat = "%1." + str(pr) + "f"
+
+        try:
+            if column.data == '--':
+                data = eval('bpy.data.objects[\'' + obj.name + '\']' + column.data_path)
+            else:
+                data = eval('bpy.data.objects[\'' + obj.name + '\']' + column.data)
+
+                #Format distances
+                if '.dim' in column.data:
+                    data = str(format_distance(textFormat,data))
+            return data
+
+        except:
+            return '--'
+
     def execute(self, context):
         # Add properties
 
@@ -141,8 +184,7 @@ class GenerateSchedule(Operator):
         schedule = Generator.schedules[Generator.active_index]
         file_name = schedule.name + '.csv'
         file_path = schedule.output_path
-        pr = context.scene.MeasureItArchProps.metric_precision
-        textFormat = "%1." + str(pr) + "f"
+
 
         if schedule.date_folder:
             today = datetime.now()
@@ -155,29 +197,18 @@ class GenerateSchedule(Operator):
 
         #title each column
         firstRow = []
+        if schedule.sort_subcollections:
+            firstRow.append('')
+
         for column in schedule.columns:
             firstRow.append(column.name)
         row_list.append(firstRow)
 
-        for obj in schedule.collection.objects:
-            row = []
-            for column in schedule.columns:
-                try:
-                    if column.data == '--':
-                        data = eval('bpy.data.objects[\'' + obj.name + '\']' + column.data_path)
-                    else:
-                        data = eval('bpy.data.objects[\'' + obj.name + '\']' + column.data)
+        rows = self.check_collections(schedule.collection,schedule)
 
-                        #Format distances
-                        if '.dim' in column.data:
-                            data = str(format_distance(textFormat,data))
+        for row in rows:
+            row_list.append(row)
 
-
-
-                    row.append(str(data))
-                except:
-                    row.append('--')
-            row_list.append(row)    
 
         try:
             with open(os.path.join(file_path,file_name), 'w', newline='') as file:
@@ -297,6 +328,7 @@ class SCENE_PT_Schedules(Panel):
                 col.prop_search(schedule,'collection', bpy.data,'collections',text="Collection", icon='GROUP')
                 col.prop(schedule, "output_path")
                 col.prop(schedule, "date_folder", text="Date Folder")
+                col.prop(schedule, "sort_subcollections", text="Sort Subcollections")
 
                 col = box.column()
                 row = col.row(align = True)
