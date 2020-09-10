@@ -6,6 +6,7 @@ from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene
 from rna_prop_ui import PropertyPanel
 from bl_operators.presets import AddPresetBase
 from .custom_preset_base import Custom_Preset_Base
+from .measureit_arch_geometry import format_distance
 
 from bpy.app.handlers import persistent
 from bpy.props import (
@@ -35,18 +36,13 @@ class ColumnProps(PropertyGroup):
                 default="",
                 )
 
-    prefix: StringProperty(
-            name="Prefix",
-            description="Prefix for this Column",
-            default="",
-            )
-
-    suffix: StringProperty(
-            name="Suffix",
-            description="Suffix for this Column",
-            default="",
-            )
-    
+    data:EnumProperty(
+                items=(('.dimensions[0]', "Dimension X", "", 'DRIVER_DISTANCE',1),
+                        ('.dimensions[1]', "Dimension Y", "", 'DRIVER_DISTANCE',2),
+                        ('.dimensions[2]', "Dimension Z", "", 'DRIVER_DISTANCE',3),
+                        ('--' , "RNA Prop", "", 'RNA',99)),
+                name="Data",
+                description="data")      
 
 
 bpy.utils.register_class(ColumnProps)
@@ -145,6 +141,8 @@ class GenerateSchedule(Operator):
         schedule = Generator.schedules[Generator.active_index]
         file_name = schedule.name + '.csv'
         file_path = schedule.output_path
+        pr = context.scene.MeasureItArchProps.metric_precision
+        textFormat = "%1." + str(pr) + "f"
 
         if schedule.date_folder:
             today = datetime.now()
@@ -165,9 +163,18 @@ class GenerateSchedule(Operator):
             row = []
             for column in schedule.columns:
                 try:
-                    data = eval('bpy.data.objects[\'' + obj.name + '\']' + column.data_path)
+                    if column.data == '--':
+                        data = eval('bpy.data.objects[\'' + obj.name + '\']' + column.data_path)
+                    else:
+                        data = eval('bpy.data.objects[\'' + obj.name + '\']' + column.data)
 
-                    row.append(column.prefix + str(data) + column.suffix )
+                        #Format distances
+                        if '.dim' in column.data:
+                            data = str(format_distance(textFormat,data))
+
+
+
+                    row.append(str(data))
                 except:
                     row.append('--')
             row_list.append(row)    
@@ -303,9 +310,9 @@ class SCENE_PT_Schedules(Panel):
                 for column in schedule.columns:
                     row = col.row(align=True)
                     row.prop(column, "name", text="")
-                    row.prop(column, "prefix", text="",)
-                    row.prop(column, "data_path", text="", icon="RNA")
-                    row.prop(column, "suffix", text="",)
+                    row.prop(column, "data", text="")
+                    if column.data == '--':
+                        row.prop(column, "data_path", text="", icon="RNA")
 
                 
                   
