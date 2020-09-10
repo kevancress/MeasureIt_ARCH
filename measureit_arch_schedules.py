@@ -1,9 +1,12 @@
 import bpy
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu
+import csv
+import os
+
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu, Collection
 from rna_prop_ui import PropertyPanel
 from bl_operators.presets import AddPresetBase
 from .custom_preset_base import Custom_Preset_Base
-import os
+
 from bpy.app.handlers import persistent
 from bpy.props import (
         CollectionProperty,
@@ -21,6 +24,34 @@ from .measureit_arch_render import render_main
 from datetime import datetime
 
 
+
+class ColumnProps(PropertyGroup):
+
+    comp_obj: PointerProperty(type= bpy.types.Object)
+
+    data_path: StringProperty(
+                name="Data Path",
+                description="Data to use for this column",
+                default="",
+                )
+
+    prefix: StringProperty(
+            name="Prefix",
+            description="Prefix for this Column",
+            default="",
+            )
+
+    suffix: StringProperty(
+            name="Suffix",
+            description="Suffix for this Column",
+            default="",
+            )
+    
+
+
+bpy.utils.register_class(ColumnProps)
+
+
 class ScheduleProperties(PropertyGroup):
 
 
@@ -34,6 +65,10 @@ class ScheduleProperties(PropertyGroup):
                 subtype = 'FILE_PATH',
                 default="",
                 )
+    
+    collection: PointerProperty(type=Collection)
+
+    columns: CollectionProperty(type=ColumnProps) 
 
     
 
@@ -51,6 +86,34 @@ class ScheduleContainer(PropertyGroup):
 bpy.utils.register_class(ScheduleContainer)
 Scene.ScheduleGenerator = bpy.props.PointerProperty(type=ScheduleContainer)
 
+
+class AddColumnButton(Operator):
+    bl_idname = "measureit_arch.addschedulecolumn"
+    bl_label = "Add"
+    bl_description = "Add a column to this Schedule"
+    bl_category = 'MeasureitArch'
+
+    removeFlag: BoolProperty()
+
+    # ------------------------------
+    # Execute button action
+    # ------------------------------
+    def execute(self, context):
+
+        # Add Columns
+        Generator = context.scene.ScheduleGenerator
+        schedule = Generator.schedules[Generator.active_index]
+
+        if self.removeFlag:
+            schedule.columns.remove(len(schedule.columns)-1)
+        else:
+            col = schedule.columns.add()
+            col.name = "Column " + str(len(schedule.columns))
+
+        # redraw
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
 class DeleteScheduleButton(Operator):
     bl_idname = "measureit_arch.deleteschedulebutton"
     bl_label = "Delete Schedule"
@@ -67,6 +130,55 @@ class DeleteScheduleButton(Operator):
         Generator.schedules.remove(Generator.active_index)
 
         return {'FINISHED'}
+
+class GenerateSchedule(Operator):
+    bl_idname = "measureit_arch.generateschedule"
+    bl_label = "Generate Schedule"
+    bl_description = "Generate a Schedule and save it to a .csv file"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'} 
+
+    def execute(self, context):
+        # Add properties
+
+        Generator = context.scene.ScheduleGenerator
+        schedule = Generator.schedules[Generator.active_index]
+        file_name = schedule.name + '.csv'
+        file_path = schedule.output_path
+
+        row_list = []
+
+        #title each column
+        firstRow = []
+        for column in schedule.columns:
+            firstRow.append(column.name)
+        row_list.append(firstRow)
+
+        for obj in schedule.collection.objects:
+            row = []
+            for column in schedule.columns:
+                try:
+                    data = eval('bpy.data.objects[\'' + obj.name + '\']' + column.data_path)
+
+                    row.append(column.prefix + str(data) + column.suffix )
+                except:
+                    row.append('--')
+            row_list.append(row)    
+
+        try:
+            with open(file_path + file_name, 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerows(row_list)
+
+        except PermissionError:
+            self.report({'ERROR'}, "Permission Error: File may be open in an External Application?")
+            return {'FINISHED'}
+
+        
+        return {'FINISHED'}
+
+
+
 
 class DuplicateScheduleButton(Operator):
     bl_idname = "measureit_arch.duplicateschedulebutton"
@@ -166,8 +278,29 @@ class SCENE_PT_Schedules(Panel):
 
             if ScheduleGen.show_settings:
                 col = box.column()
+                op = col.operator('measureit_arch.generateschedule', text="Generate Schedule", icon='FILE_NEW')
+
+                col.prop_search(schedule,'collection', bpy.data,'collections',text="Collection", icon='GROUP')
                 col.prop(schedule, "output_path")
                 col.prop(schedule, "date_folder", text="Date Folder")
+
+                col = box.column()
+                row = col.row(align = True)
+                row.label(text= schedule.name + ' Columns:')
+                op = row.operator('measureit_arch.addschedulecolumn', text="", icon='ADD')
+                op.removeFlag = False
+                op = row.operator('measureit_arch.addschedulecolumn', text="", icon='REMOVE')
+                op.removeFlag = True
+
+                col = box.column()
+                for column in schedule.columns:
+                    row = col.row(align=True)
+                    row.prop(column, "name", text="")
+                    row.prop(column, "prefix", text="",)
+                    row.prop(column, "data_path", text="", icon="RNA")
+                    row.prop(column, "suffix", text="",)
+
+                
                   
  
 class SCENE_MT_Schedules_menu(bpy.types.Menu):
