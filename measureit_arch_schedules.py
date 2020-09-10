@@ -331,8 +331,9 @@ class SCENE_PT_Schedules(Panel):
                 col.prop(schedule, "sort_subcollections", text="Sort Subcollections")
 
                 col = box.column()
-                row = col.row(align = True)
+                row = col.row(align = True,)
                 row.label(text= schedule.name + ' Columns:')
+                row.emboss = 'PULLDOWN_MENU'
                 op = row.operator('measureit_arch.addschedulecolumn', text="", icon='ADD')
                 op.removeFlag = False
                 op = row.operator('measureit_arch.addschedulecolumn', text="", icon='REMOVE')

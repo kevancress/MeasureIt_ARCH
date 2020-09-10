@@ -114,6 +114,7 @@ class AnnotationContainer(PropertyGroup):
                                 description='Number total of Annotations')
     active_annotation_index: IntProperty(name='Active Annotation Index')
     show_annotation_settings: BoolProperty(name='Show Annotation Settings',default=False)
+    show_annotation_fields: BoolProperty(name='Show Annotation Text Fields',default=False)
     # Array of segments
     annotations: CollectionProperty(type=AnnotationProperties)
 bpy.utils.register_class(AnnotationContainer)
@@ -290,6 +291,38 @@ class OBJECT_PT_UIAnnotations(Panel):
                 if len(annoGen.annotations) > 0 and  annoGen.active_annotation_index < len(annoGen.annotations):
                     annotation = annoGen.annotations[annoGen.active_annotation_index]
 
+                    if annoGen.show_annotation_fields: fieldsIcon = 'DISCLOSURE_TRI_DOWN'
+                    else: fieldsIcon = 'DISCLOSURE_TRI_RIGHT'
+                    
+                    box = layout.box()
+                    col = box.column()
+                    row = col.row(align=True)
+                    row.prop(annoGen, 'show_annotation_fields', text="", icon=fieldsIcon,emboss=False)
+                    row.label(text= annotation.name + ' Text Fields:')
+
+                    row.emboss = 'PULLDOWN_MENU'
+                    txtAddOp = row.operator("measureit_arch.addtextfield", text="", icon="ADD")
+                    txtAddOp.idx = annoGen.active_annotation_index 
+                    txtAddOp.add = True
+
+                    txtRemoveOp = row.operator("measureit_arch.addtextfield", text="", icon="REMOVE")
+                    txtRemoveOp.idx = annoGen.active_annotation_index 
+                    txtRemoveOp.add = False
+
+                    if annoGen.show_annotation_fields:
+                        fieldIdx = 1
+
+                        col = box.column(align=True)
+                        col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
+
+                        col = box.column(align=True)
+                        for textField in annotation.textFields:
+                            col.prop(textField, 'text', text ='Text Field ' + str(fieldIdx))
+                            fieldIdx += 1
+
+
+
+
                     if annoGen.show_annotation_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                     else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
                     
@@ -298,27 +331,22 @@ class OBJECT_PT_UIAnnotations(Panel):
                     row = col.row()
                     row.prop(annoGen, 'show_annotation_settings', text="", icon=settingsIcon,emboss=False)
                     row.label(text= annotation.name + ' Settings:')
-
-                    if annoGen.show_annotation_settings:
                     
-                        fieldIdx = 1
-                        col = box.column(align=True)
-                        for textField in annotation.textFields:
-                            col.prop(textField, 'text', text ='Text Field ' + str(fieldIdx))
-                            fieldIdx += 1
-                            
+                    if annoGen.show_annotation_settings:
+                        col.prop_search(annotation,'customShape', bpy.data, 'collections',text='Custom Shape')  
+                        
                         if not annotation.uses_style:
+                            col.prop_search(annotation,'visibleInView', bpy.data, 'cameras',text='Visible In View')  
+                                                   
+                            col = box.column(align=True)
                             split = box.split(factor=0.485)
                             col = split.column()
                             col.alignment ='RIGHT'
                             col.label(text='Font')
                             col = split.column(align=True)
                             col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
-                                                   
 
                             col = box.column(align=True)
-                            col.prop_search(annotation,'visibleInView', bpy.data, 'cameras',text='Visible In View')  
-                            col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
                             col.prop(annotation, 'fontSize', text="Size") 
                             col.prop(annotation, 'textAlignment', text='Justification')
                             col.prop(annotation, 'textPosition', text='Position')
@@ -331,11 +359,14 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col = box.column(align=True)
                             col.prop(annotation, 'lineWeight', text="Line Weight" )
                             
-                        col.prop_search(annotation,'customShape', bpy.data, 'collections',text='Custom Shape')  
+                
                         col = box.column()
                         col.prop(annotation, 'annotationOffset', text='Offset')
                         col.prop(annotation, 'annotationRotation', text='Rotation')
                         col.prop(annotation,'inFront', text='Draw in Front')
+
+
+                        
                 # Delete Operator (Move to drop down menu next to list)
                 col = layout.column()
 
@@ -352,13 +383,6 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
             scene = context.scene
             annoGen = context.object.AnnotationGenerator[0]
 
-            txtAddOp = layout.operator("measureit_arch.addtextfield", text="Add Text Field", icon="ADD")
-            txtAddOp.idx = annoGen.active_annotation_index 
-            txtAddOp.add = True
-
-            txtRemoveOp = layout.operator("measureit_arch.addtextfield", text="Remove Text Field", icon="REMOVE")
-            txtRemoveOp.idx = annoGen.active_annotation_index 
-            txtRemoveOp.add = False
 
 class TranlateAnnotationOp(bpy.types.Operator):
     """Move Annotation"""

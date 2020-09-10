@@ -218,14 +218,14 @@ def update_text(textobj, props, context):
                     textField.text_updated = False
                     textField.texture_updated = True
             
-            # generate image datablock from buffer for debug preview
-            # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
-            if context.scene.measureit_arch_debug_text:
-                if not str('test') in bpy.data.images:
-                    bpy.data.images.new(str('test'), width, height)
-                image = bpy.data.images[str('test')]
-                image.scale(width, height)
-                image.pixels = [v / 255 for v in texture_buffer]
+                    # generate image datablock from buffer for debug preview
+                    # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
+                    if context.scene.measureit_arch_debug_text:
+                        if not str('test') in bpy.data.images:
+                            bpy.data.images.new(str('test'), width, height)
+                        image = bpy.data.images[str('test')]
+                        image.scale(width, height)
+                        image.pixels = [v / 255 for v in texture_buffer]
     textobj.text_updated = False    
 
 def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
@@ -3418,7 +3418,7 @@ def draw3d_loop(context,objlist,svg = None,extMat=None):
             print("Rendering Object: " + str(idx) + " of: " + str(totalobjs) + " Name: " + myobj.name)
             startTime = time.time()
           
-        if myobj.hide_get() is False and myobj.hide_render is False:
+        if myobj.hide_get() is False:
             mat = myobj.matrix_world
             if extMat is not None:
                 mat = extMat @ mat
