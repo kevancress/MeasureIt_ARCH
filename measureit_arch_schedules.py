@@ -146,6 +146,13 @@ class GenerateSchedule(Operator):
         file_name = schedule.name + '.csv'
         file_path = schedule.output_path
 
+        if schedule.date_folder:
+            today = datetime.now()
+            datepath = os.path.join(file_path, today.strftime('%Y%m%d'))
+            if not os.path.exists(datepath):
+                os.mkdir(file_path + today.strftime('%Y%m%d'))
+            file_path = datepath
+
         row_list = []
 
         #title each column
@@ -166,7 +173,7 @@ class GenerateSchedule(Operator):
             row_list.append(row)    
 
         try:
-            with open(file_path + file_name, 'w', newline='') as file:
+            with open(os.path.join(file_path,file_name), 'w', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerows(row_list)
 
