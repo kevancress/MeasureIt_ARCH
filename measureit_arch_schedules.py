@@ -28,7 +28,7 @@ from datetime import datetime
 
 class ColumnProps(PropertyGroup):
 
-    comp_obj: PointerProperty(type= bpy.types.Object)
+    name:StringProperty()
 
     data_path: StringProperty(
                 name="Data Path",
@@ -50,6 +50,7 @@ bpy.utils.register_class(ColumnProps)
 
 class ScheduleProperties(PropertyGroup):
 
+    name:StringProperty()
 
     date_folder: BoolProperty(name= "Date Folder",
                 description= "Adds a Folder with todays date to the end of the output path",
@@ -109,6 +110,8 @@ class AddColumnButton(Operator):
         else:
             col = schedule.columns.add()
             col.name = "Column " + str(len(schedule.columns))
+            col.data_path = ""
+            col.data = '.dimensions[0]'
 
         # redraw
         context.area.tag_redraw()
@@ -340,12 +343,28 @@ class SCENE_PT_Schedules(Panel):
                 op.removeFlag = True
 
                 col = box.column()
+                idx = 0
                 for column in schedule.columns:
                     row = col.row(align=True)
                     row.prop(column, "name", text="")
                     row.prop(column, "data", text="")
                     if column.data == '--':
                         row.prop(column, "data_path", text="", icon="RNA")
+                    
+                    row.emboss = 'PULLDOWN_MENU'
+                    op = row.operator('measureit_arch.moveitem',text="", icon = 'TRIA_DOWN')
+                    op.propPath = 'bpy.context.scene.ScheduleGenerator.schedules[bpy.context.scene.ScheduleGenerator.active_index].columns'
+                    op.upDown = False
+                    op.idx = idx
+                
+                    op = row.operator('measureit_arch.moveitem',text="", icon = 'TRIA_UP')
+                    op.propPath = 'bpy.context.scene.ScheduleGenerator.schedules[bpy.context.scene.ScheduleGenerator.active_index].columns'
+                    op.upDown = True
+                    op.idx = idx
+
+ 
+
+                    idx+=1
 
                 
                   

@@ -310,15 +310,29 @@ class OBJECT_PT_UIAnnotations(Panel):
                     txtRemoveOp.add = False
 
                     if annoGen.show_annotation_fields:
-                        fieldIdx = 1
+                 
 
                         col = box.column(align=True)
                         col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
 
                         col = box.column(align=True)
+                        idx = 0
                         for textField in annotation.textFields:
-                            col.prop(textField, 'text', text ='Text Field ' + str(fieldIdx))
-                            fieldIdx += 1
+                            row = col.row(align=True)
+                            row.prop(textField, 'text', text ='Text Field ' + str(idx + 1))
+
+                                
+                            row.emboss = 'PULLDOWN_MENU'
+                            op = row.operator('measureit_arch.moveitem',text="", icon = 'TRIA_DOWN')
+                            op.propPath = 'bpy.context.active_object.AnnotationGenerator[0].annotations[bpy.context.active_object.AnnotationGenerator[0].active_annotation_index].textFields'
+                            op.upDown = False
+                            op.idx = idx
+                        
+                            op = row.operator('measureit_arch.moveitem',text="", icon = 'TRIA_UP')
+                            op.propPath = 'bpy.context.active_object.AnnotationGenerator[0].annotations[bpy.context.active_object.AnnotationGenerator[0].active_annotation_index].textFields'
+                            op.upDown = True
+                            op.idx = idx
+                            idx += 1
 
 
 

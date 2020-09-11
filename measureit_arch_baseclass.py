@@ -147,6 +147,7 @@ class TextField(PropertyGroup):
                         ('C', "Center", "",'ALIGN_CENTER',2),
                         ('R', "Right", "",'ALIGN_RIGHT',3)),
                 name="align Font",
+                default = 'L',
                 description="Set Font alignment")
     
     textPosition:EnumProperty(
@@ -454,6 +455,50 @@ class AddTextField(Operator):
             else:
                 textFields.remove(len(textFields)-1)
             return {'FINISHED'}
+        return {'FINISHED'}
+
+class MoveItem(Operator):
+    bl_idname = "measureit_arch.moveitem"
+    bl_label = "Move Item"
+    bl_description = "Move Item Up or Down in a list"
+    bl_category = 'MeasureitArch'
+    propPath = StringProperty()
+    idx: IntProperty()
+    upDown: BoolProperty()
+
+    def copyKeys(self,source,destination):
+        for key in source.__annotations__.keys():
+            try:
+                destination[key] = source[key]
+            except KeyError:
+                self.report({'WARNING'}, "Key: " + key + " not found" )
+                
+
+
+    def execute (self, context):
+        collectionProp = eval(self.propPath)
+
+       
+        source = collectionProp[self.idx]
+        
+        try:
+            if self.upDown:
+                destination = collectionProp[self.idx - 1]
+            else:
+                destination = collectionProp[self.idx + 1]
+        except IndexError:
+            self.report({'WARNING'}, "End of stack")
+            return {'FINISHED'}
+
+        temp = collectionProp.add()  
+
+        self.copyKeys(destination,temp)
+        self.copyKeys(source,destination)
+        self.copyKeys(temp,source)
+
+        collectionProp.remove(len(collectionProp)-1)
+           
+        
         return {'FINISHED'}
 
 
