@@ -404,6 +404,7 @@ def draw_annotation_style_settings(annotation,layout):
     col.prop(annotation, 'lineWeight', text="Line Weight" )
     col.prop(annotation, 'inFront', text="Draw In Front")
     col.prop(annotation,'evalMods')
+    col.prop(annotation, 'draw_leader', text='Draw Leader')
 
 def draw_dimension_style_row(dim,layout):
     row = layout.row(align=True)

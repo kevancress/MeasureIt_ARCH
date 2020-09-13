@@ -550,7 +550,9 @@ def draw_main_3d (context):
 
 def draw_titleblock(context,svg=None):
     view = get_view()
-    if view is not None and view.titleBlock !="":
+    rv3d = context.area.spaces[0].region_3d
+
+    if view is not None and view.titleBlock !="" and rv3d.view_perspective == 'CAMERA':
         camera = view.camera
         
         titleblockScene = bpy.data.scenes[view.titleBlock]

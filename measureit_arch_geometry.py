@@ -329,66 +329,67 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
     sceneProps = context.scene.MeasureItArchProps
     svg_obj = svg.add(svg.g(id=myobj.name))
 
-    mat = myobj.matrix_world
-    mesh = myobj.data
+    if myobj.visible_get():
+        mat = myobj.matrix_world
+        mesh = myobj.data
 
-    bm = bmesh.new()
-    if myobj.mode == 'OBJECT':
-        bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
-    else:
-        bm = bmesh.from_edit_mesh(mesh)
+        bm = bmesh.new()
+        if myobj.mode == 'OBJECT':
+            bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
+        else:
+            bm = bmesh.from_edit_mesh(mesh)
 
-    tris = bm.calc_loop_triangles()
-    bm.edges.ensure_lookup_table()
-    bm.faces.ensure_lookup_table()
-    faces= bm.faces
-    verts = bm.verts
+        tris = bm.calc_loop_triangles()
+        bm.edges.ensure_lookup_table()
+        bm.faces.ensure_lookup_table()
+        faces= bm.faces
+        verts = bm.verts
 
-    matSlots = myobj.material_slots
-    objMaterials = []
+        matSlots = myobj.material_slots
+        objMaterials = []
 
-    hatchMaterials = []
+        hatchMaterials = []
 
-    hatchDict = {}
+        hatchDict = {}
 
-    for hatch in hatchGen.hatches:
-        hatchMaterials.append(hatch.material)
+        for hatch in hatchGen.hatches:
+            hatchMaterials.append(hatch.material)
 
-    for slot in matSlots:
-        objMaterials.append(slot.material)
+        for slot in matSlots:
+            objMaterials.append(slot.material)
 
-    for tri in tris:
- 
-        face = tri[1].face
-        matIdx = face.material_index
-        try:
-            faceMat = objMaterials[matIdx]
-        except:
-            faceMat = None
-            
-        if faceMat in hatchMaterials:
-            idx = hatchMaterials.index(faceMat)
-            hatch = hatchGen.hatches[idx]
-            
-            fillRGB = rgb_gamma_correct(hatch.color) 
-            if hatch.name not in hatchDict:
-                hatchDict[hatch.name] = {}
-            if "coords" not in hatchDict[hatch.name]:
-                hatchDict[hatch.name]["coords"] = []
-            hatchDict[hatch.name]["color"] = fillRGB
-            hatchDict[hatch.name]["hatch"] = hatch
-            
-            for loop in tri:
-                vert = loop.vert
-                hatchDict[hatch.name]["coords"].append(mat@vert.co)
-            
-    for key in hatchDict:
-        hatch = hatchDict[key]["hatch"]
-        svg_hatch = svg_obj.add(svg.g(id=hatch.name))
-        filledCoords = hatchDict[key]["coords"]
-        fillRGB = hatchDict[key]["color"]
+        for tri in tris:
     
-        svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg_hatch)
+            face = tri[1].face
+            matIdx = face.material_index
+            try:
+                faceMat = objMaterials[matIdx]
+            except:
+                faceMat = None
+                
+            if faceMat in hatchMaterials:
+                idx = hatchMaterials.index(faceMat)
+                hatch = hatchGen.hatches[idx]
+                
+                fillRGB = rgb_gamma_correct(hatch.color) 
+                if hatch.name not in hatchDict:
+                    hatchDict[hatch.name] = {}
+                if "coords" not in hatchDict[hatch.name]:
+                    hatchDict[hatch.name]["coords"] = []
+                hatchDict[hatch.name]["color"] = fillRGB
+                hatchDict[hatch.name]["hatch"] = hatch
+                
+                for loop in tri:
+                    vert = loop.vert
+                    hatchDict[hatch.name]["coords"].append(mat@vert.co)
+                
+        for key in hatchDict:
+            hatch = hatchDict[key]["hatch"]
+            svg_hatch = svg_obj.add(svg.g(id=hatch.name))
+            filledCoords = hatchDict[key]["coords"]
+            fillRGB = hatchDict[key]["color"]
+        
+            svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg_hatch)
 
 
 
@@ -2241,7 +2242,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 xDir = rotMatrix @ Vector((1,0,0))
                 yDir = rotMatrix @ Vector((0,1,0))
 
-                textcard = generate_text_card(context,textField,annotationProps,rotation = annotation.annotationRotation, basePoint=origin, xDir=xDir, yDir=yDir,cardIdx=fieldIdx)
+                textcard = generate_text_card(context,textField,annotationProps, rotation = annotation.annotationRotation, basePoint=origin, xDir=xDir, yDir=yDir,cardIdx=fieldIdx)
 
                 textField['textcard'] = textcard
                 fieldIdx += 1
@@ -2270,11 +2271,19 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 elif annotationProps.textPosition == 'B':
                     coords.append(textcard[2])
                 
-                if annotationProps.textAlignment == 'C':
+                if not annotationProps.draw_leader:
                     coords = []
-
+   
                 draw_lines(lineWeight,rgb,coords, twoPass=True,pointPass=True)
             
+            rotation = annotation.annotationRotation
+            rotation = (rotation[0],rotation[1],-rotation[2])
+            eulerRot = Euler(rotation, 'XYZ')
+            newRotMat = eulerRot.to_matrix()
+
+            rotMatrix = newRotMat.to_4x4() @ rotMatrix
+
+
             # Draw Custom Shape
             if annotation.customShape is not None:
                 col = annotation.customShape
@@ -2312,12 +2321,12 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
         
                         customCoords = []
                         for coord in tempCoords:
-                            newCoord = mat @ coord
+                            newCoord =  (rotMatrix @ coord) + p2 
                             customCoords.append(newCoord)
                         
                         customFilledCoords = []
                         for vert in indices:
-                            newVert = mat @ vert
+                            newVert = (rotMatrix @ vert) + p2
                             customFilledCoords.append(newVert)
 
 
@@ -2347,7 +2356,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                     filledCoords.append(Vector((0,0,0)) + Vector(p1))
                     line.rotate(Quaternion(axis,rotangle))
                     filledCoords.append(line.copy() + Vector(p1))
-
+                
                 draw_filled_coords(filledCoords,rgb,polySmooth=False)
 
             if scene.measureit_arch_gl_show_d:

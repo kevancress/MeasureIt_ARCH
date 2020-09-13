@@ -75,6 +75,16 @@ def custom_shape_poll(self, collection):
 
 class AnnotationProperties(BaseWithText,PropertyGroup):
     customProperties: CollectionProperty(type=CustomProperties)
+
+    draw_leader: BoolProperty(name='Use Leader',
+                description= 'Draw A Leader Line from the annotation to the anchor',
+                default = True)
+
+                
+    shape_to_text: BoolProperty(name='Shape to text',
+                description= 'Align the custom annotation shape with the annotation text, rather than the anchor point',
+                default = False)
+
     annotationRotation:FloatVectorProperty(name='annotationOffset',
                             description='Rotation for Annotation',
                             default= (0.0,0.0,0.0),
@@ -285,7 +295,6 @@ class OBJECT_PT_UIAnnotations(Panel):
                 col.menu("OBJECT_MT_annotation_menu", icon='DOWNARROW_HLT', text="")
 
 
-                
                 # Settings Below List
 
                 if len(annoGen.annotations) > 0 and  annoGen.active_annotation_index < len(annoGen.annotations):
@@ -372,12 +381,14 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                             col = box.column(align=True)
                             col.prop(annotation, 'lineWeight', text="Line Weight" )
+                            col.prop(annotation, 'draw_leader', text='Draw Leader')
                             
                 
                         col = box.column()
                         col.prop(annotation, 'annotationOffset', text='Offset')
                         col.prop(annotation, 'annotationRotation', text='Rotation')
-                        col.prop(annotation,'inFront', text='Draw in Front')
+                        col.prop(annotation, 'inFront', text='Draw in Front')
+                      
 
 
                         
@@ -396,7 +407,6 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
         if 'AnnotationGenerator' in context.object:     
             scene = context.scene
             annoGen = context.object.AnnotationGenerator[0]
-
 
 class TranlateAnnotationOp(bpy.types.Operator):
     """Move Annotation"""

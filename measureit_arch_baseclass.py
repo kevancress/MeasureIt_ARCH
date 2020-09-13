@@ -471,7 +471,7 @@ class MoveItem(Operator):
             try:
                 destination[key] = source[key]
             except KeyError:
-                self.report({'WARNING'}, "Key: " + key + " not found" )
+                self.report({'WARNING'}, "Key: " + key + " not moved" )
                 
 
 
