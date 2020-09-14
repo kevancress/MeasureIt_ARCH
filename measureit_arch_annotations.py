@@ -76,6 +76,28 @@ def custom_shape_poll(self, collection):
 class AnnotationProperties(BaseWithText,PropertyGroup):
     customProperties: CollectionProperty(type=CustomProperties)
 
+    customShape: PointerProperty(name = 'Custom Annotation Shape', type=Collection, poll = custom_shape_poll)
+
+    custom_local_transforms: BoolProperty(name='Use Local Transforms',
+                description= 'Uses the Local transforms of custom annotation objects',
+                default = True)
+    
+    
+    custom_fit_text: BoolProperty(name='Fit Text',
+                description= 'Scale Custom Shap to Text Length',
+                default = True)
+                
+    custom_scale:FloatProperty(name='Custom Shape Scale',
+                            description='Scale Custom Shape',
+                            default= 1.0,)
+
+    custom_shape_location: EnumProperty(
+                    items=(('A', "Anchor", "Anchor"),
+                           ('T', "Text", "Text")),
+                    name="Custom Shape Location",
+                    description="Define Where a custom shape is anchored") 
+
+
     draw_leader: BoolProperty(name='Use Leader',
                 description= 'Draw A Leader Line from the annotation to the anchor',
                 default = True)
@@ -98,8 +120,6 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
     annotationTextSource: StringProperty(name='annotationTextSource',
                             description="Text Source",
                             update=annotation_update_flag)
-
-    customShape: PointerProperty(name = 'Custom Annotation Shape', type=Collection, poll = custom_shape_poll)
 
     annotationAnchorObject: PointerProperty(type=Object)
 
@@ -356,9 +376,16 @@ class OBJECT_PT_UIAnnotations(Panel):
                     row.label(text= annotation.name + ' Settings:')
                     
                     if annoGen.show_annotation_settings:
-                        col.prop_search(annotation,'customShape', bpy.data, 'collections',text='Custom Shape')  
+
+                        col = box.column(align=True)
+                        col.prop_search(annotation,'customShape', bpy.data, 'collections',text='Custom Shape')
+                        col.prop(annotation, 'custom_shape_location', text='Custom Shape Location')
+                        col.prop(annotation, 'custom_scale', text='Custom Shape Scale')
+                        col.prop(annotation, 'custom_local_transforms', text='Use Local Transforms')
+                        #col.prop(annotation, 'custom_fit_text', text = 'Fit Text')
                         
                         if not annotation.uses_style:
+                            col = box.column(align=True)
                             col.prop_search(annotation,'visibleInView', bpy.data, 'cameras',text='Visible In View')  
                                                    
                             col = box.column(align=True)
@@ -370,7 +397,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
 
                             col = box.column(align=True)
-                            col.prop(annotation, 'fontSize', text="Size") 
+                            col.prop(annotation, 'fontSize', text="Font Size") 
                             col.prop(annotation, 'textAlignment', text='Justification')
                             col.prop(annotation, 'textPosition', text='Position')
 

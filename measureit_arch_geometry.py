@@ -2208,15 +2208,95 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             #Get local Rotation and Translation
             rot = mat.to_quaternion()
             loc = mat.to_translation()
+            scale = mat.to_scale()
 
             #Compose Rotation and Translation Matrix
             rotMatrix = Matrix.Identity(3)
             rotMatrix.rotate(rot)
             rotMatrix.resize_4x4()
+            locMatrix = Matrix.Translation(loc)
+            scaleMatrix = Matrix.Identity(3)
+            scaleMatrix[0][0] *= scale[0]
+            scaleMatrix[1][1] *= scale[1]
+            scaleMatrix[2][2] *= scale[2]
+            scaleMatrix.to_4x4()
+            noScaleMat = locMatrix @ rotMatrix
             #locMatrix = Matrix.Translation(loc)
+
+
+            
+            p1Scaled = scaleMatrix @ Vector(p1local)
+            p1 =  locMatrix @ rotMatrix @ p1Scaled
 
             # Transform offset with Composed Matrix
             p2 = (rotMatrix @ offset) + Vector(p1)
+
+            # Draw Custom Shape
+
+            offsetMat= Matrix.Translation(p1Scaled)
+            rotMat = Matrix.Identity(3)
+            rotEuler = Euler(annotation.annotationRotation,'XYZ')
+            rotMat.rotate(rotEuler)
+            rotMat = rotMat.to_4x4()
+            customScale = Matrix.Scale(annotation.custom_scale,4)
+
+
+            
+            if annotationProps.custom_shape_location == 'T':
+                offsetMat= Matrix.Translation(p1Scaled + annotation.annotationOffset)
+            
+            extMat = noScaleMat @ offsetMat @ rotMat @ customScale
+
+            if annotation.customShape is not None:
+                col = annotation.customShape
+                objs = col.objects
+                try:
+                    if col.objects[myobj.name] is not None:
+                        print("Annotations Cannot be a part of its custom shape collection")
+                        annotation.customShape = None
+                        return
+                except:
+                    pass
+                
+  
+
+                draw3d_loop(context,objs,svg=svg,extMat=extMat, multMat=annotationProps.custom_local_transforms)
+                
+                for obj in objs:
+                    if obj.type =='MESH' and False:
+                        tempCoords = []
+                        bm = bmesh.new()
+                        bm.from_object(obj, bpy.context.view_layer.depsgraph,deform=True)
+                        bm.edges.ensure_lookup_table()
+                        bm.verts.ensure_lookup_table()
+                        for e in bm.edges:
+                            tempCoords.extend([e.verts[0].co])
+                            tempCoords.extend([e.verts[1].co])
+
+                        mesh = obj.data
+                        mesh.calc_loop_triangles()
+                        tris = mesh.loop_triangles
+                        tempVertices = []
+                        indices = []
+
+                        for tri in tris:
+                            for vert in tri.vertices:
+                                indices.append(bm.verts[vert].co)      
+        
+                        customCoords = []
+                        for coord in tempCoords:
+                            newCoord =  (mat @ offsetMat @ rotMat @ coord)
+                            customCoords.append(newCoord)
+                        
+                        customFilledCoords = []
+                        for vert in indices:
+                            newVert = (mat @ offsetMat @ rotMat @ vert)
+                            customFilledCoords.append(newVert)
+
+
+                        draw_lines(lineWeight,rgb,customCoords, twoPass=True,pointPass=True)
+                        draw_filled_coords(customFilledCoords,rgb,polySmooth=False)
+
 
             fieldIdx = 0
             if 'textFields' not in annotation:
@@ -2239,10 +2319,12 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
             for textField in annotation.textFields:
                 origin = p2
-                xDir = rotMatrix @ Vector((1,0,0))
-                yDir = rotMatrix @ Vector((0,1,0))
+                xDir = rotMatrix @ rotMat @ Vector((1,0,0))
+                yDir = rotMatrix @ rotMat @ Vector((0,1,0))
 
-                textcard = generate_text_card(context,textField,annotationProps, rotation = annotation.annotationRotation, basePoint=origin, xDir=xDir, yDir=yDir,cardIdx=fieldIdx)
+                #draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
+
+                textcard = generate_text_card(context,textField,annotationProps, basePoint=origin, xDir=xDir, yDir=yDir,cardIdx=fieldIdx)
 
                 textField['textcard'] = textcard
                 fieldIdx += 1
@@ -2276,62 +2358,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
    
                 draw_lines(lineWeight,rgb,coords, twoPass=True,pointPass=True)
             
-            rotation = annotation.annotationRotation
-            rotation = (rotation[0],rotation[1],-rotation[2])
-            eulerRot = Euler(rotation, 'XYZ')
-            newRotMat = eulerRot.to_matrix()
 
-            rotMatrix = newRotMat.to_4x4() @ rotMatrix
-
-
-            # Draw Custom Shape
-            if annotation.customShape is not None:
-                col = annotation.customShape
-                objs = col.objects
-                try:
-                    if col.objects[myobj.name] is not None:
-                        print("Annotations Cannot be a part of its custom shape collection")
-                        annotation.customShape = None
-                        return
-                except:
-                    pass
-
-                draw3d_loop(context,objs,svg=svg,extMat=mat)
-                
-                for obj in objs:
-                    if obj.type =='MESH':
-                        tempCoords = []
-                        bm = bmesh.new()
-                        bm.from_object(obj, bpy.context.view_layer.depsgraph,deform=True)
-                        bm.edges.ensure_lookup_table()
-                        bm.verts.ensure_lookup_table()
-                        for e in bm.edges:
-                            tempCoords.extend([e.verts[0].co])
-                            tempCoords.extend([e.verts[1].co])
-
-                        mesh = obj.data
-                        mesh.calc_loop_triangles()
-                        tris = mesh.loop_triangles
-                        tempVertices = []
-                        indices = []
-
-                        for tri in tris:
-                            for vert in tri.vertices:
-                                indices.append(bm.verts[vert].co)      
-        
-                        customCoords = []
-                        for coord in tempCoords:
-                            newCoord =  (rotMatrix @ coord) + p2 
-                            customCoords.append(newCoord)
-                        
-                        customFilledCoords = []
-                        for vert in indices:
-                            newVert = (rotMatrix @ vert) + p2
-                            customFilledCoords.append(newVert)
-
-
-                        draw_lines(lineWeight,rgb,customCoords, twoPass=True,pointPass=True)
-                        draw_filled_coords(customFilledCoords,rgb,polySmooth=False)
+            
                 
                 
 
@@ -2698,18 +2726,17 @@ def generate_text_card(context,textobj,textProps,rotation = Vector((0,0,0)), bas
     cardOffset = cardIdx * cardY
     
     #Define Transformation Matricies
-    rotX = Quaternion(xDir,rotation[0])
-    rotY = Quaternion(yDir,rotation[1])
-    rotZ = Quaternion(yDir.cross(xDir),rotation[2])
+    rotMat = Matrix.Identity(3)
+    rotEuler = Euler(rotation,'XYZ')
+    rotMat.rotate(rotEuler)
+    rotMat = rotMat.to_4x4()
 
     coords = []
     for coord in square:
         coord= Vector(coord) - aOff - pOff - cardOffset
         coord -= basePoint
 
-        coord.rotate(rotX)
-        coord.rotate(rotY)
-        coord.rotate(rotZ)
+        coord = rotMat @ coord
 
         coord += basePoint
         coords.append(coord)
@@ -3424,7 +3451,7 @@ def get_lineWeight():
 
 
 
-def draw3d_loop(context,objlist,svg = None,extMat=None):
+def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
     # ---------------------------------------
     # Generate all OpenGL calls
     # ---------------------------------------
@@ -3443,7 +3470,10 @@ def draw3d_loop(context,objlist,svg = None,extMat=None):
         if myobj.hide_get() is False:
             mat = myobj.matrix_world
             if extMat is not None:
-                mat = extMat @ mat
+                if multMat:
+                    mat = extMat @ mat
+                else:
+                    mat = extMat
 
             sheetGen = myobj.SheetGenerator
             for sheet_view in sheetGen.sheet_views:

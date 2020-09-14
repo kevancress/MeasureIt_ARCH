@@ -575,7 +575,7 @@ def draw_titleblock(context,svg=None):
         scaleMat.resize_4x4()
 
         extMat =  cameraMat @ transMat @ scaleMat
-        draw3d_loop(context,objlist,extMat=extMat,svg=svg)
+        draw3d_loop(context,objlist,extMat=extMat,svg=svg,multMat=True)
 
 
 
