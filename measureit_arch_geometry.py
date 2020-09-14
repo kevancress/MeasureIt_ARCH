@@ -3374,6 +3374,19 @@ def get_view():
         view = None
     
     return view
+
+def get_rv3d():
+    spaces = bpy.context.area.spaces
+    rv3d = None
+    for space in spaces:
+        if space.type == 'VIEW_3D':
+            rv3d = space.region_3d
+    
+    return rv3d
+    
+
+
+    
     
 def get_scale():
     scene = bpy.context.scene

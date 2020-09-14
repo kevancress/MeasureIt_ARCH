@@ -40,7 +40,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 from bpy.app.handlers import persistent
 from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_areaDimension, \
                         draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, \
-                        get_mesh_vertices, printTime, draw_sheet_views, preview_dual, get_view, draw_hatches, draw3d_loop
+                        get_mesh_vertices, printTime, draw_sheet_views, preview_dual, get_view, draw_hatches, draw3d_loop, get_rv3d
 
 draw_instanced = True
 
@@ -550,9 +550,13 @@ def draw_main_3d (context):
 
 def draw_titleblock(context,svg=None):
     view = get_view()
-    rv3d = context.area.spaces[0].region_3d
+    rv3d = get_rv3d()
 
-    if view is not None and view.titleBlock !="" and rv3d.view_perspective == 'CAMERA':
+    if view is not None and view.titleBlock !="":
+        if not context.scene.MeasureItArchProps.is_render_draw:
+            if rv3d.view_perspective != 'CAMERA':
+                return
+
         camera = view.camera
         
         titleblockScene = bpy.data.scenes[view.titleBlock]
