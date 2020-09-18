@@ -1907,32 +1907,10 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
         if check_vis(lineGroup,lineProps):
 
-            rawRGB = lineProps.color        
-            alpha = 1.0   
-            if bpy.context.mode == 'EDIT_MESH':
-                alpha=0.3
-            else:
-                alpha = rawRGB[3]
+            rawRGB = lineProps.color     
 
-            #undo blenders Default Gamma Correction
-            rgb = rgb_gamma_correct(rawRGB)
-            rgb[3] = alpha
+            rgb = get_color(rawRGB,myobj)   
 
-            #overide line color with theme selection colors when selected
-            if not sceneProps.is_render_draw:
-                if myobj in context.selected_objects and bpy.context.mode != 'EDIT_MESH' and context.scene.measureit_arch_gl_ghost:
-                    rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
-                    rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
-                    rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
-                    rgb[3] = 1.0
-
-                    if (context.view_layer.objects.active != None
-                    and context.view_layer.objects.active.data != None
-                    and myobj.data.name == context.view_layer.objects.active.data.name):
-                        rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
-                        rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
-                        rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
-                        rgb[3] = 1.0
 
             #set other line properties
             isOrtho = False
@@ -2163,6 +2141,33 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
     gpu.shader.unbind()
     set_OpenGL_Settings(False)
 
+def get_color(rawRGB, myobj):
+    #undo blenders Default Gamma Correction
+    context = bpy.context
+    sceneProps = bpy.context.scene.MeasureItArchProps
+    rgb = rgb_gamma_correct(rawRGB)
+
+
+    if not sceneProps.show_selected or sceneProps.is_render_draw:
+        return rgb
+
+    #overide line color with theme selection colors when selected
+    if myobj in context.selected_objects:
+        rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
+        rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
+        rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
+        rgb[3] = 1.0
+
+        if (context.view_layer.objects.active != None
+        and context.view_layer.objects.active.data != None
+        and myobj.data.name == context.view_layer.objects.active.data.name):
+            rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
+            rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
+            rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
+            rgb[3] = 1.0
+    
+    return rgb
+
 def draw_annotation(context, myobj, annotationGen, mat, svg=None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps    
@@ -2245,7 +2250,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
 
             
-            if annotationProps.custom_shape_location == 'T':
+            if annotation.custom_shape_location == 'T':
                 offsetMat= Matrix.Translation(p1Scaled + annotation.annotationOffset)
             
             extMat = noScaleMat @ offsetMat @ rotMat @ customScale

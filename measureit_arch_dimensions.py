@@ -38,6 +38,10 @@ import random
 
 
 class AreaDimensionProperties(BaseDim,PropertyGroup):
+    
+    gen_group: StringProperty(name="Generator Group",
+        description="group in the generator - api property",
+        default="areaDimensions",)
 
     dimTextPos: FloatVectorProperty(name='Text Position',
                             description='Offset for Area Dimension Text',
@@ -70,6 +74,10 @@ bpy.utils.register_class(AreaDimensionProperties)
 
 class AlignedDimensionProperties(BaseDim, PropertyGroup):
 
+    gen_group: StringProperty(name="Generator Group",
+        description="group in the generator - api property",
+        default="alignedDimensions",)
+
     dimObjectA: PointerProperty(type=Object)
 
     dimObjectB: PointerProperty(type=Object) 
@@ -78,6 +86,10 @@ bpy.utils.register_class(AlignedDimensionProperties)
 
 
 class AxisDimensionProperties(BaseDim, PropertyGroup):
+
+    gen_group: StringProperty(name="Generator Group",
+        description="group in the generator - api property",
+        default="axisDimensions",)
 
     dimObjectA: PointerProperty(type=Object)
 
@@ -96,6 +108,10 @@ bpy.utils.register_class(AxisDimensionProperties)
 
 
 class BoundsDimensionProperties(BaseDim, PropertyGroup):
+    gen_group: StringProperty(name="Generator Group",
+        description="group in the generator - api property",
+        default="boundsDimensions",)
+
     drawAxis: BoolVectorProperty(name= "Draw Axis",
                 description= "Axis to Dimension for Bounding Box",
                 default= (False,False,False),
@@ -110,6 +126,10 @@ bpy.utils.register_class(BoundsDimensionProperties)
 
 
 class ArcDimensionProperties(BaseDim, PropertyGroup):
+    gen_group: StringProperty(name="Generator Group",
+        description="group in the generator - api property",
+        default="arcDimensions",)
+
     dimPointC: IntProperty(name='dimPointC',
                     description="Angle End Vertex Index")
 
@@ -140,6 +160,9 @@ bpy.utils.register_class(ArcDimensionProperties)
 
 
 class AngleDimensionProperties(BaseDim, PropertyGroup):
+    gen_group: StringProperty(name="Generator Group",
+        description="group in the generator - api property",
+        default="angleDimensions",)
 
     dimPointC: IntProperty(name='dimPointC',
                     description="Angle End Vertex Index")

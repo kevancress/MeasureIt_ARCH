@@ -147,6 +147,7 @@ class AnnotationContainer(PropertyGroup):
     show_annotation_fields: BoolProperty(name='Show Annotation Text Fields',default=False)
     # Array of segments
     annotations: CollectionProperty(type=AnnotationProperties)
+    
 bpy.utils.register_class(AnnotationContainer)
 Object.AnnotationGenerator = CollectionProperty(type=AnnotationContainer)
 

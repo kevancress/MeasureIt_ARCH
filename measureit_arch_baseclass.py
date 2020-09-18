@@ -64,6 +64,18 @@ def recalc_dimWrapper_index(self,context):
 
                 
 class BaseProp:
+    icon: StringProperty(name = "Icon",
+            description = "item icon",
+            default = "",)
+
+    generator: StringProperty(name="Generator",
+            description="item generator - api property",
+            default="",)
+    
+    gen_group: StringProperty(name="Generator Group",
+        description="group in the generator - api property",
+        default="",)
+
     inFront: BoolProperty(name='inFront',
                 description= 'Draw this element In front of other objects',
                 default = False)
@@ -225,6 +237,11 @@ class BaseWithText(BaseProp):
                 description="Add arrows to point A")        
     
 class BaseDim(BaseWithText):
+    
+    generator: StringProperty(name="Generator",
+        description="item generator - api property",
+        default="DimensionGenerator[0]",)
+
     dimPointA: IntProperty(name='dimPointA',
                     description="Dimension Start Vertex Index")
     
@@ -274,6 +291,10 @@ class BaseDim(BaseWithText):
                             subtype='ANGLE')
 
 class MeasureItARCHSceneProps(PropertyGroup):
+
+    show_selected: BoolProperty(name='Show Selected',
+                description= 'Highlight Selected MeasureIt_ARCH Elements',
+                default = True)
 
     text_updated: BoolProperty(name='text_updated',
                 description= 'flag when text needs to be redrawn',

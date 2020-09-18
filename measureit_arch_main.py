@@ -169,6 +169,7 @@ class MeasureitArchMainPanel(Panel):
         sceneProps = scene.MeasureItArchProps
         row.operator("measureit_arch.runopenglbutton", text=txt, icon=icon ,)
         row.prop(scene, "measureit_arch_gl_ghost", text="", icon='GHOST_ENABLED')
+        row.prop(sceneProps, 'show_selected', text="", icon='VIS_SEL_11')
         row.prop(sceneProps, "show_gizmos", text="", icon='GIZMO')
 
         # ------------------------------
