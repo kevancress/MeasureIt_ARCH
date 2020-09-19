@@ -308,8 +308,9 @@ class OBJECT_PT_UIAnnotations(Panel):
                 # Operators Next to List
                 col = row.column(align=True)
                 op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
+                op.genPath = 'bpy.context.object.AnnotationGenerator[0]'
                 op.tag = annoGen.active_annotation_index  # saves internal data
-                op.item_type = 'A'
+                op.item_type = 'annotations'
                 op.is_style = False
                 col.separator()
 
@@ -431,7 +432,7 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
 
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
         delOp.is_style = False
-        delOp.item_type = 'A'
+        delOp.genPath = 'bpy.context.object.AnnotationGenerator[0]'
         if 'AnnotationGenerator' in context.object:     
             scene = context.scene
             annoGen = context.object.AnnotationGenerator[0]

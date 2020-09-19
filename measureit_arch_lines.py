@@ -340,8 +340,9 @@ class OBJECT_PT_UILines(Panel):
                 # Operators Next to List
                 col = row.column(align=True)
                 op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
+                op.genPath = 'bpy.context.object.LineGenerator[0]'
                 op.tag = lineGen.active_line_index  # saves internal data
-                op.item_type = 'L'
+                op.item_type = 'line_groups'
                 op.is_style = False
                 col.separator()
 
@@ -422,7 +423,7 @@ class OBJECT_MT_lines_menu(bpy.types.Menu):
 
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
         delOp.is_style = False
-        delOp.item_type = 'L'
+        delOp.genPath = 'bpy.context.object.LineGenerator[0]'
 
 class AddToLineGroup(Operator):   
     bl_idname = "measureit_arch.addtolinegroup"

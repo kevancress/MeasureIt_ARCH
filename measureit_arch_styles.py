@@ -45,18 +45,18 @@ from .measureit_arch_lines import LineProperties
 def recalc_index(self,context):
     #ensure index's are accurate
     StyleGen = context.scene.StyleGenerator
-    wrappedStyles = StyleGen.wrappedStyles
+    wrapper = StyleGen.wrapper
     id_l = 0
     id_a = 0
     id_d = 0
-    for style in wrappedStyles:
-        if style.itemType == 'L':
+    for style in wrapper:
+        if style.itemType == 'line_groups':
             style.itemIndex = id_l
             id_l += 1
-        elif style.itemType == 'D':
+        elif style.itemType == 'alignedDimensions':
             style.itemIndex = id_d
             id_d += 1
-        elif style.itemType == 'A':
+        elif style.itemType == 'annotations':
             style.itemIndex = id_a
             id_a += 1
 
@@ -65,9 +65,9 @@ def recalc_index(self,context):
 
 class StyleWrapper(PropertyGroup):
     itemType:EnumProperty(
-                items=(('L', "Line", ""),
-                        ('A', "Annotation", ""),
-                        ('D', "Dimension", "")),
+                items=(('line_groups', "Line", ""),
+                        ('annotations', "Annotation", ""),
+                        ('alignedDimensions', "Dimension", "")),
                 name="Style Item Type",
                 update=recalc_index)
 
@@ -86,7 +86,7 @@ class StyleContainer(PropertyGroup):
     annotations: CollectionProperty(type=AnnotationProperties)
     line_groups: CollectionProperty(type=LineProperties)
 
-    wrappedStyles: CollectionProperty(type=StyleWrapper) 
+    wrapper: CollectionProperty(type=StyleWrapper) 
 
 bpy.utils.register_class(StyleContainer)
 Scene.StyleGenerator = bpy.props.PointerProperty(type=StyleContainer)
@@ -101,16 +101,16 @@ class M_ARCH_UL_styles_list(UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.use_property_decorate = False
             # Get correct item
-            if item.itemType == 'L':
+            if item.itemType == 'line_groups':
                 item = lineStyles[item.itemIndex]
                 draw_line_style_row(item,layout)
 
             
-            elif item.itemType == 'A':
+            elif item.itemType == 'annotations':
                 item = annotationStyles[item.itemIndex]
                 draw_annotation_style_row(item,layout)
 
-            elif item.itemType == 'D':
+            elif item.itemType == 'alignedDimensions':
                 item = dimensionStyles[item.itemIndex]
                 draw_dimension_style_row(item,layout)
 
@@ -138,12 +138,13 @@ class SCENE_PT_UIStyles(Panel):
         row = layout.row()
         
         # Draw The UI List
-        row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "wrappedStyles", StyleGen, "active_style_index",rows=2, type='DEFAULT')
+        row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "wrapper", StyleGen, "active_style_index",rows=2, type='DEFAULT')
         
         # Operators Next to List
         col = row.column(align=True)
         col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
         op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
+        op.genPath = 'bpy.context.scene.StyleGenerator'
         op.tag = StyleGen.active_style_index  # saves internal data
         op.is_style = True
 
@@ -152,14 +153,14 @@ class SCENE_PT_UIStyles(Panel):
 
         
         # Settings Below List
-        if len(StyleGen.wrappedStyles) > 0 and  StyleGen.active_style_index < len(StyleGen.wrappedStyles):
-            activeWrapperItem = StyleGen.wrappedStyles[StyleGen.active_style_index]
+        if len(StyleGen.wrapper) > 0 and  StyleGen.active_style_index < len(StyleGen.wrapper):
+            activeWrapperItem = StyleGen.wrapper[StyleGen.active_style_index]
 
-            if activeWrapperItem.itemType == 'L':
+            if activeWrapperItem.itemType == 'line_groups':
                 item = StyleGen.line_groups[activeWrapperItem.itemIndex]
-            if activeWrapperItem.itemType == 'A':
+            if activeWrapperItem.itemType == 'annotations':
                 item = StyleGen.annotations[activeWrapperItem.itemIndex]
-            if activeWrapperItem.itemType == 'D':
+            if activeWrapperItem.itemType == 'alignedDimensions':
                 item = StyleGen.alignedDimensions[activeWrapperItem.itemIndex]
 
             if StyleGen.show_style_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
@@ -174,13 +175,13 @@ class SCENE_PT_UIStyles(Panel):
             if StyleGen.show_style_settings:
                 
                 # Show Line Settings
-                if activeWrapperItem.itemType == 'L':
+                if activeWrapperItem.itemType == 'line_groups':
                     draw_line_style_settings(item,box)
                 # Show Annotation Settings
-                if activeWrapperItem.itemType == 'A':
+                if activeWrapperItem.itemType == 'annotations':
                     draw_annotation_style_settings(item,box)
                 # Show Dimension Settings
-                if activeWrapperItem.itemType == 'D':
+                if activeWrapperItem.itemType == 'alignedDimensions':
                     draw_dim_style_settings(item,box)
 
 class SCENE_MT_styles_menu(bpy.types.Menu):
@@ -190,6 +191,7 @@ class SCENE_MT_styles_menu(bpy.types.Menu):
         layout = self.layout
 
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
+        delOp.genPath = 'bpy.context.scene.StyleGenerator'
         delOp.is_style = True
 
 
@@ -202,35 +204,31 @@ class ListDeletePropButton(Operator):
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'} 
     tag: IntProperty()
+    genPath: StringProperty()
     item_type: StringProperty()
     is_style: BoolProperty()
 
     def execute(self, context):
         # Add properties
-        if self.is_style:
-            Generator = context.scene.StyleGenerator
-            wrapper = Generator.wrappedStyles[self.tag]
+        Generator = eval(self.genPath)
+        wrapper = Generator.wrapper[self.tag]
 
-        elif not self.is_style and self.item_type == 'D':
-            obj = context.object
-            Generator = obj.DimensionGenerator[0]
-            wrapper = Generator.wrappedDimensions[self.tag]
-        
         wrapperTag = self.tag        
         self.item_type = wrapper.itemType
         self.tag = wrapper.itemIndex
 
+        Generator.wrapper.remove(wrapperTag)
+
         if self.is_style:
-            Generator.wrappedStyles.remove(wrapperTag)
             recalc_index(self,context)
 
         else:
-            Generator.wrappedDimensions.remove(wrapperTag)
             recalc_dimWrapper_index(self,context)
 
         DeletePropButton.tag = self.tag
+        DeletePropButton.genPath =  self.genPath
         DeletePropButton.item_type = self.item_type
-        DeletePropButton.is_style = True
+        DeletePropButton.is_style = self.is_style
         DeletePropButton.execute(self,context)
         return {'FINISHED'}
    
@@ -245,9 +243,9 @@ class AddStyleButton(Operator):
     bl_category = 'MeasureitArch'
     
     styleType: EnumProperty(
-        items=(('A', "Annotation", "Create a new Annotation Style",'FONT_DATA',1),
-                ('L', "Line", "Create a new Line Style",'MESH_CUBE',2),
-                ('D', "Dimension", "Create a new Dimension Style",'DRIVER_DISTANCE',3)),
+        items=(('annotations', "Annotation", "Create a new Annotation Style",'FONT_DATA',1),
+                ('line_groups', "Line", "Create a new Line Style",'MESH_CUBE',2),
+                ('alignedDimensions', "Dimension", "Create a new Dimension Style",'DRIVER_DISTANCE',3)),
         name="Type of Style to Add",
         description="Type of Style to Add")
 
@@ -264,35 +262,35 @@ class AddStyleButton(Operator):
                     annotationStyles = StyleGen.annotations
                     lineStyles = StyleGen.line_groups
                     alignedDimStyles = StyleGen.alignedDimensions
-                    styleWrappers = StyleGen.wrappedStyles
+                    styleWrappers = StyleGen.wrapper
 
                     newWrapper = styleWrappers.add()
-
-                    if self.styleType is 'A':
+                    styleType = self.styleType
+                    if styleType == 'annotations':
                         newStyle = annotationStyles.add()
-                        newStyle.itemType = 'A'
+                        newStyle.itemType = 'annotations'
                         newStyle.fontSize = 18
                         newStyle.lineWeight = 1
                         newStyle.textAlignment = 'L'
                         newStyle.name = 'Annotation Style ' + str(len(annotationStyles))
-                        newWrapper.itemType = 'A'
+                        newWrapper.itemType = 'annotations'
 
-                    elif self.styleType is 'L':
+                    elif styleType == 'line_groups':
                         newStyle = lineStyles.add()
-                        newStyle.itemType = 'L'
+                        newStyle.itemType = 'line_groups'
                         newStyle.lineWeight = 1
                         newStyle.lineDepthOffset =1
                         newStyle.name = 'Line Style ' + str(len(lineStyles))
-                        newWrapper.itemType = 'L'
+                        newWrapper.itemType = 'line_groups'
 
                     else:
                         newStyle = alignedDimStyles.add()
-                        newStyle.itemType = 'D'
+                        newStyle.itemType = 'alignedDimensions'
                         newStyle.fontSize = 18
                         newStyle.textAlignment = 'C'
                         newStyle.lineWeight = 1
                         newStyle.name = 'Dimension Style ' + str(len(alignedDimStyles))
-                        newWrapper.itemType = 'D'
+                        newWrapper.itemType = 'alignedDimensions'
                     
                     recalc_index(self,context)
                     newStyle.is_style = True

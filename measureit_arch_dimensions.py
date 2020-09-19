@@ -39,7 +39,7 @@ import random
 
 def update_active(self,context):
     DimGen = context.object.DimensionGenerator[0]
-    activeWraper = DimGen.wrappedDimensions[DimGen.active_index]
+    activeWraper = DimGen.wrapper[DimGen.active_index]
     
 
 class AreaDimensionProperties(BaseDim,PropertyGroup):
@@ -219,7 +219,7 @@ class DimensionContainer(PropertyGroup):
 
 
     # Collection of Wrapped dimensions for list UI display
-    wrappedDimensions: CollectionProperty(type=DimensionWrapper)
+    wrapper: CollectionProperty(type=DimensionWrapper)
 
 bpy.utils.register_class(DimensionContainer)
 Object.DimensionGenerator = CollectionProperty(type=DimensionContainer)
@@ -319,7 +319,7 @@ class AddAlignedDimensionButton(Operator):
                                 newDimension.name = 'Dimension ' + str(len(DimGen.alignedDimensions))
                                 newDimensions.append(newDimension)
 
-                                newWrapper = DimGen.wrappedDimensions.add()
+                                newWrapper = DimGen.wrapper.add()
                                 newWrapper.itemType = 'alignedDimensions'
 
 
@@ -391,7 +391,7 @@ class AddAlignedDimensionButton(Operator):
 
 
 
-                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'alignedDimensions'
                 recalc_dimWrapper_index(self,context)
                 newDimensions.append(newDimension)
@@ -485,7 +485,7 @@ class AddBoundingDimensionButton(Operator):
                     newBoundsDimension.uses_style = False
 
 
-                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'boundsDimensions'
 
 
@@ -578,7 +578,7 @@ class AddAxisDimensionButton(Operator):
                                 newDimension.dimLeaderOffset = dist/30
                                 newDimensions.append(newDimension)
 
-                                newWrapper = DimGen.wrappedDimensions.add()
+                                newWrapper = DimGen.wrapper.add()
                                 newWrapper.itemType = 'axisDimensions'
 
 
@@ -641,7 +641,7 @@ class AddAxisDimensionButton(Operator):
                 newDimension.dimPointB = mylinkvertex[0]
                 newDimension.name = 'Axis ' + str(len(DimGen.axisDimensions))
                 newDimensions.append(newDimension)
-                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper = DimGen.wrapper.add()
 
                  # Set Distance Dependant Properties
                 idxA = myobjvertex[0]
@@ -768,7 +768,7 @@ class AddAreaButton(Operator):
                 except IndexError:
                     newDim.originFaceIdx = mylist[len(mylist)-1]
 
-                newWrapper = dimGen.wrappedDimensions.add()
+                newWrapper = dimGen.wrapper.add()
                 newWrapper.itemType = 'areaDimensions'
 
                 # redraw
@@ -831,7 +831,7 @@ class AddAngleButton(Operator):
                 newDimension = DimGen.angleDimensions.add()
                 newDimension.itemType = 'angleDimensions'
                 newDimension.name = 'Angle ' + str(len(DimGen.angleDimensions))
-                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'angleDimensions'
                 recalc_dimWrapper_index(self,context)
 
@@ -907,7 +907,7 @@ class AddArcButton(Operator):
                 newDimension.itemType = 'arcDimensions'
                 newDimension.name = 'Arc ' + str(len(DimGen.arcDimensions))
                 newDimension.lineWeight = 2
-                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'arcDimensions'
             
 
@@ -947,7 +947,7 @@ class CursorToArcOrigin(Operator):
         else:
             dimGen = myobj.DimensionGenerator[0]
             activeIndex = dimGen.active_index
-            activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
+            activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
             if activeWrapperItem.itemType == 'arcDimensions':
                 return True
@@ -962,7 +962,7 @@ class CursorToArcOrigin(Operator):
         myobj = context.active_object
         dimGen = myobj.DimensionGenerator[0]
         activeIndex = dimGen.active_index
-        activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
+        activeWrapperItem = dimGen.wrapper[dimGen.active_index]
         cursor = context.scene.cursor
         
         if activeWrapperItem.itemType == 'arcDimensions':
@@ -995,7 +995,7 @@ class AddFaceToArea(Operator):
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator[0]
                     activeIndex = dimGen.active_index
-                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
+                    activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
                     if activeWrapperItem.itemType == 'areaDimensions':
                         return True
@@ -1022,7 +1022,7 @@ class AddFaceToArea(Operator):
                     mylist =  get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator[0]
                     activeIndex = dimGen.active_index
-                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
+                    activeWrapperItem = dimGen.wrapper[dimGen.active_index]
                     
                     if activeWrapperItem.itemType == 'areaDimensions':
                         dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
@@ -1078,7 +1078,7 @@ class RemoveFaceFromArea(Operator):
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator[0]
                     activeIndex = dimGen.active_index
-                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
+                    activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
                     if activeWrapperItem.itemType == 'areaDimensions':
                         return True
@@ -1105,7 +1105,7 @@ class RemoveFaceFromArea(Operator):
                     mylist =  get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator[0]
                     activeIndex = dimGen.active_index
-                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
+                    activeWrapperItem = dimGen.wrapper[dimGen.active_index]
                     
                     if activeWrapperItem.itemType == 'areaDimensions':
                         dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
@@ -1239,16 +1239,18 @@ class OBJECT_PT_UIDimensions(Panel):
         if 'DimensionGenerator' in context.object:     
             scene = context.scene
             dimGen = obj.DimensionGenerator[0]
-            activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index ]
+
+
 
             row = layout.row()
             
             # Draw The UI List
-            row.template_list("M_ARCH_UL_dimension_list", "", dimGen, "wrappedDimensions", dimGen, "active_index",rows=2, type='DEFAULT')
+            row.template_list("M_ARCH_UL_dimension_list", "", dimGen, "wrapper", dimGen, "active_index",rows=2, type='DEFAULT')
             
             # Operators Next to List
             col = row.column(align=True)
             op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
+            op.genPath = 'bpy.context.object.DimensionGenerator[0]'
             op.tag = dimGen.active_index  # saves internal data
             op.is_style = False
             op.item_type = 'D'
@@ -1257,8 +1259,8 @@ class OBJECT_PT_UIDimensions(Panel):
             col.menu("OBJECT_MT_dimension_menu", icon='DOWNARROW_HLT', text="")
 
             # Settings Below List
-            if len(dimGen.wrappedDimensions) > 0 and  dimGen.active_index < len(dimGen.wrappedDimensions):
-               
+            if len(dimGen.wrapper) > 0 and  dimGen.active_index < len(dimGen.wrapper):
+                activeWrapperItem = dimGen.wrapper[dimGen.active_index]
                 item = eval('dimGen.' + activeWrapperItem.itemType + '[activeWrapperItem.itemIndex]')
 
                 if dimGen.show_dimension_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
@@ -1291,7 +1293,7 @@ class OBJECT_MT_dimension_menu(bpy.types.Menu):
 
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Dimensions", icon="X")
         delOp.is_style = False
-        delOp.item_type = 'D'
+        delOp.genPath = 'bpy.context.object.DimensionGenerator[0]'
 
 
 def draw_alignedDimensions_settings(dim,layout):

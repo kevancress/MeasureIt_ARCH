@@ -23,7 +23,7 @@ def update_active_dim(self,context):
         dimGen = context.object.DimensionGenerator[0]
         itemType = self.itemType
         idx = 0
-        for wrap in dimGen.wrappedDimensions:
+        for wrap in dimGen.wrapper:
             if itemType == wrap.itemType:
                 if itemType == 'D-ALIGNED':
                     if self == dimGen.alignedDimensions[wrap.itemIndex]:
@@ -39,26 +39,26 @@ def update_active_dim(self,context):
 def recalc_dimWrapper_index(self,context):
     if has_dimension_generator(context):
         dimGen = context.object.DimensionGenerator[0]
-        wrappedDimensions = dimGen.wrappedDimensions
+        wrapper = dimGen.wrapper
         id_aligned = 0
         id_angle = 0
         id_axis = 0
         id_arc = 0
         id_area = 0
-        for dim in wrappedDimensions:
-            if dim.itemType == 'D-ALIGNED':
+        for dim in wrapper:
+            if dim.itemType == 'alignedDimensions':
                 dim.itemIndex = id_aligned
                 id_aligned += 1
-            elif dim.itemType == 'D-ANGLE':
+            elif dim.itemType == 'angleDimensions':
                 dim.itemIndex = id_angle
                 id_angle += 1
-            elif dim.itemType == 'D-AXIS':
+            elif dim.itemType == 'axisDimensions':
                 dim.itemIndex = id_axis
                 id_axis += 1
-            elif dim.itemType == 'D-ARC':
+            elif dim.itemType == 'arcDimensions':
                 dim.itemIndex = id_arc
                 id_arc += 1
-            elif dim.itemType == 'D-AREA':
+            elif dim.itemType == 'areaDimensions':
                 dim.itemIndex = id_area
                 id_area += 1
 
@@ -399,6 +399,7 @@ class DeletePropButton(Operator):
     bl_description = "Delete a property"
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'} 
+    genPath: StringProperty()
     tag: IntProperty()
     item_type: StringProperty()
     is_style: BoolProperty()
@@ -410,37 +411,8 @@ class DeletePropButton(Operator):
         # Add properties
         mainObj = context.object
         
-        if self.is_style is True:
-            Generator = context.scene.StyleGenerator
-        else:
-            if self.item_type == 'A':
-                Generator = mainObj.AnnotationGenerator[0]
-                Generator.num_annotations -= 1
-            elif self.item_type == 'L':
-                Generator = mainObj.LineGenerator[0]
-                Generator.line_num -= 1
-            elif 'D-' in self.item_type:
-                Generator = mainObj.DimensionGenerator[0]
-                Generator.measureit_arch_num -= 1
-
-        if self.item_type == 'A':
-            itemGroup = Generator.annotations
-        elif self.item_type == 'L':
-            itemGroup = Generator.line_groups
-        elif self.item_type == 'D-ALIGNED':
-            itemGroup = Generator.alignedDimensions
-        elif self.item_type == 'D-ANGLE':
-            itemGroup = Generator.angleDimensions
-        elif self.item_type == 'D-AXIS':
-            itemGroup = Generator.axisDimensions
-        elif self.item_type == 'D-BOUNDS':
-            itemGroup = Generator.boundsDimensions
-        elif self.item_type == 'D-ARC':
-            itemGroup = Generator.arcDimensions
-        elif self.item_type == 'D-AREA':
-            itemGroup = Generator.areaDimensions
-        elif 'D' in self.item_type:
-            itemGroup = Generator.alignedDimensions
+        Generator = eval(self.genPath)
+        itemGroup = eval('Generator.' + self.item_type)
             
         # Delete element
         itemGroup[self.tag].free = True
@@ -532,49 +504,25 @@ class DeleteAllItemsButton(Operator):
     bl_label = "Delete All Items?"
     bl_description = "Delete all Items"
     bl_category = 'MeasureitArch'
-    item_type: StringProperty()
+    genPath: StringProperty()
     is_style: BoolProperty()
-    passedItem: PointerProperty(type=PropertyGroup)
     # -----------------------
     # ------------------------------
     # Execute button action
     # ------------------------------
     def execute(self, context):
         # Add properties
-        mainobject = context.object
-        scene = context.scene
 
-        if self.is_style:
-            StyleGen = scene.StyleGenerator
 
-            for alignedDim in StyleGen.alignedDimensions:
-                StyleGen.alignedDimensions.remove(0)
-            for line in StyleGen.line_groups:
-                StyleGen.line_groups.remove(0)
-            for annotation in StyleGen.annotations:
-                StyleGen.annotations.remove(0)
-            for wrapper in StyleGen.wrappedStyles:
-                StyleGen.wrappedStyles.remove(0)
+        Generator = eval(self.genPath)
+        for key in Generator.keys():
+            item = Generator.path_resolve(key)
+            if 'collection' in str(item):
+                typeContainer = item
+                for item in typeContainer:
+                    typeContainer.remove(0)
 
-        else:
-            if self.item_type is 'D':
-                for key in mainobject.DimensionGenerator[0].keys():
-                    item = mainobject.DimensionGenerator[0].path_resolve(key)
-                    if 'collection' in str(item):
-                        typeContainer = item
-                        for dim in typeContainer:
-                            mainobject.DimensionGenerator[0].measureit_arch_num = 0
-                            typeContainer.remove(0)
 
-            elif self.item_type is 'L':
-                for line in mainobject.LineGenerator[0].line_groups:
-                    mainobject.LineGenerator[0].line_groups.remove(0)
-                    mainobject.LineGenerator[0].line_num = 0
-            
-            elif self.item_type is 'A': 
-                for annotation in mainobject.AnnotationGenerator[0].annotations:
-                    mainobject.AnnotationGenerator[0].annotations.remove(0)
-                    mainobject.AnnotationGenerator[0].num_annotations = 0
     
         for window in bpy.context.window_manager.windows:
             screen = window.screen
