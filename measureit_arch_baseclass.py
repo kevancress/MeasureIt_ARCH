@@ -64,6 +64,10 @@ def recalc_dimWrapper_index(self,context):
 
                 
 class BaseProp:
+    is_active: BoolProperty(name='Is Active',
+            description = 'This item is actively selected',
+            default = False)
+
     icon: StringProperty(name = "Icon",
             description = "item icon",
             default = "",)

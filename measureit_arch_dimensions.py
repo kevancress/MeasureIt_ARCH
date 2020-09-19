@@ -37,6 +37,11 @@ import random
 # ------------------------------------------------------------------
 
 
+def update_active(self,context):
+    DimGen = context.object.DimensionGenerator[0]
+    activeWraper = DimGen.wrappedDimensions[DimGen.active_index]
+    
+
 class AreaDimensionProperties(BaseDim,PropertyGroup):
     
     gen_group: StringProperty(name="Generator Group",
@@ -124,7 +129,6 @@ class BoundsDimensionProperties(BaseDim, PropertyGroup):
 bpy.utils.register_class(BoundsDimensionProperties)
     
 
-
 class ArcDimensionProperties(BaseDim, PropertyGroup):
     gen_group: StringProperty(name="Generator Group",
         description="group in the generator - api property",
@@ -184,12 +188,12 @@ bpy.utils.register_class(AngleDimensionProperties)
 
 class DimensionWrapper(PropertyGroup):
     itemType: EnumProperty(
-                items=(('D-ALIGNED', "Aligned Dimension", ""),
-                        ('D-ANGLE', "Angle Dimension", ""),
-                        ('D-AXIS', "Axis Dimension", ""),
-                        ('D-BOUNDS', "Bounding Box Dimension",""),
-                        ('D-ARC',"Arc Dimension",""),
-                        ('D-AREA',"Area Dimension","")),
+                items=(('alignedDimensions', "Aligned Dimension", ""),
+                        ('angleDimensions', "Angle Dimension", ""),
+                        ('axisDimensions', "Axis Dimension", ""),
+                        ('boundsDimensions', "Bounding Box Dimension",""),
+                        ('arcDimensions',"Arc Dimension",""),
+                        ('areaDimensions',"Area Dimension","")),
                 name="Dimension Item Type",
                 update=recalc_dimWrapper_index)
 
@@ -201,7 +205,8 @@ bpy.utils.register_class(DimensionWrapper)
 class DimensionContainer(PropertyGroup):
     measureit_arch_num: IntProperty(name='Number of measures', min=0, max=1000, default=0,
                                 description='Number total of measureit_arch elements')
-    active_dimension_index: IntProperty(name="Active Dimension Index")
+    active_index: IntProperty(name="Active Dimension Index",
+                                update= update_active)
     show_dimension_settings: BoolProperty(name='Show Dimension Settings', default=False)
     
     # Collections of each dimension property
@@ -315,7 +320,7 @@ class AddAlignedDimensionButton(Operator):
                                 newDimensions.append(newDimension)
 
                                 newWrapper = DimGen.wrappedDimensions.add()
-                                newWrapper.itemType = 'D-ALIGNED'
+                                newWrapper.itemType = 'alignedDimensions'
 
 
                         # redraw
@@ -387,14 +392,14 @@ class AddAlignedDimensionButton(Operator):
 
 
                 newWrapper = DimGen.wrappedDimensions.add()
-                newWrapper.itemType = 'D-ALIGNED'
+                newWrapper.itemType = 'alignedDimensions'
                 recalc_dimWrapper_index(self,context)
                 newDimensions.append(newDimension)
                 context.area.tag_redraw()
 
             # Set Common Values
             for newDimension in newDimensions:
-                newDimension.itemType = 'D-ALIGNED'
+                newDimension.itemType = 'alignedDimensions'
                 newDimension.style = scene.measureit_arch_default_dimension_style
                 if scene.measureit_arch_default_dimension_style is not '':
                     newDimension.uses_style = True
@@ -481,7 +486,7 @@ class AddBoundingDimensionButton(Operator):
 
 
                 newWrapper = DimGen.wrappedDimensions.add()
-                newWrapper.itemType = 'D-BOUNDS'
+                newWrapper.itemType = 'boundsDimensions'
 
 
                 # redraw
@@ -574,7 +579,7 @@ class AddAxisDimensionButton(Operator):
                                 newDimensions.append(newDimension)
 
                                 newWrapper = DimGen.wrappedDimensions.add()
-                                newWrapper.itemType = 'D-AXIS'
+                                newWrapper.itemType = 'axisDimensions'
 
 
                         # redraw
@@ -655,14 +660,14 @@ class AddAxisDimensionButton(Operator):
                 newDimension.dimLeaderOffset = dist/30
                 newDimensions.append(newDimension)
 
-                newWrapper.itemType = 'D-AXIS'
+                newWrapper.itemType = 'axisDimensions'
                 recalc_dimWrapper_index(self,context)
 
                 context.area.tag_redraw()
 
             # Set Common Values
             for newDimension in newDimensions:
-                newDimension.itemType = 'D-AXIS'
+                newDimension.itemType = 'axisDimensions'
                 newDimension.style = scene.measureit_arch_default_dimension_style
                 if scene.measureit_arch_default_dimension_style is not '':
                     newDimension.uses_style = True
@@ -764,7 +769,7 @@ class AddAreaButton(Operator):
                     newDim.originFaceIdx = mylist[len(mylist)-1]
 
                 newWrapper = dimGen.wrappedDimensions.add()
-                newWrapper.itemType = 'D-AREA'
+                newWrapper.itemType = 'areaDimensions'
 
                 # redraw
                 recalc_dimWrapper_index(self,context)
@@ -824,10 +829,10 @@ class AddAngleButton(Operator):
                 DimGen = mainobject.DimensionGenerator[0]
 
                 newDimension = DimGen.angleDimensions.add()
-                newDimension.itemType = 'D-ANGLE'
+                newDimension.itemType = 'angleDimensions'
                 newDimension.name = 'Angle ' + str(len(DimGen.angleDimensions))
                 newWrapper = DimGen.wrappedDimensions.add()
-                newWrapper.itemType = 'D-ANGLE'
+                newWrapper.itemType = 'angleDimensions'
                 recalc_dimWrapper_index(self,context)
 
                 newDimension.visibleInView = scene.camera.data
@@ -899,11 +904,11 @@ class AddArcButton(Operator):
 
                 DimGen = mainobject.DimensionGenerator[0]
                 newDimension = DimGen.arcDimensions.add()
-                newDimension.itemType = 'D-ARC'
+                newDimension.itemType = 'arcDimensions'
                 newDimension.name = 'Arc ' + str(len(DimGen.arcDimensions))
                 newDimension.lineWeight = 2
                 newWrapper = DimGen.wrappedDimensions.add()
-                newWrapper.itemType = 'D-ARC'
+                newWrapper.itemType = 'arcDimensions'
             
 
                 # Set values
@@ -941,10 +946,10 @@ class CursorToArcOrigin(Operator):
             return False
         else:
             dimGen = myobj.DimensionGenerator[0]
-            activeIndex = dimGen.active_dimension_index
-            activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+            activeIndex = dimGen.active_index
+            activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
 
-            if activeWrapperItem.itemType == 'D-ARC':
+            if activeWrapperItem.itemType == 'arcDimensions':
                 return True
             else:
                 return False
@@ -956,11 +961,11 @@ class CursorToArcOrigin(Operator):
     def execute(self, context):
         myobj = context.active_object
         dimGen = myobj.DimensionGenerator[0]
-        activeIndex = dimGen.active_dimension_index
-        activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+        activeIndex = dimGen.active_index
+        activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
         cursor = context.scene.cursor
         
-        if activeWrapperItem.itemType == 'D-ARC':
+        if activeWrapperItem.itemType == 'arcDimensions':
             arc = dimGen.arcDimensions[activeWrapperItem.itemIndex]
             center = arc.arcCenter
             cursor.location = center
@@ -989,10 +994,10 @@ class AddFaceToArea(Operator):
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator[0]
-                    activeIndex = dimGen.active_dimension_index
-                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+                    activeIndex = dimGen.active_index
+                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
 
-                    if activeWrapperItem.itemType == 'D-AREA':
+                    if activeWrapperItem.itemType == 'areaDimensions':
                         return True
                     else:
                        return False
@@ -1016,10 +1021,10 @@ class AddFaceToArea(Operator):
                     myobj = context.object
                     mylist =  get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator[0]
-                    activeIndex = dimGen.active_dimension_index
-                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+                    activeIndex = dimGen.active_index
+                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
                     
-                    if activeWrapperItem.itemType == 'D-AREA':
+                    if activeWrapperItem.itemType == 'areaDimensions':
                         dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
                     else:
                         return{'CANCLED'}
@@ -1072,10 +1077,10 @@ class RemoveFaceFromArea(Operator):
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator[0]
-                    activeIndex = dimGen.active_dimension_index
-                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+                    activeIndex = dimGen.active_index
+                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
 
-                    if activeWrapperItem.itemType == 'D-AREA':
+                    if activeWrapperItem.itemType == 'areaDimensions':
                         return True
                     else:
                        return False
@@ -1099,10 +1104,10 @@ class RemoveFaceFromArea(Operator):
                     myobj = context.object
                     mylist =  get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator[0]
-                    activeIndex = dimGen.active_dimension_index
-                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
+                    activeIndex = dimGen.active_index
+                    activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index]
                     
-                    if activeWrapperItem.itemType == 'D-AREA':
+                    if activeWrapperItem.itemType == 'areaDimensions':
                         dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
                     else:
                         return{'CANCLED'}
@@ -1161,27 +1166,27 @@ class M_ARCH_UL_dimension_list(UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.use_property_decorate = False
             # Get correct item and icon
-            if item.itemType == 'D-ALIGNED':
+            if item.itemType == 'alignedDimensions':
                 dim = alignedDim[item.itemIndex]
                 nameIcon = 'DRIVER_DISTANCE'
     
-            elif item.itemType == 'D-ANGLE':
+            elif item.itemType == 'angleDimensions':
                 dim = angleDim[item.itemIndex]
                 nameIcon = 'DRIVER_ROTATIONAL_DIFFERENCE'
 
-            elif item.itemType == 'D-AXIS':
+            elif item.itemType == 'axisDimensions':
                 dim = axisDim[item.itemIndex]
                 nameIcon = 'TRACKING_FORWARDS_SINGLE'
             
-            elif item.itemType == 'D-BOUNDS':
+            elif item.itemType == 'boundsDimensions':
                 dim = boundsDim[item.itemIndex]
                 nameIcon = 'SHADING_BBOX'
             
-            elif item.itemType == 'D-ARC':
+            elif item.itemType == 'arcDimensions':
                 dim = arcDim[item.itemIndex]
                 nameIcon = 'MOD_THICKNESS'
 
-            elif item.itemType == 'D-AREA':
+            elif item.itemType == 'areaDimensions':
                 dim = areaDim[item.itemIndex]
                 nameIcon = 'MESH_GRID'
 
@@ -1201,7 +1206,7 @@ class M_ARCH_UL_dimension_list(UIList):
                 subrow = row.row(align=True)
                 subrow.scale_x = 0.6
                 subrow.prop(dim, 'color', text="" )
-                if item.itemType == 'D-AREA':
+                if item.itemType == 'areaDimensions':
                     subrow.prop(dim,'fillColor',text="")
             else:
                 row.prop_search(dim,'style', StyleGen,'alignedDimensions',text="", icon='COLOR')
@@ -1234,16 +1239,17 @@ class OBJECT_PT_UIDimensions(Panel):
         if 'DimensionGenerator' in context.object:     
             scene = context.scene
             dimGen = obj.DimensionGenerator[0]
+            activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_index ]
 
             row = layout.row()
             
             # Draw The UI List
-            row.template_list("M_ARCH_UL_dimension_list", "", dimGen, "wrappedDimensions", dimGen, "active_dimension_index",rows=2, type='DEFAULT')
+            row.template_list("M_ARCH_UL_dimension_list", "", dimGen, "wrappedDimensions", dimGen, "active_index",rows=2, type='DEFAULT')
             
             # Operators Next to List
             col = row.column(align=True)
             op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
-            op.tag = dimGen.active_dimension_index  # saves internal data
+            op.tag = dimGen.active_index  # saves internal data
             op.is_style = False
             op.item_type = 'D'
 
@@ -1251,21 +1257,9 @@ class OBJECT_PT_UIDimensions(Panel):
             col.menu("OBJECT_MT_dimension_menu", icon='DOWNARROW_HLT', text="")
 
             # Settings Below List
-            if len(dimGen.wrappedDimensions) > 0 and  dimGen.active_dimension_index < len(dimGen.wrappedDimensions):
-                activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index ]
-
-                if activeWrapperItem.itemType == 'D-ALIGNED':
-                    item = dimGen.alignedDimensions[activeWrapperItem.itemIndex]
-                if activeWrapperItem.itemType == 'D-ANGLE':
-                    item = dimGen.angleDimensions[activeWrapperItem.itemIndex]
-                if activeWrapperItem.itemType == 'D-AXIS':
-                    item = dimGen.axisDimensions[activeWrapperItem.itemIndex]
-                if activeWrapperItem.itemType == 'D-BOUNDS':
-                    item = dimGen.boundsDimensions[activeWrapperItem.itemIndex]
-                if activeWrapperItem.itemType == 'D-ARC':
-                    item = dimGen.arcDimensions[activeWrapperItem.itemIndex]
-                if activeWrapperItem.itemType == 'D-AREA':
-                    item = dimGen.areaDimensions[activeWrapperItem.itemIndex]
+            if len(dimGen.wrappedDimensions) > 0 and  dimGen.active_index < len(dimGen.wrappedDimensions):
+               
+                item = eval('dimGen.' + activeWrapperItem.itemType + '[activeWrapperItem.itemIndex]')
 
                 if dimGen.show_dimension_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
                 else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
@@ -1277,19 +1271,9 @@ class OBJECT_PT_UIDimensions(Panel):
 
                 row.label(text= item.name + ' Settings:')
                 if dimGen.show_dimension_settings:
-                    if activeWrapperItem.itemType == 'D-ALIGNED':
-                        draw_aligned_dimension_settings(item,box)
-                    if activeWrapperItem.itemType == 'D-ANGLE':
-                        draw_angle_dimension_settings(item,box)
-                    if activeWrapperItem.itemType == 'D-AXIS':
-                        draw_axis_dimension_settings(item,box)
-                    if activeWrapperItem.itemType == 'D-BOUNDS':
-                        draw_bounds_dimension_settings(item,box)
-                    if activeWrapperItem.itemType == 'D-ARC':
-                        draw_arc_dimension_settings(item,box)
-                    if activeWrapperItem.itemType == 'D-AREA':
-                        draw_area_dimension_settings(item,box)
-
+                    eval('draw_' + activeWrapperItem.itemType + '_settings(item,box)' )
+                    
+                    
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
@@ -1310,7 +1294,7 @@ class OBJECT_MT_dimension_menu(bpy.types.Menu):
         delOp.item_type = 'D'
 
 
-def draw_aligned_dimension_settings(dim,layout):
+def draw_alignedDimensions_settings(dim,layout):
     col = layout.column()    
 
     if dim.uses_style is False:
@@ -1351,7 +1335,7 @@ def draw_aligned_dimension_settings(dim,layout):
         col.prop(dim,'inFront', text='Draw in Front')
         col.prop(dim,'evalMods')
 
-def draw_bounds_dimension_settings(dim,layout):
+def draw_boundsDimensions_settings(dim,layout):
     col = layout.column()    
     col.prop_search(dim,'dimCollection', bpy.data,'collections',text="Collection", icon='GROUP')
     
@@ -1407,7 +1391,7 @@ def draw_bounds_dimension_settings(dim,layout):
       
     col.prop(dim,'calcAxisAligned', text='Always Use Axis Aligned Bounds')
  
-def draw_axis_dimension_settings(dim,layout):
+def draw_axisDimensions_settings(dim,layout):
     col = layout.column()    
 
     if dim.uses_style is False:
@@ -1450,7 +1434,7 @@ def draw_axis_dimension_settings(dim,layout):
         col.prop(dim,'inFront', text='Draw in Front')
     col.prop(dim,'evalMods')
 
-def draw_angle_dimension_settings(dim,layout):
+def draw_angleDimensions_settings(dim,layout):
         col = layout.column()
         if dim.uses_style is False:
             split = layout.split(factor=0.485)
@@ -1486,7 +1470,7 @@ def draw_angle_dimension_settings(dim,layout):
 
         col = layout.column(align=True)
 
-def draw_arc_dimension_settings(dim,layout):
+def draw_arcDimensions_settings(dim,layout):
     col = layout.column()
 
     if dim.uses_style is False:
@@ -1525,7 +1509,7 @@ def draw_arc_dimension_settings(dim,layout):
 
     col = layout.column(align=True)
 
-def draw_area_dimension_settings(dim,layout):
+def draw_areaDimensions_settings(dim,layout):
     col = layout.column(align=True)    
     
     col.prop(dim,"fillColor", text='Fill Color')
