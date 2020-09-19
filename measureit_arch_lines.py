@@ -133,7 +133,7 @@ class LineContainer(PropertyGroup):
     line_groups: CollectionProperty(type=LineProperties)
 
 bpy.utils.register_class(LineContainer)
-Object.LineGenerator = CollectionProperty(type=LineContainer)
+Object.LineGenerator = PointerProperty(type=LineContainer)
 
 class AddLineButton(Operator):
     bl_idname = "measureit_arch.addlinebutton"
@@ -171,10 +171,8 @@ class AddLineButton(Operator):
                 mylist = get_selected_vertex(mainobject)
 
             if len(mylist) >= 2:
-                if 'LineGenerator' not in mainobject:
-                    mainobject.LineGenerator.add()
 
-                lineGen = mainobject.LineGenerator[0]
+                lineGen = mainobject.LineGenerator
                 lGroup = lineGen.line_groups.add()
 
                 # Set values
@@ -239,10 +237,7 @@ class AddDynamicLineButton(Operator):
             scene = context.scene
             mainobject = context.object
         
-            if 'LineGenerator' not in mainobject:
-                mainobject.LineGenerator.add()
-
-            lineGen = mainobject.LineGenerator[0]
+            lineGen = mainobject.LineGenerator
             lGroup = lineGen.line_groups.add()
 
             # Set values
@@ -330,7 +325,7 @@ class OBJECT_PT_UILines(Panel):
         if context.object is not None:
             if 'LineGenerator' in context.object:     
                 scene = context.scene
-                lineGen = context.object.LineGenerator[0]
+                lineGen = context.object.LineGenerator
 
                 row = layout.row()
                 
@@ -340,7 +335,7 @@ class OBJECT_PT_UILines(Panel):
                 # Operators Next to List
                 col = row.column(align=True)
                 op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
-                op.genPath = 'bpy.context.object.LineGenerator[0]'
+                op.genPath = 'bpy.context.object.LineGenerator'
                 op.tag = lineGen.active_line_index  # saves internal data
                 op.item_type = 'line_groups'
                 op.is_style = False
@@ -412,7 +407,7 @@ class OBJECT_MT_lines_menu(bpy.types.Menu):
     def draw(self,context):
         layout = self.layout
         scene = context.scene
-        lineGen = context.object.LineGenerator[0]
+        lineGen = context.object.LineGenerator
 
         op = layout.operator('measureit_arch.addtolinegroup', text="Add To Line Group", icon='ADD')
         op.tag = lineGen.active_line_index  # saves internal data
@@ -423,7 +418,7 @@ class OBJECT_MT_lines_menu(bpy.types.Menu):
 
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
         delOp.is_style = False
-        delOp.genPath = 'bpy.context.object.LineGenerator[0]'
+        delOp.genPath = 'bpy.context.object.LineGenerator'
 
 class AddToLineGroup(Operator):   
     bl_idname = "measureit_arch.addtolinegroup"
@@ -468,7 +463,7 @@ class AddToLineGroup(Operator):
 
                     if len(mylist) >= 2:
 
-                        lineGen = mainobject.LineGenerator[0]
+                        lineGen = mainobject.LineGenerator
                         lGroup = lineGen.line_groups[self.tag]
                         
                         bufferList = lGroup['lineBuffer'].to_list()
@@ -526,10 +521,7 @@ class AddLineByProperty(Operator):
                     start = time.time()
                     for obj in selObjects:
                         
-                        if 'LineGenerator' not in obj:
-                            obj.LineGenerator.add()
-
-                        lineGen = obj.LineGenerator[0]
+                        lineGen = obj.LineGenerator
                         lGroup = lineGen.line_groups.add()
                         
                         # Set values
@@ -636,7 +628,7 @@ class RemoveFromLineGroup(Operator):
 
                     if len(mylist) >= 2:
 
-                        lineGen = mainobject.LineGenerator[0]
+                        lineGen = mainobject.LineGenerator
                         lGroup = lineGen.line_groups[self.tag]
                         idx = 0
                         bufferList = lGroup['lineBuffer'].to_list()
@@ -672,7 +664,7 @@ class RemoveFromLineGroup(Operator):
 #         if self.is_style is True:
 #             Generator = context.scene.StyleGenerator
 #         else:
-#             Generator = mainObj.LineGenerator[0]
+#             Generator = mainObj.LineGenerator
 #         line = Generator.line_groups[self.tag]
 
 #         if 'Line Texture' not in bpy.data.textures:

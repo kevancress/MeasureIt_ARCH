@@ -12,55 +12,49 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 def update_flag(self,context):
     self.text_updated = True
 
-def has_dimension_generator(context):
-    return context.object is not None and \
-    hasattr(context.object, "DimensionGenerator") and \
-    len(context.object.DimensionGenerator) > 0
-
 
 def update_active_dim(self,context):
-    if has_dimension_generator(context):
-        dimGen = context.object.DimensionGenerator[0]
-        itemType = self.itemType
-        idx = 0
-        for wrap in dimGen.wrapper:
-            if itemType == wrap.itemType:
-                if itemType == 'D-ALIGNED':
-                    if self == dimGen.alignedDimensions[wrap.itemIndex]:
-                        dimGen.active_dimension_index = idx
-                        return
-                elif itemType == 'D-AXIS':
-                    if self == dimGen.axisDimensions[wrap.itemIndex]:
-                        dimGen.active_dimension_index = idx
-                        return
-            idx += 1
+
+    dimGen = context.object.DimensionGenerator
+    itemType = self.itemType
+    idx = 0
+    for wrap in dimGen.wrapper:
+        if itemType == wrap.itemType:
+            if itemType == 'D-ALIGNED':
+                if self == dimGen.alignedDimensions[wrap.itemIndex]:
+                    dimGen.active_dimension_index = idx
+                    return
+            elif itemType == 'D-AXIS':
+                if self == dimGen.axisDimensions[wrap.itemIndex]:
+                    dimGen.active_dimension_index = idx
+                    return
+        idx += 1
 
 
 def recalc_dimWrapper_index(self,context):
-    if has_dimension_generator(context):
-        dimGen = context.object.DimensionGenerator[0]
-        wrapper = dimGen.wrapper
-        id_aligned = 0
-        id_angle = 0
-        id_axis = 0
-        id_arc = 0
-        id_area = 0
-        for dim in wrapper:
-            if dim.itemType == 'alignedDimensions':
-                dim.itemIndex = id_aligned
-                id_aligned += 1
-            elif dim.itemType == 'angleDimensions':
-                dim.itemIndex = id_angle
-                id_angle += 1
-            elif dim.itemType == 'axisDimensions':
-                dim.itemIndex = id_axis
-                id_axis += 1
-            elif dim.itemType == 'arcDimensions':
-                dim.itemIndex = id_arc
-                id_arc += 1
-            elif dim.itemType == 'areaDimensions':
-                dim.itemIndex = id_area
-                id_area += 1
+    dimGen = context.object.DimensionGenerator
+    wrapper = dimGen.wrapper
+    id_aligned = 0
+    id_angle = 0
+    id_axis = 0
+    id_arc = 0
+    id_area = 0
+    for dim in wrapper:
+        if dim.itemType == 'alignedDimensions':
+            dim.itemIndex = id_aligned
+            id_aligned += 1
+        elif dim.itemType == 'angleDimensions':
+            dim.itemIndex = id_angle
+            id_angle += 1
+        elif dim.itemType == 'axisDimensions':
+            dim.itemIndex = id_axis
+            id_axis += 1
+        elif dim.itemType == 'arcDimensions':
+            dim.itemIndex = id_arc
+            id_arc += 1
+        elif dim.itemType == 'areaDimensions':
+            dim.itemIndex = id_area
+            id_area += 1
 
                 
 class BaseProp:
@@ -244,7 +238,7 @@ class BaseDim(BaseWithText):
     
     generator: StringProperty(name="Generator",
         description="item generator - api property",
-        default="DimensionGenerator[0]",)
+        default="DimensionGenerator",)
 
     dimPointA: IntProperty(name='dimPointA',
                     description="Dimension Start Vertex Index")
@@ -446,7 +440,7 @@ class AddTextField(Operator):
     def execute(self, context):
         mainobject = context.object
         if 'AnnotationGenerator' in mainobject:
-            textFields = mainobject.AnnotationGenerator[0].annotations[self.idx].textFields
+            textFields = mainobject.AnnotationGenerator.annotations[self.idx].textFields
             if self.add:
                 textFields.add()
             else:

@@ -149,7 +149,7 @@ class AnnotationContainer(PropertyGroup):
     annotations: CollectionProperty(type=AnnotationProperties)
     
 bpy.utils.register_class(AnnotationContainer)
-Object.AnnotationGenerator = CollectionProperty(type=AnnotationContainer)
+Object.AnnotationGenerator = PointerProperty(type=AnnotationContainer)
 
 class AddAnnotationButton(Operator):
     bl_idname = "measureit_arch.addannotationbutton"
@@ -188,15 +188,11 @@ class AddAnnotationButton(Operator):
                 mainobject = context.object
                 emptyAnnoFlag = True
 
-            if 'AnnotationGenerator' not in mainobject:
-                mainobject.AnnotationGenerator.add()
-
-            annotationGen = mainobject.AnnotationGenerator[0] 
+            annotationGen = mainobject.AnnotationGenerator 
 
             if mainobject.type=='MESH':
                 mylist = get_selected_vertex(mainobject)
                 if len(mylist) == 1:
-                    annotationGen.num_annotations +=1
                     newAnnotation = annotationGen.annotations.add()
                     newAnnotation.annotationAnchor = mylist[0]
                     
@@ -207,7 +203,6 @@ class AddAnnotationButton(Operator):
                                 "MeasureIt_ARCH: Select one vertex for creating measure label")
                     return {'FINISHED'}
             else:
-                annotationGen.num_annotations +=1
                 newAnnotation = annotationGen.annotations.add()
                 newAnnotation.annotationAnchor = 9999999 
                 context.area.tag_redraw()  
@@ -228,9 +223,9 @@ class AddAnnotationButton(Operator):
                 newAnnotation.textAlignment = 'C'
                 newAnnotation.lineWeight = 0
 
-            newAnnotation.name = ("Annotation " + str(annotationGen.num_annotations))
+            newAnnotation.name = ("Annotation " + str(len(annotationGen.annotations)))
             field = newAnnotation.textFields.add()
-            field.text = ("Annotation " + str(annotationGen.num_annotations))
+            field.text = ("Annotation " + str(len(annotationGen.annotations)))
             field2 = newAnnotation.textFields.add()
             field2.text = ("")
 
@@ -298,7 +293,7 @@ class OBJECT_PT_UIAnnotations(Panel):
         if context.object is not None:
             if 'AnnotationGenerator' in context.object:     
                 scene = context.scene
-                annoGen = context.object.AnnotationGenerator[0]
+                annoGen = context.object.AnnotationGenerator
 
                 row = layout.row()
                 
@@ -308,7 +303,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                 # Operators Next to List
                 col = row.column(align=True)
                 op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
-                op.genPath = 'bpy.context.object.AnnotationGenerator[0]'
+                op.genPath = 'bpy.context.object.AnnotationGenerator'
                 op.tag = annoGen.active_annotation_index  # saves internal data
                 op.item_type = 'annotations'
                 op.is_style = False
@@ -355,12 +350,12 @@ class OBJECT_PT_UIAnnotations(Panel):
                                 
                             row.emboss = 'PULLDOWN_MENU'
                             op = row.operator('measureit_arch.moveitem',text="", icon = 'TRIA_DOWN')
-                            op.propPath = 'bpy.context.active_object.AnnotationGenerator[0].annotations[bpy.context.active_object.AnnotationGenerator[0].active_annotation_index].textFields'
+                            op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_annotation_index].textFields'
                             op.upDown = False
                             op.idx = idx
                         
                             op = row.operator('measureit_arch.moveitem',text="", icon = 'TRIA_UP')
-                            op.propPath = 'bpy.context.active_object.AnnotationGenerator[0].annotations[bpy.context.active_object.AnnotationGenerator[0].active_annotation_index].textFields'
+                            op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_annotation_index].textFields'
                             op.upDown = True
                             op.idx = idx
                             idx += 1
@@ -432,10 +427,10 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
 
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
         delOp.is_style = False
-        delOp.genPath = 'bpy.context.object.AnnotationGenerator[0]'
+        delOp.genPath = 'bpy.context.object.AnnotationGenerator'
         if 'AnnotationGenerator' in context.object:     
             scene = context.scene
-            annoGen = context.object.AnnotationGenerator[0]
+            annoGen = context.object.AnnotationGenerator
 
 class TranlateAnnotationOp(bpy.types.Operator):
     """Move Annotation"""
@@ -457,7 +452,7 @@ class TranlateAnnotationOp(bpy.types.Operator):
 
     def modal(self, context, event):
         myobj = context.selected_objects[self.objIndex]
-        annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
+        annotation = myobj.AnnotationGenerator.annotations[self.idx]
         # Set Tweak Flags
         if event.ctrl:
             tweak_snap = True
@@ -529,7 +524,7 @@ class TranlateAnnotationOp(bpy.types.Operator):
 
     def invoke(self, context, event):
         myobj = context.selected_objects[self.objIndex]
-        annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
+        annotation = myobj.AnnotationGenerator.annotations[self.idx]
         self.init_mouse_x = event.mouse_x
         self.init_mouse_y = event.mouse_y
 
@@ -562,7 +557,7 @@ class RotateAnnotationOp(bpy.types.Operator):
     def modal(self, context, event):
         context.area.tag_redraw()
         myobj = context.selected_objects[self.objIndex]
-        annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
+        annotation = myobj.AnnotationGenerator.annotations[self.idx]
         center = annotation.gizLoc
         region = bpy.context.region
         rv3d = bpy.context.space_data.region_3d
@@ -625,7 +620,7 @@ class RotateAnnotationOp(bpy.types.Operator):
 
     def invoke(self, context, event):
         myobj = context.selected_objects[self.objIndex]
-        annotation = myobj.AnnotationGenerator[0].annotations[self.idx]
+        annotation = myobj.AnnotationGenerator.annotations[self.idx]
         self.init_mouse_x = event.mouse_x
         self.init_mouse_y = event.mouse_y
 

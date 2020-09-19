@@ -56,13 +56,13 @@ class mArchGizmoGroup(GizmoGroup):
         objIndex = 0
         for obj in bpy.context.selected_objects:    
             if 'DimensionGenerator' in obj:
-                dimGen = obj.DimensionGenerator[0]
+                dimGen = obj.DimensionGenerator
                 for dim in dimGen.alignedDimensions:
                     createDimOffsetGiz(self,dim,objIndex)
                 for dim in dimGen.axisDimensions:
                     createDimOffsetGiz(self,dim,objIndex)
             if 'AnnotationGenerator' in obj:
-                annotationGen = obj.AnnotationGenerator[0]
+                annotationGen = obj.AnnotationGenerator
                 createAnnotationTranslateGiz(self,annotationGen,objIndex)
                 createAnnotationRotateGiz(self,annotationGen,objIndex)
             objIndex += 1

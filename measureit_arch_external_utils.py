@@ -51,16 +51,16 @@ def blenderBIM_get_coords (context, offset_pos=True):
         if myobj.visible_get() is True:
             mat = myobj.matrix_world
 
-            #if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
-            #    lineGen = myobj.LineGenerator[0]
+            #if 'LineGenerator' in myobj and myobj.LineGenerator.line_num != 0:
+            #    lineGen = myobj.LineGenerator
             #    draw_line_group(context,myobj,lineGen,mat)
 
-            #if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator[0].num_annotations != 0:
-            #    annotationGen = myobj.AnnotationGenerator[0]
+            #if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
+            #    annotationGen = myobj.AnnotationGenerator
             #    draw_annotation(context,myobj,annotationGen,mat)
 
             if 'DimensionGenerator' in myobj:
-                DimGen = myobj.DimensionGenerator[0]
+                DimGen = myobj.DimensionGenerator
                 
                 for alignedDim in DimGen.alignedDimensions:
                     dim_coords_list.append(get_dim_coords(context, myobj, DimGen, alignedDim, mat, offset_pos=offset_pos))

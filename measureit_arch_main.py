@@ -81,30 +81,30 @@ def save_handler(dummy):
             else:
                 print (str(obj.name) + ' Data Removed')
                 if 'DimensionGenerator' in obj:
-                    dimgen = obj.DimensionGenerator[0]
+                    dimgen = obj.DimensionGenerator
                     if 'alignedDimensions' in dimgen:
-                        for alignedDim in obj.DimensionGenerator[0].alignedDimensions:
-                            obj.DimensionGenerator[0].alignedDimensions.remove(0)
-                            obj.DimensionGenerator[0].measureit_arch_num = 0
+                        for alignedDim in obj.DimensionGenerator.alignedDimensions:
+                            obj.DimensionGenerator.alignedDimensions.remove(0)
+                            obj.DimensionGenerator.measureit_arch_num = 0
                     if 'angleDimensions' in dimgen:
-                        for angleDim in obj.DimensionGenerator[0].angleDimensions:
-                            obj.DimensionGenerator[0].angleDimensions.remove(0)
-                            obj.DimensionGenerator[0].measureit_arch_num = 0
+                        for angleDim in obj.DimensionGenerator.angleDimensions:
+                            obj.DimensionGenerator.angleDimensions.remove(0)
+                            obj.DimensionGenerator.measureit_arch_num = 0
                     if 'axisDimensions' in dimgen:
-                        for axisDim in obj.DimensionGenerator[0].axisDimensions:
-                            obj.DimensionGenerator[0].axisDimensions.remove(0)
-                            obj.DimensionGenerator[0].measureit_arch_num = 0
+                        for axisDim in obj.DimensionGenerator.axisDimensions:
+                            obj.DimensionGenerator.axisDimensions.remove(0)
+                            obj.DimensionGenerator.measureit_arch_num = 0
                     if 'boundsDimensions' in dimgen:
-                        for boundsDim in obj.DimensionGenerator[0].boundsDimensions:
-                            obj.DimensionGenerator[0].boundsDimensions.remove(0)
-                            obj.DimensionGenerator[0].measureit_arch_num = 0
+                        for boundsDim in obj.DimensionGenerator.boundsDimensions:
+                            obj.DimensionGenerator.boundsDimensions.remove(0)
+                            obj.DimensionGenerator.measureit_arch_num = 0
                     if 'wrappedDimensions' in dimgen:
-                        for wrapper in obj.DimensionGenerator[0].wrappedDimensions:
-                            obj.DimensionGenerator[0].wrappedDimensions.remove(0)
+                        for wrapper in obj.DimensionGenerator.wrappedDimensions:
+                            obj.DimensionGenerator.wrappedDimensions.remove(0)
                 if 'AnnotationGenerator' in obj:
-                    for annotation in obj.AnnotationGenerator[0].annotations:
-                        obj.AnnotationGenerator[0].annotations.remove(0)
-                        obj.AnnotationGenerator[0].num_annotations = 0
+                    for annotation in obj.AnnotationGenerator.annotations:
+                        obj.AnnotationGenerator.annotations.remove(0)
+                        obj.AnnotationGenerator.num_annotations = 0
 
 bpy.app.handlers.load_post.append(load_handler)
 bpy.app.handlers.save_pre.append(save_handler)
@@ -404,7 +404,7 @@ def text_update_loop(context,objlist):
     for myobj in objlist:
         if myobj.hide_get() is False:
             if 'DimensionGenerator' in myobj:
-                DimGen = myobj.DimensionGenerator[0]
+                DimGen = myobj.DimensionGenerator
                 for alignedDim in DimGen.alignedDimensions:
                     
                     alignedDimProps = alignedDim
@@ -456,7 +456,7 @@ def text_update_loop(context,objlist):
                     update_text(textobj=areaDim,props=dimProps,context=context)
         
             if 'AnnotationGenerator' in myobj:
-                annotationGen = myobj.AnnotationGenerator[0]
+                annotationGen = myobj.AnnotationGenerator
                 for annotation in annotationGen.annotations:
                     annotationProps = annotation
                     if annotation.uses_style:
@@ -486,7 +486,7 @@ def text_update_loop(context,objlist):
                 myobj = obj_int.object
 
                 if 'DimensionGenerator' in myobj:
-                    DimGen = myobj.DimensionGenerator[0]
+                    DimGen = myobj.DimensionGenerator
                     for alignedDim in DimGen.alignedDimensions:
                         
                         alignedDimProps = alignedDim

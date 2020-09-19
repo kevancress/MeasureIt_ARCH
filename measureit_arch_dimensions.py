@@ -38,7 +38,7 @@ import random
 
 
 def update_active(self,context):
-    DimGen = context.object.DimensionGenerator[0]
+    DimGen = context.object.DimensionGenerator
     activeWraper = DimGen.wrapper[DimGen.active_index]
     
 
@@ -222,7 +222,7 @@ class DimensionContainer(PropertyGroup):
     wrapper: CollectionProperty(type=DimensionWrapper)
 
 bpy.utils.register_class(DimensionContainer)
-Object.DimensionGenerator = CollectionProperty(type=DimensionContainer)
+Object.DimensionGenerator = PointerProperty(type=DimensionContainer)
 
 
 class AddAlignedDimensionButton(Operator):
@@ -269,12 +269,8 @@ class AddAlignedDimensionButton(Operator):
                                     "MeasureIt_ARCH: Vertices must be selected in order, (for general selection, switch to EDGE mode)")
                     if len(mylist) >= 2:
                         #Check Generators
-                        if 'DimensionGenerator' not in mainobject:
-                            mainobject.DimensionGenerator.add()
-                        if 'StyleGenerator' not in scene:
-                            scene.StyleGenerator.add()
 
-                        DimGen = mainobject.DimensionGenerator[0]
+                        DimGen = mainobject.DimensionGenerator
                         masterDimOffset = 0
                         masterDimLeaderOffset = 0
 
@@ -366,10 +362,8 @@ class AddAlignedDimensionButton(Operator):
                 # Add properties
                 # -------------------------------
                 flag = False
-                if 'DimensionGenerator' not in mainobject:
-                    mainobject.DimensionGenerator.add()
 
-                DimGen = mainobject.DimensionGenerator[0]
+                DimGen = mainobject.DimensionGenerator
 
                 # Create all array elements
                 newDimension = DimGen.alignedDimensions.add()
@@ -456,15 +450,13 @@ class AddBoundingDimensionButton(Operator):
             if bpy.context.mode == 'OBJECT':
                 mainobject = context.object
                 # Check Generators
-                if 'DimensionGenerator' not in mainobject:
-                    mainobject.DimensionGenerator.add()
 
                 # Basically I dont need to do anything here, I want to handle the measureing and the selection of which bounding box
                 # verts to anchor to in the draw method, so that the most visible verts can be selected depending on the current view.
                 # all we need to do is to create a  Bounds dimension and set its defualt props. We do the tricky part in the draw.
 
                 # Add Bounds Dim with Axis
-                DimGen = mainobject.DimensionGenerator[0]
+                DimGen = mainobject.DimensionGenerator
                 newBoundsDimension = DimGen.boundsDimensions.add()
 
                 newBoundsDimension.name = 'Bounding Box Dimension'
@@ -542,13 +534,8 @@ class AddAxisDimensionButton(Operator):
                     elif selectionMode[0]:
                         mylist = get_selected_vertex(mainobject) 
                     if len(mylist) >= 2:
-                        #Check Generators
-                        if 'DimensionGenerator' not in mainobject:
-                            mainobject.DimensionGenerator.add()
-                        if 'StyleGenerator' not in scene:
-                            scene.StyleGenerator.add()
 
-                        DimGen = mainobject.DimensionGenerator[0]
+                        DimGen = mainobject.DimensionGenerator
 
                         for x in range(0, len(mylist) - 1, 2):
                             if exist_segment(DimGen, mylist[x], mylist[x + 1]) is False:
@@ -627,10 +614,8 @@ class AddAxisDimensionButton(Operator):
                 # Add properties
                 # -------------------------------
                 flag = False
-                if 'DimensionGenerator' not in mainobject:
-                    mainobject.DimensionGenerator.add()
 
-                DimGen = mainobject.DimensionGenerator[0]
+                DimGen = mainobject.DimensionGenerator
 
                 # Create all array elements
                 newDimension = DimGen.axisDimensions.add()
@@ -726,11 +711,9 @@ class AddAreaButton(Operator):
             # Get all selected faces
             mylist = get_selected_faces(myobj)
             if len(mylist) >= 1:
-                if 'DimensionGenerator' not in myobj:
-                    myobj.DimensionGenerator.add()
 
                 # Create Area Dim
-                dimGen = myobj.DimensionGenerator[0]
+                dimGen = myobj.DimensionGenerator
                 areaDims = dimGen.areaDimensions
                 newDim = areaDims.add()
 
@@ -820,13 +803,8 @@ class AddAngleButton(Operator):
             mainobject = context.object
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:
-                #Check Generators
-                if 'DimensionGenerator' not in mainobject:
-                    mainobject.DimensionGenerator.add()
-                if 'StyleGenerator' not in scene:
-                    scene.StyleGenerator.add()
                 
-                DimGen = mainobject.DimensionGenerator[0]
+                DimGen = mainobject.DimensionGenerator
 
                 newDimension = DimGen.angleDimensions.add()
                 newDimension.itemType = 'angleDimensions'
@@ -899,10 +877,8 @@ class AddArcButton(Operator):
             mainobject = context.object
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:
-                if 'DimensionGenerator' not in mainobject:
-                    mainobject.DimensionGenerator.add()
 
-                DimGen = mainobject.DimensionGenerator[0]
+                DimGen = mainobject.DimensionGenerator
                 newDimension = DimGen.arcDimensions.add()
                 newDimension.itemType = 'arcDimensions'
                 newDimension.name = 'Arc ' + str(len(DimGen.arcDimensions))
@@ -945,7 +921,7 @@ class CursorToArcOrigin(Operator):
         if myobj is None:
             return False
         else:
-            dimGen = myobj.DimensionGenerator[0]
+            dimGen = myobj.DimensionGenerator
             activeIndex = dimGen.active_index
             activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
@@ -960,7 +936,7 @@ class CursorToArcOrigin(Operator):
     # ------------------------------
     def execute(self, context):
         myobj = context.active_object
-        dimGen = myobj.DimensionGenerator[0]
+        dimGen = myobj.DimensionGenerator
         activeIndex = dimGen.active_index
         activeWrapperItem = dimGen.wrapper[dimGen.active_index]
         cursor = context.scene.cursor
@@ -993,7 +969,7 @@ class AddFaceToArea(Operator):
         else:
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
-                    dimGen = myobj.DimensionGenerator[0]
+                    dimGen = myobj.DimensionGenerator
                     activeIndex = dimGen.active_index
                     activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
@@ -1020,7 +996,7 @@ class AddFaceToArea(Operator):
 
                     myobj = context.object
                     mylist =  get_selected_faces(myobj)
-                    dimGen = myobj.DimensionGenerator[0]
+                    dimGen = myobj.DimensionGenerator
                     activeIndex = dimGen.active_index
                     activeWrapperItem = dimGen.wrapper[dimGen.active_index]
                     
@@ -1076,7 +1052,7 @@ class RemoveFaceFromArea(Operator):
         else:
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
-                    dimGen = myobj.DimensionGenerator[0]
+                    dimGen = myobj.DimensionGenerator
                     activeIndex = dimGen.active_index
                     activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
@@ -1103,7 +1079,7 @@ class RemoveFaceFromArea(Operator):
 
                     myobj = context.object
                     mylist =  get_selected_faces(myobj)
-                    dimGen = myobj.DimensionGenerator[0]
+                    dimGen = myobj.DimensionGenerator
                     activeIndex = dimGen.active_index
                     activeWrapperItem = dimGen.wrapper[dimGen.active_index]
                     
@@ -1147,7 +1123,7 @@ class RemoveFaceFromArea(Operator):
 
 class M_ARCH_UL_dimension_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        dimGen = context.object.DimensionGenerator[0]
+        dimGen = context.object.DimensionGenerator
         angleDim = dimGen.angleDimensions
         alignedDim = dimGen.alignedDimensions
         axisDim =  dimGen.axisDimensions
@@ -1238,7 +1214,7 @@ class OBJECT_PT_UIDimensions(Panel):
         obj = context.object
         if 'DimensionGenerator' in context.object:     
             scene = context.scene
-            dimGen = obj.DimensionGenerator[0]
+            dimGen = obj.DimensionGenerator
 
 
 
@@ -1250,7 +1226,7 @@ class OBJECT_PT_UIDimensions(Panel):
             # Operators Next to List
             col = row.column(align=True)
             op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
-            op.genPath = 'bpy.context.object.DimensionGenerator[0]'
+            op.genPath = 'bpy.context.object.DimensionGenerator'
             op.tag = dimGen.active_index  # saves internal data
             op.is_style = False
             op.item_type = 'D'
@@ -1293,7 +1269,7 @@ class OBJECT_MT_dimension_menu(bpy.types.Menu):
 
         delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Dimensions", icon="X")
         delOp.is_style = False
-        delOp.genPath = 'bpy.context.object.DimensionGenerator[0]'
+        delOp.genPath = 'bpy.context.object.DimensionGenerator'
 
 
 def draw_alignedDimensions_settings(dim,layout):

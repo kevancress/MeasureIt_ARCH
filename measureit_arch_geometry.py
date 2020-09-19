@@ -98,7 +98,7 @@ textShader = gpu.types.GPUShader(
     textfrag)
 
 def get_dim_tag(self,obj):
-    dimGen = obj.DimensionGenerator[0]
+    dimGen = obj.DimensionGenerator
     itemType = self.itemType
     idx = 0
     for wrap in dimGen.wrappedDimensions:
@@ -455,7 +455,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
             deleteFlag = True
 
         if deleteFlag:
-            dimGen = myobj.DimensionGenerator[0]
+            dimGen = myobj.DimensionGenerator
             wrapTag = get_dim_tag(dim, myobj)
             wrapper = dimGen.wrappedDimensions[wrapTag]
             tag = wrapper.itemIndex
@@ -975,7 +975,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
             deleteFlag = True
 
         if deleteFlag:
-            dimGen = myobj.DimensionGenerator[0]
+            dimGen = myobj.DimensionGenerator
             wrapTag = get_dim_tag(dim, myobj)
             wrapper = dimGen.wrappedDimensions[wrapTag]
             tag = wrapper.itemIndex
@@ -1365,7 +1365,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             deleteFlag = True
 
         if deleteFlag:
-            dimGen = myobj.DimensionGenerator[0]
+            dimGen = myobj.DimensionGenerator
             wrapTag = get_dim_tag(dim, myobj)
             wrapper = dimGen.wrappedDimensions[wrapTag]
             tag = wrapper.itemIndex
@@ -3488,15 +3488,15 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
                 draw_sheet_views(context,myobj,sheetGen,sheet_view,mat,svg=svg)
 
             if 'LineGenerator' in myobj:
-                lineGen = myobj.LineGenerator[0]
+                lineGen = myobj.LineGenerator
                 draw_line_group(context,myobj,lineGen,mat,svg=svg)
 
             if 'AnnotationGenerator' in myobj:
-                annotationGen = myobj.AnnotationGenerator[0]
+                annotationGen = myobj.AnnotationGenerator
                 draw_annotation(context,myobj,annotationGen,mat,svg=svg)
 
             if 'DimensionGenerator' in myobj:
-                DimGen = myobj.DimensionGenerator[0]
+                DimGen = myobj.DimensionGenerator
                 
                 for alignedDim in DimGen.alignedDimensions:
                     draw_alignedDimension(context, myobj, DimGen, alignedDim,mat,svg=svg)
@@ -3532,17 +3532,17 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
                 if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
                     mat = obj_int.matrix_world
 
-                if 'LineGenerator' in myobj and myobj.LineGenerator[0].line_num != 0:
-                    lineGen = myobj.LineGenerator[0]
+                if 'LineGenerator' in myobj and myobj.LineGenerator.line_num != 0:
+                    lineGen = myobj.LineGenerator
                     draw_line_group(context,myobj,lineGen,mat,svg=svg)
                 
-                if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator[0].num_annotations != 0:
-                    annotationGen = myobj.AnnotationGenerator[0]
+                if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
+                    annotationGen = myobj.AnnotationGenerator
                     draw_annotation(context,myobj,annotationGen,mat,svg=svg)
                     
                 if sceneProps.instance_dims:
-                    if 'DimensionGenerator' in myobj and myobj.DimensionGenerator[0].measureit_arch_num != 0:
-                        DimGen = myobj.DimensionGenerator[0]
+                    if 'DimensionGenerator' in myobj and myobj.DimensionGenerator.measureit_arch_num != 0:
+                        DimGen = myobj.DimensionGenerator
                         mat = obj_int.matrix_world
                         for alignedDim in DimGen.alignedDimensions:
                             draw_alignedDimension(context, myobj, DimGen, alignedDim,mat,svg=svg)
