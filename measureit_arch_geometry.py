@@ -391,15 +391,6 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
         
             svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg_hatch)
 
-
-
-
-        
-            
-    
-
-
-
 def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
    
     scene = context.scene
@@ -564,7 +555,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         if len(filledCoords) != 0:
             draw_filled_coords(filledCoords, rgb)
 
-        # Line Shader Calla
+        # Line Shader Calls
+
         draw_lines(lineWeight,rgb,coords, twoPass = True)
 
         if sceneProps.is_vector_draw:
@@ -2609,7 +2601,6 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
         batch.draw(textShader)
         bgl.glDeleteTextures(1,texArray)
     gpu.shader.unbind()
-    set_OpenGL_Settings(False)
 
 def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
     capCoords = []
