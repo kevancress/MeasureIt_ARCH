@@ -424,7 +424,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         pr = sceneProps.metric_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = rgb_gamma_correct(rawRGB)
+        rgb = get_color(rawRGB,myobj,is_active = dim.is_active)
         
         # Define Caps as a tuple of capA and capB to reduce code duplications
         caps = (dimProps.endcapA, dimProps.endcapB)
@@ -748,7 +748,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
         pr = sceneProps.metric_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
+        rgb = get_color(rawRGB,myobj,is_active = dim.is_active)
         
         # Define Caps as a tuple of capA and capB to reduce code duplications
         caps = (dimProps.endcapA, dimProps.endcapB)
@@ -942,7 +942,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
         pr = sceneProps.metric_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = rgb_gamma_correct(rawRGB)
+        rgb = get_color(rawRGB,myobj,is_active = dim.is_active)
         
         axis = dim.dimAxis
 
@@ -1215,7 +1215,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
         a_code = "\u00b0"  # degree
         fmt = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = rgb_gamma_correct(rawRGB)
+        rgb = get_color(rawRGB,myobj,is_active = dim.is_active)
         radius = dim.dimRadius
         offset = 0.001
 
@@ -1351,7 +1351,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         arc_code = ""
         fmt = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
-        rgb = rgb_gamma_correct(rawRGB)
+        rgb = get_color(rawRGB,myobj,is_active = dim.is_active)
         offset = 0.001
         radius = dim.dimOffset
 
@@ -1613,7 +1613,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         lineWeight = dimProps.lineWeight
 
         rawRGB = dim.fillColor
-        rgb = rgb_gamma_correct(rawRGB)
+        rgb = get_color(rawRGB,myobj,is_active = dim.is_active)
         fillRGB = (rgb[0],rgb[1],rgb[2],dim.fillAlpha)
 
         rawTextRGB = dimProps.color
@@ -1909,7 +1909,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
             rawRGB = lineProps.color     
 
-            rgb = get_color(rawRGB,myobj)   
+            rgb = get_color(rawRGB,myobj,only_active=False)   
 
 
             #set other line properties
@@ -2141,8 +2141,9 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
     gpu.shader.unbind()
     set_OpenGL_Settings(False)
 
-def get_color(rawRGB, myobj):
+def get_color(rawRGB, myobj, is_active = True, only_active = True):
     #undo blenders Default Gamma Correction
+
     context = bpy.context
     sceneProps = bpy.context.scene.MeasureItArchProps
     rgb = rgb_gamma_correct(rawRGB)
@@ -2152,19 +2153,18 @@ def get_color(rawRGB, myobj):
         return rgb
 
     #overide line color with theme selection colors when selected
-    if myobj in context.selected_objects:
-        rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
-        rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
-        rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
-        rgb[3] = 1.0
-
-        if (context.view_layer.objects.active != None
-        and context.view_layer.objects.active.data != None
-        and myobj.data.name == context.view_layer.objects.active.data.name):
-            rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
-            rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
-            rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
+    if not only_active:
+        if myobj in context.selected_objects and is_active:
+            rgb[0] = bpy.context.preferences.themes[0].view_3d.object_selected[0]
+            rgb[1] = bpy.context.preferences.themes[0].view_3d.object_selected[1]
+            rgb[2] = bpy.context.preferences.themes[0].view_3d.object_selected[2]
             rgb[3] = 1.0
+
+    if myobj in context.selected_objects and myobj == context.object and is_active:
+        rgb[0] = bpy.context.preferences.themes[0].view_3d.object_active[0]
+        rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
+        rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
+        rgb[3] = 1.0
     
     return rgb
 
@@ -2188,7 +2188,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             lineWeight = annotationProps.lineWeight
             rawRGB = annotationProps.color
             #undo blenders Default Gamma Correction
-            rgb = rgb_gamma_correct(rawRGB)
+            rgb = get_color(rawRGB,myobj,is_active = annotation.is_active)
 
             # Get Points
             deleteFlag = False

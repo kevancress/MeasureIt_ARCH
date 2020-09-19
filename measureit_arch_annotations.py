@@ -45,6 +45,16 @@ from .measureit_arch_main import get_smart_selected, get_selected_vertex
 from mathutils import Vector, Matrix
 import math
 
+
+def update_active_annotation(self,context):
+    Generator = context.object.AnnotationGenerator
+
+    for annotation in Generator.annotations:
+        annotation.is_active = False
+    
+    activeAnnotation = Generator.annotations[Generator.active_index]
+    activeAnnotation.is_active = True
+
 def annotation_update_flag(self,context):
     for textField in self.textFields:
         textField.text_updated = True
@@ -142,7 +152,8 @@ bpy.utils.register_class(AnnotationProperties)
 class AnnotationContainer(PropertyGroup):
     num_annotations: IntProperty(name='Number of Annotations', min=0, max=1000, default=0,
                                 description='Number total of Annotations')
-    active_annotation_index: IntProperty(name='Active Annotation Index')
+    active_index: IntProperty(name='Active Annotation Index',
+                                update = update_active_annotation)
     show_annotation_settings: BoolProperty(name='Show Annotation Settings',default=False)
     show_annotation_fields: BoolProperty(name='Show Annotation Text Fields',default=False)
     # Array of segments
@@ -298,13 +309,13 @@ class OBJECT_PT_UIAnnotations(Panel):
                 row = layout.row()
                 
                 # Draw The UI List
-                row.template_list("M_ARCH_UL_annotations_list", "", annoGen, "annotations", annoGen, "active_annotation_index",rows=2, type='DEFAULT')
+                row.template_list("M_ARCH_UL_annotations_list", "", annoGen, "annotations", annoGen, "active_index",rows=2, type='DEFAULT')
                 
                 # Operators Next to List
                 col = row.column(align=True)
                 op = col.operator("measureit_arch.deletepropbutton", text="", icon="X")
                 op.genPath = 'bpy.context.object.AnnotationGenerator'
-                op.tag = annoGen.active_annotation_index  # saves internal data
+                op.tag = annoGen.active_index  # saves internal data
                 op.item_type = 'annotations'
                 op.is_style = False
                 col.separator()
@@ -314,8 +325,8 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                 # Settings Below List
 
-                if len(annoGen.annotations) > 0 and  annoGen.active_annotation_index < len(annoGen.annotations):
-                    annotation = annoGen.annotations[annoGen.active_annotation_index]
+                if len(annoGen.annotations) > 0 and  annoGen.active_index < len(annoGen.annotations):
+                    annotation = annoGen.annotations[annoGen.active_index]
 
                     if annoGen.show_annotation_fields: fieldsIcon = 'DISCLOSURE_TRI_DOWN'
                     else: fieldsIcon = 'DISCLOSURE_TRI_RIGHT'
@@ -328,11 +339,11 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                     row.emboss = 'PULLDOWN_MENU'
                     txtAddOp = row.operator("measureit_arch.addtextfield", text="", icon="ADD")
-                    txtAddOp.idx = annoGen.active_annotation_index 
+                    txtAddOp.idx = annoGen.active_index 
                     txtAddOp.add = True
 
                     txtRemoveOp = row.operator("measureit_arch.addtextfield", text="", icon="REMOVE")
-                    txtRemoveOp.idx = annoGen.active_annotation_index 
+                    txtRemoveOp.idx = annoGen.active_index 
                     txtRemoveOp.add = False
 
                     if annoGen.show_annotation_fields:
@@ -350,12 +361,12 @@ class OBJECT_PT_UIAnnotations(Panel):
                                 
                             row.emboss = 'PULLDOWN_MENU'
                             op = row.operator('measureit_arch.moveitem',text="", icon = 'TRIA_DOWN')
-                            op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_annotation_index].textFields'
+                            op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
                             op.upDown = False
                             op.idx = idx
                         
                             op = row.operator('measureit_arch.moveitem',text="", icon = 'TRIA_UP')
-                            op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_annotation_index].textFields'
+                            op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
                             op.upDown = True
                             op.idx = idx
                             idx += 1

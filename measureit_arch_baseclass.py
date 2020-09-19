@@ -20,13 +20,13 @@ def update_active_dim(self,context):
     idx = 0
     for wrap in dimGen.wrapper:
         if itemType == wrap.itemType:
-            if itemType == 'D-ALIGNED':
+            if itemType == 'alignedDimensions':
                 if self == dimGen.alignedDimensions[wrap.itemIndex]:
-                    dimGen.active_dimension_index = idx
+                    dimGen.active_index = idx
                     return
-            elif itemType == 'D-AXIS':
+            elif itemType == 'axisDimensions':
                 if self == dimGen.axisDimensions[wrap.itemIndex]:
-                    dimGen.active_dimension_index = idx
+                    dimGen.active_index = idx
                     return
         idx += 1
 

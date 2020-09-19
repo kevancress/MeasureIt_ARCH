@@ -37,9 +37,19 @@ import random
 # ------------------------------------------------------------------
 
 
-def update_active(self,context):
-    DimGen = context.object.DimensionGenerator
-    activeWraper = DimGen.wrapper[DimGen.active_index]
+def update_active_dim(self,context):
+    Generator = context.object.DimensionGenerator
+    activeWraper = Generator.wrapper[Generator.active_index]
+
+    for key in Generator.keys():
+        item = Generator.path_resolve(key)
+        if 'collection' in str(item):
+            typeContainer = item
+            for item in typeContainer:
+                item.is_active = False
+    
+    activeItem = eval('Generator.' + activeWraper.itemType + '[activeWraper.itemIndex]')
+    activeItem.is_active = True
     
 
 class AreaDimensionProperties(BaseDim,PropertyGroup):
@@ -206,7 +216,7 @@ class DimensionContainer(PropertyGroup):
     measureit_arch_num: IntProperty(name='Number of measures', min=0, max=1000, default=0,
                                 description='Number total of measureit_arch elements')
     active_index: IntProperty(name="Active Dimension Index",
-                                update= update_active)
+                                update= update_active_dim)
     show_dimension_settings: BoolProperty(name='Show Dimension Settings', default=False)
     
     # Collections of each dimension property
