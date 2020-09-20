@@ -45,6 +45,7 @@ from array import array
 import random
 from . import svg_shaders
 from datetime import datetime
+from .measureit_arch_baseclass import recalc_dimWrapper_index
 
 lastMode = None
 lineBatch3D = {}
@@ -101,38 +102,13 @@ def get_dim_tag(self,obj):
     dimGen = obj.DimensionGenerator
     itemType = self.itemType
     idx = 0
-    for wrap in dimGen.wrappedDimensions:
+    for wrap in dimGen.wrapper:
         if itemType == wrap.itemType:
-            if itemType == 'D-ALIGNED':
-                if self == dimGen.alignedDimensions[wrap.itemIndex]:
-                    return idx
-            elif itemType == 'D-AXIS':
-                if self == dimGen.axisDimensions[wrap.itemIndex]:
-                    return idx
-            elif itemType == 'D-ARC':
-                if self == dimGen.arcDimensions[wrap.itemIndex]:
-                    return idx
+            if self == eval('dimGen.' + itemType + '[wrap.itemIndex]'):
+                return idx
         idx += 1
 
-def recalc_dimWrapper_index(dimGen):
-    wrappedDimensions = dimGen.wrappedDimensions
-    id_aligned = 0
-    id_angle = 0
-    id_axis = 0
-    id_arc = 0
-    for dim in wrappedDimensions:
-        if dim.itemType == 'D-ALIGNED':
-            dim.itemIndex = id_aligned
-            id_aligned += 1
-        elif dim.itemType == 'D-ANGLE':
-            dim.itemIndex = id_angle
-            id_angle += 1
-        elif dim.itemType == 'D-AXIS':
-            dim.itemIndex = id_axis
-            id_axis += 1
-        elif dim.itemType == 'D-ARC':
-            dim.itemIndex = id_arc
-            id_axis += 1
+
 
 def clear_batches():
     lineBatch3D.clear()
@@ -448,11 +424,11 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         if deleteFlag:
             dimGen = myobj.DimensionGenerator
             wrapTag = get_dim_tag(dim, myobj)
-            wrapper = dimGen.wrappedDimensions[wrapTag]
+            wrapper = dimGen.wrapper[wrapTag]
             tag = wrapper.itemIndex
             dimGen.alignedDimensions.remove(tag)
-            dimGen.wrappedDimensions.remove(wrapTag)
-            recalc_dimWrapper_index(dimGen)
+            dimGen.wrapper.remove(wrapTag)
+            recalc_dimWrapper_index(None,context)
             return
 
         p1 = get_point(p1Local, dim.dimObjectA,aMatrix)
@@ -969,11 +945,11 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
         if deleteFlag:
             dimGen = myobj.DimensionGenerator
             wrapTag = get_dim_tag(dim, myobj)
-            wrapper = dimGen.wrappedDimensions[wrapTag]
+            wrapper = dimGen.wrapper[wrapTag]
             tag = wrapper.itemIndex
             dimGen.axisDimensions.remove(tag)
-            dimGen.wrappedDimensions.remove(wrapTag)
-            recalc_dimWrapper_index(dimGen)
+            dimGen.wrapper.remove(wrapTag)
+            recalc_dimWrapper_index(context, dimGen)
             return
 
         p1 = get_point(p1Local, dim.dimObjectA,aMatrix)
@@ -1359,11 +1335,11 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         if deleteFlag:
             dimGen = myobj.DimensionGenerator
             wrapTag = get_dim_tag(dim, myobj)
-            wrapper = dimGen.wrappedDimensions[wrapTag]
+            wrapper = dimGen.wrapper[wrapTag]
             tag = wrapper.itemIndex
             dimGen.arcDimensions.remove(tag)
-            dimGen.wrappedDimensions.remove(wrapTag)
-            recalc_dimWrapper_index(dimGen)
+            dimGen.wrapper.remove(wrapTag)
+            recalc_dimWrapper_index(None,context)
             return
 
         #calc normal to plane defined by points
