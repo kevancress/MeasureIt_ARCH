@@ -94,7 +94,7 @@ class MeasureitArchRenderPanel(Panel):
         
         col.prop(sceneProps, "embed_scene_render", text="Embed Scene Render")
         col.prop(scene, "measureit_arch_render", text="Save Render to Output")
-        #col.prop(scene, "measureit_arch_use_depth_clipping")
+
 
 # -------------------------------------------------------------
 # Defines button for render option
@@ -307,7 +307,7 @@ def render_main(self, context, animation=False):
 
     renderoffscreen.free()
     # Saves image
-    if image is not None and (scene.measureit_arch_render is True or animation is True):
+    if image is not None and animation is True:
         ren_path = bpy.context.scene.render.filepath
         filename = "mit_frame"
         ftxt = "%04d" % scene.frame_current

@@ -217,9 +217,9 @@ class AddAnnotationButton(Operator):
             newAnnotation.annotationAnchorObject = mainobject
             
             
-            if scene.measureit_arch_default_annotation_style is not '':
+            if sceneProps.default_annotation_style is not '':
                 newAnnotation.uses_style = True
-                newAnnotation.style = scene.measureit_arch_default_annotation_style
+                newAnnotation.style = sceneProps.default_annotation_style
             else:
                 newAnnotation.uses_style = False
 

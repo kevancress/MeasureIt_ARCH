@@ -247,6 +247,7 @@ class AddAlignedDimensionButton(Operator):
         if context.area.type == 'VIEW_3D':
             # get selected
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
             
             newDimensions = []
 
@@ -395,8 +396,8 @@ class AddAlignedDimensionButton(Operator):
             # Set Common Values
             for newDimension in newDimensions:
                 newDimension.itemType = 'D-ALIGNED'
-                newDimension.style = scene.measureit_arch_default_dimension_style
-                if scene.measureit_arch_default_dimension_style is not '':
+                newDimension.style = sceneProps.default_dimension_style
+                if sceneProps.default_dimension_style is not '':
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
@@ -444,6 +445,7 @@ class AddBoundingDimensionButton(Operator):
         if context.area.type == 'VIEW_3D':
             # get selected
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
         
             newDimensions = []
 
@@ -463,9 +465,9 @@ class AddBoundingDimensionButton(Operator):
                 newBoundsDimension = DimGen.boundsDimensions.add()
 
                 newBoundsDimension.name = 'Bounding Box Dimension'
-                newBoundsDimension.drawAxis[0] = scene.measureit_arch_bound_x
-                newBoundsDimension.drawAxis[1] = scene.measureit_arch_bound_y
-                newBoundsDimension.drawAxis[2] = scene.measureit_arch_bound_z
+                newBoundsDimension.drawAxis[0] = sceneProps.bound_x
+                newBoundsDimension.drawAxis[1] = sceneProps.bound_y
+                newBoundsDimension.drawAxis[2] = sceneProps.bound_z
                 newBoundsDimension.textAlignment = 'C'
 
                 #Add Text Field for each Axis
@@ -473,8 +475,8 @@ class AddBoundingDimensionButton(Operator):
                 newBoundsDimension.textFields.add()
                 newBoundsDimension.textFields.add()
 
-                newBoundsDimension.style = scene.measureit_arch_default_dimension_style
-                if scene.measureit_arch_default_dimension_style is not '':
+                newBoundsDimension.style = sceneProps.default_dimension_style
+                if sceneProps.default_dimension_style is not '':
                     newBoundsDimension.uses_style = True
                 else:
                     newBoundsDimension.uses_style = False
@@ -524,6 +526,7 @@ class AddAxisDimensionButton(Operator):
         if context.area.type == 'VIEW_3D':
             # get selected
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
             
             newDimensions = []
 
@@ -663,8 +666,8 @@ class AddAxisDimensionButton(Operator):
             # Set Common Values
             for newDimension in newDimensions:
                 newDimension.itemType = 'D-AXIS'
-                newDimension.style = scene.measureit_arch_default_dimension_style
-                if scene.measureit_arch_default_dimension_style is not '':
+                newDimension.style = sceneProps.default_dimension_style
+                if sceneProps.default_dimension_style is not '':
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
@@ -673,7 +676,7 @@ class AddAxisDimensionButton(Operator):
                     newDimension.visibleInView = scene.camera.data
                 newDimension.dimViewPlane = scene.viewPlane
 
-                newDimension.dimAxis = scene.measureit_arch_dim_axis
+                newDimension.dimAxis = sceneProps.measureit_arch_dim_axis
                 newDimension.textAlignment = 'C'
                 
                 # Sum group
@@ -716,6 +719,7 @@ class AddAreaButton(Operator):
         if context.area.type == 'VIEW_3D':
             # Add properties
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
             myobj = context.object
             
             # Get all selected faces
@@ -812,6 +816,7 @@ class AddAngleButton(Operator):
         if context.area.type == 'VIEW_3D':
             # Add properties
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
             mainobject = context.object
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:
@@ -832,8 +837,8 @@ class AddAngleButton(Operator):
 
                 newDimension.visibleInView = scene.camera.data
 
-                newDimension.style = scene.measureit_arch_default_dimension_style
-                if scene.measureit_arch_default_dimension_style is not '':
+                newDimension.style = sceneProps.default_dimension_style
+                if sceneProps.default_dimension_style is not '':
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
@@ -891,6 +896,7 @@ class AddArcButton(Operator):
         if context.area.type == 'VIEW_3D':
             # Add properties
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
             mainobject = context.object
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:

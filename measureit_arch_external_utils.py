@@ -36,7 +36,7 @@ def blenderBIM_get_coords (context, offset_pos=True):
     sceneProps = scene.MeasureItArchProps
 
     # Display selected or all
-    if scene.measureit_arch_gl_ghost is False:
+    if sceneProps.show_all is False:
         objlist = context.selected_objects
     else:
         objlist = context.view_layer.objects

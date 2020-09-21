@@ -165,6 +165,7 @@ class AddLineButton(Operator):
         if context.area.type == 'VIEW_3D':
             # Add properties
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
             mainobject = context.object
             mylist = get_smart_selected(mainobject)
             if len(mylist) < 2:  # if not selected linked vertex
@@ -179,13 +180,13 @@ class AddLineButton(Operator):
 
                 # Set values
                 lGroup.itemType = 'L'
-                lGroup.style = scene.measureit_arch_default_line_style
-                if scene.measureit_arch_default_line_style is not '':
+                lGroup.style = sceneProps.default_line_style
+                if sceneProps.default_line_style is not '':
                     lGroup.uses_style = True
                 else:
                     lGroup.uses_style = False
                 lGroup.lineWeight = 1     
-                lGroup.lineColor = scene.measureit_arch_default_color
+                lGroup.lineColor = sceneProps.default_color
                 lGroup.name = 'Line ' + str(len(lineGen.line_groups))
                 
 
@@ -237,6 +238,7 @@ class AddDynamicLineButton(Operator):
         if context.area.type == 'VIEW_3D':
             # Add properties
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
             mainobject = context.object
         
             if 'LineGenerator' not in mainobject:
@@ -247,13 +249,13 @@ class AddDynamicLineButton(Operator):
 
             # Set values
             lGroup.itemType = 'L'
-            lGroup.style = scene.measureit_arch_default_line_style
-            if scene.measureit_arch_default_line_style is not '':
+            lGroup.style = sceneProps.default_line_style
+            if sceneProps.default_line_style is not '':
                 lGroup.uses_style = True
             else:
                 lGroup.uses_style = False
             lGroup.lineWeight = 1     
-            lGroup.lineColor = scene.measureit_arch_default_color
+            lGroup.lineColor = sceneProps.default_color
             lGroup.name = 'Line ' + str(len(lineGen.line_groups))
             
             lGroup.useDynamicCrease = True
@@ -518,6 +520,7 @@ class AddLineByProperty(Operator):
          for window in bpy.context.window_manager.windows:
             screen = window.screen
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
             for area in screen.areas:
                 if area.type == 'VIEW_3D':
                     # get selected
@@ -533,13 +536,13 @@ class AddLineByProperty(Operator):
                         
                         # Set values
                         lGroup.itemType = 'L'
-                        lGroup.style = scene.measureit_arch_default_line_style
-                        if scene.measureit_arch_default_line_style is not '':
+                        lGroup.style = sceneProps.default_line_style
+                        if sceneProps.default_line_style is not '':
                             lGroup.uses_style = True
                         else:
                             lGroup.uses_style = False
                         lGroup.lineWeight = 1     
-                        lGroup.lineColor = scene.measureit_arch_default_color
+                        lGroup.lineColor = sceneProps.default_color
                         lGroup.name = 'Line ' + str(len(lineGen.line_groups))
                         angle = self.creaseAngle
                         vertsToAdd=[]
