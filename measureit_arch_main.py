@@ -221,7 +221,7 @@ class MeasureitArchMainPanel(Panel):
 
         col = box.column(align=True)
         if hasGen:
-            col.prop_search(scene,'default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
+            col.prop_search(sceneProps,'default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
 
         # ------------------------------
         # Annotation Tools
