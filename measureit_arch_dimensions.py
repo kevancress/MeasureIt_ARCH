@@ -414,7 +414,7 @@ class AddAlignedDimensionButton(Operator):
                 newDimension.lineWeight = 1
                 if 'camera' in scene:
                     newDimension.visibleInView = scene.camera.data
-                newDimension.dimViewPlane = scene.viewPlane
+                newDimension.dimViewPlane = sceneProps.viewPlane
 
                 # text
                 newDimension.textAlignment = 'C'
@@ -674,7 +674,7 @@ class AddAxisDimensionButton(Operator):
 
                 if 'camera' in scene:
                     newDimension.visibleInView = scene.camera.data
-                newDimension.dimViewPlane = scene.viewPlane
+                newDimension.dimViewPlane = sceneProps.viewPlane
 
                 newDimension.dimAxis = sceneProps.measureit_arch_dim_axis
                 newDimension.textAlignment = 'C'
