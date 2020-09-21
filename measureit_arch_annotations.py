@@ -190,6 +190,7 @@ class AddAnnotationButton(Operator):
         emptyAnnoFlag = False
         if context.area.type == 'VIEW_3D':
             scene = context.scene
+            sceneProps = scene.MeasureItArchProps
             # Add properties
             mainobject = context.object
             if len(context.selected_objects) == 0:
