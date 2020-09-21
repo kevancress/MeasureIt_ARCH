@@ -289,8 +289,64 @@ class BaseDim(BaseWithText):
                             subtype='ANGLE')
 
 class MeasureItARCHSceneProps(PropertyGroup):
+    bound_x: BoolProperty()
+    bound_y: BoolProperty()
+    bound_z: BoolProperty()
 
-    show_selected: BoolProperty(name='Show Selected',
+    viewPlane: EnumProperty(
+                    items=(('99', "None", "No View Plane Selected",'EMPTY_AXIS',0),
+                           ('XY', "XY Plane", "Optimize Dimension for XY Plane (Plan)",'AXIS_TOP',1),
+                           ('YZ', "YZ Plane", "Optimize Dimension for YZ Plane (Elevation)",'AXIS_FRONT',2),
+                           ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)",'AXIS_SIDE',3)),
+                    name="View Plane",
+                    description="View Plane")   
+
+    default_color: FloatVectorProperty(
+        name="Default color",
+        description="Default Color",
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0.1,
+        max=1,
+        subtype='COLOR',
+        size=4)
+
+    default_dimension_style: StringProperty(name="Default Style",
+                                            description="Dimension Style to Use")   
+
+
+    default_annotation_style: StringProperty(name="Default Style",
+                                            description="Annotation Style to Use")  
+
+
+    default_line_style: StringProperty(name="Default Style",
+                                            description="Line Style to Use") 
+                                     
+
+    show_all: BoolProperty(name="Show All",
+                                            description="Display measures for all objects,"
+                                                        " not only selected",
+                                            default=True)
+
+    show_dim_text: BoolProperty(name="Show Dimension Text",
+                                             description="Display Dimension Text",
+                                             default=True)
+
+    hide_units: BoolProperty(name="Hide Units",
+                                              description="Do not display unit of measurement on viewport",
+                                              default=False)
+
+    measureit_arch_dim_axis: EnumProperty(
+                items=(('X', "X", "X Axis"),
+                        ('Y', "Y", "Y Axis"),
+                        ('Z', "Z", "Z Axis")),
+                name="Axis",
+                description="Axis")
+
+    measureit_arch_debug_text: BoolProperty(name="Debug Text",
+                                        description="(DEBUG) Draw Debug Info For Text",
+                                        default=False)
+
+    highlight_selected: BoolProperty(name='Show Selected',
                 description= 'Highlight Selected MeasureIt_ARCH Elements',
                 default = True)
 

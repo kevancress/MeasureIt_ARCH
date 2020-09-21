@@ -196,7 +196,7 @@ def update_text(textobj, props, context):
             
                     # generate image datablock from buffer for debug preview
                     # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
-                    if context.scene.measureit_arch_debug_text:
+                    if sceneProps.measureit_arch_debug_text:
                         if not str('test') in bpy.data.images:
                             bpy.data.images.new(str('test'), width, height)
                         image = bpy.data.images[str('test')]
@@ -511,7 +511,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         
         #square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
 
-        if scene.measureit_arch_gl_show_d:
+        if sceneProps.show_dim_text:
             draw_text_3D(context,dimText,dimProps,myobj,square)
 
         #Collect coords and endcaps
@@ -844,7 +844,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension 
                 
 
-                if scene.measureit_arch_gl_show_d:
+                if sceneProps.show_dim_text:
                     draw_text_3D(context,dimText,dimProps,myobj,square)
         
 
@@ -1129,7 +1129,7 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
         #print(("calc time: "+ "%.3f"%((end-start)*1000)) + ' ms')  
 
         #start = time.perf_counter()
-        if scene.measureit_arch_gl_show_d:
+        if sceneProps.show_dim_text:
             draw_text_3D(context,dimText,dimProps,myobj,square)
         
         
@@ -1248,7 +1248,7 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
         vecX = midVec.cross(norm).normalized()
         square = generate_text_card(context,dim.textFields[0],dimProps,basePoint=midPoint, xDir=vecX, yDir= midVec)
 
-        if scene.measureit_arch_gl_show_d:
+        if sceneProps.show_dim_text:
             draw_text_3D(context,dim.textFields[0],dimProps,myobj,square)
         
         # Get coords for point pass
@@ -1501,7 +1501,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
             dim.textAlignment = 'C'
             rad_square = generate_text_card(context,radiusText,dimProps,basePoint=rad_origin,xDir=vecX,yDir=vecY)
                 
-            if scene.measureit_arch_gl_show_d:
+            if sceneProps.show_dim_text:
                 draw_text_3D(context,dim.textFields[0],dimProps,myobj,rad_square)
 
         #make Length text card        
@@ -1511,7 +1511,7 @@ def draw_arcDimension(context, myobj, DimGen, dim,mat, svg=None):
         len_origin = Vector(midPoint) + center
         len_square = generate_text_card(context,lengthText,dimProps,basePoint=len_origin,xDir=vecX,yDir=vecY)
             
-        if scene.measureit_arch_gl_show_d:
+        if sceneProps.show_dim_text:
             draw_text_3D(context,dim.textFields[1],dimProps,myobj,len_square)
 
         measure_coords = []
@@ -1684,7 +1684,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         dimProps.textPosition = 'M'
         square = generate_text_card(context,dimText,dimProps,basePoint=origin,xDir=vecX,yDir=vecY)
 
-        if scene.measureit_arch_gl_show_d:
+        if sceneProps.show_dim_text:
             draw_text_3D(context,dimText,dimProps,myobj,square)
 
         #Draw Fill
@@ -2117,7 +2117,7 @@ def get_color(rawRGB, myobj, is_active = True, only_active = True):
     rgb = rgb_gamma_correct(rawRGB)
 
 
-    if not sceneProps.show_selected or sceneProps.is_render_draw:
+    if not sceneProps.highlight_selected or sceneProps.is_render_draw:
         return rgb
 
     #overide line color with theme selection colors when selected
@@ -2363,7 +2363,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 
                 draw_filled_coords(filledCoords,rgb,polySmooth=False)
 
-            if scene.measureit_arch_gl_show_d:
+            if sceneProps.show_dim_text:
                 for textField in annotation.textFields:
                     textcard = textField['textcard']
                     draw_text_3D(context,textField,annotationProps,myobj,textcard)                
@@ -2871,12 +2871,6 @@ def get_location(mainobject):
 # Get position for scale text
 #
 # --------------------------------------------------------------------
-def get_scale_txt_location(context):
-    scene = context.scene
-    pos_x = int(context.region.width * scene.measureit_arch_scale_pos_x / 100)
-    pos_y = int(context.region.height * scene.measureit_arch_scale_pos_y / 100)
-
-    return pos_x, pos_y
 
 
 
@@ -2912,14 +2906,15 @@ def get_arc_data(pointa, pointb, pointc, pointd):
 # -------------------------------------------------------------
 def format_distance(fmt, value, factor=1,isArea=False):
     s_code = "\u00b2"  # Superscript two THIS IS LEGACY (but being kept for when Area Measurements are re-implimented)
-    hide_units = bpy.context.scene.measureit_arch_hide_units # Also Legacy, Could be re-implimented... Requested now, should re-impliment
-
+    
     # Get Scene Unit Settings
     scaleFactor = bpy.context.scene.unit_settings.scale_length
     unit_system = bpy.context.scene.unit_settings.system
     unit_length = bpy.context.scene.unit_settings.length_unit
     seperate_units = bpy.context.scene.unit_settings.use_separate 
     sceneProps = bpy.context.scene.MeasureItArchProps
+
+    hide_units = sceneProps.hide_units # Also Legacy, Could be re-implimented... Requested now, should re-impliment
 
     toInches = 39.3700787401574887
     inPerFoot = 11.999
@@ -2996,19 +2991,19 @@ def format_distance(fmt, value, factor=1,isArea=False):
         if unit_length == 'METERS':
             if hide_units is False:
                 fmt += " m"
-                tx_dist = fmt % value
+            tx_dist = fmt % value
         # Centimeters
         elif unit_length == 'CENTIMETERS':
             if hide_units is False:
                 fmt += " cm"
-                d_cm = value * (100)
-                tx_dist = fmt % d_cm
+            d_cm = value * (100)
+            tx_dist = fmt % d_cm
         #Millimeters
         elif unit_length == 'MILLIMETERS':
             if hide_units is False:
                 fmt += " mm"
-                d_mm = value * (1000)
-                tx_dist = fmt % d_mm
+            d_mm = value * (1000)
+            tx_dist = fmt % d_mm
 
         # Otherwise Use Adaptive Units
         else:

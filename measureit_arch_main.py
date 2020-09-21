@@ -168,8 +168,8 @@ class MeasureitArchMainPanel(Panel):
 
         sceneProps = scene.MeasureItArchProps
         row.operator("measureit_arch.runopenglbutton", text=txt, icon=icon ,)
-        row.prop(scene, "measureit_arch_gl_ghost", text="", icon='GHOST_ENABLED')
-        row.prop(sceneProps, 'show_selected', text="", icon='VIS_SEL_11')
+        row.prop(sceneProps, "show_all", text="", icon='GHOST_ENABLED')
+        row.prop(sceneProps, 'highlight_selected', text="", icon='VIS_SEL_11')
         row.prop(sceneProps, "show_gizmos", text="", icon='GIZMO')
 
         # ------------------------------
@@ -184,14 +184,14 @@ class MeasureitArchMainPanel(Panel):
         col.operator("measureit_arch.addaligneddimensionbutton", text="Aligned", icon="DRIVER_DISTANCE")
         split = col.split(factor=0.7,align=True)
         split.operator("measureit_arch.addaxisdimensionbutton", text="Axis", icon="TRACKING_FORWARDS_SINGLE")
-        split.prop(scene,'measureit_arch_dim_axis',text="")
+        split.prop(sceneProps,'measureit_arch_dim_axis',text="")
 
         split = col.split(factor=0.7,align=True)
         split.operator("measureit_arch.addboundingdimensionbutton", text="Bounds", icon="SHADING_BBOX")
         row = split.row(align=True)
-        row.prop(scene,'measureit_arch_bound_x',text="X", toggle = 1)
-        row.prop(scene,'measureit_arch_bound_y',text="Y", toggle = 1)
-        row.prop(scene,'measureit_arch_bound_z',text="Z", toggle = 1)
+        row.prop(sceneProps,'bound_x',text="X", toggle = 1)
+        row.prop(sceneProps,'bound_y',text="Y", toggle = 1)
+        row.prop(sceneProps,'bound_z',text="Z", toggle = 1)
 
         col = box.column(align=True)
         col.operator("measureit_arch.addanglebutton", text="Angle", icon="DRIVER_ROTATIONAL_DIFFERENCE")
@@ -202,8 +202,8 @@ class MeasureitArchMainPanel(Panel):
 
         col = box.column(align=True)
         if hasGen:
-            col.prop_search(scene,'measureit_arch_default_dimension_style', StyleGen,'alignedDimensions',text="", icon='COLOR')
-        col.prop(scene,'viewPlane',text='')
+            col.prop_search(sceneProps,'default_dimension_style', StyleGen,'alignedDimensions',text="", icon='COLOR')
+        col.prop(sceneProps,'viewPlane',text='')
 
 
         # ------------------------------
@@ -221,7 +221,7 @@ class MeasureitArchMainPanel(Panel):
 
         col = box.column(align=True)
         if hasGen:
-            col.prop_search(scene,'measureit_arch_default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
+            col.prop_search(scene,'default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
 
         # ------------------------------
         # Annotation Tools
@@ -234,7 +234,7 @@ class MeasureitArchMainPanel(Panel):
 
         col = box.column(align=True)
         if hasGen:
-            col.prop_search(scene,'measureit_arch_default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
+            col.prop_search(sceneProps,'default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
 
 
 
@@ -258,17 +258,14 @@ class SCENE_PT_MARCH_Settings(Panel):
         sceneProps = scene.MeasureItArchProps
         
         col = layout.column(align=True)
-        #col.prop(scene, 'measureit_arch_gl_show_d', text="Distances", toggle=True, icon="DRIVER_DISTANCE")
-        #col.prop(scene, 'measureit_arch_gl_show_n', text="Texts", toggle=True, icon="FONT_DATA")
-        
-        #col.prop(scene, 'measureit_arch_hide_units', text="Units", toggle=True, icon="DRIVER_DISTANCE")
+        col.prop(sceneProps, 'show_dim_text',)
+        col.prop(sceneProps, 'hide_units',)
         
       
         col = layout.column(align = True)
         col.alignment = 'RIGHT'
         col = layout.column()
-        col.prop(scene, "measureit_arch_gl_show_d")
-        col.prop(scene, "measureit_arch_debug_text")
+        col.prop(sceneProps, "measureit_arch_debug_text")
         col.prop(sceneProps, "show_text_cards")
         col.prop(sceneProps, "eval_mods")
         col.prop(sceneProps, "instance_dims")
@@ -363,12 +360,13 @@ def draw_main(context):
         rv3d = context.space_data.region_quadviews[i]
 
     scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
 
     # Get visible collections
     viewLayer = bpy.context.view_layer
 
     # Display selected or all
-    if scene.measureit_arch_gl_ghost is False:
+    if sceneProps.show_all is False:
         objlist = context.selected_objects
     else:
         objlist = context.view_layer.objects
@@ -536,7 +534,7 @@ def draw_main_3d (context):
     sceneProps = scene.MeasureItArchProps
 
     # Display selected or all
-    if scene.measureit_arch_gl_ghost is False:
+    if sceneProps.show_all is False:
         objlist = context.selected_objects
     else:
         objlist = context.view_layer.objects
