@@ -7,28 +7,12 @@ MeasureIt_ARCH is a fork of Antonio Vazquez's MeasureIt Addon.
 
 ## Installation
 
-There are two ways to install the add-on:
- * Stable release (often out of date)
- * Latest git master (recommended)
-
-### Stable release
-
  * [Install Blender 2.8 or higher](https://www.blender.org/download/)
- * Download the latest zip file from [the releases page](https://github.com/kevancress/MeasureIt_ARCH/releases)
- * Open the __Add-on Preferences (Edit -> Preferences -> Add-ons)__ and click install.
-
-![image](docs/install-1.jpg)
-
- * Navigate to and double click on the "MeasureIt_ARCH_VERSION.zip"
- * Click the Checkbox to enable the Add-on
-
-### Latest git master
-
- * [Install Blender 2.8 or higher](https://www.blender.org/download/)
- * Locate your platform and Blender installation specific Blender addons directory:
-   * On Windows, this is usually `/Program Files/Blender Foundation/Blender BLENDER_VERSION/BLENDER_VERSION/scripts/addons`
-   * On Mac, this is usually `/Applications/Blender.app/Contents/Resources/BLENDER_VERSION/scripts/addons`
-
+ * [Download the latest git master zipfile](https://github.com/kevancress/MeasureIt_ARCH/archive/master.zip)
+ * Open the __Add-on Preferences (Edit -> Preferences -> Add-ons)__.
+   * If you have installed a previous version of the add-on, first find it by typing 'arch' then click 'remove' to uninstall.
+ * Click __Install__ and select the downloaded file __MeasureIt_ARCH-master.zip__.
+ * When the resulting list is updated to show the installed but disabled module, click the checkbox to enable the module.
 
 ## Features & User Interface
 
