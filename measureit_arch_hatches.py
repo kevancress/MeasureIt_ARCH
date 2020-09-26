@@ -164,6 +164,3 @@ class AddHatchButton(Operator):
                     return {'FINISHED'}
         return {'FINISHED'}
 
-
-
-\
