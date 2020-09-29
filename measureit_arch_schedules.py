@@ -1,6 +1,7 @@
 import bpy
 import csv
 import os
+import copy
 
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu, Collection
 from rna_prop_ui import PropertyPanel
@@ -54,6 +55,10 @@ class ScheduleProperties(PropertyGroup):
 
     date_folder: BoolProperty(name= "Date Folder",
                 description= "Adds a Folder with todays date to the end of the output path",
+                default=False)
+
+    group_rows: BoolProperty(name= "Group Rows",
+                description= "Group Identical Rows and include a Count",
                 default=False)
 
     sort_subcollections: BoolProperty(name= "Sort Sub Collections",
@@ -142,25 +147,35 @@ class GenerateSchedule(Operator):
     bl_options = {'REGISTER'} 
 
     def check_collections(self,collection,schedule,depth=0):
-        rows = []
-        if schedule.sort_subcollections and depth > 0:
-            rows.append([str(collection.name)])
+        data = []
+        rows = [] # Group of rows to be added to the data
+
+        if schedule.sort_subcollections:
+            namerow =[]
+            namerow.append(str(collection.name))
+            rows.append(namerow)
+        
+        for obj in collection.objects:
+            row = [] 
+            if schedule.sort_subcollections:
+                row.append('')
+            for column in schedule.columns:
+                row.append(self.get_column_data(column,obj))
+            rows.append(row)    
+        
+        if schedule.group_rows:
+            rows = self.group_data(rows)
+
+        data.append(rows)
 
         if len(collection.children) > 0:
             for subCol in collection.children:
                 returned_rows = self.check_collections(subCol,schedule,depth = depth+1)
-                for row in returned_rows:
-                    rows.append(row)
+                data.append(returned_rows)
 
-        for obj in collection.objects:
-            row = [] 
-            if schedule.sort_subcollections:
-                row.append("")
-            for column in schedule.columns:
-                row.append(self.get_column_data(column,obj))
-            rows.append(row)    
 
-        return rows 
+
+        return data
 
     def get_column_data(self,column,obj):
         pr = bpy.context.scene.MeasureItArchProps.metric_precision
@@ -179,6 +194,51 @@ class GenerateSchedule(Operator):
 
         except:
             return '--'
+
+    def group_data(self,data):
+        Generator = bpy.context.scene.ScheduleGenerator
+        schedule = Generator.schedules[Generator.active_index]
+
+        dataCopy = copy.deepcopy(data)
+        ## Get Counts
+        print(data)
+        for checkrow in data:
+           
+            if schedule.sort_subcollections and checkrow[0] != '':
+                pass
+            else:
+                rowCount = 0
+                for row in dataCopy:
+                    if checkrow == row:
+                        rowCount += 1
+                checkrow.append(rowCount)
+        
+        
+        ## Purge Duplicates
+        for i, checkrow in enumerate(data):
+            for j, row in reversed(list(enumerate(data))):
+                if i != j and row == checkrow:
+                    data.remove(row)
+
+
+        return data
+
+    def unpack_data(self,data, depth = 0):
+        Generator = bpy.context.scene.ScheduleGenerator
+        schedule = Generator.schedules[Generator.active_index]
+
+        row_list = []
+        if type(data[0]) != str:
+            for item in data:
+                return_list = self.unpack_data(item, depth = depth+1)
+                for row in return_list:
+                    row_list.append(row)
+         
+        else:  
+           row_list.append(data)
+
+        return row_list
+
 
     def execute(self, context):
         # Add properties
@@ -205,13 +265,21 @@ class GenerateSchedule(Operator):
 
         for column in schedule.columns:
             firstRow.append(column.name)
-        row_list.append(firstRow)
+        
+        # Add Count Column
+        if schedule.group_rows:
+            firstRow.append('Count')
+       
+        
+        data = self.check_collections(schedule.collection,schedule)
+        
+        # Unpack Data
+        data_list = self.unpack_data(data)
 
-        rows = self.check_collections(schedule.collection,schedule)
-
-        for row in rows:
+        for row in data_list:
             row_list.append(row)
 
+        row_list.insert(0,firstRow)
 
         try:
             with open(os.path.join(file_path,file_name), 'w', newline='') as file:
@@ -332,6 +400,7 @@ class SCENE_PT_Schedules(Panel):
                 col.prop(schedule, "output_path")
                 col.prop(schedule, "date_folder", text="Date Folder")
                 col.prop(schedule, "sort_subcollections", text="Sort Subcollections")
+                col.prop(schedule, "group_rows", text="Group Rows")
 
                 col = box.column()
                 row = col.row(align = True,)
