@@ -2658,8 +2658,8 @@ def generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint
         capCoords.append(line + pos)  
 
         # Define Square
-        x = distVector.normalized() * capSize/20
-        y = userOffsetVector.normalized() * capSize/20
+        x = distVector.normalized() * capSize
+        y = userOffsetVector.normalized() * capSize
         a = 0.055
         b = 0.085
        
