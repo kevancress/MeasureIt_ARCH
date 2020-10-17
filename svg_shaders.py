@@ -34,11 +34,23 @@ import gpu
 
 from math import fabs
 
-def svg_line_shader(item, coords,thickness,color,svg,parent=None,mat=Matrix.Identity(4)):
+def svg_line_shader(item, coords,thickness,color,svg,parent=None,dashed=False,mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
     svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
-    
-    lines = svg.g(id=idName,stroke=svgColor, stroke_width=thickness, stroke_linecap = 'round')
+
+    cap = 'round'
+    try:
+        if item.pointPass: 
+            cap = 'round'
+        else:
+            cap = 'butt'
+    except:
+        pass
+  
+    lines = svg.g(id=idName,stroke=svgColor, stroke_width=thickness, stroke_linecap = cap)
+    if dashed:
+        lines = svg.g(id=idName,stroke=svgColor, stroke_width=thickness,stroke_dasharray="5,5", stroke_linecap = 'butt')
+
     if parent:
         parent.add(lines)
     else:

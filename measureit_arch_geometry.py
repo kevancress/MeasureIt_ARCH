@@ -2062,6 +2062,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 lineGroupShader.uniform_float("objectMatrix",mat)
                 lineGroupShader.uniform_float("thickness",lineWeight)
                 lineGroupShader.uniform_float("extension",lineGroup.lineOverExtension)
+                lineGroupShader.uniform_float("pointPass",lineGroup.pointPass)
                 lineGroupShader.uniform_float("weightInfluence",lineGroup.weightGroupInfluence)
                 lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 lineGroupShader.uniform_float("zOffset", -offset)
@@ -2100,7 +2101,10 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 gpu.shader.unbind()
                 
             if sceneProps.is_vector_draw:
-                svg_shaders.svg_line_shader(lineGroup, coords, lineWeight, rgb, svg, mat=mat)
+                dashed = False
+                if lineProps.lineDrawDashed:
+                    dashed = True
+                svg_shaders.svg_line_shader(lineGroup, coords, lineWeight, rgb, svg, mat=mat,dashed=dashed)
 
                 
         
@@ -2139,7 +2143,8 @@ def get_color(rawRGB, myobj, is_active = True, only_active = True):
 def draw_annotation(context, myobj, annotationGen, mat, svg=None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps    
-
+    customCoords = []
+    customFilledCoords = []
     for annotation in annotationGen.annotations:
         annotationProps = annotation
         if annotation.uses_style:
@@ -2259,7 +2264,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                             for vert in tri.vertices:
                                 indices.append(bm.verts[vert].co)      
         
-                        customCoords = []
+                        
                         for coord in tempCoords:
                             newCoord =  (mat @ offsetMat @ rotMat @ coord)
                             customCoords.append(newCoord)
@@ -2269,7 +2274,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                             newVert = (mat @ offsetMat @ rotMat @ vert)
                             customFilledCoords.append(newVert)
 
-
+                        
                         draw_lines(lineWeight,rgb,customCoords, twoPass=True,pointPass=True)
                         draw_filled_coords(customFilledCoords,rgb,polySmooth=False)
 
@@ -2381,7 +2386,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
         set_OpenGL_Settings(False)
 
-### This is a one of for a project where I need to preview the
+### This is a one off for a project where I need to preview the
 ### "create dual mesh" Operator from Alessandro Zomparelli's tissue addon.
 ### Keeping it here untill I can create a pull request for tissue to discuss adding it in there.
 def preview_dual(context):
@@ -3431,12 +3436,18 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
     idx = 1
     totalobjs = len(objlist)
 
+    if sceneProps.is_vector_draw:
+        hatches = svg.g(id='Hatches')
+        drawing = svg.g(id='Drawing')
+        titleblock = svg.g(id='TitleBlock')
+
     for myobj in objlist:
-        
+       
         if sceneProps.is_render_draw:
             print("Rendering Object: " + str(idx) + " of: " + str(totalobjs) + " Name: " + myobj.name)
             startTime = time.time()
           
+        
         if myobj.hide_get() is False:
             mat = myobj.matrix_world
             if extMat is not None:
@@ -3444,6 +3455,10 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
                     mat = extMat @ mat
                 else:
                     mat = extMat
+
+            if sceneProps.is_vector_draw and myobj.type=='MESH':
+                draw_hatches(context,myobj,scene.HatchGenerator,mat,svg=svg)
+
 
             sheetGen = myobj.SheetGenerator
             for sheet_view in sheetGen.sheet_views:
@@ -3478,8 +3493,7 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
                 for areaDim in DimGen.areaDimensions:
                     draw_areaDimension(context,myobj,DimGen,areaDim,mat,svg=svg)
             
-            if sceneProps.is_vector_draw and myobj.type=='MESH':
-                draw_hatches(context,myobj,scene.HatchGenerator,mat,svg=svg)
+
         if sceneProps.is_render_draw:
             endTime = time.time()
             print("Time: " + str(endTime -startTime))
