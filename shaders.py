@@ -242,6 +242,7 @@ class Line_Group_Shader_3D ():
         uniform float extension;
         uniform float zOffset;
         uniform float weightInfluence;
+        uniform bool pointPass;
 
         const float PI = 3.1415926;
         out vec2 mTexCoord;
@@ -356,40 +357,45 @@ class Line_Group_Shader_3D ():
 
             // Draw Point pass
             // Get Center Point in Screen Space
-            vec4 worldPos = objectMatrix * p1;
-            vec4 project = ModelViewProjectionMatrix * worldPos;
+            if (pointPass){
 
-            vec4 pointCenter = project + vecOffset;
-            vec2 sspC = vec2(pointCenter.xy / pointCenter.w);
+                vec4 worldPos = objectMatrix * p1;
+                vec4 project = ModelViewProjectionMatrix * worldPos;
 
-            // Get number of segments in the circle
-            int segments = int(thickness) + 5;
-            segments = clamp(segments,0,28);
+                vec4 pointCenter = project + vecOffset;
+                vec2 sspC = vec2(pointCenter.xy / pointCenter.w);
 
-            // Generate Circle
-            gl_Position = pointCenter;
-            mTexCoord = vec2(0,0.5);
-            EmitVertex();
+                // Get number of segments in the circle
+                int segments = int(thickness) + 5;
+                segments = clamp(segments,0,28);
 
-            for (int i = 0; i <= segments; i++) {
-                // Angle between each side in radians
-                float ang = PI * 2.0 / segments * i;
-
-                // Offset from center of point
-                vec2 circleOffset = vec2(cos(ang)*radius, -sin(ang)*radius);
-                circleOffset.x /= Viewport.x;
-                circleOffset.y /= Viewport.y;
-                mTexCoord = vec2(0,1);
-                gl_Position = vec4((sspC + circleOffset)*pointCenter.w, pointCenter.z, pointCenter.w);
-                alpha = alpha1;
-                EmitVertex();
-
+                // Generate Circle
                 gl_Position = pointCenter;
                 mTexCoord = vec2(0,0.5);
                 EmitVertex();
-            }
 
-            EndPrimitive();
+                for (int i = 0; i <= segments; i++) {
+                    // Angle between each side in radians
+                    float ang = PI * 2.0 / segments * i;
+
+                    // Offset from center of point
+                    vec2 circleOffset = vec2(cos(ang)*radius, -sin(ang)*radius);
+                    circleOffset.x /= Viewport.x;
+                    circleOffset.y /= Viewport.y;
+                    mTexCoord = vec2(0,1);
+                    gl_Position = vec4((sspC + circleOffset)*pointCenter.w, pointCenter.z, pointCenter.w);
+                    alpha = alpha1;
+                    EmitVertex();
+
+                    gl_Position = pointCenter;
+                    mTexCoord = vec2(0,0.5);
+                    EmitVertex();
+                }
+
+                EndPrimitive();
+
+            }
+            
 
 
             // Draw Rectange
@@ -547,7 +553,7 @@ class Dashed_Shader_3D ():
         float aspect = Viewport.x/Viewport.y;
 
         vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
-        float minLength =  1.5* length(pxVec);
+        float minLength =  1.0* length(pxVec);
 
         vec2 get_line_width(vec2 normal, float width){
             vec2 offsetvec = vec2(normal * width);

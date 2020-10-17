@@ -93,7 +93,7 @@ class MeasureitArchRenderPanel(Panel):
         col = layout.column()
         
         col.prop(sceneProps, "embed_scene_render", text="Embed Scene Render")
-        col.prop(scene, "measureit_arch_render", text="Save Render to Output")
+        #col.prop(sceneProps, "measureit_arch_render", text="Save Render to Output")
 
 
 # -------------------------------------------------------------

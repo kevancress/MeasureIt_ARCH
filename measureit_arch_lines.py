@@ -41,6 +41,10 @@ from .measureit_arch_main import get_smart_selected, get_selected_vertex
 from .measureit_arch_baseclass import BaseProp
 
 class LineProperties(BaseProp, PropertyGroup):
+    pointPass: BoolProperty(name= "Draw Round Caps",
+                        description= "Draw Round Caps",
+                        default= True)
+
     numLines: IntProperty(name="Number of Lines",
                         description="Number Of Single Lines")
 
@@ -402,10 +406,12 @@ class OBJECT_PT_UILines(Panel):
                             col.prop(line, 'lineDashSpace',text="Dash Spacing")
 
                             col = box.column(align=True)
+                           
                             col.prop(line, 'lineDrawDashed', text="Draw Dashed")
                             col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
                             col.prop(line, 'inFront', text="Draw In Front")
                             col.prop(line, 'evalMods')
+                        col.prop(line, 'pointPass', text="Round Caps")
 
 class OBJECT_MT_lines_menu(bpy.types.Menu):
     bl_label = "Custom Menu"

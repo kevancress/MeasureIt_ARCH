@@ -550,9 +550,13 @@ def draw_main_3d (context):
 def draw_titleblock(context,svg=None):
     view = get_view()
     rv3d = get_rv3d()
+    sceneProps =  context.scene.MeasureItArchProps
+
+    if sceneProps.is_vector_draw:
+        titleblock = svg.g(id='TitleBlock')
 
     if view is not None and view.titleBlock !="":
-        if not context.scene.MeasureItArchProps.is_render_draw:
+        if not sceneProps.is_render_draw:
             if rv3d.view_perspective != 'CAMERA':
                 return
 
