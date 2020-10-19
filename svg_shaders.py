@@ -97,13 +97,24 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
     ssp2 = get_render_location(textCard[2])
     ssp3 = get_render_location(textCard[3])
 
+    cardHeight = Vector(ssp1) - Vector(ssp0)
+    
+    
+
     
     dirVec = Vector(ssp3) - Vector(ssp0)
 
-    leftVec = Vector(ssp0) 
-    rightVec = Vector(ssp3)
+    heightOffsetAmount = 1/8 * cardHeight.length
+    heightOffset = Vector((dirVec[1], -dirVec[0])).normalized()
+
+    heightOffset *= heightOffsetAmount
+
+
+
+    leftVec = Vector(ssp0)
+    rightVec = Vector(ssp3) 
     midVec = (leftVec + rightVec)/2
-    
+
     if dirVec.length == 0:
         return
 
@@ -129,11 +140,16 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
  
 
     rotation = math.degrees(dirVec.angle_signed(Vector((1, 0))))
-    if rotation >= 90.01 or rotation <= -89.99:
+    if rotation > 90 or rotation < -90:
        rotation += 180
        #text_position = position_flip
        text_anchor = anchor_flip
+       heightOffset = -heightOffset
+       print('did flip')
 
+
+    print(heightOffset)
+    text_position += heightOffset
     view = get_view()
     res = bpy.context.scene.MeasureItArchProps.default_resolution
     if view is not None:
@@ -143,8 +159,9 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
             'transform': 'rotate({} {} {})'.format(
                 rotation,
                 text_position[0],
-                text_position[1]
-            ),
+                text_position[1] 
+            ), 
+
             # I wish i could tell you why this fudge factor is necessary, but for some reason
             # spec-ing svg units in inches and using this factor for text size is the only way to get
             # sensible imports in both inkscape and illustrator
