@@ -129,7 +129,7 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
  
 
     rotation = math.degrees(dirVec.angle_signed(Vector((1, 0))))
-    if rotation >= 90 or rotation <= -90:
+    if rotation >= 90.01 or rotation <= -89.99:
        rotation += 180
        #text_position = position_flip
        text_anchor = anchor_flip
