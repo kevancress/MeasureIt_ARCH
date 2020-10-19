@@ -2499,7 +2499,7 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
     # Skew Rotation slightly to avoid errors that occur
     # when the view Axis are perfectly orthogonal to the
     # card axis 
-    rot = Quaternion(viewAxisZ,radians(0.1))
+    rot = Quaternion(viewAxisZ,radians(-0.01))
     viewAxisX.rotate(rot)
     viewAxisY.rotate(rot)
 
