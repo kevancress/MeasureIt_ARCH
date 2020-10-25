@@ -1568,3 +1568,88 @@ def draw_area_dimension_settings(dim,layout):
         col = layout.column(align=True)
         col.prop(dim,'inFront', text='Draw in Front')
         col.prop(dim,'evalMods')
+
+
+
+class TranlateAnnotationOp(bpy.types.Operator):
+    """Move Annotation"""
+    bl_idname = "measureit_arch.dimesnion_offset"
+    bl_label = "Adjust Dimension Offset"
+    bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING','UNDO'}
+    
+    idx: IntProperty()
+
+    dimType: StringProperty()
+
+    offset: FloatProperty(
+        name="Offset",
+    )
+
+    objIndex: IntProperty()
+
+    def modal(self, context, event):
+        myobj = context.selected_objects[self.objIndex]
+        dimension = eval('myobj.' + self.dimType)
+        # Set Tweak Flags
+        if event.ctrl:
+            tweak_snap = True
+        else: tweak_snap = False
+        if event.shift:
+            tweak_precise = True
+        else: tweak_precise= False
+        
+        if event.type == 'MOUSEMOVE':
+            sensitivity = 0.01
+            vecDelta = Vector(((event.mouse_x - self.init_mouse_x)* sensitivity,(event.mouse_y - self.init_mouse_y)* sensitivity,0))
+            vecDelta = Vector(((event.mouse_x - self.init_mouse_x)* sensitivity,(event.mouse_y - self.init_mouse_y)* sensitivity,0))
+            viewRot = context.area.spaces[0].region_3d.view_rotation
+            vecDelta.rotate(viewRot)
+            delta = (event.mouse_x - self.init_mouse_x)* sensitivity
+            mat = myobj.matrix_world
+            rot = mat.to_quaternion()
+
+            axis =  Vector((-1,-1,-1))
+            axis.rotate(rot)
+            
+            delta = vecDelta.project(axis)
+            delta = delta.magnitude
+            if axis.dot(vecDelta) > 0:
+                delta = -delta
+
+            resultInit = self.init
+            if tweak_snap:
+                delta = round(delta)
+                resultInit = round(self.init,0)
+            if tweak_precise:
+                delta /= 10.0
+                resultInit = round(self.init,1)
+
+            dimension.dimOffset = resultInit +  delta
+            context.area.header_text_set("Dimension Offset = " + "%.4f" % (resultInit +  delta))
+
+        elif event.type == 'LEFTMOUSE':
+            #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            context.object.hide_viewport = False
+            context.area.header_text_set(None)
+            return {'FINISHED'}
+
+        elif event.type in {'RIGHTMOUSE', 'ESC'}:
+            #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            context.object.hide_viewport = False 
+            context.area.header_text_set(None)
+            dimension.dimOffset= self.init
+
+            return {'CANCELLED'}
+        
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        myobj = context.selected_objects[self.objIndex]
+        dimension = myobj.DimensionGenerator[0].alignedDimensions[self.idx]
+        self.init_mouse_x = event.mouse_x
+        self.init_mouse_y = event.mouse_y
+
+        self.init = dimension.dimOffset
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}

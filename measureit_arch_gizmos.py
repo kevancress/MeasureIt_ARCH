@@ -57,10 +57,14 @@ class mArchGizmoGroup(GizmoGroup):
         for obj in bpy.context.selected_objects:    
             if 'DimensionGenerator' in obj:
                 dimGen = obj.DimensionGenerator[0]
+                idx = 0
                 for dim in dimGen.alignedDimensions:
-                    createDimOffsetGiz(self,dim,objIndex)
+                    createDimOffsetGiz(self,dim,objIndex,idx,"DimensionGenerator[0].alignedDimensions[self.idx]")
+                    idx += 1
+                idx = 0
                 for dim in dimGen.axisDimensions:
-                    createDimOffsetGiz(self,dim,objIndex)
+                    createDimOffsetGiz(self,dim,objIndex,idx,"DimensionGenerator[0].axisDimensions[self.idx]")
+                    idx += 1
             if 'AnnotationGenerator' in obj:
                 annotationGen = obj.AnnotationGenerator[0]
                 createAnnotationTranslateGiz(self,annotationGen,objIndex)
@@ -78,7 +82,7 @@ class mArchGizmoGroup(GizmoGroup):
 
 bpy.utils.register_class(mArchGizmoGroup)
 
-def createDimOffsetGiz(group,dim,objIndex):
+def createDimOffsetGiz(group,dim,objIndex,idx,dimStr):
     context = bpy.context
     dimProps = dim
     if dim.uses_style:
@@ -93,17 +97,22 @@ def createDimOffsetGiz(group,dim,objIndex):
     rot = k.rotation_difference(dim.gizRotDir)
     rotMatrix = rot.to_matrix()
     rotMatrix.resize_4x4()
-    basisMatrix = basisMatrix @ rotMatrix
+    
     basisMatrix.translation = Vector(dim.gizLoc)+(Vector(dim.gizRotDir)*0.2)
+    basisMatrix = basisMatrix @ rotMatrix
     
     #Offset Gizmo
     dimOffsetGiz = group.gizmos.new("GIZMO_GT_arrow_3d")
-    dimOffsetGiz.target_set_prop("offset", dim, "dimOffset")
+    op = dimOffsetGiz.target_set_operator("measureit_arch.dimesnion_offset")
+    op.objIndex = objIndex
+    op.idx = idx
+    op.dimType = dimStr
     dimOffsetGiz.draw_style = "NORMAL"
+    dimOffsetGiz.use_draw_modal = False
 
     dimOffsetGiz.length = 0
-    dimOffsetGiz.matrix_basis = basisMatrix
-    dimOffsetGiz.use_draw_value = True
+    dimOffsetGiz.matrix_basis = basisMatrix 
+    dimOffsetGiz.use_draw_value = False
 
     dimOffsetGiz.scale_basis = 1
     dimOffsetGiz.color = (pow(dimProps.color[0],(1/2.2)),pow(dimProps.color[1],(1/2.2)),pow(dimProps.color[2],(1/2.2)))

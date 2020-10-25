@@ -824,7 +824,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
 
 
                 #Set Gizmo Props
-                dim.gizLoc = midpoint
+                dim.gizLoc = Vector(midpoint) + (userOffsetVector * dim.dimOffset)
                 dim.gizRotDir = userOffsetVector
                 
                 # Define Lines
