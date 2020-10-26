@@ -1590,6 +1590,12 @@ class TranlateAnnotationOp(bpy.types.Operator):
     def modal(self, context, event):
         myobj = context.selected_objects[self.objIndex]
         dimension = eval('myobj.' + self.dimType)
+        unit_system = bpy.context.scene.unit_settings.system
+        unit_length = bpy.context.scene.unit_settings.length_unit\
+        
+        toFeet = 3.28084
+        toInches = 39.3700787401574887
+
         # Set Tweak Flags
         if event.ctrl:
             tweak_snap = True
@@ -1617,12 +1623,24 @@ class TranlateAnnotationOp(bpy.types.Operator):
                 delta = -delta
 
             resultInit = self.init
+            precise_factor = 10
+
+            if unit_system == 'IMPERIAL':
+                resultInit *= toFeet
+                delta *= toFeet
+                precise_factor = 12
+
             if tweak_snap:
                 delta = round(delta)
                 resultInit = round(self.init,0)
+                
             if tweak_precise:
-                delta /= 10.0
+                delta /= precise_factor
                 resultInit = round(self.init,1)
+
+            if unit_system == 'IMPERIAL':
+                resultInit /= toFeet
+                delta /= toFeet
 
             dimension.dimOffset = resultInit +  delta
             context.area.header_text_set("Dimension Offset = " + "%.4f" % (resultInit +  delta))
