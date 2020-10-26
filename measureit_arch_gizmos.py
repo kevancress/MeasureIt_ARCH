@@ -57,6 +57,7 @@ class mArchGizmoGroup(GizmoGroup):
         for obj in bpy.context.selected_objects:    
             if 'DimensionGenerator' in obj:
                 dimGen = obj.DimensionGenerator
+                idx = 0
                 for dim in dimGen.alignedDimensions:
                     createDimOffsetGiz(self,dim,objIndex,idx,"DimensionGenerator.alignedDimensions[self.idx]")
                     idx += 1
