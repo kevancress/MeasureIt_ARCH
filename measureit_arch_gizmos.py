@@ -58,11 +58,11 @@ class mArchGizmoGroup(GizmoGroup):
             if 'DimensionGenerator' in obj:
                 dimGen = obj.DimensionGenerator
                 for dim in dimGen.alignedDimensions:
-                    createDimOffsetGiz(self,dim,objIndex,idx,"DimensionGenerator[0].alignedDimensions[self.idx]")
+                    createDimOffsetGiz(self,dim,objIndex,idx,"DimensionGenerator.alignedDimensions[self.idx]")
                     idx += 1
                 idx = 0
                 for dim in dimGen.axisDimensions:
-                    createDimOffsetGiz(self,dim,objIndex,idx,"DimensionGenerator[0].axisDimensions[self.idx]")
+                    createDimOffsetGiz(self,dim,objIndex,idx,"DimensionGenerator.axisDimensions[self.idx]")
                     idx += 1
             if 'AnnotationGenerator' in obj:
                 annotationGen = obj.AnnotationGenerator
