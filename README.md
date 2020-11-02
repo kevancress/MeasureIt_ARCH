@@ -3,7 +3,7 @@
 MeasureIt_ARCH is a fork of Antonio Vazquez's MeasureIt Addon.
 
 ## Click the image below to watch the latest update video
-[![MeasureIt_ARCH Intro Video](https://user-images.githubusercontent.com/16860574/54844536-8c651a00-4cad-11e9-8139-7c4e7be64797.png)](https://www.youtube.com/watch?v=MWo87QvcEPk)
+[![MeasureIt_ARCH Intro Video](docs/Title_card.png)](https://www.youtube.com/watch?v=MWo87QvcEPk)
 
 ## Installation
 
