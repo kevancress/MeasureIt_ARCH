@@ -28,6 +28,7 @@ import bpy
 import bmesh
 import bgl
 import gpu
+from .measureit_arch_main import OBJECT_PT_Panel
 from bmesh import from_edit_mesh
 from math import degrees, radians
 from gpu_extras.batch import batch_for_shader
@@ -317,10 +318,16 @@ class M_ARCH_UL_lines_list(UIList):
 
 class OBJECT_PT_UILines(Panel):
     """Creates a Panel in the Object properties window"""
+    bl_parent_id = 'OBJECT_PT_Panel'
     bl_label = "MeasureIt_ARCH Lines"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon= 'MATCUBE')
 
     def draw(self, context):
         layout = self.layout

@@ -25,6 +25,7 @@
 # ----------------------------------------------------------
 
 import bpy
+from .measureit_arch_main import ESCENA_PT_Panel
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList
 from bpy.props import (
         CollectionProperty,
@@ -120,10 +121,16 @@ class M_ARCH_UL_styles_list(UIList):
 
 class SCENE_PT_UIStyles(Panel):
     """Creates a Panel in the Object properties window"""
+    bl_parent_id = 'ESCENA_PT_Panel'
     bl_label = "MeasureIt_ARCH Styles"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon= 'COLOR')
 
     def draw(self, context):
         layout = self.layout

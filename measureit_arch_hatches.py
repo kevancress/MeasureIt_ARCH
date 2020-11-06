@@ -1,4 +1,5 @@
 import bpy
+from .measureit_arch_main import ESCENA_PT_Panel
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu
 from rna_prop_ui import PropertyPanel
 from bl_operators.presets import AddPresetBase
@@ -87,10 +88,16 @@ class M_ARCH_UL_Hatches_list(UIList):
 
 class SCENE_PT_Hatches(Panel):
     """Creates a Panel in the Object properties window"""
+    bl_parent_id = 'ESCENA_PT_Panel'
     bl_label = "MeasureIt_ARCH Hatches"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon= 'FILE_VOLUME')
 
     def draw(self, context):
         layout = self.layout

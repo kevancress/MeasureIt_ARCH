@@ -95,13 +95,12 @@ from .measureit_arch_main import precision_ui
 # --------------------------------------------------------------
 
 # Add-ons Preferences Update Panel
-
 # Define Panel classes for updating
 
 panels = (
         measureit_arch_main.SCENE_PT_MARCH_Settings,
-        measureit_arch_main.MeasureitArchMainPanel,
-        measureit_arch_render.MeasureitArchRenderPanel
+        measureit_arch_main.MEASUREIT_PT_main_panel,
+        measureit_arch_render.RENDER_PT_MeasureitArch_Panel
         )
 
 def update_panel(self, context):
@@ -118,9 +117,6 @@ def update_panel(self, context):
     except Exception as e:
         print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
         pass
-
-
-
 
 
 # Define menu

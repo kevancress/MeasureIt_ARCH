@@ -132,7 +132,7 @@ bpy.app.handlers.save_pre.append(save_handler)
 # ------------------------------------------------------------------
 # Define panel class for main functions.
 # ------------------------------------------------------------------
-class MeasureitArchMainPanel(Panel):
+class MEASUREIT_PT_main_panel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
     bl_label = "MeasureIt_ARCH v0.5.0(git)"
     bl_space_type = 'VIEW_3D'
@@ -236,15 +236,54 @@ class MeasureitArchMainPanel(Panel):
         if hasGen:
             col.prop_search(sceneProps,'default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
 
+# ------------------------------------------------------------------
+# Nuevo Panel para Agruparlos en PANEL PROPIEDADES OBJETO.
+# ------------------------------------------------------------------
+
+class OBJECT_PT_Panel(Panel):
+    """Creates a Panel in the Object properties window"""
+    bl_idname = 'OBJECT_PT_Panel'
+    bl_label = "MeasureIt_ARCH"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+
+    def draw(self, context):
+        pass
+       
+bpy.utils.register_class(OBJECT_PT_Panel)
+
+
+# ------------------------------------------------------------------
+# Nuevo Panel para Agruparlos en PANEL PROPIEDADES ESCENA.
+# ------------------------------------------------------------------
+class ESCENA_PT_Panel(bpy.types.Panel):
+    """Main Properties Panel"""
+    bl_idname = "ESCENA_PT_Panel"
+    bl_label = "MeasureIt_ARCH"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'scene'
+
+    def draw(self, context):
+        pass
+       
+bpy.utils.register_class(ESCENA_PT_Panel)
 
 
 # MeasureIt_ARCH settings
 class SCENE_PT_MARCH_Settings(Panel):
+    bl_parent_id = 'ESCENA_PT_Panel'
     bl_idname = "SCENE_PT_MARCH_Settings"
     bl_label = "MeasureIt_ARCH Settings"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'scene'
+    
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon= 'SETTINGS')
 
     # -----------------------------------------------------
     # Draw (create UI interface)

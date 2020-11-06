@@ -56,7 +56,7 @@ global svg
 # ------------------------------------------------------------------
 # Define panel class for render functions.
 # ------------------------------------------------------------------
-class MeasureitArchRenderPanel(Panel):
+class RENDER_PT_MeasureitArch_Panel(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "output"

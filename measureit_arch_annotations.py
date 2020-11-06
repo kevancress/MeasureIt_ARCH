@@ -27,6 +27,7 @@ import bpy
 import blf
 import bgl
 import gpu
+from .measureit_arch_main import OBJECT_PT_Panel
 from bpy_extras import view3d_utils
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, GizmoGroup, Collection
 from bpy.props import (
@@ -97,7 +98,7 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
                 description= 'Scale Custom Shap to Text Length',
                 default = True)
                 
-    custom_scale:FloatProperty(name='Custom Shape Scale',
+    custom_scale: FloatProperty(name='Custom Shape Scale',
                             description='Scale Custom Shape',
                             default= 1.0,)
 
@@ -291,10 +292,17 @@ class M_ARCH_UL_annotations_list(UIList):
 
 class OBJECT_PT_UIAnnotations(Panel):
     """Creates a Panel in the Object properties window"""
+    bl_parent_id = 'OBJECT_PT_Panel'
     bl_label = "MeasureIt_ARCH Annotations"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon= 'FONT_DATA')
+
 
     def draw(self, context):
         layout = self.layout
