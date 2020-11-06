@@ -351,7 +351,7 @@ class SCENE_PT_Views(Panel):
     def draw_header(self, context):
         layout = self.layout
         row = layout.row()
-        row.label(text="", icon= 'RESTRICT_VIEW_OFF')
+        row.label(text="", icon= 'DOCUMENTS')
 
     def draw(self, context):
         layout = self.layout

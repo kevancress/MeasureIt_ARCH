@@ -97,7 +97,7 @@ class SCENE_PT_Hatches(Panel):
     def draw_header(self, context):
         layout = self.layout
         row = layout.row()
-        row.label(text="", icon= 'CON_DISTLIMIT')
+        row.label(text="", icon= 'FILE_VOLUME')
 
     def draw(self, context):
         layout = self.layout

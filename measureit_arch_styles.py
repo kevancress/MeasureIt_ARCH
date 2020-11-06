@@ -130,7 +130,7 @@ class SCENE_PT_UIStyles(Panel):
     def draw_header(self, context):
         layout = self.layout
         row = layout.row()
-        row.label(text="", icon= 'SHADERFX')
+        row.label(text="", icon= 'COLOR')
 
     def draw(self, context):
         layout = self.layout

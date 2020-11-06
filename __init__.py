@@ -95,7 +95,28 @@ from .measureit_arch_main import precision_ui
 # --------------------------------------------------------------
 
 # Add-ons Preferences Update Panel
+# Define Panel classes for updating
 
+panels = (
+        measureit_arch_main.SCENE_PT_MARCH_Settings,
+        measureit_arch_main.MEASUREIT_PT_main_panel,
+        measureit_arch_render.RENDER_PT_MeasureitArch_Panel
+        )
+
+def update_panel(self, context):
+    message = "MeasureIt_ARCH: Updating Panel locations has failed"
+    try:
+        for panel in panels:
+            if "bl_rna" in panel.__dict__:
+                bpy.utils.unregister_class(panel)
+
+        for panel in panels:
+            panel.bl_category = context.preferences.addons[__name__].preferences.category
+            bpy.utils.register_class(panel)
+
+    except Exception as e:
+        print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
+        pass
 
 
 # Define menu
