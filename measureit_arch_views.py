@@ -343,7 +343,7 @@ class M_ARCH_UL_Views_list(UIList):
 class SCENE_PT_Views(Panel):
     """Creates a Panel in the Object properties window"""
     bl_parent_id = 'ESCENA_PT_Panel'
-    bl_label = "MeasureIt_ARCH Views"
+    bl_label = "Views"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"

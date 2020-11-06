@@ -324,7 +324,7 @@ class M_ARCH_UL_lines_list(UIList):
 class OBJECT_PT_UILines(Panel):
     """Creates a Panel in the Object properties window"""
     bl_parent_id = 'OBJECT_PT_Panel'
-    bl_label = "MeasureIt_ARCH Lines"
+    bl_label = "Line Groups"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"

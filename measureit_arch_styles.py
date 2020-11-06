@@ -122,7 +122,7 @@ class M_ARCH_UL_styles_list(UIList):
 class SCENE_PT_UIStyles(Panel):
     """Creates a Panel in the Object properties window"""
     bl_parent_id = 'ESCENA_PT_Panel'
-    bl_label = "MeasureIt_ARCH Styles"
+    bl_label = "Styles"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
