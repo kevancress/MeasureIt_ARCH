@@ -28,6 +28,7 @@ import bpy
 import bmesh
 import bgl
 import gpu
+from .measureit_arch_main import OBJECT_PT_Panel
 from bmesh import from_edit_mesh
 from math import degrees, radians
 from gpu_extras.batch import batch_for_shader
@@ -128,6 +129,7 @@ class M_ARCH_UL_Sheets_list(UIList):
 
 class SCENE_PT_Sheet(Panel):
     """Creates a Panel in the Object properties window"""
+    bl_parent_id = 'OBJECT_PT_Panel'
     bl_label = "MeasureIt_ARCH Sheet"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -136,6 +138,11 @@ class SCENE_PT_Sheet(Panel):
     @classmethod
     def poll(cls, context):
         return (context.object.type == 'CAMERA')
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon= 'RENDERLAYERS')
 
     def draw(self, context):
         layout = self.layout

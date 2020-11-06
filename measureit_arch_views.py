@@ -1,4 +1,5 @@
 import bpy
+from .measureit_arch_main import ESCENA_PT_Panel
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu
 from rna_prop_ui import PropertyPanel
 from bl_operators.presets import AddPresetBase
@@ -341,10 +342,16 @@ class M_ARCH_UL_Views_list(UIList):
 
 class SCENE_PT_Views(Panel):
     """Creates a Panel in the Object properties window"""
+    bl_parent_id = 'ESCENA_PT_Panel'
     bl_label = "MeasureIt_ARCH Views"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon= 'RESTRICT_VIEW_OFF')
 
     def draw(self, context):
         layout = self.layout
@@ -552,7 +559,7 @@ class M_ARCH_OP_Render_Preview(Operator):
 #### LEGACY PRESET CODE ####
 ############################
 
-class CAMERA_PX_Presets(Menu):
+class CAMERA_MT_PX_Presets(Menu):
     bl_label = "Resolution Presets"
     default_lable = "Resolution Presets"
     preset_subdir = "pixel"
@@ -580,7 +587,7 @@ class AddPixelResPreset(Custom_Preset_Base, Operator):
     # where to store the preset
     preset_subdir = "pixel"
        
-class CAMERA_PX_SCALE_Presets(Menu):
+class CAMERA_MT_PX_SCALE_Presets(Menu):
     bl_label = "Pixel Scale"
     default_lable = "Pixel Scale"
     preset_subdir = "scale_pixel"
@@ -607,7 +614,7 @@ class AddPixelScalePreset(Custom_Preset_Base, Operator):
     # where to store the preset
     preset_subdir = "scale_pixel"
     
-class CAMERA_PAPER_Presets(Menu):
+class CAMERA_MT_PAPER_Presets(Menu):
     bl_label = "Paper Size Presets"
     default_lable = "Paper Size Presets"
     preset_subdir = "paper"
@@ -633,7 +640,7 @@ class AddPaperResPreset(Custom_Preset_Base, Operator):
     # where to store the preset
     preset_subdir = "paper"
     
-class CAMERA_PAPER_SCALE_Presets(Menu):
+class CAMERA_MT_PAPER_SCALE_Presets(Menu):
     bl_label = "Paper Scale"
     default_lable = "Paper Scale"
     preset_subdir = "scale_paper"
