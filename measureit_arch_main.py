@@ -275,7 +275,7 @@ bpy.utils.register_class(ESCENA_PT_Panel)
 class SCENE_PT_MARCH_Settings(Panel):
     bl_parent_id = 'ESCENA_PT_Panel'
     bl_idname = "SCENE_PT_MARCH_Settings"
-    bl_label = "MeasureIt_ARCH Settings"
+    bl_label = "Settings"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'scene'

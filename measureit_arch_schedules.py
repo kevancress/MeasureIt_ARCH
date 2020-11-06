@@ -351,7 +351,7 @@ class M_ARCH_UL_Schedules_list(UIList):
 class SCENE_PT_Schedules(Panel):
     """Creates a Panel in the Object properties window"""
     bl_parent_id = 'ESCENA_PT_Panel'
-    bl_label = "MeasureIt_ARCH Schedules"
+    bl_label = "Schedules"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"

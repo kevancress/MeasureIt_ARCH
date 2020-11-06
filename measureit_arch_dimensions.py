@@ -1219,7 +1219,7 @@ class M_ARCH_UL_dimension_list(UIList):
 class OBJECT_PT_UIDimensions(Panel):
     """Creates a Panel in the Object properties window"""
     bl_parent_id = 'OBJECT_PT_Panel'
-    bl_label = "MeasureIt_ARCH Dimensions"
+    bl_label = "Dimensions"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "object"
