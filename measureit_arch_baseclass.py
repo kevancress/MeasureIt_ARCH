@@ -539,7 +539,7 @@ class MoveItem(Operator):
     bl_label = "Move Item"
     bl_description = "Move Item Up or Down in a list"
     bl_category = 'MeasureitArch'
-    propPath = StringProperty()
+    propPath : StringProperty()
     idx: IntProperty()
     upDown: BoolProperty()
 
