@@ -88,23 +88,16 @@ from bpy.props import (
 from . import auto_load
 auto_load.init()
 
-from .measureit_arch_main import precision_ui
 
 # --------------------------------------------------------------
 # Register all operators and panels
 # --------------------------------------------------------------
 
-panelClasses = [
-
-]
 
 # Define menu
 # noinspection PyUnusedLocal
 def register():
-    for cls in panelClasses:
-        bpy.utils.register_class(cls)
     auto_load.register()
-    bpy.types.SCENE_PT_unit.append(precision_ui)
     # Define properties\
     wm = WindowManager
     # register internal property
@@ -112,7 +105,6 @@ def register():
     
 def unregister():
     auto_load.unregister()
-    bpy.types.SCENE_PT_unit.remove(precision_ui)
 
     # remove OpenGL data
     measureit_arch_main.ShowHideViewportButton.handle_remove(measureit_arch_main.ShowHideViewportButton, bpy.context)

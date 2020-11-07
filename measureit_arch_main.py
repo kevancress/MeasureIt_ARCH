@@ -310,6 +310,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(sceneProps, "instance_dims")
         col.prop(sceneProps, "enable_experimental")
         col.prop(sceneProps, "use_text_autoplacement")
+        col.prop(sceneProps, 'default_resolution', text="Default Resolution")
         #col.prop(sceneProps, "debug_flip_text")
 
 
@@ -772,26 +773,43 @@ def get_selected_faces(myobject):
     return mylist
 
 # Append Precision settings to units panel
-def precision_ui(self, context):
-    scene = context.scene
-    sceneProps = scene.MeasureItArchProps
 
-    layout = self.layout
-    layout.use_property_decorate = False
-    layout.use_property_split = True
+
+
+# MeasureIt_ARCH settings
+class SCENE_PT_MARCH_units(Panel):
+    bl_parent_id = 'SCENE_PT_unit'
+    bl_idname = "SCENE_PT_MARCH_Units"
+    bl_label = "MeasureIt_ARCH Unit Settings"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'scene'
     
-    scene = context.scene
-    col = layout.column()
-    col.alignment = 'RIGHT'
-    col.label(text="MeasureIt_ARCH Unit Settings")
-    col = layout.column()
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon= 'SNAP_INCREMENT')
 
-    col.prop(sceneProps, 'metric_precision', text="Metric Precision")
-    col.prop(sceneProps, 'angle_precision', text="Angle Precision")
-    col.prop(sceneProps, 'imperial_precision', text="Imperial Precision")
+    # -----------------------------------------------------
+    # Draw (create UI interface)
+    # -----------------------------------------------------
+    def draw(self, context):
+        scene = context.scene
+        sceneProps = scene.MeasureItArchProps
 
-    col = layout.column(align=True)
-    col.prop(sceneProps, 'default_scale', text="Default Scale 1:")
-    col.prop(sceneProps, 'default_resolution', text="Default Resolution")
+        layout = self.layout
+        layout.use_property_decorate = False
+        layout.use_property_split = True
+        
+        scene = context.scene
+
+        col = layout.column()
+        col.prop(sceneProps, 'metric_precision', text="Metric Precision")
+        col.prop(sceneProps, 'angle_precision', text="Angle Precision")
+        col.prop(sceneProps, 'imperial_precision', text="Imperial Precision")
+
+        col = layout.column(align=True)
+        col.prop(sceneProps, 'default_scale', text="Default Scale 1:")
+        
 
 
