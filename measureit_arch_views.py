@@ -1,5 +1,5 @@
 import bpy
-from .measureit_arch_main import ESCENA_PT_Panel
+from .measureit_arch_main import SCENE_PT_Panel
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu
 from rna_prop_ui import PropertyPanel
 from bl_operators.presets import AddPresetBase
@@ -342,7 +342,7 @@ class M_ARCH_UL_Views_list(UIList):
 
 class SCENE_PT_Views(Panel):
     """Creates a Panel in the Object properties window"""
-    bl_parent_id = 'ESCENA_PT_Panel'
+    bl_parent_id = 'SCENE_PT_Panel'
     bl_label = "Views"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

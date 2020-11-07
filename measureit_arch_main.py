@@ -237,7 +237,7 @@ class MEASUREIT_PT_main_panel(Panel):
             col.prop_search(sceneProps,'default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
 
 # ------------------------------------------------------------------
-# Nuevo Panel para Agruparlos en PANEL PROPIEDADES OBJETO.
+# New Panel to group Object Properties
 # ------------------------------------------------------------------
 
 class OBJECT_PT_Panel(Panel):
@@ -255,11 +255,11 @@ bpy.utils.register_class(OBJECT_PT_Panel)
 
 
 # ------------------------------------------------------------------
-# Nuevo Panel para Agruparlos en PANEL PROPIEDADES ESCENA.
+# New Panel to group Scene Properties
 # ------------------------------------------------------------------
-class ESCENA_PT_Panel(bpy.types.Panel):
+class SCENE_PT_Panel(bpy.types.Panel):
     """Main Properties Panel"""
-    bl_idname = "ESCENA_PT_Panel"
+    bl_idname = "SCENE_PT_Panel"
     bl_label = "MeasureIt_ARCH"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -268,12 +268,12 @@ class ESCENA_PT_Panel(bpy.types.Panel):
     def draw(self, context):
         pass
        
-bpy.utils.register_class(ESCENA_PT_Panel)
+bpy.utils.register_class(SCENE_PT_Panel)
 
 
 # MeasureIt_ARCH settings
 class SCENE_PT_MARCH_Settings(Panel):
-    bl_parent_id = 'ESCENA_PT_Panel'
+    bl_parent_id = 'SCENE_PT_Panel'
     bl_idname = "SCENE_PT_MARCH_Settings"
     bl_label = "Settings"
     bl_space_type = 'PROPERTIES'
