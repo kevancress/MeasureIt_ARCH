@@ -764,6 +764,7 @@ def get_smart_selected():
 
                 # reverse selection history
                 verts.reverse()
+                idx = 0
 
                 # Flag to add a duplicate if were coming from a different obj
                 if (len(pointList) % 2) == 1:
