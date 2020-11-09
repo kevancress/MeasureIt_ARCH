@@ -753,14 +753,49 @@ def get_smart_selected():
         selectionMode = bpy.context.scene.tool_settings.mesh_select_mode
         for obj in objs:
             bm = from_edit_mesh(obj.data)
+            dupFlag = False
 
             # Vertex Selection
             if selectionMode[0]:
+                # Get Selection History:
+                verts = []
                 for vert in bm.select_history:
+                    verts.append(vert)
+
+                # reverse selection history
+                verts.reverse()
+
+                # Flag to add a duplicate if were coming from a different obj
+                if (len(pointList) % 2) == 1:
+                    dupFlag = True
+
+                # Warning Text for too many verts
+                if len(verts) > 2 and len(objs) > 2:
+                    warningStr = "More than 2 Verticies selected across multiple objects \n Order may not be as expected"
+
+                for vert in verts:
                     pointData = {}
                     pointData['vert'] = vert.index
                     pointData['obj'] = obj
                     pointList.append(pointData) 
+
+                    if dupFlag:
+                        pointData = {}
+                        pointData['vert'] = vert.index
+                        pointData['obj'] = obj
+                        pointList.append(pointData) 
+                        dupFlag = False
+
+                    try:
+                        pointData = {}
+                        pointData['vert'] = verts[idx+1].index
+                        pointData['obj'] = obj
+                        pointList.append(pointData) 
+
+                    except IndexError:
+                        pass
+                    idx += 1
+
 
             # Edge Selection
             elif selectionMode[1]:
