@@ -252,147 +252,48 @@ class AddAlignedDimensionButton(Operator):
             
             newDimensions = []
 
-            # Edit Context
-            if bpy.context.mode == 'EDIT_MESH':
-                for mainobject in context.objects_in_mode:
-                    mylist = []
-                    selectionMode = bpy.context.scene.tool_settings.mesh_select_mode
-                    if selectionMode[1]:
-                        mylist = get_smart_selected(mainobject) # Operates on Bmesh Edges
-                    elif selectionMode[0]:
-                        mylist = get_selected_vertex(mainobject) 
-                        if len(mylist) < 2:
-                            self.report({'ERROR'},
-                                    "MeasureIt_ARCH: Vertices must be selected in order, (for general selection, switch to EDGE mode)")
-                    if len(mylist) >= 2:
-                        #Check Generators
-                        if 'DimensionGenerator' not in mainobject:
-                            mainobject.DimensionGenerator.add()
-                        if 'StyleGenerator' not in scene:
-                            scene.StyleGenerator.add()
+            pointList, warningStr = get_smart_selected()
 
-                        DimGen = mainobject.DimensionGenerator[0]
-                        masterDimOffset = 0
-                        masterDimLeaderOffset = 0
+            if warningStr != '':
+                self.report({'ERROR'},warningStr)
 
-                        for x in range(0, len(mylist) - 1, 2):
-                            if exist_segment(DimGen, mylist[x], mylist[x + 1]) is False:
-                                newDimension = DimGen.alignedDimensions.add()
-                                newDimension.dimObjectA = mainobject
-                                newDimension.dimObjectB = mainobject
-                                newDimension.dimPointB = mylist[x]
-                                newDimension.dimPointA = mylist[x + 1]
+            for idx in range(0, len(pointList) - 1, 2):
+                p1 = pointList[idx]
+                mainObj = p1['obj']
 
-
-                                # Set Distance Dependant Properties
-                                idxA = mylist[x+1]
-                                idxB = mylist[x]
-
-                                bm = bmesh.new()
-                                bm = bmesh.from_edit_mesh(mainobject.data)
-                                verts = bm.verts
-                                verts.ensure_lookup_table()
-
-                                p1 = Vector(verts[idxA].co)
-                                p2 = Vector(verts[idxB].co)
-                                distVector = Vector(p1)-Vector(p2)
-                                dist = distVector.length
-
-                                if len(mylist)<2 or masterDimOffset == 0:    
-                                    masterDimEndCapSize = math.ceil(dist*3)
-
-                                    masterDimFontSize = math.ceil(dist*15)
-                                    
-                                    newDimension.dimOffset = dist/4
-                                    masterDimOffset = dist/4
-
-                                    newDimension.dimLeaderOffset = dist/30
-                                    masterDistance = dist/30
-
-                                else:
-                                    newDimension.dimOffset = masterDimOffset
-                                    newDimension.dimLeaderOffset = masterDimLeaderOffset
-
-                                newDimension.name = 'Dimension ' + str(len(DimGen.alignedDimensions))
-                                newDimensions.append(newDimension)
-
-                                newWrapper = DimGen.wrappedDimensions.add()
-                                newWrapper.itemType = 'D-ALIGNED'
-
-
-                        # redraw
-                        recalc_dimWrapper_index(self,context)
-                        context.area.tag_redraw()
-                        
-            
-            # Object Context
-            elif bpy.context.mode == 'OBJECT':
-                mainobject = context.object
-                if len(context.selected_objects) != 2:
-                    self.report({'ERROR'},
-                            "MeasureIt_ARCH: Select two objects only, and optionally 1 vertex or 2 vertices "
-                            "(one of each object)")
-                    return {'FINISHED'}
+                # Try To get the next point
+                # If it doesn't exist, we're done with the loop
+                try:
+                    p2 = pointList[idx+1]
+                except IndexError:
+                    break
                 
-                linkobject = None
-                for obj in context.selected_objects:
-                    if obj.name != mainobject.name:
-                        linkobject = obj
+                # Note: We won't need this try except block for v0.5
+                try: 
+                    DimGen = mainObj.DimensionGenerator[0]
+                except:
+                    mainObj.DimensionGenerator.add()
+                    DimGen = mainObj.DimensionGenerator[0]
 
-                 # Verify destination vertex
-                mylinkvertex = get_selected_vertex(linkobject)
-                if len(mylinkvertex) != 1:
-                    if len(mylinkvertex) == 0:
-                        mylinkvertex.append(9999999)
-                    else:
-                        self.report({'ERROR'},
-                                    "MeasureIt_ARCH: The destination object has more than one vertex selected. "
-                                    "Select only 1")
-                        return {'FINISHED'}
-                # Verify origin vertex
-                myobjvertex = get_selected_vertex(mainobject)
-                if len(myobjvertex) != 1:
-                    if len(myobjvertex) == 0:
-                        myobjvertex.append(9999999)
-                    else:
-                        self.report({'ERROR'},
-                                    "MeasureIt_ARCH: The active object has more than one vertex selected. Select only 1")
-                        return {'FINISHED'}
+                alignedDims = DimGen.alignedDimensions
+                
+                newDimension = alignedDims.add()
 
-                # -------------------------------
-                # Add properties
-                # -------------------------------
-                flag = False
-                if 'DimensionGenerator' not in mainobject:
-                    mainobject.DimensionGenerator.add()
+                newDimension.dimObjectA = p1['obj']
+                newDimension.dimObjectB = p2['obj']
+                
+                newDimension.dimPointA = p1['vert']
+                newDimension.dimPointB = p2['vert']
 
-                DimGen = mainobject.DimensionGenerator[0]
-
-                # Create all array elements
-                newDimension = DimGen.alignedDimensions.add()
-
-                newDimension.dimObjectA = mainobject
-                newDimension.dimPointA = myobjvertex[0]
-                newDimension.dimObjectB = linkobject
-                newDimension.dimPointB = mylinkvertex[0]
                 newDimension.name = 'Dimension ' + str(len(DimGen.alignedDimensions))
-
-                # Set Distance Dependant Properties
-                p1 = Vector(mainobject.location)
-                p2 = Vector(linkobject.location)
-                distVector = Vector(p1)-Vector(p2)
-                dist = distVector.length
-
-                newDimension.dimOffset = dist/4
-                newDimension.dimLeaderOffset = dist/30
-
-
+                newDimensions.append(newDimension)
 
                 newWrapper = DimGen.wrappedDimensions.add()
                 newWrapper.itemType = 'D-ALIGNED'
-                recalc_dimWrapper_index(self,context)
-                newDimensions.append(newDimension)
-                context.area.tag_redraw()
+                idx += 1
+
+            recalc_dimWrapper_index(self,context)
+            context.area.tag_redraw()
 
             # Set Common Values
             for newDimension in newDimensions:

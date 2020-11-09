@@ -710,37 +710,74 @@ def get_selected_vertex_history(myobject):
 
 
 # -------------------------------------------------------------
-# Get verticies from selected edges
+# Get verticies and their parent object depending on selection type
 # -------------------------------------------------------------
-def get_smart_selected(myobject):
-    mylist = []
-    # if not mesh, no vertex
-    if myobject.type != "MESH":
-        return mylist
-    # --------------------
-    # meshes
-    # --------------------
-    oldobj = bpy.context.object
-    bpy.context.view_layer.objects.active = myobject
-    flag = False
-    if myobject.mode != 'EDIT':
-        bpy.ops.object.mode_set(mode='EDIT')
-        flag = True
-
-    bm = from_edit_mesh(myobject.data)
-    for e in bm.edges:
-        if e.select is True:
-            mylist.extend([e.verts[0].index])
-            mylist.extend([e.verts[1].index])
-
-    if flag is True:
-        bpy.ops.object.editmode_toggle()
-    # Back context object
-    bpy.context.view_layer.objects.active = oldobj
-
-    return mylist
 
 
+## Adds verts to a vertex dictionary to be processed by the add function
+
+def get_smart_selected():
+    pointList = []
+    warningStr = ''
+
+    # Object Mode
+    if bpy.context.mode == 'OBJECT':
+        objs = bpy.context.selected_objects
+        print('In Object Mode')
+        idx = 0
+        if len(objs) > 2:
+            warningStr = "More than 2 objects selected, Order may not be as expected"
+
+        # Sort Objects into Pairs
+        idx = 0
+        objPairs = []
+        for o in objs:
+            try:
+                objPair = [o, objs[idx+1]]
+                objPairs.append(objPair)
+            except IndexError:
+                break
+            idx += 1 
+        
+        # Write Pairs to Points
+        for pair in objPairs:
+            for obj in pair:
+                pointData = {}
+                pointData['vert'] = 9999999
+                pointData['obj'] = obj
+                pointList.append(pointData)         
+
+    # Edit Mode
+    elif bpy.context.mode == 'EDIT_MESH':
+        objs = bpy.context.objects_in_mode
+        selectionMode = bpy.context.scene.tool_settings.mesh_select_mode
+        for obj in objs:
+            bm = from_edit_mesh(obj.data)
+
+            # Vertex Selection
+            if selectionMode[0]:
+                for vert in bm.select_history:
+                    pointData = {}
+                    pointData['vert'] = vert.index
+                    pointData['obj'] = obj
+                    pointList.append(pointData) 
+
+            # Edge Selection
+            elif selectionMode[1]:
+                for e in bm.edges:
+                    if e.select is True:
+                        for vert in e.verts:
+                            pointData = {}
+                            pointData['vert'] = vert.index
+                            pointData['obj'] = obj
+                            pointList.append(pointData)    
+            
+            
+
+        print('In Edit Mode')
+    
+    print(pointList)
+    return pointList, warningStr
 # -------------------------------------------------------------
 # Get vertex selected faces
 # -------------------------------------------------------------
@@ -772,11 +809,11 @@ def get_selected_faces(myobject):
 
     return mylist
 
-# Append Precision settings to units panel
 
 
 
-# MeasureIt_ARCH settings
+
+# MeasureIt_ARCH Unit settings
 class SCENE_PT_MARCH_units(Panel):
     bl_parent_id = 'SCENE_PT_unit'
     bl_idname = "SCENE_PT_MARCH_Units"
