@@ -710,7 +710,7 @@ def get_selected_vertex_history(myobject):
 
 
 # -------------------------------------------------------------
-# Get vertex selected segments
+# Get verticies from selected edges
 # -------------------------------------------------------------
 def get_smart_selected(myobject):
     mylist = []
