@@ -284,11 +284,9 @@ class AddAlignedDimensionButton(Operator):
                     break
                 
                 # Note: We won't need this try except block for v0.5
-                try: 
-                    DimGen = mainObj.DimensionGenerator[0]
-                except:
-                    mainObj.DimensionGenerator.add()
-                    DimGen = mainObj.DimensionGenerator[0]
+                
+                DimGen = mainObj.DimensionGenerator
+
 
                 alignedDims = DimGen.alignedDimensions
                 
@@ -468,11 +466,9 @@ class AddAxisDimensionButton(Operator):
                     break
                 
                 # Note: We won't need this try except block for v0.5
-                try: 
-                    DimGen = mainObj.DimensionGenerator[0]
-                except:
-                    mainObj.DimensionGenerator.add()
-                    DimGen = mainObj.DimensionGenerator[0]
+
+                DimGen = mainObj.DimensionGenerator
+
 
                 axisDims = DimGen.axisDimensions
                 
@@ -487,7 +483,7 @@ class AddAxisDimensionButton(Operator):
                 newDimension.name = 'Dimension ' + str(len(DimGen.axisDimensions))
                 newDimensions.append(newDimension)
 
-                newWrapper = DimGen.wrappedDimensions.add()
+                newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'axisDimensions'
                 idx += 1
 
