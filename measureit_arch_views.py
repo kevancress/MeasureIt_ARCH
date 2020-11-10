@@ -246,14 +246,12 @@ class ViewProperties(PropertyGroup):
     start_frame: IntProperty(
                 name = "Start Frame",
                 default = 1, 
-                min = 1, 
                 update = update
                 )
     
     end_frame: IntProperty(
                 name = "End Frame",
                 default = 1, 
-                min = 1, 
                 update = update
                 )
 
