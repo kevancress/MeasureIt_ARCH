@@ -150,9 +150,22 @@ class TextField(PropertyGroup):
                 default="",
                 update= update_flag)
 
-    textSource: StringProperty(name='annotationTextSource',
-                description="Text Source",
-                update=update_flag)
+    autoFillText: BoolProperty(name='Auto Fill Text',
+                description= 'Fill This Text Field Automatically from a property',
+                default = False)
+
+    textSource: EnumProperty(
+                items=(('VIEW', "View", "",'DOCUMENTS',1),
+                        ('DATE', "Date", "",'TIME',2),
+                        ('RNAPROP', "Custom Property", "",'RNA',99)),
+                name="Text Source",
+                default = 'RNAPROP',
+                description="Set Text Field Source")
+    
+    rnaProp: StringProperty(name="Custom Prop String",
+                description="RNA Prop String",
+                default="",
+                update= update_flag)
 
     textAlignment:EnumProperty(
                 items=(('L', "Left", "",'ALIGN_LEFT',1),

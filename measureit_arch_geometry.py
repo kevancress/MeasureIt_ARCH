@@ -2312,17 +2312,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 annotation.textFields[0].text = annotation.text
                 annotation.name = annotation.text
             
-            if annotation.name == "<DATE>":
-                today = datetime.now()
-                dateStr = today.strftime('%y') +'/'+ today.strftime('%m') +'/'+ today.strftime('%d')
-                annotation.textFields[0].text = dateStr
-            
-            if annotation.name == "<VIEW>":
-                view = get_view()
-                if view is not None:
-                    annotation.textFields[0].text = view.name
-
             for textField in annotation.textFields:
+                set_text(textField,myobj)
                 origin = p2
                 xDir = rotMatrix @ rotMat @ Vector((1,0,0))
                 yDir = rotMatrix @ rotMat @ Vector((0,1,0))
@@ -2409,6 +2400,42 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                     svg_shaders.svg_text_shader(annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
 
         set_OpenGL_Settings(False)
+
+
+def set_text(textField, obj):
+
+    if textField.autoFillText:
+        # DATE
+        if textField.textSource == 'DATE':
+            today = datetime.now()
+            dateStr = today.strftime('%y') +'/'+ today.strftime('%m') +'/'+ today.strftime('%d')
+            textField.text = dateStr
+
+        # VIEW    
+        elif textField.textSource == 'VIEW':
+            view = get_view()
+            if view is not None:
+                textField.text = view.name
+
+        # CUSTOM PROP
+        elif textField.textSource == 'RNAPROP':
+            if textField.rnaProp != '':
+                try:
+                    data = eval('bpy.data.objects[\'' + obj.name + '\']' + textField.rnaProp)
+                    textField.text = str(data)
+                except:
+                    textField.text = 'Bad Data Path'
+    
+    else:
+        return
+    
+
+
+
+
+
+
+
 
 ### This is a one off for a project where I need to preview the
 ### "create dual mesh" Operator from Alessandro Zomparelli's tissue addon.

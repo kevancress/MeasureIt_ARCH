@@ -83,7 +83,6 @@ class AnnotationProperties(BaseWithText,PropertyGroup):
                 description= 'Uses the Local transforms of custom annotation objects',
                 default = True)
     
-    
     custom_fit_text: BoolProperty(name='Fit Text',
                 description= 'Scale Custom Shap to Text Length',
                 default = True)
@@ -350,17 +349,32 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                     if annoGen.show_annotation_fields:
                  
-
-                        col = box.column(align=True)
-                        col.prop_search(annotation,'annotationTextSource', annotation ,'customProperties',text="Text Source")
-
                         col = box.column(align=True)
                         idx = 0
                         for textField in annotation.textFields:
-                            row = col.row(align=True)
-                            row.prop(textField, 'text', text ='Text Field ' + str(idx + 1))
+                            col = box.column(align=True)
 
-                                
+                            row = col.row(align=True)
+                            
+                            split = row.split(factor=0.2)
+                            split.label(text='Text Field ' + str(idx + 1))
+
+                            row = split.row(align=True)
+                            row.prop(textField, 'autoFillText', text="", icon="FILE_TEXT")
+                            
+                            
+                            if textField.autoFillText:
+                                row.prop(textField, 'textSource', text="")
+                            else:
+                                row.prop(textField, 'text', text = "")
+                            
+                            if textField.textSource == 'RNAPROP' and textField.autoFillText:
+                                row.prop(textField, 'rnaProp', text = "")
+  
+
+                            
+
+                        
                             row.emboss = 'PULLDOWN_MENU'
                             op = row.operator('measureit_arch.moveitem',text="", icon = 'TRIA_DOWN')
                             op.propPath = 'bpy.context.active_object.AnnotationGenerator[0].annotations[bpy.context.active_object.AnnotationGenerator[0].active_annotation_index].textFields'
