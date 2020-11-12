@@ -38,7 +38,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 from bpy.app.handlers import persistent
 from .measureit_arch_geometry import *
 from .measureit_arch_render import *
-from .measureit_arch_main import get_smart_selected, get_selected_vertex
+from .measureit_arch_main import get_smart_selected, get_selected_vertex, get_selected_vertex_history
 from .measureit_arch_baseclass import BaseProp
 
 class LineProperties(BaseProp, PropertyGroup):
@@ -172,11 +172,9 @@ class AddLineButton(Operator):
             scene = context.scene
             sceneProps = scene.MeasureItArchProps
             mainobject = context.object
-            mylist = get_smart_selected(mainobject)
-            if len(mylist) < 2:  # if not selected linked vertex
-                mylist = get_selected_vertex(mainobject)
+            selectionDict, warningStr = get_smart_selected(filterObj= mainobject, forceEdges=True)
 
-            if len(mylist) >= 2:
+            if len(selectionDict) >= 2:
                 if 'LineGenerator' not in mainobject:
                     mainobject.LineGenerator.add()
 
@@ -194,7 +192,9 @@ class AddLineButton(Operator):
                 lGroup.lineColor = sceneProps.default_color
                 lGroup.name = 'Line ' + str(len(lineGen.line_groups))
                 
-
+                mylist = []
+                for item in selectionDict:
+                    mylist.append(item['vert'])
                 lGroup['lineBuffer'] = mylist
                 lineGen.line_num += 1
 

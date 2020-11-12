@@ -716,7 +716,7 @@ def get_selected_vertex_history(myobject):
 
 ## Adds verts to a vertex dictionary to be processed by the add function
 
-def get_smart_selected():
+def get_smart_selected(filterObj = None, forceEdges = False):
     pointList = []
     warningStr = ''
 
@@ -752,67 +752,78 @@ def get_smart_selected():
         objs = bpy.context.objects_in_mode
         selectionMode = bpy.context.scene.tool_settings.mesh_select_mode
         for obj in objs:
-            bm = from_edit_mesh(obj.data)
-            dupFlag = False
+            if filterObj == None or obj.name == filterObj.name:
+                bm = from_edit_mesh(obj.data)
+                dupFlag = False
 
-            # Vertex Selection
-            if selectionMode[0]:
-                # Get Selection History:
-                verts = []
-                for vert in bm.select_history:
-                    verts.append(vert)
+                # Ignore force Edges if Selection History exists
+                if len(bm.select_history) >= 2:
+                    forceEdges = False
+                
+                # Vertex Selection
+                if selectionMode[0] and not forceEdges:
+                    # Get Selected Verts:
+                    verts = []
+                    #use History if avaialable fall back to basic selection
+                    if len(bm.select_history) > 0:
+                        for vert in bm.select_history:
+                            verts.append(vert)
+                    else:
+                        for v in obj.data.vertices:
+                            if v.select:
+                                verts.append(v)
+                        
+                    # reverse selection history
+                    verts.reverse()
+                    idx = 0
 
-                # reverse selection history
-                verts.reverse()
-                idx = 0
+                    # Flag to add a duplicate if were coming from a different obj
+                    if (len(pointList) % 2) == 1:
+                        dupFlag = True
 
-                # Flag to add a duplicate if were coming from a different obj
-                if (len(pointList) % 2) == 1:
-                    dupFlag = True
+                    # Warning Text for too many verts
+                    if len(verts) > 2 and len(objs) > 2:
+                        warningStr = "More than 2 Verticies selected across multiple objects \n Order may not be as expected"
 
-                # Warning Text for too many verts
-                if len(verts) > 2 and len(objs) > 2:
-                    warningStr = "More than 2 Verticies selected across multiple objects \n Order may not be as expected"
-
-                for vert in verts:
-                    pointData = {}
-                    pointData['vert'] = vert.index
-                    pointData['obj'] = obj
-                    pointList.append(pointData) 
-
-                    if dupFlag:
+                    for vert in verts:
                         pointData = {}
                         pointData['vert'] = vert.index
                         pointData['obj'] = obj
                         pointList.append(pointData) 
-                        dupFlag = False
 
-                    try:
-                        pointData = {}
-                        pointData['vert'] = verts[idx+1].index
-                        pointData['obj'] = obj
-                        pointList.append(pointData) 
-
-                    except IndexError:
-                        pass
-                    idx += 1
-
-
-            # Edge Selection
-            elif selectionMode[1]:
-                for e in bm.edges:
-                    if e.select is True:
-                        for vert in e.verts:
+                        if dupFlag:
                             pointData = {}
                             pointData['vert'] = vert.index
                             pointData['obj'] = obj
-                            pointList.append(pointData)    
+                            pointList.append(pointData) 
+                            dupFlag = False
+
+                        try:
+                            pointData = {}
+                            pointData['vert'] = verts[idx+1].index
+                            pointData['obj'] = obj
+                            pointList.append(pointData) 
+
+                        except IndexError:
+                            pass
+                        idx += 1
+
+
+                # Edge Selection
+                elif selectionMode[1] or forceEdges:
+                    for e in bm.edges:
+                        if e.select is True:
+                            for vert in e.verts:
+                                pointData = {}
+                                pointData['vert'] = vert.index
+                                pointData['obj'] = obj
+                                pointList.append(pointData)    
             
             
 
         print('In Edit Mode')
     
-    print(pointList)
+    #print(pointList)
     return pointList, warningStr
 # -------------------------------------------------------------
 # Get vertex selected faces
