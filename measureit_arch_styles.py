@@ -39,7 +39,7 @@ from bpy.props import (
         )
 
 from .measureit_arch_baseclass import DeletePropButton
-from .measureit_arch_dimensions import AlignedDimensionProperties, recalc_dimWrapper_index
+from .measureit_arch_dimensions import AlignedDimensionProperties, recalc_dimWrapper_index, draw_aligned_dimension_settings
 from .measureit_arch_annotations import AnnotationProperties
 from .measureit_arch_lines import LineProperties
 
@@ -188,7 +188,7 @@ class SCENE_PT_UIStyles(Panel):
                     draw_annotation_style_settings(item,box)
                 # Show Dimension Settings
                 if activeWrapperItem.itemType == 'D':
-                    draw_dim_style_settings(item,box)
+                    draw_aligned_dimension_settings(item,box)
 
 class SCENE_MT_styles_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
@@ -429,31 +429,4 @@ def draw_dimension_style_row(dim,layout):
     subrow = row.row(align=True)
     subrow.prop(dim, "visible", text="", icon = visIcon,emboss=False)
 
-def draw_dim_style_settings(dim,layout):
 
-    col = layout.column()    
-    split = layout.split(factor=0.485)
-    col = split.column()
-    col.alignment ='RIGHT'
-    col.label(text='Font')
-    col = split.column()
-
-    col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
-
-    col = layout.column(align=True)
-    col.prop(dim,'dimViewPlane', text='View Plane')
-    col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
-    col.prop(dim,'lineWeight',text='Line Weight')
-
-    col = layout.column(align=True)
-    col.prop(dim,'fontSize',text='Font Size')
-    col.prop(dim,'textAlignment',text='Alignment')
-    #col.prop(dim,'textPosition',text='Position')
-
-    col = layout.column(align=True)
-    col.prop(dim,'endcapA', text='Arrow Start')
-    col.prop(dim,'endcapB', text='End')
-    col.prop(dim,'endcapSize', text='Arrow Size')
-    col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
-    col.prop(dim,'inFront', text="Draw In Front")
-    col.prop(dim,'evalMods')

@@ -1138,45 +1138,49 @@ class OBJECT_MT_dimension_menu(bpy.types.Menu):
 
 
 def draw_aligned_dimension_settings(dim,layout):
-    col = layout.column()    
 
-    if dim.uses_style is False:
-        split = layout.split(factor=0.485)
-        col = split.column()
-        col.alignment ='RIGHT'
-        col.label(text='Font')
-        col = split.column()
-
-        col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
-
-        col = layout.column(align=True)
-        col.prop(dim,'dimViewPlane', text='View Plane')
-    else:
-        col.prop(dim,'dimViewPlane', text='View Plane Overide')
-
-    if dim.uses_style is False:
-        col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
-        col.prop(dim,'lineWeight',text='Line Weight')
-
-    col = layout.column(align=True)
-    col.prop(dim,'dimOffset',text='Distance')
-    col.prop(dim,'dimLeaderOffset',text='Offset')
-    col.prop(dim, 'dimRotation', text='Rotation')
-    
-    if dim.uses_style is False:
+    if dim.is_style or not dim.uses_style:    
+        # Text Settings
+        col = layout.column(align=True, heading='Text')    
+        col.template_ID(dim, "font", open="font.open", unlink="font.unlink",text='Font')
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
-    col.prop(dim,'textAlignment',text='Alignment')
-        #col.prop(dim,'textPosition',text='Position')
+        col.prop(dim,'textAlignment',text='Alignment')
 
-    if dim.uses_style is False:
+        # Line Weight
+        col = layout.column(align=True)
+        col.prop(dim,'lineWeight',text='Line Weight')
+
+        # View Settings
+        col = layout.column(align=True)
+        col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop(dim,'dimViewPlane', text='View Plane')
+        
+
+        # Position Settings
+        col = layout.column(align=True)
+        col.prop(dim,'dimOffset',text='Distance')
+        col.prop(dim,'dimLeaderOffset',text='Offset')
+        col.prop(dim, 'dimRotation', text='Rotation')
+        
+        # Cap Settings
         col = layout.column(align=True)
         col.prop(dim,'endcapA', text='Arrow Start')
         col.prop(dim,'endcapB', text='End')
         col.prop(dim,'endcapSize', text='Arrow Size')
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
+
+        # Toggles
+        col = layout.column(align=True)
         col.prop(dim,'inFront', text='Draw in Front')
         col.prop(dim,'evalMods')
+    
+    else:
+        col = layout.column(align=True)
+        col.prop(dim,'dimViewPlane', text='View Plane Overide')
+
+        col = layout.column(align=True)
+        col.prop(dim,'tweakOffset',text='Tweak Distance')
 
 def draw_bounds_dimension_settings(dim,layout):
     col = layout.column()    
@@ -1392,8 +1396,8 @@ def draw_area_dimension_settings(dim,layout):
 
 
 
-class TranlateAnnotationOp(bpy.types.Operator):
-    """Move Annotation"""
+class TranlateDimensionOp(bpy.types.Operator):
+    """Move Dimension"""
     bl_idname = "measureit_arch.dimesnion_offset"
     bl_label = "Adjust Dimension Offset"
     bl_options = {'GRAB_CURSOR','INTERNAL','BLOCKING','UNDO'}
@@ -1463,7 +1467,13 @@ class TranlateAnnotationOp(bpy.types.Operator):
                 resultInit /= toFeet
                 delta /= toFeet
 
-            dimension.dimOffset = resultInit +  delta
+            value = resultInit +  delta
+
+            if dimension.uses_style: 
+                dimension.tweakOffset = value
+            else:
+                dimension.dimOffset = value 
+
             context.area.header_text_set("Dimension Offset = " + "%.4f" % (resultInit +  delta))
 
         elif event.type == 'LEFTMOUSE':
@@ -1490,6 +1500,8 @@ class TranlateAnnotationOp(bpy.types.Operator):
         self.init_mouse_y = event.mouse_y
 
         self.init = dimension.dimOffset
+        if dimension.uses_style: 
+            self.init = dimension.tweakOffset
 
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}

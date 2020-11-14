@@ -421,8 +421,11 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         caps = (dimProps.endcapA, dimProps.endcapB)
         capSize = dimProps.endcapSize
 
-        offset = dim.dimOffset
-        geoOffset = dim.dimLeaderOffset
+        offset = dimProps.dimOffset 
+        if dim.uses_style:
+             offset += dim.tweakOffset
+        
+        geoOffset = dimProps.dimLeaderOffset
 
         # get points positions from indicies
         aMatrix = dim.dimObjectA.matrix_world
@@ -478,7 +481,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
 
 
         # Compute offset vector from face normal and user input
-        rotationMatrix = Matrix.Rotation(dim.dimRotation, 4, normDistVector)
+        rotation = dimProps.dimRotation
+        rotationMatrix = Matrix.Rotation(rotation, 4, normDistVector)
         selectedNormal = Vector(select_normal(myobj, dim, normDistVector, midpoint, dimProps))
         
         userOffsetVector = rotationMatrix@selectedNormal
@@ -3553,6 +3557,7 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
             endTime = time.time()
             print("Time: " + str(endTime -startTime))
         idx += 1    
+        
     # Draw Instanced Objects
     if True:
         deps = bpy.context.view_layer.depsgraph
