@@ -180,63 +180,58 @@ class AddAnnotationButton(Operator):
         if context.area.type == 'VIEW_3D':
             scene = context.scene
             sceneProps = scene.MeasureItArchProps
-            # Add properties
             mainobject = context.object
+
+            # If no obj selected, created an empty
             if len(context.selected_objects) == 0:
                 cursorLoc = bpy.context.scene.cursor.location
                 newEmpty = bpy.ops.object.empty_add(type='SPHERE', radius=0.01, location=cursorLoc)
                 context.object.name = 'Annotation Empty'
-                mainobject = context.object
-                emptyAnnoFlag = True
+                emptyAnnoFlag = True            
 
-            if 'AnnotationGenerator' not in mainobject:
-                mainobject.AnnotationGenerator.add()
+            pointList, warningStr = get_smart_selected(usePairs=False)
 
-            annotationGen = mainobject.AnnotationGenerator[0] 
+            if warningStr != '':
+                self.report({'ERROR'},warningStr)
+            
+            print(pointList)
 
-            if mainobject.type=='MESH':
-                mylist = get_selected_vertex(mainobject)
-                if len(mylist) == 1:
-                    annotationGen.num_annotations +=1
-                    newAnnotation = annotationGen.annotations.add()
-                    newAnnotation.annotationAnchor = mylist[0]
-                    
-                    context.area.tag_redraw()  
-                    update_custom_props(newAnnotation, context)
-                else:
-                    self.report({'ERROR'},
-                                "MeasureIt_ARCH: Select one vertex for creating measure label")
-                    return {'FINISHED'}
-            else:
+            for point in pointList:
+                obj = point['obj']
+                anchor = point['vert']
+
+                if 'AnnotationGenerator' not in obj:
+                    obj.AnnotationGenerator.add()
+                annotationGen = obj.AnnotationGenerator[0] 
+
                 annotationGen.num_annotations +=1
                 newAnnotation = annotationGen.annotations.add()
-                newAnnotation.annotationAnchor = 9999999 
-                context.area.tag_redraw()  
-                update_custom_props(newAnnotation,context)
-            
-            newAnnotation.itemType = 'A'
-            newAnnotation.annotationAnchorObject = mainobject
-            
-            
-            if sceneProps.default_annotation_style is not '':
-                newAnnotation.uses_style = True
-                newAnnotation.style = sceneProps.default_annotation_style
-            else:
-                newAnnotation.uses_style = False
+                newAnnotation.annotationAnchor = anchor
 
-            if emptyAnnoFlag:
-                newAnnotation.annotationOffset = (0,0,0)
-                newAnnotation.textAlignment = 'C'
-                newAnnotation.lineWeight = 0
+            
+                newAnnotation.itemType = 'A'
+                newAnnotation.annotationAnchorObject = mainobject
+                
+                
+                if sceneProps.default_annotation_style is not '':
+                    newAnnotation.uses_style = True
+                    newAnnotation.style = sceneProps.default_annotation_style
+                else:
+                    newAnnotation.uses_style = False
 
-            newAnnotation.name = ("Annotation " + str(annotationGen.num_annotations))
-            field = newAnnotation.textFields.add()
-            field.text = ("Annotation " + str(annotationGen.num_annotations))
-            field2 = newAnnotation.textFields.add()
-            field2.text = ("")
+                if emptyAnnoFlag:
+                    newAnnotation.annotationOffset = (0,0,0)
+                    newAnnotation.textAlignment = 'C'
+                    newAnnotation.lineWeight = 0
 
-            newAnnotation.color = (0,0,0,1)
-            newAnnotation.fontSize = 24
+                newAnnotation.name = ("Annotation " + str(annotationGen.num_annotations))
+                field = newAnnotation.textFields.add()
+                field.text = ("Annotation " + str(annotationGen.num_annotations))
+                field2 = newAnnotation.textFields.add()
+                field2.text = ("")
+
+                newAnnotation.color = (0,0,0,1)
+                newAnnotation.fontSize = 24
             return {'FINISHED'}
         else:
             self.report({'WARNING'},   

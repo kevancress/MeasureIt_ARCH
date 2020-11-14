@@ -716,7 +716,7 @@ def get_selected_vertex_history(myobject):
 
 ## Adds verts to a vertex dictionary to be processed by the add function
 
-def get_smart_selected(filterObj = None, forceEdges = False):
+def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
     pointList = []
     warningStr = ''
 
@@ -751,6 +751,8 @@ def get_smart_selected(filterObj = None, forceEdges = False):
     elif bpy.context.mode == 'EDIT_MESH':
         objs = bpy.context.objects_in_mode
         selectionMode = bpy.context.scene.tool_settings.mesh_select_mode
+
+        # For each obj in edit mode
         for obj in objs:
             if filterObj == None or obj.name == filterObj.name:
                 bm = from_edit_mesh(obj.data)
@@ -778,7 +780,7 @@ def get_smart_selected(filterObj = None, forceEdges = False):
                     idx = 0
 
                     # Flag to add a duplicate if were coming from a different obj
-                    if (len(pointList) % 2) == 1:
+                    if ((len(pointList) % 2) == 1) and usePairs:
                         dupFlag = True
 
                     # Warning Text for too many verts
@@ -797,15 +799,15 @@ def get_smart_selected(filterObj = None, forceEdges = False):
                             pointData['obj'] = obj
                             pointList.append(pointData) 
                             dupFlag = False
+                        if usePairs:
+                            try:
+                                pointData = {}
+                                pointData['vert'] = verts[idx+1].index
+                                pointData['obj'] = obj
+                                pointList.append(pointData) 
 
-                        try:
-                            pointData = {}
-                            pointData['vert'] = verts[idx+1].index
-                            pointData['obj'] = obj
-                            pointList.append(pointData) 
-
-                        except IndexError:
-                            pass
+                            except IndexError:
+                                pass
                         idx += 1
 
 
