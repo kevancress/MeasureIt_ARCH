@@ -137,7 +137,10 @@ class SCENE_PT_Sheet(Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object.type == 'CAMERA')
+        if context.scene.MeasureItArchProps.enable_experimental:
+            return (context.object.type == 'CAMERA')
+        else:
+            return False
 
     def draw_header(self, context):
         layout = self.layout
