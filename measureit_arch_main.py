@@ -725,27 +725,27 @@ def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
         objs = bpy.context.selected_objects
         print('In Object Mode')
         idx = 0
-        if len(objs) > 2:
+        if len(objs) > 2 and usePairs:
             warningStr = "More than 2 objects selected, Order may not be as expected"
 
         # Sort Objects into Pairs
         idx = 0
-        objPairs = []
-        for o in objs:
-            try:
-                objPair = [o, objs[idx+1]]
-                objPairs.append(objPair)
-            except IndexError:
-                break
-            idx += 1 
-        
-        # Write Pairs to Points
-        for pair in objPairs:
-            for obj in pair:
-                pointData = {}
-                pointData['vert'] = 9999999
-                pointData['obj'] = obj
-                pointList.append(pointData)         
+        for obj in objs:
+            pointData = {}
+            pointData['vert'] = 9999999
+            pointData['obj'] = obj
+            pointList.append(pointData)
+
+            if usePairs:
+                try:
+                    pointData = {}
+                    pointData['vert'] = 9999999
+                    pointData['obj'] = objs[idx+1]
+                    pointList.append(pointData) 
+                except IndexError:
+                    pass
+
+            idx += 1
 
     # Edit Mode
     elif bpy.context.mode == 'EDIT_MESH':
@@ -799,6 +799,7 @@ def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
                             pointData['obj'] = obj
                             pointList.append(pointData) 
                             dupFlag = False
+
                         if usePairs:
                             try:
                                 pointData = {}
