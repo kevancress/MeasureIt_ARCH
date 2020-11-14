@@ -1484,7 +1484,8 @@ class TranlateAnnotationOp(bpy.types.Operator):
 
     def invoke(self, context, event):
         myobj = context.selected_objects[self.objIndex]
-        dimension = myobj.DimensionGenerator[0].alignedDimensions[self.idx]
+
+        dimension = eval('myobj.' + self.dimType)
         self.init_mouse_x = event.mouse_x
         self.init_mouse_y = event.mouse_y
 
