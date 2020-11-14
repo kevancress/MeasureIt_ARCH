@@ -411,10 +411,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
     enable_experimental: BoolProperty(name="Enable Experimental",
                                 description="Enable Experimental Features like SVG Rendering",
                                 default=False)
-    
-    enable_experimental: BoolProperty(name="Enable Experimental",
-                                description="Enable Experimental Features like SVG Rendering",
-                                default=False)
 
     use_text_autoplacement: BoolProperty(name="Use Text Autoplacement",
                                 description="Adjust Dimension Text Placement Automatically",
