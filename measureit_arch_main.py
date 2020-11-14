@@ -296,21 +296,22 @@ class SCENE_PT_MARCH_Settings(Panel):
         scene = context.scene
         sceneProps = scene.MeasureItArchProps
         
-        col = layout.column(align=True)
-        col.prop(sceneProps, 'show_dim_text',)
-        col.prop(sceneProps, 'hide_units',)
-        
-      
-        col = layout.column(align = True)
-        col.alignment = 'RIGHT'
-        col = layout.column()
-        col.prop(sceneProps, "measureit_arch_debug_text")
-        col.prop(sceneProps, "show_text_cards")
+        col = layout.column(align=True, heading='Settings')
+        #col.prop(sceneProps, 'show_dim_text',) I Dont Know why this would be usefull
+        col.prop(sceneProps, 'hide_units')
         col.prop(sceneProps, "eval_mods")
-        col.prop(sceneProps, "instance_dims")
-        col.prop(sceneProps, "enable_experimental")
         col.prop(sceneProps, "use_text_autoplacement")
         col.prop(sceneProps, 'default_resolution', text="Default Resolution")
+        
+        col = layout.column(align = True, heading='Debug')
+        col.prop(sceneProps, "measureit_arch_debug_text")
+        col.prop(sceneProps, "show_text_cards")
+        
+        col = layout.column(align = True, heading='Experimental')
+        col.prop(sceneProps, "enable_experimental")
+        
+        if sceneProps.enable_experimental:
+            col.prop(sceneProps, "instance_dims")
         #col.prop(sceneProps, "debug_flip_text")
 
 
