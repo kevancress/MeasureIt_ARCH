@@ -391,7 +391,7 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
         
             svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg_hatch)
 
-def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
+def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
    
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -427,6 +427,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat, svg=None):
         # get points positions from indicies
         aMatrix = dim.dimObjectA.matrix_world
         bMatrix = dim.dimObjectB.matrix_world
+
+        if mat is not None:
+            aMatrix = mat @ aMatrix
+            bMatrix = mat @ bMatrix  
         
         # get points positions from indicies
         p1Local = None
@@ -3527,7 +3531,7 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
                 DimGen = myobj.DimensionGenerator[0]
                 
                 for alignedDim in DimGen.alignedDimensions:
-                    draw_alignedDimension(context, myobj, DimGen, alignedDim,mat,svg=svg)
+                    draw_alignedDimension(context, myobj, DimGen, alignedDim,svg=svg)
 
                 for angleDim in DimGen.angleDimensions:
                     draw_angleDimension(context, myobj, DimGen, angleDim,mat,svg=svg)
@@ -3572,7 +3576,7 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
                         DimGen = myobj.DimensionGenerator[0]
                         mat = obj_int.matrix_world
                         for alignedDim in DimGen.alignedDimensions:
-                            draw_alignedDimension(context, myobj, DimGen, alignedDim,mat,svg=svg)
+                            draw_alignedDimension(context, myobj, DimGen, alignedDim,mat=mat,svg=svg)
                         for angleDim in DimGen.angleDimensions:
                             draw_angleDimension(context, myobj, DimGen, angleDim,mat,svg=svg)
                         for axisDim in DimGen.axisDimensions:
