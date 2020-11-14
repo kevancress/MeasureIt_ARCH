@@ -33,6 +33,8 @@ def update(self,context):
     ViewGen = scene.ViewGenerator
     view = ViewGen.views[ViewGen.active_index]
     camera = view.camera.data
+    if camera is not None:
+        camera.type = view.cameraType
 
     if view.end_frame < view.start_frame:
         view.end_frame = view.start_frame
@@ -118,6 +120,17 @@ class ViewProperties(PropertyGroup):
 
     camera: PointerProperty(type= bpy.types.Object,
                             poll = camera_poll)
+
+    cameraType: EnumProperty(
+                            items=[
+                                ('PERSP','Perspective',''), 
+                                ('ORTHO','Ortho','')
+                                ],
+                            name ="Camera Type",
+                            description = 'Camera Type', 
+                            default = 'ORTHO',
+                            update = update
+                            )
 
     width: FloatProperty(name = "Width", 
                                         description = "Camera Width in Units", 
@@ -396,7 +409,7 @@ class SCENE_PT_Views(Panel):
                     camera = view.camera.data
                     col.operator("measureit_arch.renderpreviewbutton", icon='RENDER_STILL', text="Render View Preview")
                     #col.operator("bind_marker.bind_marker", text = "Bind Camera To Frame", icon = 'CAMERA_DATA')
-                    col.prop(camera, "type", text="Camera Type")
+                    col.prop(view, "cameraType", text="Camera Type")
                     col.prop_search(view,'view_layer', context.scene, 'view_layers',text='View Layer')
                     col.prop_search(view,'titleBlock', bpy.data, 'scenes', text='Title Block')  
                     col.prop(view, "output_path")
