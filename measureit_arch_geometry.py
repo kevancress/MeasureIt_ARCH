@@ -754,7 +754,11 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
         caps = (dimProps.endcapA, dimProps.endcapB)
         capSize = dimProps.endcapSize
 
-        offset = dim.dimOffset
+        
+        offset = dimProps.dimOffset 
+        if dim.uses_style:
+             offset += dim.tweakOffset
+
         geoOffset = dim.dimLeaderOffset
 
 
@@ -949,7 +953,10 @@ def draw_axisDimension(context, myobj, measureGen,dim, mat, svg=None):
         caps = (dimProps.endcapA, dimProps.endcapB)
         capSize = dimProps.endcapSize
 
-        offset = dim.dimOffset
+        
+        offset = dimProps.dimOffset 
+        if dim.uses_style:
+             offset += dim.tweakOffset
         geoOffset = dim.dimLeaderOffset
     
         # get points positions from indicies

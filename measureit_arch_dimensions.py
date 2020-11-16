@@ -1242,44 +1242,60 @@ def draw_axis_dimension_settings(dim,layout):
     col = layout.column()    
 
     if dim.uses_style is False:
-        split = layout.split(factor=0.485)
-        col = split.column()
-        col.alignment ='RIGHT'
-        col.label(text='Font')
-        col = split.column()
-
-        col.template_ID(dim, "font", open="font.open", unlink="font.unlink")
-
-        col = layout.column(align=True)
-        col.prop(dim,'dimViewPlane', text='View Plane')
-    else:
-        col.prop(dim,'dimViewPlane', text='View Plane Overide')
-    col.prop(dim,'dimAxis', text='Measurement Axis')
-    col.prop_search(dim,'dimAxisObject', bpy.data, 'objects',text='Custom Axis Object')
-    
-    col = layout.column(align=True)
-    if dim.uses_style is False:
-        col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
-        
-        col.prop(dim,'lineWeight',text='Line Weight')
-
-    col = layout.column(align=True)
-    col.prop(dim,'dimOffset',text='Distance')
-    col.prop(dim,'dimLeaderOffset',text='Offset')
-    
-    if dim.uses_style is False:
+        # Text Settings
+        col = layout.column(align=True, heading='Text')    
+        col.template_ID(dim, "font", open="font.open", unlink="font.unlink",text='Font')
         col = layout.column(align=True)
         col.prop(dim,'fontSize',text='Font Size')
         col.prop(dim,'textAlignment',text='Alignment')
-        #col.prop(dim,'textPosition',text='Position')
 
+        # Line Weight
+        col = layout.column(align=True)
+        col.prop(dim,'lineWeight',text='Line Weight')
+
+        # View Settings
+        col = layout.column(align=True)
+        col.prop_search(dim,'visibleInView', bpy.data, 'cameras',text='Visible In View')
+        col.prop(dim,'dimViewPlane', text='View Plane')
+
+        # Axis Settings
+        col = layout.column(align=True)
+        col.prop(dim,'dimAxis', text='Measurement Axis')
+        col.prop_search(dim,'dimAxisObject', bpy.data, 'objects',text='Custom Axis Object')
+        
+        # Position Settings
+        col = layout.column(align=True)
+        col.prop(dim,'dimOffset',text='Distance')
+        col.prop(dim,'dimLeaderOffset',text='Offset')
+        col.prop(dim, 'dimRotation', text='Rotation')
+        
+        # Cap Settings
         col = layout.column(align=True)
         col.prop(dim,'endcapA', text='Arrow Start')
         col.prop(dim,'endcapB', text='End')
         col.prop(dim,'endcapSize', text='Arrow Size')
         col.prop(dim,'endcapArrowAngle', text='Arrow Angle')
+
+        # Toggles
+        col = layout.column(align=True)
         col.prop(dim,'inFront', text='Draw in Front')
-    col.prop(dim,'evalMods')
+        col.prop(dim,'evalMods')
+
+    else:
+        col = layout.column(align=True)
+        col.prop(dim,'dimViewPlane', text='View Plane Overide')
+        
+        col = layout.column(align=True)
+        col.prop(dim,'dimAxis', text='Measurement Axis')
+        col.prop_search(dim,'dimAxisObject', bpy.data, 'objects',text='Custom Axis Object')
+
+        col = layout.column(align=True)
+        col.prop(dim,'tweakOffset',text='Tweak Distance')
+
+
+
+    
+    
 
 def draw_angle_dimension_settings(dim,layout):
         col = layout.column()
@@ -1425,6 +1441,9 @@ class TranlateDimensionOp(bpy.types.Operator):
         if event.ctrl:
             tweak_snap = True
         else: tweak_snap = False
+        if event.alt:
+            styleOffset = True
+        else: styleOffset = False
         if event.shift:
             tweak_precise = True
         else: tweak_precise= False
@@ -1469,8 +1488,13 @@ class TranlateDimensionOp(bpy.types.Operator):
 
             value = resultInit +  delta
 
-            if dimension.uses_style: 
+            if dimension.uses_style and not styleOffset: 
                 dimension.tweakOffset = value
+            elif dimension.uses_style and styleOffset:
+                dimension.tweakOffset = self.init
+                for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
+                    if alignedDimStyle.name == dimension.style:
+                        alignedDimStyle.dimOffset = value
             else:
                 dimension.dimOffset = value 
 
@@ -1481,6 +1505,8 @@ class TranlateDimensionOp(bpy.types.Operator):
             context.object.hide_viewport = False
             context.area.header_text_set(None)
             return {'FINISHED'}
+        
+      
 
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
             #Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
