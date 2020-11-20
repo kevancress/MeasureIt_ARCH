@@ -1233,7 +1233,6 @@ def draw_angleDimension(context, myobj, DimGen, dim,mat, svg=None):
             verts.append(point)
 
 
-        
         #Format Angle
         angleText = format_angle(angle)
 
