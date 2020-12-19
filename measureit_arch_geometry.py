@@ -46,7 +46,7 @@ import random
 from . import svg_shaders
 from datetime import datetime
 
-lastMode = None
+lastMode = {}
 lineBatch3D = {}
 dashedBatch3D = {}
 hiddenBatch3D = {}
@@ -1987,20 +1987,24 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
             global lastMode
             recoordFlag = False
             evalModsGlobal = sceneProps.eval_mods
-            if lastMode != myobj.mode or evalMods or evalModsGlobal:
+            try:
+                obj_last_mode = lastMode[myobj.name]
+            except KeyError:
+                 obj_last_mode = myobj.mode
+                 lastMode[myobj.name] = obj_last_mode
+                
+
+            if  obj_last_mode != myobj.mode or evalMods or evalModsGlobal:
                 recoordFlag = True
-                lastMode = myobj.mode\
-            
-            if myobj.mode == 'EDIT':
-                return
-            else:     
-                if (evalModsGlobal or evalMods) and check_mods(myobj):
-                    deps = bpy.context.view_layer.depsgraph
-                    obj_eval = myobj.evaluated_get(deps)
-                    mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
-                    verts = mesh.vertices          
-                else:
-                    verts = myobj.data.vertices
+                lastMode[myobj.name] = myobj.mode
+                        
+            if (evalModsGlobal or evalMods or recoordFlag) and check_mods(myobj):
+                deps = bpy.context.view_layer.depsgraph
+                obj_eval = myobj.evaluated_get(deps)
+                mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
+                verts = mesh.vertices          
+            else:
+                verts = myobj.data.vertices
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
