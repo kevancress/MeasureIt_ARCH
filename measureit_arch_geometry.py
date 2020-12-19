@@ -333,6 +333,8 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
         mat = myobj.matrix_world
         mesh = myobj.data
 
+        polys = mesh.polygons
+
         bm = bmesh.new()
         if myobj.mode == 'OBJECT':
             bm.from_object(myobj,bpy.context.view_layer.depsgraph,deform=True)
@@ -357,7 +359,33 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
 
         for slot in matSlots:
             objMaterials.append(slot.material)
+        
+        for face in bm.faces:
+            matIdx = face.material_index
+            try:
+                faceMat = objMaterials[matIdx]
+            except:
+                faceMat = None
 
+            if faceMat in hatchMaterials:
+                    idx = hatchMaterials.index(faceMat)
+                    hatch = hatchGen.hatches[idx]
+                    
+                    fillRGB = rgb_gamma_correct(hatch.color) 
+                    if hatch.name not in hatchDict:
+                        hatchDict[hatch.name] = {}
+                    if "coords" not in hatchDict[hatch.name]:
+                        hatchDict[hatch.name]["coords"] = []
+                    hatchDict[hatch.name]["color"] = fillRGB
+                    hatchDict[hatch.name]["hatch"] = hatch
+                    
+                    poly = []
+                    for vert in face.verts:
+                        #vert = loop.vert
+                       poly.append(mat@vert.co)
+                    hatchDict[hatch.name]["coords"].append(poly)
+
+        '''
         for tri in tris:
     
             face = tri[1].face
@@ -382,14 +410,16 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                 for loop in tri:
                     vert = loop.vert
                     hatchDict[hatch.name]["coords"].append(mat@vert.co)
+         '''
                 
         for key in hatchDict:
             hatch = hatchDict[key]["hatch"]
             svg_hatch = svg_obj.add(svg.g(id=hatch.name))
-            filledCoords = hatchDict[key]["coords"]
+            polys = hatchDict[key]["coords"]
             fillRGB = hatchDict[key]["color"]
-        
-            svg_shaders.svg_fill_shader(hatch, filledCoords, fillRGB, svg, parent=svg_hatch)
+
+            for poly in polys:
+                svg_shaders.svg_poly_fill_shader(hatch, poly, fillRGB, svg, parent=svg_hatch)
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
    

@@ -79,6 +79,20 @@ def svg_fill_shader(item, coords,color,svg,parent=None):
         tri = svg.polygon(points=[coords_2d[x],coords_2d[x+1],coords_2d[x+2]])
         fills.add(tri)
 
+def svg_poly_fill_shader(item, coords,color,svg,parent=None):
+    coords_2d = []
+    idName = item.name + "_fills"
+    svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
+    fills = svg.g(id=idName,fill=svgColor)
+    parent.add(fills)
+
+    
+    for coord in coords:
+        coords_2d.append(get_render_location(coord))
+    
+    poly = svg.polygon(points = coords_2d)
+    fills.add(poly)
+
 
 def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
 
