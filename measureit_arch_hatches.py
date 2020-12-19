@@ -26,13 +26,28 @@ class HatchProperties(PropertyGroup):
 
     material: PointerProperty(type= bpy.types.Material)
 
-    color: FloatVectorProperty(name="Color",
+    fill_color: FloatVectorProperty(name="Color",
             description="Color for the Item",
             default= (0.0,0.0,0.0, 1.0),
             min=0,
             max=1,
             subtype='COLOR',
             size=4,)
+    
+    line_color: FloatVectorProperty(name="Color",
+            description="Color for the Item",
+            default= (0.0,0.0,0.0, 1.0),
+            min=0,
+            max=1,
+            subtype='COLOR',
+            size=4,)
+    
+    lineWeight: FloatProperty(name="Line Weight",
+                description="Lineweight",
+                default = 1,
+                soft_min = 1.0,
+                step = 25,
+                min = 0)
 
 
 
@@ -80,7 +95,7 @@ class M_ARCH_UL_Hatches_list(UIList):
                 subrow = row.row()
                 subrow.prop(hatch, "name", text="",emboss=False)
                 row.prop(hatch,'material', text="", icon = 'MATERIAL_DATA')
-                row.prop(hatch,'color', text="",)
+                row.prop(hatch,'fill_color', text="",)
 
             elif self.layout_type in {'GRID'}:
                 layout.alignment = 'CENTER'
@@ -125,24 +140,27 @@ class SCENE_PT_Hatches(Panel):
         # Settings Below List
         # I'll bring this back, but right now hatches only do fills so
         # Theres not really enough props for a full UI
-        if False:
-            if len(HatchGen.hatches) > 0 and  HatchGen.active_index < len(HatchGen.hatches):
 
-                hatch = HatchGen.hatches[HatchGen.active_index]
+        if len(HatchGen.hatches) > 0 and  HatchGen.active_index < len(HatchGen.hatches):
 
-                if HatchGen.show_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
-                else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
-                
-                box = layout.box()
-                col = box.column()
-                row = col.row()
-                row.prop(HatchGen, 'show_settings', text="", icon=settingsIcon,emboss=False)
+            hatch = HatchGen.hatches[HatchGen.active_index]
 
-                row.label(text= hatch.name + ' Settings:')
-
-                if HatchGen.show_settings:
-                    col = box.column()
+            if HatchGen.show_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
+            else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
             
+            box = layout.box()
+            col = box.column()
+            row = col.row()
+            row.prop(HatchGen, 'show_settings', text="", icon=settingsIcon,emboss=False)
+
+            row.label(text= hatch.name + ' Settings:')
+
+            if HatchGen.show_settings:
+                col = box.column()
+                col.prop(hatch,'fill_color', text="Fill Color",)
+                col.prop(hatch,'line_color', text="Line Color",)
+                col.prop(hatch,'lineWeight', text="Line Weight",)
+        
 
               
  

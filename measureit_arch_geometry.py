@@ -371,12 +371,15 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                     idx = hatchMaterials.index(faceMat)
                     hatch = hatchGen.hatches[idx]
                     
-                    fillRGB = rgb_gamma_correct(hatch.color) 
+                    fillRGB = rgb_gamma_correct(hatch.fill_color)
+                    lineRGB = rgb_gamma_correct(hatch.line_color) 
                     if hatch.name not in hatchDict:
                         hatchDict[hatch.name] = {}
                     if "coords" not in hatchDict[hatch.name]:
                         hatchDict[hatch.name]["coords"] = []
-                    hatchDict[hatch.name]["color"] = fillRGB
+                    hatchDict[hatch.name]["fill_color"] = fillRGB
+                    hatchDict[hatch.name]["line_color"] = lineRGB
+                    hatchDict[hatch.name]["weight"] = hatch.lineWeight
                     hatchDict[hatch.name]["hatch"] = hatch
                     
                     poly = []
@@ -416,10 +419,12 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
             hatch = hatchDict[key]["hatch"]
             svg_hatch = svg_obj.add(svg.g(id=hatch.name))
             polys = hatchDict[key]["coords"]
-            fillRGB = hatchDict[key]["color"]
+            fillRGB = hatchDict[key]["fill_color"]
+            lineRGB = hatchDict[key]["line_color"]
+            weight = hatchDict[key]["weight"]
 
             for poly in polys:
-                svg_shaders.svg_poly_fill_shader(hatch, poly, fillRGB, svg, parent=svg_hatch)
+                svg_shaders.svg_poly_fill_shader(hatch, poly, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight)
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
    
