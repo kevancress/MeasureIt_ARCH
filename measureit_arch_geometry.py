@@ -305,7 +305,7 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
     sceneProps = context.scene.MeasureItArchProps
     svg_obj = svg.add(svg.g(id=myobj.name))
 
-    if myobj.visible_get():
+    if myobj.visible_get() and not myobj.hide_render:
         mat = myobj.matrix_world
         mesh = myobj.data
 
@@ -3493,6 +3493,27 @@ def get_lineWeight():
     pass
 
 
+def z_order_objs(obj_list):
+    ordered_obj_list = []
+
+    for obj in obj_list:
+        idx = sort_z(obj,ordered_obj_list)
+        ordered_obj_list.insert(idx,obj)
+    
+    return ordered_obj_list
+
+
+def sort_z(obj,ordered_list,idx=0):
+    try:
+        check_z = ordered_list[idx].location.z
+    except IndexError:
+        return idx
+    if obj.location.z < check_z:
+        pass
+    else:
+        idx+=1
+        idx = sort_z(obj,ordered_list,idx = idx)
+    return idx
 
 
 def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
@@ -3506,9 +3527,12 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
     totalobjs = len(objlist)
 
     if sceneProps.is_vector_draw:
-        hatches = svg.g(id='Hatches')
         drawing = svg.g(id='Drawing')
+        hatches = svg.g(id='Hatches')
         titleblock = svg.g(id='TitleBlock')
+
+    if sceneProps.vector_z_order and sceneProps.is_vector_draw:
+        objlist = z_order_objs(objlist)
 
     for myobj in objlist:
        
