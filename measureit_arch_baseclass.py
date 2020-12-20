@@ -404,6 +404,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                 description="Flag to use svg draw code",
                                 default=False)
     
+    vector_z_order: BoolProperty(name="Vector Z Order",
+                                description="Order Vector Layers by Object Z Height",
+                                default=False)
+    
+    
     vector_depthtest: BoolProperty(name="Use Vector Depth Test",
                                 description="Check for Occlusion when rending to SVG \n WARNING: SLOW, open system console before rendering to view progress",
                                 default=False)
