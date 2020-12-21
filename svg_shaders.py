@@ -191,6 +191,19 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
             'text-align': text_anchor
         }))
 
+def svg_line_pattern_shader(pattern,svg,objs,weight,color):
+    svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
+
+    for obj in objs:
+        mesh = obj.data
+        edges = mesh.edges
+        for edge in edges:
+            pair = []
+            for idx in edge.vertices:
+                ssp = (mesh.vertices[idx].co[0]*100,mesh.vertices[idx].co[1]*100)
+                pair.append(ssp)
+            pattern.add(svg.line(start=tuple(pair[0]),end=tuple(pair[1]),stroke_width = weight, stroke = svgColor))
+        
 
 # --------------------------------------------------------------------
 # Get position in final render image
