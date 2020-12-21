@@ -365,7 +365,9 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                     hatchDict[hatch.name]["line_color"] = lineRGB
                     hatchDict[hatch.name]["weight"] = hatch.lineWeight
                     hatchDict[hatch.name]["hatch"] = hatch
-                    hatchDict[hatch.name]["pattern"] = hatch.pattern.name
+                    if hatch.pattern != None:
+                        hatchDict[hatch.name]["pattern"] = hatch.pattern.name
+                    else: hatchDict[hatch.name]["pattern"] = ''
                     
                     poly = []
                     for vert in face.verts:
