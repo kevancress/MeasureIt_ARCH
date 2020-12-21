@@ -46,6 +46,7 @@ import random
 from . import svg_shaders
 from datetime import datetime
 from .measureit_arch_baseclass import recalc_dimWrapper_index
+import svgwrite
 
 lastMode = {}
 lineBatch3D = {}
@@ -325,13 +326,17 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
 
         matSlots = myobj.material_slots
         objMaterials = []
-
         hatchMaterials = []
-
         hatchDict = {}
+        hatchPatterns = {}
 
         for hatch in hatchGen.hatches:
             hatchMaterials.append(hatch.material)
+            if hatch.pattern != None:
+                name = hatch.pattern.name
+                pattern = svgwrite.pattern.Pattern(width=50, height=50, id=name, patternUnits="userSpaceOnUse")
+                pattern.add(svg.line(start=(-50, -50), end=(50, 50), stroke="black", stroke_width=0.1, stroke_linecap='butt'))
+                svg.defs.add(pattern)
 
         for slot in matSlots:
             objMaterials.append(slot.material)
@@ -357,6 +362,7 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                     hatchDict[hatch.name]["line_color"] = lineRGB
                     hatchDict[hatch.name]["weight"] = hatch.lineWeight
                     hatchDict[hatch.name]["hatch"] = hatch
+                    hatchDict[hatch.name]["pattern"] = hatch.pattern.name
                     
                     poly = []
                     for vert in face.verts:
@@ -398,9 +404,12 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
             fillRGB = hatchDict[key]["fill_color"]
             lineRGB = hatchDict[key]["line_color"]
             weight = hatchDict[key]["weight"]
+            if hatchDict[key]["pattern"] != "":
+                fillURL = 'url(#' + hatchDict[key]["pattern"] + ')'
+            else: fillURL = ''
 
             for poly in polys:
-                svg_shaders.svg_poly_fill_shader(hatch, poly, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight)
+                svg_shaders.svg_poly_fill_shader(hatch, poly, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
    
