@@ -334,8 +334,11 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
             hatchMaterials.append(hatch.material)
             if hatch.pattern != None:
                 name = hatch.pattern.name
-                pattern = svgwrite.pattern.Pattern(width=50, height=50, id=name, patternUnits="userSpaceOnUse")
-                pattern.add(svg.line(start=(-50, -50), end=(50, 50), stroke="black", stroke_width=0.1, stroke_linecap='butt'))
+                objs = hatch.pattern.objects
+                weight = hatch.lineWeight
+                color = hatch.line_color
+                pattern = svgwrite.pattern.Pattern(width=100, height=100, id=name, patternUnits="userSpaceOnUse")
+                svg_shaders.svg_line_pattern_shader(pattern,svg,objs,weight,color)
                 svg.defs.add(pattern)
 
         for slot in matSlots:
