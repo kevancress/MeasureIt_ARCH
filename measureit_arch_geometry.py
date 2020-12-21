@@ -2024,8 +2024,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
             coords = []            
             coords = lineGroup['coordBuffer']
 
-            if len(coords) == 0:
-                return
+            #if len(coords) == 0:
+            #    return
             
 
 
