@@ -83,8 +83,9 @@ def svg_poly_fill_shader(item,coords,color,svg,parent=None, line_color=(0,0,0), 
     coords_2d = []
     idName = item.name + "_fills"
     fillColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
+    fillOpacity = color[3]
     lineColor = svgwrite.rgb(line_color[0]*100, line_color[1]*100, line_color[2]*100, '%')
-    fills = svg.g(id=idName,fill=fillColor,stroke=lineColor,stroke_width=lineWeight)
+    fills = svg.g(id=idName,fill=fillColor, opacity = fillOpacity, stroke=lineColor,stroke_width=lineWeight)
     parent.add(fills)
 
     
