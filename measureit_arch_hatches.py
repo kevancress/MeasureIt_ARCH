@@ -1,6 +1,6 @@
 import bpy
 from .measureit_arch_main import SCENE_PT_Panel
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu
+from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu, Collection
 from rna_prop_ui import PropertyPanel
 from bl_operators.presets import AddPresetBase
 from .custom_preset_base import Custom_Preset_Base
@@ -25,6 +25,8 @@ from datetime import datetime
 class HatchProperties(PropertyGroup):
 
     material: PointerProperty(type= bpy.types.Material)
+
+    pattern: PointerProperty(name = 'Hatch Pattern', type=Collection)
 
     fill_color: FloatVectorProperty(name="Color",
             description="Color for the Item",
@@ -60,6 +62,7 @@ class HatchContainer(PropertyGroup):
                                 description='Index of the current Hatch')
     
     show_settings: BoolProperty(name='Show Hatch Settings', default=False)
+    
 
     # Array of hatches
     hatches: CollectionProperty(type=HatchProperties) 
@@ -160,6 +163,7 @@ class SCENE_PT_Hatches(Panel):
                 col.prop(hatch,'fill_color', text="Fill Color",)
                 col.prop(hatch,'line_color', text="Line Color",)
                 col.prop(hatch,'lineWeight', text="Line Weight",)
+                col.prop(hatch,'pattern', text="Pattern",)
         
 
               
