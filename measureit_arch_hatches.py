@@ -27,6 +27,20 @@ class HatchProperties(PropertyGroup):
     material: PointerProperty(type= bpy.types.Material)
 
     pattern: PointerProperty(name = 'Hatch Pattern', type=Collection)
+    
+    patternWeight: FloatProperty(name="Pattern Weight",
+            description="Lineweight",
+            default = 1,
+            soft_min = 1.0,
+            step = 25,
+            min = 0)
+    
+    patternSize: FloatProperty(name="Pattern Size",
+        description="Lineweight",
+        default = 1,
+        soft_min = 1.0,
+        step = 25,
+        min = 0)
 
     fill_color: FloatVectorProperty(name="Color",
             description="Color for the Item",
@@ -164,6 +178,8 @@ class SCENE_PT_Hatches(Panel):
                 col.prop(hatch,'line_color', text="Line Color",)
                 col.prop(hatch,'lineWeight', text="Line Weight",)
                 col.prop(hatch,'pattern', text="Pattern",)
+                col.prop(hatch,'patternWeight', text="Pattern Weight",)
+                col.prop(hatch,'patternSize', text="Pattern Size",)
         
 
               
