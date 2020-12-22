@@ -333,13 +333,16 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
         for hatch in hatchGen.hatches:
             hatchMaterials.append(hatch.material)
             if hatch.pattern != None:
-                name = hatch.pattern.name
+                name = hatch.name + '_' + hatch.pattern.name
                 objs = hatch.pattern.objects
                 weight = hatch.patternWeight
                 size = hatch.patternSize
                 color = hatch.line_color
-                
-                pattern = svgwrite.pattern.Pattern(width=size, height=size, id=name, patternUnits="userSpaceOnUse")
+                rotation = math.degrees(hatch.patternRot)
+                pattern = svgwrite.pattern.Pattern(width=size, height=size, id=name, patternUnits="userSpaceOnUse", **{
+                            'patternTransform': 'rotate({} {} {})'.format(
+                                rotation,0,0
+                            )})
                 svg_shaders.svg_line_pattern_shader(pattern,svg,objs,weight,color,size)
                 svg.defs.add(pattern)
 
@@ -368,7 +371,7 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                     hatchDict[hatch.name]["weight"] = hatch.lineWeight
                     hatchDict[hatch.name]["hatch"] = hatch
                     if hatch.pattern != None:
-                        hatchDict[hatch.name]["pattern"] = hatch.pattern.name
+                        hatchDict[hatch.name]["pattern"] =  hatch.name + '_' + hatch.pattern.name
                     else: hatchDict[hatch.name]["pattern"] = ''
                     
                     poly = []
