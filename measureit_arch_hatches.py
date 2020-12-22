@@ -42,6 +42,13 @@ class HatchProperties(PropertyGroup):
         step = 25,
         min = 0)
 
+    patternRot: FloatProperty(name="Pattern Rotation",
+        description="Rotation",
+        default = 0,
+        soft_min = 0,
+        step = 25,
+        subtype='ANGLE')
+
     fill_color: FloatVectorProperty(name="Color",
             description="Color for the Item",
             default= (0.0,0.0,0.0, 1.0),
@@ -180,6 +187,7 @@ class SCENE_PT_Hatches(Panel):
                 col.prop(hatch,'pattern', text="Pattern",)
                 col.prop(hatch,'patternWeight', text="Pattern Weight",)
                 col.prop(hatch,'patternSize', text="Pattern Size",)
+                col.prop(hatch,'patternRot', text="Pattern Rotation",)
         
 
               
