@@ -84,21 +84,24 @@ def svg_poly_fill_shader(item,coords,color,svg,parent=None, line_color=(0,0,0), 
     idName = item.name + "_fills"
     
     fill = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
-    if fillURL != '':
-        fill = fillURL
+ 
 
     fillOpacity = color[3]
     lineColor = svgwrite.rgb(line_color[0]*100, line_color[1]*100, line_color[2]*100, '%')
-    fills = svg.g(id=idName,fill=fill, opacity = fillOpacity, stroke=lineColor,stroke_width=lineWeight)
-    parent.add(fills)
+    solidfill = svg.g(id=idName, fill=fill, opacity = fillOpacity, stroke=lineColor,stroke_width=lineWeight)
+    parent.add(solidfill)
 
-    
     for coord in coords:
         coords_2d.append(get_render_location(coord))
     
     poly = svg.polygon(points = coords_2d)
-    fills.add(poly)
+    solidfill.add(poly)
 
+    if fillURL != '':
+        fill = fillURL
+        patternfill = svg.g(id=idName,fill=fill, opacity = item.patternOpacity, stroke=lineColor,stroke_width=lineWeight)
+        parent.add(patternfill)
+        patternfill.add(poly)
 
 def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
 
