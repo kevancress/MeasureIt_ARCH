@@ -49,6 +49,13 @@ class HatchProperties(PropertyGroup):
         step = 25,
         subtype='ANGLE')
 
+    patternOpacity: FloatProperty(name="Pattern Opacity",
+        description="Pattern Opacity",
+        default = 1.0,
+        min = 0.0,
+        max = 1.0,
+        step = 1,)
+
     fill_color: FloatVectorProperty(name="Color",
             description="Color for the Item",
             default= (0.0,0.0,0.0, 1.0),
@@ -184,10 +191,12 @@ class SCENE_PT_Hatches(Panel):
                 col.prop(hatch,'fill_color', text="Fill Color",)
                 col.prop(hatch,'line_color', text="Line Color",)
                 col.prop(hatch,'lineWeight', text="Line Weight",)
+                col = box.column()
                 col.prop(hatch,'pattern', text="Pattern",)
                 col.prop(hatch,'patternWeight', text="Pattern Weight",)
                 col.prop(hatch,'patternSize', text="Pattern Size",)
                 col.prop(hatch,'patternRot', text="Pattern Rotation",)
+                col.prop(hatch,'patternOpacity', text="Pattern Opacity",)
         
 
               
