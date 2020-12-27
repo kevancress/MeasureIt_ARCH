@@ -1950,7 +1950,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                  lastMode[myobj.name] = obj_last_mode
                 
 
-            if  obj_last_mode != myobj.mode or evalMods or evalModsGlobal:
+            if  obj_last_mode != myobj.mode or evalMods or evalModsGlobal or sceneProps.is_render_draw:
                 recoordFlag = True
                 lastMode[myobj.name] = myobj.mode
                         
