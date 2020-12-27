@@ -24,6 +24,10 @@ from datetime import datetime
 
 class HatchProperties(PropertyGroup):
 
+    visible: BoolProperty(name="Visibility",
+                description="how/hide",
+                default=True)
+
     material: PointerProperty(type= bpy.types.Material)
 
     pattern: PointerProperty(name = 'Hatch Pattern', type=Collection)
@@ -121,12 +125,18 @@ class M_ARCH_UL_Hatches_list(UIList):
             
             if self.layout_type in {'DEFAULT', 'COMPACT'}:
                 hatch = item
+
+                if hatch.visible: visIcon = 'HIDE_OFF'
+                else: visIcon = 'HIDE_ON'
+
                 layout.use_property_decorate = False
                 row = layout.row(align=True)
                 subrow = row.row()
                 subrow.prop(hatch, "name", text="",emboss=False)
                 row.prop(hatch,'material', text="", icon = 'MATERIAL_DATA')
                 row.prop(hatch,'fill_color', text="",)
+                
+                row.prop(hatch, "visible", text="", icon = visIcon,emboss=False)
 
             elif self.layout_type in {'GRID'}:
                 layout.alignment = 'CENTER'
