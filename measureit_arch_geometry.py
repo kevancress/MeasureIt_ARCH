@@ -379,33 +379,6 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                         #vert = loop.vert
                        poly.append(mat@vert.co)
                     hatchDict[hatch.name]["coords"].append(poly)
-
-        '''
-        for tri in tris:
-    
-            face = tri[1].face
-            matIdx = face.material_index
-            try:
-                faceMat = objMaterials[matIdx]
-            except:
-                faceMat = None
-                
-            if faceMat in hatchMaterials:
-                idx = hatchMaterials.index(faceMat)
-                hatch = hatchGen.hatches[idx]
-                
-                fillRGB = rgb_gamma_correct(hatch.color) 
-                if hatch.name not in hatchDict:
-                    hatchDict[hatch.name] = {}
-                if "coords" not in hatchDict[hatch.name]:
-                    hatchDict[hatch.name]["coords"] = []
-                hatchDict[hatch.name]["color"] = fillRGB
-                hatchDict[hatch.name]["hatch"] = hatch
-                
-                for loop in tri:
-                    vert = loop.vert
-                    hatchDict[hatch.name]["coords"].append(mat@vert.co)
-         '''
                 
         for key in hatchDict:
             hatch = hatchDict[key]["hatch"]
@@ -417,9 +390,9 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
             if hatchDict[key]["pattern"] != "":
                 fillURL = 'url(#' + hatchDict[key]["pattern"] + ')'
             else: fillURL = ''
-
-            for poly in polys:
-                svg_shaders.svg_poly_fill_shader(hatch, poly, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
+            if hatch.visible:
+                for poly in polys:
+                    svg_shaders.svg_poly_fill_shader(hatch, poly, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
    
