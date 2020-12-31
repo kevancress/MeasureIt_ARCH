@@ -409,8 +409,7 @@ class SCENE_PT_Views(Panel):
                 if view.camera !=None:
 
                     camera = view.camera.data
-                    col.operator("measureit_arch.renderpreviewbutton", icon='RENDER_STILL', text="Render View Preview")
-                    #col.operator("bind_marker.bind_marker", text = "Bind Camera To Frame", icon = 'CAMERA_DATA')
+                    #col.operator("measureit_arch.renderpreviewbutton", icon='RENDER_STILL', text="Render View Preview")
                     col.prop(view, "cameraType", text="Camera Type")
                     col.prop_search(view,'view_layer', context.scene, 'view_layers',text='View Layer')
                     col.prop_search(view,'titleBlock', bpy.data, 'scenes', text='Title Block')  
