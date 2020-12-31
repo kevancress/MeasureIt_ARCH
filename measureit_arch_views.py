@@ -40,7 +40,7 @@ def update(self,context):
         view.end_frame = view.start_frame
     scene.frame_end = view.end_frame
     scene.frame_start = view.start_frame
-    scene.frame_current = view.start_frame
+    #scene.frame_current = view.start_frame
 
     if view.res_type == 'res_type_paper':
         update_camera(scene,camera)
@@ -53,7 +53,7 @@ def update(self,context):
 
     render = scene.render
     if view.output_path is not "":
-        filenameStr = context.view_layer.name + '_' + view.name 
+        filenameStr = view.name 
         render.filepath = os.path.join(view.output_path, filenameStr)
         if view.date_folder:
             today = datetime.now()

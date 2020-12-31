@@ -310,7 +310,7 @@ def render_main(self, context, animation=False):
     # Saves image
     if image is not None and animation is True:
         ren_path = bpy.context.scene.render.filepath
-        filename = "mit_frame"
+        filename = "_"
         ftxt = "%04d" % scene.frame_current
         outpath = (ren_path + filename + ftxt + '.png')
         save_image(self, outpath, image)
@@ -470,7 +470,7 @@ def render_main_svg(self, context, animation=False):
 
     # Setup Output Path
     ren_path = path
-    filename = "mit_vector"
+    filename = "_"
     ftxt = "%04d" % scene.frame_current
     outpath = (ren_path + filename + ftxt + '.svg')
 
