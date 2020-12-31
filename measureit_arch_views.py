@@ -73,6 +73,8 @@ def update_camera(scene,camera):
     paperScale = view.paper_scale
     
     ppi = view.res
+
+    
     
     render.resolution_percentage = 100
     render.resolution_x = width *  ppi * 39.3701
