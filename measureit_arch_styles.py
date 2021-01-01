@@ -39,7 +39,7 @@ from bpy.props import (
         )
 
 from .measureit_arch_baseclass import DeletePropButton
-from .measureit_arch_dimensions import AlignedDimensionProperties, recalc_dimWrapper_index, draw_aligned_dimension_settings
+from .measureit_arch_dimensions import AlignedDimensionProperties, recalc_dimWrapper_index, draw_alignedDimensions_settings
 from .measureit_arch_annotations import AnnotationProperties
 from .measureit_arch_lines import LineProperties
 
@@ -189,7 +189,7 @@ class SCENE_PT_UIStyles(Panel):
                     draw_annotation_style_settings(item,box)
                 # Show Dimension Settings
                 if activeWrapperItem.itemType == 'alignedDimensions':
-                    draw_dim_style_settings(item,box)
+                    draw_alignedDimensions_settings(item,box)
 
 class SCENE_MT_styles_menu(bpy.types.Menu):
     bl_label = "Custom Menu"

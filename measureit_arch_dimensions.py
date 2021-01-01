@@ -1118,7 +1118,7 @@ class OBJECT_MT_dimension_menu(bpy.types.Menu):
         delOp.genPath = 'bpy.context.object.DimensionGenerator'
 
 
-def draw_aligned_dimension_settings(dim,layout):
+def draw_alignedDimensions_settings(dim,layout):
 
     if dim.is_style or not dim.uses_style:    
         # Text Settings
@@ -1273,11 +1273,6 @@ def draw_axisDimensions_settings(dim,layout):
         col = layout.column(align=True)
         col.prop(dim,'tweakOffset',text='Tweak Distance')
 
-
-
-    
-    
-
 def draw_angleDimensions_settings(dim,layout):
         col = layout.column()
         if dim.uses_style is False:
@@ -1390,8 +1385,6 @@ def draw_areaDimensions_settings(dim,layout):
         col = layout.column(align=True)
         col.prop(dim,'inFront', text='Draw in Front')
         col.prop(dim,'evalMods')
-
-
 
 class TranlateDimensionOp(bpy.types.Operator):
     """Move Dimension"""
