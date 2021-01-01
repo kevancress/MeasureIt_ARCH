@@ -94,7 +94,6 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
         
         col.prop(sceneProps, "embed_scene_render", text="Embed Scene Render")
         col.prop(sceneProps, "vector_z_order",)
-        #col.prop(sceneProps, "measureit_arch_render", text="Save Render to Output")
 
 
 # -------------------------------------------------------------
@@ -308,7 +307,7 @@ def render_main(self, context, animation=False):
 
     renderoffscreen.free()
     # Saves image
-    if image is not None and animation is True:
+    if image is not None:
         ren_path = bpy.context.scene.render.filepath
         filename = "_"
         ftxt = "%04d" % scene.frame_current
