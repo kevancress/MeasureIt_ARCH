@@ -390,7 +390,7 @@ MeasureIt_ARCH Render Settings can be found in the Render Panel of the Propertie
    * Animation frames will be saved to the Output path defined in the Render Panel.
 
 
-   #### MeasureIt_ARCH Vector
+#### MeasureIt_ARCH Vector
 
   * Renders an SVG drawing of the current view.
   * __Embed Scene Render:__ embeds a raster rendering of the scene as the background of the SVG
