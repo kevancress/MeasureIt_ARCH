@@ -200,8 +200,27 @@ Define Hatches to be used in Vector Exports.
 *  __Pattern Opacity__: Sets the opacity for the pattern fill for this hatch.
 
 
+#### Schedules
+Create Schedules that can exported to a .csv spreadsheet
 
+![image](docs/__ui-Schedules.jpg)
 
+__General Settings__
+* __Generate Schedule__: Exports a .csv schedule to the output path
+* __Collection__: The collection of objects to include in this schedule
+* __Output Path__: The path to export the schedule to
+* __Date Folder__: Adds a folder with todays date to the output path
+* __Sort Subcollections__: Will Create Categories for subcollection in the exported .csv
+* __Group Rows__: Will group and count identical rows when creating the schedule
+
+__Column Settings__
+Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons to re-order columns
+
+* __Name__: The name for this column
+* __Column Data Type__: Sets the type of data to be displayed in this column
+    * __RNA Prop__: Display a user specified RNA Property in this column
+        * __NOTE__: This functions similarly to Blender's Driver definitions.
+    * __Dimension__: Display the objects X, Y, or Z bounding box dimension in this column.
 
 ####  Settings
 
@@ -354,7 +373,7 @@ Define Hatches to be used in Vector Exports.
 
 #### Rendering
 
-![image](docs/ui-rendering.jpg)
+![image](docs/__ui-render.jpg)
 
 MeasureIt_ARCH Render Settings can be found in the Render Panel of the Properties Editor. Currently this renders all MeasureIt_ARCH items to an image file which can be layered over Blender's render in the compositor.
 
@@ -370,8 +389,9 @@ MeasureIt_ARCH Render Settings can be found in the Render Panel of the Propertie
    * A 3D Viewport window must be open for MeasureIt_ARCH to render animations.
    * Animation frames will be saved to the Output path defined in the Render Panel.
 
-#### Save Render to Output
 
- * Saves Still Image renders to the Output path defined in the Render Panel after rendering.
+   #### MeasureIt_ARCH Vector
 
-![image](docs/ui-save-render.png)
+  * Renders an SVG drawing of the current view.
+  * __Embed Scene Render:__ embeds a raster rendering of the scene as the background of the SVG
+  * __Vector Z Order:__ Orders the drawing of vector elements by the object origin's Z height. Useful for plan drawings.
