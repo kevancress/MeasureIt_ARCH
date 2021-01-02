@@ -365,7 +365,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                         description="(DEBUG) Draw Debug Info For Text",
                                         default=False)
 
-    highlight_selected: BoolProperty(name='Show Selected',
+    highlight_selected: BoolProperty(name='Highlight Active',
                 description= 'Highlight Selected MeasureIt_ARCH Elements',
                 default = True)
 

@@ -126,8 +126,8 @@ class M_ARCH_UL_Hatches_list(UIList):
             if self.layout_type in {'DEFAULT', 'COMPACT'}:
                 hatch = item
 
-                if hatch.visible: visIcon = 'HIDE_OFF'
-                else: visIcon = 'HIDE_ON'
+                if hatch.visible: visIcon = 'RESTRICT_RENDER_OFF'
+                else: visIcon = 'RESTRICT_RENDER_ON'
 
                 layout.use_property_decorate = False
                 row = layout.row(align=True)

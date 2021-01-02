@@ -344,7 +344,7 @@ def draw_line_style_settings(line,layout):
 
     col=layout.column(align=True)
     col.prop(line, 'lineOverExtension', text="Extension" )
-    col.prop(line, 'randomSeed', text="Seed" )
+    #col.prop(line, 'randomSeed', text="Seed" )
     
     col = layout.column(align=True)
     if line.lineDrawHidden is True: col.enabled = True
@@ -358,11 +358,12 @@ def draw_line_style_settings(line,layout):
     if line.lineDrawDashed or line.lineDrawHidden: col.enabled = True
     else: col.enabled = False
     col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+    col.prop(line, 'lineDashSpace',text="Dash Spacing")
 
     col = layout.column(align=True)
     col.prop(line, 'lineDrawDashed', text="Draw Dashed")
     col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
-    col.prop(line, 'lineDashSpace',text="Dash Spacing")
+
     col.prop(line, 'inFront', text="Draw In Front")
     col.prop(line,'evalMods')
 

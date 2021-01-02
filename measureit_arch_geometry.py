@@ -2106,7 +2106,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 lineGroupShader.uniform_float("Viewport",viewport)
                 lineGroupShader.uniform_float("objectMatrix",mat)
                 lineGroupShader.uniform_float("thickness",lineWeight)
-                lineGroupShader.uniform_float("extension",lineGroup.lineOverExtension)
+                lineGroupShader.uniform_float("extension",lineProps.lineOverExtension)
                 lineGroupShader.uniform_float("pointPass",lineGroup.pointPass)
                 lineGroupShader.uniform_float("weightInfluence",lineGroup.weightGroupInfluence)
                 lineGroupShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))

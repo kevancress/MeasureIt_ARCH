@@ -36,7 +36,7 @@ There are two ways to install the add-on:
 
 ![image](docs/ui-main-tool-panel.jpg)
 
-The main tool panel is where you can add MeasureIt_ARCH Items to your 3D scene. This panel is located on the right of the __3D Viewport__. Panel visibility can be toggled by pressing the "n" key.
+The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scene. This panel is located on the right of the __3D Viewport__. Tool panel visibility can be toggled by pressing the "n" key.
 
 #### Show / Hide MeasureIt_ARCH Toggle
 
@@ -44,11 +44,15 @@ The main tool panel is where you can add MeasureIt_ARCH Items to your 3D scene. 
 
 #### Selected Object Only Toggle (Ghost Icon)
 
- * When disabled, MeasureIt_ARCH will only show items belonging to currently selected objects.
+ * When disabled, MeasureIt_ARCH will only show elements attached to the currently selected objects.
+
+#### Highlight Active (Cursor & Eye Icon)
+
+  * When enabled, the active MeasureIt_ARCH element will be highlighted in Blender's selection color.
 
 #### Show Gizmos (Arrow Icon)
 
- * When enabled MeasureIt_ARCH will show gizmos for the selected object.
+ * When enabled MeasureIt_ARCH will show gizmos for all elements attached to the selected object.
 
 #### Add Dimensions
 
@@ -66,14 +70,14 @@ The main tool panel is where you can add MeasureIt_ARCH Items to your 3D scene. 
    * Object Mode: Select two objects and then press the Aligned Button.
    * Edit Mode: Select two or more Vertices and press the Aligned Button.
 
- * __Axis Selection__: Lets you pick the axis to be measured on creation.
+ * __Axis Selection__: Picks the axes to be dimensioned on creation.
 
 ![image](docs/ui-axis.jpg)
 
 ##### Bounds (Object Mode Only)
 
  * Adds a set of Dimensions that measure the Bounding Box of the selected object
- * __Axis Selection__: Lets you pick the axes to be displayed on creation.
+ * __Axis Selection__: Picks the bounding box axis to be displayed on creation.
 
 ##### Angle (Edit Mode Only)
 
@@ -95,7 +99,7 @@ The main tool panel is where you can add MeasureIt_ARCH Items to your 3D scene. 
 
 ##### Dimension Style (Color Swatch Icon)
 
- * Lets you select a style to be assigned to new dimension on creation.
+ * Selects a Style to be assigned to new dimensions on creation.
 
 ##### View Plane (Axis Icon)
 
@@ -103,69 +107,132 @@ The main tool panel is where you can add MeasureIt_ARCH Items to your 3D scene. 
    * __XY Plane (Plan View)__: Dimensions placed to be viewed from the top or bottom.
    * __YZ Plane (Section/ Elevation View)__: Dimensions placed to be viewed from the left or right.
    * __XZ Plane (Section/ Elevation View)__: Dimensions placed to be viewed from the front or back.
-   * __None__: Dimensions placement will be based on the angles of the adjacent surfaces.
+   * __None__: Dimensions placement will adjust automatically based on your viewpoint and the angles of the adjacent surfaces.
 
-##### Add Lines
+#### Add Lines
 
- * __Line Group (Edit Mode Only)__
+##### Line Group (Edit Mode Only)
    * Creates a Line Group from selected edges. Select the desired edges in edit mode and press the Line button.
- * __Line Group by Crease (Object Mode Only)__
+##### Line Group by Crease (Object Mode Only)
    * Creates a Line Group from any edges sharper than the specified crease angle.
 ![image](docs/ui-line-crease.jpg)
- * __Line Style (Color Swatch Icon)__: Style to be assigned to a new Line Group on creation.
-   * Only visible after creating a Style in the Scene Settings.
+
+##### Dynamic Line Group(Object Mode Only)
+  * Same behaviour as Line Group by Crease, but will refresh automatically when entering and leaving Edit Mode (**NOTE:** May be slow on large meshes)
+
+##### Line Style (Color Swatch Icon):
+  * Style to be assigned to a new Line Group on creation.
 
 ##### Add Annotations
 
- * __Annotation__: Adds an Annotation to the selected Object or Vertex.  ![image](docs/ui-annotation-examples.jpg)
- * __Annotation Style (Color Swatch Icon)__: Style to be assigned to new Annotation on creation.
-   * Only visible after creating a Style in the Scene Settings.
+##### Annotation:
+ * Adds an Annotation to the selected Object or Vertex.
+ ![image](docs/ui-annotation-examples.jpg)
 
-### Scene Settings
+##### Annotation Style (Color Swatch Icon):
+  * Style to be assigned to new Annotation on creation.
 
-MeasureIt_ARCH Styles & Settings can be found in the Scene Tab of the Properties Editor.
+### MeasureIt_ARCH Scene Settings
+Found in the Scene Tab of the Properties Editor.
 
-![image](docs/ui-scene.jpg)
-
-#### MeasureIt_ARCH Styles
-
-Styles have a nearly identical user interface to their corresponding items. Style-able properties can be found in the item's settings.
-
-Note that some settings, like an Annotations Offset, or a Dimensions Distance, are still set per item, even when using a style.
+![image](docs/__ui-scene.jpg)
 
 #### MeasureIt_ARCH Unit Settings
 
-![image](docs/ui-scene-units.jpg)
+![image](docs/__ui-units.jpg)
 
-MeasureIt_ARCH Unit Settings can be found in Blender's Scene Settings under the Units panel. MeasureIt_ARCH makes use of Blender's Scene Unit System.
+MeasureIt_ARCH Unit Settings can be found in Blender's Scene Settings under the Units panel.
 
 ##### Metric Precision
+ * Defines the number of decimal places included in dimensions when using the Metric Unit System.
 
- * Defines the number of decimal places included in your dimensions when using the Metric Unit System.
+##### Angle Precision
+  * Defines the number of decimal places included in angle dimensions.
 
 ##### Imperial Precision
-
  * Fractional Precision to be used when using the Imperial Unit System.
 
-#### MeasureIt_ARCH Settings
+ ##### Default Scale
+  * Scale used for text and other scale-dependant elements if no view has been defined.
 
-![image](docs/ui-scene-settings.jpg)
 
-##### Show Dimension Text
+#### Styles
 
- * Show or hide the text on Dimension and Annotation elements.
+Styles have a nearly identical user interface to their corresponding items. Style-able properties can be found in the item's settings.
 
-##### Debug Text
+![image](docs/__ui-styles.jpg)
 
- * Writes Dimension Text to an image for Debug purposes.
+Note that some settings, like an Annotations Offset, or a Dimensions Distance, are still set per item, even when using a style.
+
+#### Views
+Define Named Views.
+
+![image](docs/__ui-views.jpg)
+* __Camera__: Sets View Camera
+* __Camera Type__: Sets the type of camera for this view (Orthographic or Perspective)
+* __View Layer__: Sets the View Layer to be used for this view
+* __Title Block__: Sets the Title Block Scene to be used for this view
+*  __Output Path__: Sets Render Output Path for this view
+*  __Date Folder__: When enabled, a folder with todays date will be added to the Output Path
+*  __Resolution Type__: Pick Paper or Pixel based resolution settings for this view
+    *  Pixel resolution type is the same as Blenders default render resolution settings
+*  __Width__: Paper Width defined in scene units
+*  __Height__: Paper Height defined in scene units
+*  __Resolution__: Raster Resolution for this view
+*  __Scale__:  Defines the Orthographic Scale as a ratio between Model Units, and Paper Units.
+*  __Frame Range__: The frame range to render for this view.
+
+#### Hatches
+Define Hatches to be used in Vector Exports.
+
+![image](docs/__ui-hatches.jpg)
+* __Material__: The Material to apply this hatch to
+*  __Render Visibility__: Toggles if this hatch should be applied on vector export or not
+* __Fill Color__: Solid Fill color for this Hatch (Set Alpha to 0 for none)
+* __Line Color__: Outline Line Color for this Hatch (Set Alpha to 0 for none)
+* __Line Weight__: Line Wight for the Outline Line of this Hatch
+*  __Pattern__: A collection to use as a custom pattern fill for this hatch.
+    *  Hatch Patterns can be defined in the 0 to 1 range on the x,y plane.
+    *  Hatch Patterns will draw all edges of objects in the hatch collection as the custom pattern
+*  __Pattern Weight__: Line Weight for the pattern fill
+*  __Pattern Size__: Scale factor for the pattern fill
+*  __Pattern Rotation__: Rotates the pattern fill for this hatch.
+*  __Pattern Opacity__: Sets the opacity for the pattern fill for this hatch.
+
+
+
+
+
+####  Settings
+
+![image](docs/__ui-settings.jpg)
+
+##### Hide Units
+
+ * Show or hide the unit text on Dimension elements.
 
 ##### Evaluate Depsgraph
 
- * Evaluate Blender's Dependency Graph before drawing MeasureIt_ARCH elements.
-   * __WARNING__: By default, MeasureIt_ARCH does not evaluate the Dependency Graph as some generative modifiers can give unpredictable results. Enabling this setting will make MeasureIt_ARCH attempt to evaluate these modifiers during its calculations.
+* Evaluate Blender's Dependency Graph before drawing MeasureIt_ARCH elements.
+* __WARNING__: By default, MeasureIt_ARCH does not evaluate the Dependency Graph to improve performance and because some generative modifiers can give unpredictable results. Enabling this setting will make MeasureIt_ARCH attempt to evaluate these modifiers during its calculations. It can be slow and give unexpected results.
+* This can be enabled for individual elements as well, please only enable this for the whole scene if absolutely necessary
+
+##### Use Text Autoplacement
+ * Automatically move dimension text to the outside of the dimension line if it is too large to fit within.
+
+##### Default Resolution
+  * Resolution to use for text rendering if no view resolution has been defined
+
+##### Debug Text
+ * Writes Dimension Text to an image for Debug
+
+##### Debug Text Cards
+  * Draw Dimension Text Cards for Debug
+
+##### Enable Experimental
+  * Enable Experimental Features in MeasureIt_ARCH
 
 ##### Instance Dimensions
-
  * Will Enable Dimension Instancing.
    * __WARNING__: Text on instanced Dimensions will not account for changes in the instances local scale or rotation.
 
@@ -174,7 +241,6 @@ MeasureIt_ARCH Unit Settings can be found in Blender's Scene Settings under the 
 #### Object Settings
 
  * Dimension, Annotation, and Line Group settings can be found in Object Tab of the Properties Editor.
-   * These panels will only appear if the active object has a dimension, annotation or line group associated with it.
    * To add dimensions, annotations or line groups use the main tool panel.
 
 #### Dimensions
