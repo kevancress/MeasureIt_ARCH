@@ -34,7 +34,7 @@ There are two ways to install the add-on:
 
 ### Main Tool Panel
 
-![image](docs/ui-main-tool-panel.jpg)
+![image](docs/__ui-main-tool-panel.jpg)
 
 The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scene. This panel is located on the right of the __3D Viewport__. Tool panel visibility can be toggled by pressing the "n" key.
 
@@ -203,7 +203,7 @@ Define Hatches to be used in Vector Exports.
 #### Schedules
 Create Schedules that can exported to a .csv spreadsheet
 
-![image](docs/__ui-Schedules.jpg)
+![image](docs/__ui-schedules.jpg)
 
 __General Settings__
 * __Generate Schedule__: Exports a .csv schedule to the output path
