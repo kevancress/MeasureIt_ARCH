@@ -8,7 +8,7 @@ MeasureIt_ARCH is a fork of Antonio Vazquez's MeasureIt Addon.
 ## Installation
 
 There are two ways to install the add-on:
- * Stable release (often out of date)
+ * Stable release
  * Latest git master (recommended)
 
 ### Stable release
