@@ -189,7 +189,7 @@ def svg_text_shader(item, text, mid, textCard, color,svg,parent=None):
             # spec-ing svg units in inches and using this factor for text size is the only way to get
             # sensible imports in both inkscape and illustrator
             'font-size': round(item.fontSize * 4.166666667 / (300/res), 2),
-            'font-family': 'OpenSans Regular',
+            'font-family': 'Helvetica',
             'text-anchor': text_anchor,
             'text-align': text_anchor
         }))
