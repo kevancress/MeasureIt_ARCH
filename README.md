@@ -228,7 +228,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 
 ##### Hide Units
 
- * Show or hide the unit text on Dimension elements.
+ * Show or hide the unit text on Metric Dimension elements.
 
 ##### Evaluate Depsgraph
 
