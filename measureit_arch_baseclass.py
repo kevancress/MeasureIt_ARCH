@@ -350,8 +350,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
                                              description="Display Dimension Text",
                                              default=True)
 
-    hide_units: BoolProperty(name="Hide Units",
-                                              description="Do not display unit of measurement on viewport",
+    hide_units: BoolProperty(name="Hide Metric Units",
+                                              description="Hide Units on Metric Measurements",
                                               default=False)
 
     measureit_arch_dim_axis: EnumProperty(

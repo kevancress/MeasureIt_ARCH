@@ -113,6 +113,7 @@ def change_scene_camera(self,context):
     update(self,context)
     if camera != None:
         scene.camera = camera
+        scene.frame_current = view.start_frame
         scene_text_update_flag(self,context)
 
 def camera_poll(self, object):
