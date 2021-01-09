@@ -349,6 +349,9 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
         faces= bm.faces
         verts = bm.verts
 
+        
+            
+        
         matSlots = myobj.material_slots
         objMaterials = []
         hatchMaterials = []
@@ -374,7 +377,7 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
         for slot in matSlots:
             objMaterials.append(slot.material)
         
-        for face in bm.faces:
+        for face in faces:
             matIdx = face.material_index
             try:
                 faceMat = objMaterials[matIdx]
@@ -389,8 +392,8 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                     lineRGB = rgb_gamma_correct(hatch.line_color) 
                     if hatch.name not in hatchDict:
                         hatchDict[hatch.name] = {}
-                    if "coords" not in hatchDict[hatch.name]:
-                        hatchDict[hatch.name]["coords"] = []
+                    if "faces" not in hatchDict[hatch.name]:
+                        hatchDict[hatch.name]["faces"] = []
                     hatchDict[hatch.name]["fill_color"] = fillRGB
                     hatchDict[hatch.name]["line_color"] = lineRGB
                     hatchDict[hatch.name]["weight"] = hatch.lineWeight
@@ -399,16 +402,14 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                         hatchDict[hatch.name]["pattern"] =  hatch.name + '_' + hatch.pattern.name
                     else: hatchDict[hatch.name]["pattern"] = ''
                     
-                    poly = []
-                    for vert in face.verts:
-                        #vert = loop.vert
-                       poly.append(mat@vert.co)
-                    hatchDict[hatch.name]["coords"].append(poly)
+                    hatchDict[hatch.name]["faces"].append(face)
                 
         for key in hatchDict:
             hatch = hatchDict[key]["hatch"]
             svg_hatch = svg_obj.add(svg.g(id=hatch.name))
-            polys = hatchDict[key]["coords"]
+            polys = hatchDict[key]["faces"]
+            if True:
+                polys = z_order_faces(polys,myobj)
             fillRGB = hatchDict[key]["fill_color"]
             lineRGB = hatchDict[key]["line_color"]
             weight = hatchDict[key]["weight"]
@@ -417,7 +418,11 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
             else: fillURL = ''
             if hatch.visible:
                 for poly in polys:
-                    svg_shaders.svg_poly_fill_shader(hatch, poly, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
+                    coords = []
+                    for vert in poly.verts:
+                        #vert = loop.vert
+                       coords.append(mat@vert.co)
+                    svg_shaders.svg_poly_fill_shader(hatch, coords, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
    
@@ -3535,23 +3540,45 @@ def z_order_objs(obj_list):
 
 def sort_camera_z(obj,ordered_list,idx=0):
     try:
-        check_z = get_camera_z_dist(ordered_list[idx])
+        check_z = get_camera_z_dist(ordered_list[idx].location)
     except IndexError:
         return idx
-    if get_camera_z_dist(obj) < check_z:
+    if get_camera_z_dist(obj.location) < check_z:
         pass
     else:
         idx+=1
         idx = sort_camera_z(obj,ordered_list,idx = idx)
     return idx
 
-def get_camera_z_dist(obj):
+def z_order_faces(face_list,obj):
+    ordered_face_list = []
+
+    for face in face_list:
+        idx = sort_camera_z_faces(face,ordered_face_list,obj)
+        ordered_face_list.insert(idx,face)
+    
+    return ordered_face_list
+
+
+def sort_camera_z_faces(face,ordered_list,obj,idx=0):
+    try:
+        check_z = get_camera_z_dist(obj.matrix_world @ ordered_list[idx].calc_center_median())
+    except IndexError:
+        return idx
+    if get_camera_z_dist(obj.matrix_world @ face.calc_center_median()) < check_z:
+        pass
+    else:
+        idx+=1
+        idx = sort_camera_z_faces(face,ordered_list,obj,idx = idx)
+    return idx
+
+def get_camera_z_dist(location):
     scene = bpy.context.scene
     camera = scene.camera
     mat = camera.matrix_world
     camera_z = mat @ Vector((0,0,-1))
     camera_z.normalize()
-    dist_vec = obj.location - camera.location
+    dist_vec = location - camera.location
     dist_along_camera_z = camera_z.dot(dist_vec)
     return dist_along_camera_z
 
