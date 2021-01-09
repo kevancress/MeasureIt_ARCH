@@ -431,7 +431,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
                 dimProps = alignedDimStyle
 
     # Enable GL Settings
-    set_OpenGL_Settings(True,dimProps)
+    set_OpenGL_Settings(True, props = dimProps)
 
     lineWeight = dimProps.lineWeight
     # check all visibility conditions
@@ -2641,7 +2641,7 @@ def draw_text_3D(context,textobj,textprops,myobj,card):
         draw_lines(1.0,(0.0, 1.0, 0.0, 1.0), coords)
 
 
-    set_OpenGL_Settings(True)
+    set_OpenGL_Settings(True, props = textprops)
     if 'texture' in textobj and textobj.text != "":
         # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
         texArray = bgl.Buffer(bgl.GL_INT,[1])
@@ -3274,12 +3274,13 @@ def set_OpenGL_Settings(toggleBool,props=None):
         bgl.glBlendFunc(bgl.GL_SRC_ALPHA,bgl.GL_ONE_MINUS_SRC_ALPHA)
         bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
         bgl.glDepthFunc(bgl.GL_LEQUAL)
         bgl.glDepthMask(True)
 
         if props and props.inFront:
             bgl.glDisable(bgl.GL_DEPTH_TEST)
+        else:
+            bgl.glEnable(bgl.GL_DEPTH_TEST)
     
     else:
         bgl.glDisable(bgl.GL_MULTISAMPLE)
