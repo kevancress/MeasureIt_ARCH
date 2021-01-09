@@ -3527,11 +3527,33 @@ def z_order_objs(obj_list):
     ordered_obj_list = []
 
     for obj in obj_list:
-        idx = sort_z(obj,ordered_obj_list)
+        idx = sort_camera_z(obj,ordered_obj_list)
         ordered_obj_list.insert(idx,obj)
     
     return ordered_obj_list
 
+
+def sort_camera_z(obj,ordered_list,idx=0):
+    try:
+        check_z = get_camera_z_dist(ordered_list[idx])
+    except IndexError:
+        return idx
+    if get_camera_z_dist(obj) < check_z:
+        pass
+    else:
+        idx+=1
+        idx = sort_camera_z(obj,ordered_list,idx = idx)
+    return idx
+
+def get_camera_z_dist(obj):
+    scene = bpy.context.scene
+    camera = scene.camera
+    mat = camera.matrix_world
+    camera_z = mat @ Vector((0,0,-1))
+    camera_z.normalize()
+    dist_vec = obj.location - camera.location
+    dist_along_camera_z = camera_z.dot(dist_vec)
+    return dist_along_camera_z
 
 def sort_z(obj,ordered_list,idx=0):
     try:
