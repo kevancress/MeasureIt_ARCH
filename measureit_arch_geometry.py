@@ -349,7 +349,8 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
         faces= bm.faces
         verts = bm.verts
 
-        
+        if True:
+            polys = z_order_faces(polys,myobj)
             
         
         matSlots = myobj.material_slots
@@ -408,8 +409,6 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
             hatch = hatchDict[key]["hatch"]
             svg_hatch = svg_obj.add(svg.g(id=hatch.name))
             polys = hatchDict[key]["faces"]
-            if True:
-                polys = z_order_faces(polys,myobj)
             fillRGB = hatchDict[key]["fill_color"]
             lineRGB = hatchDict[key]["line_color"]
             weight = hatchDict[key]["weight"]
