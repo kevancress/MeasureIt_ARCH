@@ -324,7 +324,8 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
         faces= bm.faces
         verts = bm.verts
 
-        
+        if True:
+            faces = z_order_faces(faces,myobj)
             
         
         matSlots = myobj.material_slots
