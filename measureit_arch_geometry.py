@@ -365,39 +365,48 @@ def draw_hatches(context,myobj, hatchGen, mat, svg=None):
                     
                     fillRGB = rgb_gamma_correct(hatch.fill_color)
                     lineRGB = rgb_gamma_correct(hatch.line_color) 
+                    weight =  hatch.lineWeight
                     if hatch.name not in hatchDict:
                         hatchDict[hatch.name] = {}
                     if "faces" not in hatchDict[hatch.name]:
                         hatchDict[hatch.name]["faces"] = []
                     hatchDict[hatch.name]["fill_color"] = fillRGB
                     hatchDict[hatch.name]["line_color"] = lineRGB
-                    hatchDict[hatch.name]["weight"] = hatch.lineWeight
+                    hatchDict[hatch.name]["weight"] = weight
                     hatchDict[hatch.name]["hatch"] = hatch
+                    fillURL = ''
                     if hatch.pattern != None:
-                        hatchDict[hatch.name]["pattern"] =  hatch.name + '_' + hatch.pattern.name
+                        fillURL = 'url(#' + hatch.name + '_' + hatch.pattern.name + ')'
+                        hatchDict[hatch.name]["pattern"] = fillURL
                     else: hatchDict[hatch.name]["pattern"] = ''
                     
                     hatchDict[hatch.name]["faces"].append(face)
-                
-        for key in hatchDict:
-            hatch = hatchDict[key]["hatch"]
-            svg_hatch = svg_obj.add(svg.g(id=hatch.name))
-            polys = hatchDict[key]["faces"]
-            if True:
-                polys = z_order_faces(polys,myobj)
-            fillRGB = hatchDict[key]["fill_color"]
-            lineRGB = hatchDict[key]["line_color"]
-            weight = hatchDict[key]["weight"]
-            if hatchDict[key]["pattern"] != "":
-                fillURL = 'url(#' + hatchDict[key]["pattern"] + ')'
-            else: fillURL = ''
-            if hatch.visible:
-                for poly in polys:
                     coords = []
-                    for vert in poly.verts:
+                    svg_hatch = svg_obj.add(svg.g(id=hatch.name))
+                    for vert in face.verts:
                         #vert = loop.vert
                        coords.append(mat@vert.co)
                     svg_shaders.svg_poly_fill_shader(hatch, coords, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
+        if False: 
+            for key in hatchDict:
+                hatch = hatchDict[key]["hatch"]
+                svg_hatch = svg_obj.add(svg.g(id=hatch.name))
+                polys = hatchDict[key]["faces"]
+                if True:
+                    polys = z_order_faces(polys,myobj)
+                fillRGB = hatchDict[key]["fill_color"]
+                lineRGB = hatchDict[key]["line_color"]
+                weight = hatchDict[key]["weight"]
+                if hatchDict[key]["pattern"] != "":
+                    fillURL =  hatchDict[key]["pattern"] 
+                else: fillURL = ''
+                if hatch.visible:
+                    for poly in polys:
+                        coords = []
+                        for vert in poly.verts:
+                            #vert = loop.vert
+                            coords.append(mat@vert.co)
+                        svg_shaders.svg_poly_fill_shader(hatch, coords, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
    
@@ -3639,7 +3648,7 @@ def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
                 for areaDim in DimGen.areaDimensions:
                     draw_areaDimension(context,myobj,DimGen,areaDim,mat,svg=svg)
             
-
+    
         if sceneProps.is_render_draw:
             endTime = time.time()
             print("Time: " + str(endTime -startTime))
