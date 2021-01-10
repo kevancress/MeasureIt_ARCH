@@ -3542,7 +3542,6 @@ def z_order_faces(face_list,obj):
     
     return ordered_face_list
 
-
 def sort_camera_z_faces(face,ordered_list,obj,idx=0):
     try:
         check_z = get_camera_z_dist(obj.matrix_world @ ordered_list[idx].calc_center_median())
@@ -3564,18 +3563,6 @@ def get_camera_z_dist(location):
     dist_vec = location - camera.location
     dist_along_camera_z = camera_z.dot(dist_vec)
     return dist_along_camera_z
-
-def sort_z(obj,ordered_list,idx=0):
-    try:
-        check_z = ordered_list[idx].location.z
-    except IndexError:
-        return idx
-    if obj.location.z < check_z:
-        pass
-    else:
-        idx+=1
-        idx = sort_z(obj,ordered_list,idx = idx)
-    return idx
 
 
 def draw3d_loop(context,objlist,svg = None,extMat=None, multMat = False):
