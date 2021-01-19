@@ -33,6 +33,8 @@ import blf
 from os import path, remove
 from sys import exc_info
 import svgwrite
+from addon_utils import check, paths, enable
+import xml.etree.ElementTree as ET
 
 import bpy_extras.image_utils as img_utils
 
@@ -465,13 +467,8 @@ def render_main_svg(self, context, animation=False):
             image.scale(width, height)
             image.pixels = [v for v in texture_buffer]
 
-
-
     # Setup Output Path
-    ren_path = path
-    filename = "_"
-    ftxt = "%04d" % scene.frame_current
-    outpath = (ren_path + filename + ftxt + '.svg')
+    outpath = "{}_{:04d}.svg".format(path, scene.frame_current)
 
     view = get_view()
 
@@ -494,24 +491,43 @@ def render_main_svg(self, context, animation=False):
             id='root',
         )
 
-
-
     if sceneProps.embed_scene_render:
+        # If "FreeStyle SVG export" addon is loaded, we render the scene to SVG
+        # and embed the output in the final SVG.
+        freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
+
+        if freestyle_svg_export:
+            scene.render.use_freestyle = True
+            scene.svg_export.mode = 'FRAME'
+            scene.svg_export.use_svg_export = True
+            scene.render.line_thickness_mode = 'ABSOLUTE'
+            scene.render.line_thickness = 1
+
         lastformat = scene.render.image_settings.file_format
         scene.render.image_settings.file_format = 'PNG'
         scene.render.use_file_extension = True
         bpy.ops.render.render(write_still=True)
 
         image_path = bpy.context.scene.render.filepath
-        svg.add(svg.image(
-            os.path.basename(image_path + '.png'), **{
-            'width': width,
-            'height': height
-            }
-        ))
+        if freestyle_svg_export:
+            frame = scene.frame_current
+            svg_image_path = bpy.path.abspath("{}{:04d}.svg".format(image_path, frame))
+            svg_root = ET.parse(svg_image_path).getroot()
+            for elem in svg_root:
+                svg.add(SVGWriteElement(elem))
+            # TODO: should we delete file `svg_image_path`?
+        else:
+            # TODO: we could embed the PNG in the SVG too, using base64 encoding
+            png_image_path = os.path.basename("{}.png".format(image_path))
+            svg.add(svg.image(
+                png_image_path, **{
+                    'width': width,
+                    'height': height
+                }
+            ))
 
+        # TODO: we may want to restore other scene modifications too
         scene.render.image_settings.file_format = lastformat
-        
 
     # -----------------------------
     # Loop to draw all objects
@@ -526,3 +542,33 @@ def render_main_svg(self, context, animation=False):
     sceneProps.is_render_draw = False
     sceneProps.is_vector_draw = False
     return True
+
+
+def get_loaded_addons():
+    paths_list = paths()
+    addon_list = []
+    for path in paths_list:
+        for mod_name, mod_path in bpy.path.module_names(path):
+            is_enabled, is_loaded = check(mod_name)
+            if is_enabled and is_loaded:
+                addon_list.append(mod_name)
+    return addon_list
+
+
+class SVGWriteElement(object):
+    """ Minimal implementation of `svgwrite`'s BaseElement, which we use to
+    inject simple ET.Element objects into its SVG Drawing. """
+
+    def __init__(self, elem):
+        SVG_NS = '{http://www.w3.org/2000/svg}'
+
+        # Remove the SVG namespace
+        for e in elem.iter():
+            if e.tag.startswith(SVG_NS):
+                e.tag = e.tag.replace(SVG_NS, '', 1)
+
+        self.elem = elem
+        self.elementname = elem.tag
+
+    def get_xml(self):
+        return self.elem
