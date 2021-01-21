@@ -444,6 +444,13 @@ class MeasureItARCHSceneProps(PropertyGroup):
                         description="Render a Freestyle SVG and automatically combine the rendered image with the Measureit-ARCH render pass \n Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
                         default=False,
                         update=freestyle_update_flag)
+    
+    keep_freestyle_svg: BoolProperty(name="Keep Freestyle SVG",
+                        description="When Embeding a Freestyle SVG, keep the generated Freestyle SVG as a seperate file as well",
+                        default=False,
+                        update=freestyle_update_flag)
+                        
+
 
     default_scale: IntProperty(name='Default Paper Scale', min=1, default=25,
                                 description="Default Paper Scale (used for font sizing)")

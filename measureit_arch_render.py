@@ -532,12 +532,15 @@ def render_main_svg(self, context, animation=False):
             scene.render.use_freestyle = True
             scene.svg_export.use_svg_export = True
             scene.svg_export.mode = 'FRAME'
-
+        
+        base_path = bpy.context.scene.render.filepath
+        bpy.context.scene.render.filepath += '_freestyle_'
         scene.render.image_settings.file_format = 'PNG'
         scene.render.use_file_extension = True
         bpy.ops.render.render(write_still=False)
 
         image_path = bpy.context.scene.render.filepath
+       
         if freestyle_svg_export:
             frame = scene.frame_current
             svg_image_path = bpy.path.abspath("{}{:04d}.svg".format(image_path, frame))
@@ -545,13 +548,15 @@ def render_main_svg(self, context, animation=False):
             for elem in svg_root:
                 svg.add(SVGWriteElement(elem))
             # TODO: should we delete file `svg_image_path`?
+            if os.path.exists(svg_image_path) and not sceneProps.keep_freestyle_svg:
+                os.remove(svg_image_path)
        
 
         scene.render.image_settings.file_format = lastformat[0]
         scene.render.use_freestyle = lastformat[1]
         scene.svg_export.use_svg_export = lastformat[2]
         scene.svg_export.mode = lastformat[3]
-
+        bpy.context.scene.render.filepath = base_path
 
 
  
