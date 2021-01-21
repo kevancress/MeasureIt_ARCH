@@ -496,6 +496,12 @@ def render_main_svg(self, context, animation=False):
         # and embed the output in the final SVG.
         freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
 
+        # -----------------------------
+        # Loop to draw all objects
+        # -----------------------------
+        draw3d_loop(context,objlist,svg=svg)
+        draw_titleblock(context,svg=svg)
+
         if freestyle_svg_export:
             scene.render.use_freestyle = True
             scene.svg_export.mode = 'FRAME'
@@ -529,11 +535,7 @@ def render_main_svg(self, context, animation=False):
         # TODO: we may want to restore other scene modifications too
         scene.render.image_settings.file_format = lastformat
 
-    # -----------------------------
-    # Loop to draw all objects
-    # -----------------------------
-    draw3d_loop(context,objlist,svg=svg)
-    draw_titleblock(context,svg=svg)
+
 
  
 
