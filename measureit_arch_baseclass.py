@@ -17,6 +17,13 @@ def has_dimension_generator(context):
     hasattr(context.object, "DimensionGenerator") and \
     len(context.object.DimensionGenerator) > 0
 
+def freestyle_update_flag(self, context):
+    scene = context.scene
+    sceneProps= scene.MeasureItArchProps
+    if  sceneProps.embed_freestyle_svg:
+        scene.render.use_freestyle = sceneProps.embed_freestyle_svg
+        scene.svg_export.use_svg_export = sceneProps.embed_freestyle_svg
+
 
 def update_active_dim(self,context):
     if has_dimension_generator(context):
@@ -432,6 +439,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
     embed_scene_render: BoolProperty(name="Embed Scene Render",
                             description="Render the scene and automatically combine the rendered image with the Measureit-ARCH render pass",
                             default=False)
+    
+    embed_freestyle_svg: BoolProperty(name="Embed Freestyle SVG",
+                        description="Render a Freestyle SVG and automatically combine the rendered image with the Measureit-ARCH render pass \n Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
+                        default=False,
+                        update=freestyle_update_flag)
 
     default_scale: IntProperty(name='Default Paper Scale', min=1, default=25,
                                 description="Default Paper Scale (used for font sizing)")

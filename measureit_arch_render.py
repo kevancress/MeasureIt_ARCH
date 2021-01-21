@@ -93,9 +93,15 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
             col = layout.column()
             col.prop(sceneProps, "vector_depthtest", text="Use Vector DepthTest")
         col = layout.column()
-        
-        col.prop(sceneProps, "embed_scene_render", text="Embed Scene Render")
+
         col.prop(sceneProps, "vector_z_order",)
+        col.prop(sceneProps, "embed_scene_render", text="Embed Scene Render")
+
+        col = layout.column()
+        freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
+        col.active = freestyle_svg_export
+        col.prop(sceneProps, "embed_freestyle_svg", text = "Embed FreeStyle SVG")
+        
 
 
 # -------------------------------------------------------------
@@ -490,17 +496,36 @@ def render_main_svg(self, context, animation=False):
             viewBox=('0 0 {} {}'.format(width,height)),
             id='root',
         )
-
+    
     if sceneProps.embed_scene_render:
+        
+        lastformat = scene.render.image_settings.file_format
+        scene.render.image_settings.file_format = 'PNG'
+        scene.render.use_file_extension = True
+        bpy.ops.render.render(write_still=True)
+        
+        image_path = bpy.context.scene.render.filepath
+        png_image_path = os.path.basename("{}.png".format(image_path))
+        svg.add(svg.image(
+            png_image_path, **{
+                'width': width,
+                'height': height
+            }
+        ))
+
+        scene.render.image_settings.file_format = lastformat
+
+
+    # -----------------------------
+    # Loop to draw all objects
+    # -----------------------------
+    draw3d_loop(context,objlist,svg=svg)
+    draw_titleblock(context,svg=svg)
+
+    if sceneProps.embed_freestyle_svg:
         # If "FreeStyle SVG export" addon is loaded, we render the scene to SVG
         # and embed the output in the final SVG.
         freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
-
-        # -----------------------------
-        # Loop to draw all objects
-        # -----------------------------
-        draw3d_loop(context,objlist,svg=svg)
-        draw_titleblock(context,svg=svg)
 
         if freestyle_svg_export:
             scene.render.use_freestyle = True
@@ -512,7 +537,7 @@ def render_main_svg(self, context, animation=False):
         lastformat = scene.render.image_settings.file_format
         scene.render.image_settings.file_format = 'PNG'
         scene.render.use_file_extension = True
-        bpy.ops.render.render(write_still=True)
+        bpy.ops.render.render(write_still=False)
 
         image_path = bpy.context.scene.render.filepath
         if freestyle_svg_export:
@@ -522,15 +547,7 @@ def render_main_svg(self, context, animation=False):
             for elem in svg_root:
                 svg.add(SVGWriteElement(elem))
             # TODO: should we delete file `svg_image_path`?
-        else:
-            # TODO: we could embed the PNG in the SVG too, using base64 encoding
-            png_image_path = os.path.basename("{}.png".format(image_path))
-            svg.add(svg.image(
-                png_image_path, **{
-                    'width': width,
-                    'height': height
-                }
-            ))
+       
 
         # TODO: we may want to restore other scene modifications too
         scene.render.image_settings.file_format = lastformat
