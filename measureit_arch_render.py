@@ -527,14 +527,12 @@ def render_main_svg(self, context, animation=False):
         # and embed the output in the final SVG.
         freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
 
+        lastformat = scene.render.image_settings.file_format, scene.render.use_freestyle, scene.svg_export.use_svg_export, scene.svg_export.mode
         if freestyle_svg_export:
             scene.render.use_freestyle = True
-            scene.svg_export.mode = 'FRAME'
             scene.svg_export.use_svg_export = True
-            scene.render.line_thickness_mode = 'ABSOLUTE'
-            scene.render.line_thickness = 1
+            scene.svg_export.mode = 'FRAME'
 
-        lastformat = scene.render.image_settings.file_format
         scene.render.image_settings.file_format = 'PNG'
         scene.render.use_file_extension = True
         bpy.ops.render.render(write_still=False)
@@ -549,8 +547,10 @@ def render_main_svg(self, context, animation=False):
             # TODO: should we delete file `svg_image_path`?
        
 
-        # TODO: we may want to restore other scene modifications too
-        scene.render.image_settings.file_format = lastformat
+        scene.render.image_settings.file_format = lastformat[0]
+        scene.render.use_freestyle = lastformat[1]
+        scene.svg_export.use_svg_export = lastformat[2]
+        scene.svg_export.mode = lastformat[3]
 
 
 
