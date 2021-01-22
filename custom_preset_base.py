@@ -1,7 +1,8 @@
-import bpy
-from bpy.types import Menu, Operator
-from bpy.props import StringProperty, BoolProperty
 import os
+import bpy
+
+from bpy.props import StringProperty, BoolProperty
+
 
 class Custom_Preset_Base:
     # bl_idname = "script.preset_base_add"
@@ -9,16 +10,16 @@ class Custom_Preset_Base:
     bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
     name = StringProperty(
-            name="Name",
-            description="Name of the preset, used to make the path name",
-            maxlen=64,
-            options={'SKIP_SAVE'},
-            )
+        name="Name",
+        description="Name of the preset, used to make the path name",
+        maxlen=64,
+        options={'SKIP_SAVE'},
+    )
     remove_active = BoolProperty(
-            default=False,
-            options={'HIDDEN', 'SKIP_SAVE'},
-            )
-           
+        default=False,
+        options={'HIDDEN', 'SKIP_SAVE'},
+    )
+
     @staticmethod
     def as_filename(name):  # could reuse for other presets
         for char in " !@#$%^&*(){}:\";'[]<>,.\\/?":
@@ -31,7 +32,7 @@ class Custom_Preset_Base:
         preset_menu_class = getattr(bpy.types, self.preset_menu)
 
         ext = ".py"
-        
+
         if not self.remove_active:
             name = self.name.strip()
             if not name:
@@ -39,11 +40,12 @@ class Custom_Preset_Base:
 
             filename = self.as_filename(name)
 
-            preset_path = os.path.join("addons\MeasureIt_ARCH\presets", self.preset_subdir)
+            preset_path = os.path.join(
+                "addons", "MeasureIt_ARCH", "presets", self.preset_subdir)
             scripts_path = bpy.utils.script_path_user()
-            target_path = os.path.join(scripts_path,preset_path)
-            
-            print (target_path)
+            target_path = os.path.join(scripts_path, preset_path)
+
+            print(target_path)
             if not target_path:
                 self.report({'WARNING'}, "Failed to create presets path")
                 return {'CANCELLED'}
@@ -65,6 +67,7 @@ class Custom_Preset_Base:
                     file_preset.write("\n")
 
                 for rna_path in self.preset_values:
+                    # TODO: do not use `eval`
                     value = eval(rna_path)
                     # convert thin wrapped sequences
                     # to simple lists to repr()
@@ -78,16 +81,18 @@ class Custom_Preset_Base:
                 file_preset.close()
 
             preset_menu_class.bl_label = filename
-            print (preset_menu_class)
+            print(preset_menu_class)
 
         else:
-            preset_active = Custom_Preset_Base.as_filename(preset_menu_class.bl_label)
-            print (preset_active)
-            preset_path = os.path.join("addons\MeasureIt_ARCH\presets", self.preset_subdir)
+            preset_active = Custom_Preset_Base.as_filename(
+                preset_menu_class.bl_label)
+            print(preset_active)
+            preset_path = os.path.join(
+                "addons", "MeasureIt_ARCH", "presets", self.preset_subdir)
             scripts_path = bpy.utils.script_path_user()
-            target_path = os.path.join(scripts_path,preset_path)
-            
-            filepath = os.path.join(target_path,preset_active)
+            target_path = os.path.join(scripts_path, preset_path)
+
+            filepath = os.path.join(target_path, preset_active)
             filepath = filepath + '.py'
 
             if not filepath:
@@ -115,22 +120,22 @@ class Custom_Preset_Base:
             return self.execute(context)
 
     def draw_preset(self, context):
-            """
-            Define these on the subclass:
-            - preset_operator (string)
-            - preset_subdir (string)
-            Optionally:
-            - preset_extensions (set of strings)
-            - preset_operator_defaults (dict of keyword args)
-            """
-            
-            ext_valid = getattr(self, "preset_extensions", {".py", ".xml"})
-            props_default = getattr(self, "preset_operator_defaults", None)
-            
-            preset_path = os.path.join("addons\MeasureIt_ARCH\presets", self.preset_subdir)
-            
-            self.path_menu(bpy.utils.script_paths(preset_path),
-                           self.preset_operator,
-                           props_default=props_default,
-                           filter_ext=lambda ext: ext.lower() in ext_valid)
-    
+        """
+        Define these on the subclass:
+        - preset_operator (string)
+        - preset_subdir (string)
+        Optionally:
+        - preset_extensions (set of strings)
+        - preset_operator_defaults (dict of keyword args)
+        """
+
+        ext_valid = getattr(self, "preset_extensions", {".py", ".xml"})
+        props_default = getattr(self, "preset_operator_defaults", None)
+
+        preset_path = os.path.join(
+            "addons", "MeasureIt_ARCH", "presets", self.preset_subdir)
+
+        self.path_menu(bpy.utils.script_paths(preset_path),
+                       self.preset_operator,
+                       props_default=props_default,
+                       filter_ext=lambda ext: ext.lower() in ext_valid)

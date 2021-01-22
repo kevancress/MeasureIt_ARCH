@@ -25,26 +25,34 @@
 # ----------------------------------------------------------
 
 import bpy
-from .measureit_arch_main import SCENE_PT_Panel
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList
+
+from bpy.types import (
+    PropertyGroup,
+    Panel,
+    Operator,
+    Scene,
+    UIList
+)
 from bpy.props import (
-        CollectionProperty,
-        FloatVectorProperty,
-        IntProperty,
-        BoolProperty,
-        StringProperty,
-        FloatProperty,
-        EnumProperty,
-        PointerProperty
-        )
+    CollectionProperty,
+    IntProperty,
+    BoolProperty,
+    StringProperty,
+    EnumProperty
+)
 
 from .measureit_arch_baseclass import DeletePropButton
-from .measureit_arch_dimensions import AlignedDimensionProperties, recalc_dimWrapper_index, draw_aligned_dimension_settings
+from .measureit_arch_dimensions import (
+    AlignedDimensionProperties,
+    recalc_dimWrapper_index,
+    draw_aligned_dimension_settings
+)
 from .measureit_arch_annotations import AnnotationProperties
 from .measureit_arch_lines import LineProperties
 
-def recalc_index(self,context):
-    #ensure index's are accurate
+
+def recalc_index(self, context):
+    # ensure index's are accurate
     StyleGen = context.scene.StyleGenerator
     wrappedStyles = StyleGen.wrappedStyles
     id_l = 0
@@ -64,22 +72,26 @@ def recalc_index(self,context):
 # A Wrapper Object so multiple MeasureIt_ARCH element
 # types can be shown in the same UI List
 
+
 class StyleWrapper(PropertyGroup):
-    itemType:EnumProperty(
-                items=(('L', "Line", ""),
-                        ('A', "Annotation", ""),
-                        ('D', "Dimension", "")),
-                name="Style Item Type",
-                update=recalc_index)
+    itemType: EnumProperty(
+        items=(('L', "Line", ""),
+               ('A', "Annotation", ""),
+               ('D', "Dimension", "")),
+        name="Style Item Type",
+        update=recalc_index)
 
     itemIndex: IntProperty(name='Item Index')
 
+
 bpy.utils.register_class(StyleWrapper)
 
+
 class StyleContainer(PropertyGroup):
-    active_style_index: IntProperty(name='Active Style Index', min=0, max=1000, default=0,
-                                description='Index of the current Style')
-    
+    active_style_index: IntProperty(
+        name='Active Style Index', min=0, max=1000, default=0,
+        description='Index of the current Style')
+
     show_style_settings: BoolProperty(name='Show Style Settings', default=False)
 
     # Array of styles
@@ -87,37 +99,39 @@ class StyleContainer(PropertyGroup):
     annotations: CollectionProperty(type=AnnotationProperties)
     line_groups: CollectionProperty(type=LineProperties)
 
-    wrappedStyles: CollectionProperty(type=StyleWrapper) 
+    wrappedStyles: CollectionProperty(type=StyleWrapper)
+
 
 bpy.utils.register_class(StyleContainer)
 Scene.StyleGenerator = bpy.props.PointerProperty(type=StyleContainer)
+
 
 class M_ARCH_UL_styles_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         StyleGen = bpy.context.scene.StyleGenerator
         lineStyles = StyleGen.line_groups
         annotationStyles = StyleGen.annotations
-        dimensionStyles= StyleGen.alignedDimensions
-    
+        dimensionStyles = StyleGen.alignedDimensions
+
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.use_property_decorate = False
             # Get correct item
             if item.itemType == 'L':
                 item = lineStyles[item.itemIndex]
-                draw_line_style_row(item,layout)
+                draw_line_style_row(item, layout)
 
-            
             elif item.itemType == 'A':
                 item = annotationStyles[item.itemIndex]
-                draw_annotation_style_row(item,layout)
+                draw_annotation_style_row(item, layout)
 
             elif item.itemType == 'D':
                 item = dimensionStyles[item.itemIndex]
-                draw_dimension_style_row(item,layout)
+                draw_dimension_style_row(item, layout)
 
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon='MESH_CUBE')
+
 
 class SCENE_PT_UIStyles(Panel):
     """Creates a Panel in the Object properties window"""
@@ -130,36 +144,39 @@ class SCENE_PT_UIStyles(Panel):
     def draw_header(self, context):
         layout = self.layout
         row = layout.row()
-        row.label(text="", icon= 'COLOR')
+        row.label(text="", icon='COLOR')
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-        
+
         obj = context.object
 
         scene = context.scene
         StyleGen = scene.StyleGenerator
 
         row = layout.row()
-        
+
         # Draw The UI List
-        row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "wrappedStyles", StyleGen, "active_style_index",rows=2, type='DEFAULT')
-        
+        row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "wrappedStyles",
+                          StyleGen, "active_style_index", rows=2, type='DEFAULT')
+
         # Operators Next to List
         col = row.column(align=True)
         col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
-        op = col.operator("measureit_arch.listdeletepropbutton", text="", icon="X")
+        op = col.operator(
+            "measureit_arch.listdeletepropbutton", text="", icon="X")
         op.tag = StyleGen.active_style_index  # saves internal data
         op.is_style = True
 
         col.separator()
         col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 
-        
         # Settings Below List
-        if len(StyleGen.wrappedStyles) > 0 and  StyleGen.active_style_index < len(StyleGen.wrappedStyles):
+        if (len(StyleGen.wrappedStyles) > 0 and
+            StyleGen.active_style_index < len(StyleGen.wrappedStyles)):
+
             activeWrapperItem = StyleGen.wrappedStyles[StyleGen.active_style_index]
 
             if activeWrapperItem.itemType == 'L':
@@ -169,34 +186,39 @@ class SCENE_PT_UIStyles(Panel):
             if activeWrapperItem.itemType == 'D':
                 item = StyleGen.alignedDimensions[activeWrapperItem.itemIndex]
 
-            if StyleGen.show_style_settings: settingsIcon = 'DISCLOSURE_TRI_DOWN'
-            else: settingsIcon = 'DISCLOSURE_TRI_RIGHT'
-            
+            if StyleGen.show_style_settings:
+                settingsIcon = 'DISCLOSURE_TRI_DOWN'
+            else:
+                settingsIcon = 'DISCLOSURE_TRI_RIGHT'
+
             box = layout.box()
             col = box.column()
             row = col.row()
-            row.prop(StyleGen, 'show_style_settings', text="", icon=settingsIcon,emboss=False)
+            row.prop(StyleGen, 'show_style_settings',
+                     text="", icon=settingsIcon, emboss=False)
 
-            row.label(text= item.name + ' Settings:')
+            row.label(text=item.name + ' Settings:')
             if StyleGen.show_style_settings:
-                
+
                 # Show Line Settings
                 if activeWrapperItem.itemType == 'L':
-                    draw_line_style_settings(item,box)
+                    draw_line_style_settings(item, box)
                 # Show Annotation Settings
                 if activeWrapperItem.itemType == 'A':
-                    draw_annotation_style_settings(item,box)
+                    draw_annotation_style_settings(item, box)
                 # Show Dimension Settings
                 if activeWrapperItem.itemType == 'D':
-                    draw_aligned_dimension_settings(item,box)
+                    draw_aligned_dimension_settings(item, box)
+
 
 class SCENE_MT_styles_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
-    def draw(self,context):
+    def draw(self, context):
         layout = self.layout
 
-        delOp = layout.operator("measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
+        delOp = layout.operator(
+            "measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
         delOp.is_style = True
 
 
@@ -207,7 +229,7 @@ class ListDeletePropButton(Operator):
     bl_label = "Delete property"
     bl_description = "Delete a property"
     bl_category = 'MeasureitArch'
-    bl_options = {'REGISTER'} 
+    bl_options = {'REGISTER'}
     tag: IntProperty()
     item_type: StringProperty()
     is_style: BoolProperty()
@@ -222,27 +244,24 @@ class ListDeletePropButton(Operator):
             obj = context.object
             Generator = obj.DimensionGenerator[0]
             wrapper = Generator.wrappedDimensions[self.tag]
-        
-        wrapperTag = self.tag        
+
+        wrapperTag = self.tag
         self.item_type = wrapper.itemType
         self.tag = wrapper.itemIndex
 
         if self.is_style:
             Generator.wrappedStyles.remove(wrapperTag)
-            recalc_index(self,context)
+            recalc_index(self, context)
 
         else:
             Generator.wrappedDimensions.remove(wrapperTag)
-            recalc_dimWrapper_index(self,context)
+            recalc_dimWrapper_index(self, context)
 
         DeletePropButton.tag = self.tag
         DeletePropButton.item_type = self.item_type
         DeletePropButton.is_style = True
-        DeletePropButton.execute(self,context)
+        DeletePropButton.execute(self, context)
         return {'FINISHED'}
-   
-
-
 
 
 class AddStyleButton(Operator):
@@ -250,11 +269,11 @@ class AddStyleButton(Operator):
     bl_label = "Add"
     bl_description = "Create A New Style (Select Type Below)"
     bl_category = 'MeasureitArch'
-    
+
     styleType: EnumProperty(
-        items=(('A', "Annotation", "Create a new Annotation Style",'FONT_DATA',1),
-                ('L', "Line", "Create a new Line Style",'MESH_CUBE',2),
-                ('D', "Dimension", "Create a new Dimension Style",'DRIVER_DISTANCE',3)),
+        items=(('A', "Annotation", "Create a new Annotation Style", 'FONT_DATA', 1),
+               ('L', "Line", "Create a new Line Style", 'MESH_CUBE', 2),
+               ('D', "Dimension", "Create a new Dimension Style", 'DRIVER_DISTANCE', 3)),
         name="Type of Style to Add",
         description="Type of Style to Add")
 
@@ -275,20 +294,21 @@ class AddStyleButton(Operator):
 
                     newWrapper = styleWrappers.add()
 
-                    if self.styleType is 'A':
+                    if self.styleType == 'A':
                         newStyle = annotationStyles.add()
                         newStyle.itemType = 'A'
                         newStyle.fontSize = 18
                         newStyle.lineWeight = 1
                         newStyle.textAlignment = 'L'
-                        newStyle.name = 'Annotation Style ' + str(len(annotationStyles))
+                        newStyle.name = 'Annotation Style ' + \
+                            str(len(annotationStyles))
                         newWrapper.itemType = 'A'
 
-                    elif self.styleType is 'L':
+                    elif self.styleType == 'L':
                         newStyle = lineStyles.add()
                         newStyle.itemType = 'L'
                         newStyle.lineWeight = 1
-                        newStyle.lineDepthOffset =1
+                        newStyle.lineDepthOffset = 1
                         newStyle.name = 'Line Style ' + str(len(lineStyles))
                         newWrapper.itemType = 'L'
 
@@ -298,10 +318,11 @@ class AddStyleButton(Operator):
                         newStyle.fontSize = 18
                         newStyle.textAlignment = 'C'
                         newStyle.lineWeight = 1
-                        newStyle.name = 'Dimension Style ' + str(len(alignedDimStyles))
+                        newStyle.name = 'Dimension Style ' + \
+                            str(len(alignedDimStyles))
                         newWrapper.itemType = 'D'
-                    
-                    recalc_index(self,context)
+
+                    recalc_index(self, context)
                     newStyle.is_style = True
                     context.area.tag_redraw()
                     return {'FINISHED'}
@@ -312,121 +333,137 @@ class AddStyleButton(Operator):
         return wm.invoke_props_dialog(self)
 
 
-def draw_line_style_row(line,layout):
+def draw_line_style_row(line, layout):
     row = layout.row(align=True)
     subrow = row.row()
 
-    subrow.prop(line, "name", text="",emboss=False,icon='MESH_CUBE')
-    
-    if line.visible: visIcon = 'HIDE_OFF'
-    else: visIcon = 'HIDE_ON'
+    subrow.prop(line, "name", text="", emboss=False, icon='MESH_CUBE')
 
-    if line.isOutline: outIcon = 'SEQ_CHROMA_SCOPE' 
-    else: outIcon = 'FILE_3D'
+    if line.visible:
+        visIcon = 'HIDE_OFF'
+    else:
+        visIcon = 'HIDE_ON'
 
-    if line.lineDrawHidden: hiddenIcon = 'MOD_WIREFRAME'
-    else: hiddenIcon = 'MESH_CUBE'
+        # if line.isOutline:
+        #     outIcon = 'SEQ_CHROMA_SCOPE'
+        # else:
+        #     outIcon = 'FILE_3D'
+
+    if line.lineDrawHidden:
+        hiddenIcon = 'MOD_WIREFRAME'
+    else:
+        hiddenIcon = 'MESH_CUBE'
 
     subrow = row.row()
     subrow.scale_x = 0.5
-    subrow.prop(line, 'color',emboss=True, text="")
+    subrow.prop(line, 'color', emboss=True, text="")
     subrow.separator()
     subrow = row.row(align=True)
     #subrow.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
-    subrow.prop(line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon,emboss=False)
-    subrow.prop(line, "visible", text="", icon = visIcon)
+    subrow.prop(line, 'lineDrawHidden', text="",
+                toggle=True, icon=hiddenIcon, emboss=False)
+    subrow.prop(line, "visible", text="", icon=visIcon)
 
-def draw_line_style_settings(line,layout):
-    col=layout.column()
-    col.prop_search(line,'visibleInView', bpy.data, 'cameras',text='Visible In View')
+
+def draw_line_style_settings(line, layout):
+    col = layout.column()
+    col.prop_search(line, 'visibleInView', bpy.data,
+                    'cameras', text='Visible In View')
 
     col.prop(line, 'color', text="Color")
-    col.prop(line, 'lineWeight', text="Lineweight" )
+    col.prop(line, 'lineWeight', text="Lineweight")
     col.prop(line, 'lineDepthOffset', text="Z Offset")
 
-    col=layout.column(align=True)
-    col.prop(line, 'lineOverExtension', text="Extension" )
-    col.prop(line, 'randomSeed', text="Seed" )
-    
     col = layout.column(align=True)
-    if line.lineDrawHidden is True: col.enabled = True
-    else: col.enabled = False
+    col.prop(line, 'lineOverExtension', text="Extension")
+    col.prop(line, 'randomSeed', text="Seed")
+
+    col = layout.column(align=True)
+    if line.lineDrawHidden:
+        col.enabled = True
+    else:
+        col.enabled = False
     col.prop(line, 'lineHiddenColor', text="Hidden Line Color")
-    col.prop(line, 'lineHiddenWeight',text="Hidden Line Weight")
-
-
+    col.prop(line, 'lineHiddenWeight', text="Hidden Line Weight")
 
     col = layout.column(align=True)
-    if line.lineDrawDashed or line.lineDrawHidden: col.enabled = True
-    else: col.enabled = False
-    col.prop(line, 'lineHiddenDashScale',text="Dash Scale")
+    if line.lineDrawDashed or line.lineDrawHidden:
+        col.enabled = True
+    else:
+        col.enabled = False
+    col.prop(line, 'lineHiddenDashScale', text="Dash Scale")
 
     col = layout.column(align=True)
     col.prop(line, 'lineDrawDashed', text="Draw Dashed")
     col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
-    col.prop(line, 'lineDashSpace',text="Dash Spacing")
+    col.prop(line, 'lineDashSpace', text="Dash Spacing")
     col.prop(line, 'inFront', text="Draw In Front")
-    col.prop(line,'evalMods')
+    col.prop(line, 'evalMods')
 
-def draw_annotation_style_row(annotation,layout):
+
+def draw_annotation_style_row(annotation, layout):
     row = layout.row(align=True)
     subrow = row.row()
 
-    subrow.prop(annotation, "name", text="",emboss=False,icon='FONT_DATA')
-    
-    if annotation.visible: visIcon = 'HIDE_OFF'
-    else: visIcon = 'HIDE_ON'
-    
+    subrow.prop(annotation, "name", text="", emboss=False, icon='FONT_DATA')
+
+    if annotation.visible:
+        visIcon = 'HIDE_OFF'
+    else:
+        visIcon = 'HIDE_ON'
+
     subrow = row.row()
     subrow.scale_x = 0.6
-    subrow.prop(annotation, 'color', text="" )
+    subrow.prop(annotation, 'color', text="")
 
     subrow = row.row(align=True)
-    subrow.prop(annotation, "visible", text="", icon = visIcon,emboss=False)
+    subrow.prop(annotation, "visible", text="", icon=visIcon, emboss=False)
 
-def draw_annotation_style_settings(annotation,layout):
-    col=layout.column()
+
+def draw_annotation_style_settings(annotation, layout):
+    col = layout.column()
     split = layout.split(factor=0.485)
     col = split.column()
-    col.alignment ='RIGHT'
+    col.alignment = 'RIGHT'
     col.label(text='Font')
     col = split.column(align=True)
     col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
-    col.prop_search(annotation,'visibleInView', bpy.data, 'cameras',text='Visible In View')
-    
+    col.prop_search(annotation, 'visibleInView', bpy.data,
+                    'cameras', text='Visible In View')
 
     col = layout.column(align=True)
     col.prop(annotation, 'fontSize', text="Size")
 
-    col = layout.column(align=True)   
+    col = layout.column(align=True)
     col.prop(annotation, 'textAlignment', text='Alignment')
     col.prop(annotation, 'textPosition', text='Position')
-    
-    col = layout.column(align=True)  
-    col.prop(annotation, 'endcapA', text='End Cap')
-    col.prop(annotation, 'endcapSize', text='Size')
-    col.prop(annotation,'endcapArrowAngle', text='Arrow Angle')
 
     col = layout.column(align=True)
-    col.prop(annotation, 'lineWeight', text="Line Weight" )
+    col.prop(annotation, 'endcapA', text='End Cap')
+    col.prop(annotation, 'endcapSize', text='Size')
+    col.prop(annotation, 'endcapArrowAngle', text='Arrow Angle')
+
+    col = layout.column(align=True)
+    col.prop(annotation, 'lineWeight', text="Line Weight")
     col.prop(annotation, 'inFront', text="Draw In Front")
-    col.prop(annotation,'evalMods')
+    col.prop(annotation, 'evalMods')
     col.prop(annotation, 'draw_leader', text='Draw Leader')
 
-def draw_dimension_style_row(dim,layout):
+
+def draw_dimension_style_row(dim, layout):
     row = layout.row(align=True)
     subrow = row.row()
 
-    subrow.prop(dim, "name", text="",emboss=False,icon='DRIVER_DISTANCE')
+    subrow.prop(dim, "name", text="", emboss=False, icon='DRIVER_DISTANCE')
 
-    if dim.visible: visIcon = 'HIDE_OFF'
-    else: visIcon = 'HIDE_ON'
-    
+    if dim.visible:
+        visIcon = 'HIDE_OFF'
+    else:
+        visIcon = 'HIDE_ON'
+
     subrow = row.row()
     subrow.scale_x = 0.6
-    subrow.prop(dim, 'color', text="" )
+    subrow.prop(dim, 'color', text="")
 
     subrow = row.row(align=True)
-    subrow.prop(dim, "visible", text="", icon = visIcon,emboss=False)
-
-
+    subrow.prop(dim, "visible", text="", icon=visIcon, emboss=False)

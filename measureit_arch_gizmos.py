@@ -25,13 +25,11 @@
 # ----------------------------------------------------------
 
 import bpy
-from mathutils import Vector, Matrix, Euler, Quaternion
-from math import degrees, radians
-from bpy.types import (
-    GizmoGroup,
-    Gizmo,
-    Scene
-)
+
+from bpy.types import GizmoGroup
+from mathutils import Vector, Matrix, Quaternion
+from math import radians
+
 
 class mArchGizmoGroup(GizmoGroup):
     bl_idname = "OBJECT_GG_mArch"
@@ -52,23 +50,25 @@ class mArchGizmoGroup(GizmoGroup):
                 if 'AnnotationGenerator' in obj:
                     return (obj)
 
-    def createGiz(self,obj):
+    def createGiz(self, obj):
         objIndex = 0
-        for obj in bpy.context.selected_objects:    
+        for obj in bpy.context.selected_objects:
             if 'DimensionGenerator' in obj:
                 dimGen = obj.DimensionGenerator[0]
                 idx = 0
                 for dim in dimGen.alignedDimensions:
-                    createDimOffsetGiz(self,dim,objIndex,idx,"DimensionGenerator[0].alignedDimensions[self.idx]")
+                    createDimOffsetGiz(
+                        self, dim, objIndex, idx, "DimensionGenerator[0].alignedDimensions[self.idx]")
                     idx += 1
                 idx = 0
                 for dim in dimGen.axisDimensions:
-                    createDimOffsetGiz(self,dim,objIndex,idx,"DimensionGenerator[0].axisDimensions[self.idx]")
+                    createDimOffsetGiz(
+                        self, dim, objIndex, idx, "DimensionGenerator[0].axisDimensions[self.idx]")
                     idx += 1
             if 'AnnotationGenerator' in obj:
                 annotationGen = obj.AnnotationGenerator[0]
-                createAnnotationTranslateGiz(self,annotationGen,objIndex)
-                createAnnotationRotateGiz(self,annotationGen,objIndex)
+                createAnnotationTranslateGiz(self, annotationGen, objIndex)
+                createAnnotationRotateGiz(self, annotationGen, objIndex)
             objIndex += 1
 
     def setup(self, context):
@@ -80,9 +80,11 @@ class mArchGizmoGroup(GizmoGroup):
         self.gizmos.clear()
         self.createGiz(obj)
 
+
 bpy.utils.register_class(mArchGizmoGroup)
 
-def createDimOffsetGiz(group,dim,objIndex,idx,dimStr):
+
+def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
     context = bpy.context
     dimProps = dim
     if dim.uses_style:
@@ -90,18 +92,17 @@ def createDimOffsetGiz(group,dim,objIndex,idx,dimStr):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-
-    #Set Matrix
-    k = Vector((0,0,1))
-    basisMatrix = Matrix.Translation(Vector((0,0,0)))
+    # Set Matrix
+    k = Vector((0, 0, 1))
+    basisMatrix = Matrix.Translation(Vector((0, 0, 0)))
     rot = k.rotation_difference(dim.gizRotDir)
     rotMatrix = rot.to_matrix()
     rotMatrix.resize_4x4()
-    
+
     basisMatrix.translation = Vector(dim.gizLoc)+(Vector(dim.gizRotDir)*0.2)
     basisMatrix = basisMatrix @ rotMatrix
-    
-    #Offset Gizmo
+
+    # Offset Gizmo
     dimOffsetGiz = group.gizmos.new("GIZMO_GT_arrow_3d")
     op = dimOffsetGiz.target_set_operator("measureit_arch.dimesnion_offset")
     op.objIndex = objIndex
@@ -111,18 +112,19 @@ def createDimOffsetGiz(group,dim,objIndex,idx,dimStr):
     dimOffsetGiz.use_draw_modal = False
 
     dimOffsetGiz.length = 0
-    dimOffsetGiz.matrix_basis = basisMatrix 
+    dimOffsetGiz.matrix_basis = basisMatrix
     dimOffsetGiz.use_draw_value = False
 
     dimOffsetGiz.scale_basis = 1
-    dimOffsetGiz.color = (pow(dimProps.color[0],(1/2.2)),pow(dimProps.color[1],(1/2.2)),pow(dimProps.color[2],(1/2.2)))
+    dimOffsetGiz.color = (pow(dimProps.color[0], (1/2.2)), pow(
+        dimProps.color[1], (1/2.2)), pow(dimProps.color[2], (1/2.2)))
     dimOffsetGiz.alpha = 0.3
 
-    dimOffsetGiz.color_highlight = (pow(dimProps.color[0],(1/2.2)),pow(dimProps.color[1],(1/2.2)),pow(dimProps.color[2],(1/2.2)))
+    dimOffsetGiz.color_highlight = (pow(dimProps.color[0], (1/2.2)), pow(
+        dimProps.color[1], (1/2.2)), pow(dimProps.color[2], (1/2.2)))
     dimOffsetGiz.alpha_highlight = 1
-    
 
-    #Button Gizmo
+    # Button Gizmo
     #dimButton = group.gizmos.new("GIZMO_GT_button_2d")
     #dimButton.icon = 'PREFERENCES'
     #dimButton.scale_basis = 0.2
@@ -133,22 +135,22 @@ def createDimOffsetGiz(group,dim,objIndex,idx,dimStr):
     #group.settings_widget = dimButton
     #self.rotate_widget = rotateGiz
 
-def createAnnotationTranslateGiz(group,annotationGen,objIndex):
+
+def createAnnotationTranslateGiz(group, annotationGen, objIndex):
     # Set Basis Matrix
     idx = 0
     for anno in annotationGen.annotations:
-        basisMatrix = Matrix.Translation(Vector((0,0,0)))
+        basisMatrix = Matrix.Translation(Vector((0, 0, 0)))
         obj = bpy.context.selected_objects[objIndex]
         mat = obj.matrix_world
         objrot = mat.to_quaternion()
-        basisMatrix.translation = Vector(anno.gizLoc) - Vector(anno.annotationOffset) 
+        basisMatrix.translation = Vector(
+            anno.gizLoc) - Vector(anno.annotationOffset)
         scale = 1
         lineweight = 2
         length = 0.6
         offset = 0.05
         baseAlpha = 0.15
-
-     
 
         # Basic Move Gizmo
         annotationMove = group.gizmos.new("GIZMO_GT_move_3d")
@@ -157,29 +159,30 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         annotationMove.matrix_basis = basisMatrix
         annotationMove.scale_basis = 0.15
         annotationMove.draw_style = 'RING_2D'
-        annotationMove.draw_options= {'ALIGN_VIEW'}
+        annotationMove.draw_options = {'ALIGN_VIEW'}
         annotationMove.line_width = lineweight
         annotationMove.color = 0.8, 0.8, 0.8
         annotationMove.alpha = 0.5
-        annotationMove.use_draw_modal = True 
+        annotationMove.use_draw_modal = True
 
         annotationMove.color_highlight = 1.0, 1.0, 1.0
         annotationMove.alpha_highlight = 1
 
-        #Translate Op Gizmos
-        #X
+        # Translate Op Gizmos
+        # X
         annotationOffsetX = group.gizmos.new("GIZMO_GT_arrow_3d")
-        opX = annotationOffsetX.target_set_operator("measureit_arch.translate_annotation")
-        opX.constrainAxis = (True,False,False)
+        opX = annotationOffsetX.target_set_operator(
+            "measureit_arch.translate_annotation")
+        opX.constrainAxis = (True, False, False)
         opX.objIndex = objIndex
         opX.idx = idx
 
         XbasisMatrix = basisMatrix.to_3x3()
-        rot = Quaternion(Vector((0,1,0)),radians(90))
+        rot = Quaternion(Vector((0, 1, 0)), radians(90))
         XbasisMatrix.rotate(rot)
         XbasisMatrix.rotate(objrot)
         XbasisMatrix.resize_4x4()
-        offsetVec = Vector((offset,0,0))
+        offsetVec = Vector((offset, 0, 0))
         offsetVec.rotate(objrot)
         XbasisMatrix.translation = Vector(anno.gizLoc) + offsetVec
 
@@ -195,19 +198,20 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         annotationOffsetX.color_highlight = 0.96, 0.2, 0.31
         annotationOffsetX.alpha_highlight = 1
 
-        #Y
+        # Y
         annotationOffsetY = group.gizmos.new("GIZMO_GT_arrow_3d")
-        opY = annotationOffsetY.target_set_operator("measureit_arch.translate_annotation")
-        opY.constrainAxis = (False,True,False)
+        opY = annotationOffsetY.target_set_operator(
+            "measureit_arch.translate_annotation")
+        opY.constrainAxis = (False, True, False)
         opY.objIndex = objIndex
         opY.idx = idx
 
         YbasisMatrix = basisMatrix.to_3x3()
-        rot = Quaternion(Vector((1,0,0)),radians(-90))
+        rot = Quaternion(Vector((1, 0, 0)), radians(-90))
         YbasisMatrix.rotate(rot)
         YbasisMatrix.rotate(objrot)
         YbasisMatrix.resize_4x4()
-        offsetVec = Vector((0,offset,0))
+        offsetVec = Vector((0, offset, 0))
         offsetVec.rotate(objrot)
         YbasisMatrix.translation = Vector(anno.gizLoc) + offsetVec
 
@@ -223,17 +227,18 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
         annotationOffsetY.color_highlight = 0.54, 0.86, 0
         annotationOffsetY.alpha_highlight = 1
 
-        #Z
+        # Z
         annotationOffsetZ = group.gizmos.new("GIZMO_GT_arrow_3d")
-        opZ = annotationOffsetZ.target_set_operator("measureit_arch.translate_annotation")
-        opZ.constrainAxis = (False,False,True)
+        opZ = annotationOffsetZ.target_set_operator(
+            "measureit_arch.translate_annotation")
+        opZ.constrainAxis = (False, False, True)
         opZ.objIndex = objIndex
         opZ.idx = idx
 
         ZbasisMatrix = basisMatrix.to_3x3()
         ZbasisMatrix.rotate(objrot)
         ZbasisMatrix.resize_4x4()
-        offsetVec = Vector((0,0,offset))
+        offsetVec = Vector((0, 0, offset))
         offsetVec.rotate(objrot)
         ZbasisMatrix.translation = Vector(anno.gizLoc) + offsetVec
 
@@ -248,20 +253,21 @@ def createAnnotationTranslateGiz(group,annotationGen,objIndex):
 
         annotationOffsetZ.color_highlight = 0.15, 0.56, 1
         annotationOffsetZ.alpha_highlight = 1
-        
-        #add to group
+
+        # add to group
         group.move_widget = annotationMove
         group.X_widget = annotationOffsetX
         group.Y_widget = annotationOffsetY
         group.Z_widget = annotationOffsetZ
         idx += 1
 
-def createAnnotationRotateGiz(group,annotationGen,objIndex):
+
+def createAnnotationRotateGiz(group, annotationGen, objIndex):
     # Set Basis Matrix
     idx = 0
     rotateGizScale = 0.5
     for anno in annotationGen.annotations:
-        basisMatrix = Matrix.Translation(Vector((0,0,0)))
+        basisMatrix = Matrix.Translation(Vector((0, 0, 0)))
         basisMatrix.translation = Vector(anno.gizLoc)
         obj = bpy.context.selected_objects[objIndex]
         mat = obj.matrix_world
@@ -269,22 +275,22 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         lineweight = 2
         baseAlpha = 0.15
 
-        #Translate Op Gizmos
-        #X
+        # Translate Op Gizmos
+        # X
         annotationRotateX = group.gizmos.new("GIZMO_GT_move_3d")
         annotationRotateX.use_draw_modal = True
-        opX = annotationRotateX.target_set_operator("measureit_arch.rotate_annotation")
-        opX.constrainAxis = (True,False,False)
+        opX = annotationRotateX.target_set_operator(
+            "measureit_arch.rotate_annotation")
+        opX.constrainAxis = (True, False, False)
         opX.objIndex = objIndex
         opX.idx = idx
 
         XbasisMatrix = basisMatrix.to_3x3()
-        rot = Quaternion(Vector((0,1,0)),radians(90))
+        rot = Quaternion(Vector((0, 1, 0)), radians(90))
         XbasisMatrix.rotate(rot)
         XbasisMatrix.rotate(objrot)
         XbasisMatrix.resize_4x4()
         XbasisMatrix.translation = Vector(anno.gizLoc)
-        
 
         annotationRotateX.matrix_basis = XbasisMatrix
         annotationRotateX.scale_basis = rotateGizScale
@@ -296,16 +302,17 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         annotationRotateX.color_highlight = 0.96, 0.2, 0.31
         annotationRotateX.alpha_highlight = 1
 
-        #Y
+        # Y
         annotationRotateY = group.gizmos.new("GIZMO_GT_move_3d")
         annotationRotateY.use_draw_modal = True
-        opY = annotationRotateY.target_set_operator("measureit_arch.rotate_annotation")
-        opY.constrainAxis = (False,True,False)
+        opY = annotationRotateY.target_set_operator(
+            "measureit_arch.rotate_annotation")
+        opY.constrainAxis = (False, True, False)
         opY.objIndex = objIndex
         opY.idx = idx
 
         YbasisMatrix = basisMatrix.to_3x3()
-        rot = Quaternion(Vector((1,0,0)),radians(-90))
+        rot = Quaternion(Vector((1, 0, 0)), radians(-90))
         YbasisMatrix.rotate(rot)
         YbasisMatrix.rotate(objrot)
         YbasisMatrix.resize_4x4()
@@ -321,11 +328,12 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
         annotationRotateY.color_highlight = 0.54, 0.86, 0
         annotationRotateY.alpha_highlight = 1
 
-        #Z
+        # Z
         annotationRotateZ = group.gizmos.new("GIZMO_GT_move_3d")
         annotationRotateZ.use_draw_modal = True
-        opZ = annotationRotateZ.target_set_operator("measureit_arch.rotate_annotation")
-        opZ.constrainAxis = (False,False,True)
+        opZ = annotationRotateZ.target_set_operator(
+            "measureit_arch.rotate_annotation")
+        opZ.constrainAxis = (False, False, True)
         opZ.objIndex = objIndex
         opZ.idx = idx
 
@@ -343,11 +351,10 @@ def createAnnotationRotateGiz(group,annotationGen,objIndex):
 
         annotationRotateZ.color_highlight = 0.15, 0.56, 1
         annotationRotateZ.alpha_highlight = 1
-        
-        #add to group
+
+        # add to group
 
         group.X_widget = annotationRotateX
         group.Y_widget = annotationRotateY
         group.Z_widget = annotationRotateZ
         idx += 1
-

@@ -30,16 +30,21 @@ bl_info = {
     "author": "Kevan Cress, Antonio Vazquez (antonioya)",
     "location": "View3D > Tools Panel /Properties panel",
     "version": (0, 4, 6),
-    "blender": (2, 83, 0),      
+    "blender": (2, 83, 0),
     "description": "Tools for adding Dimensions, Annotations and Linework to Objects",
     "warning": "",
     "doc_url": "https://github.com/kevancress/MeasureIt_ARCH/",
     "category": "3D View"
 }
 
-import sys
 import os
 import site
+import bpy
+
+from bpy.types import WindowManager
+from bpy.props import BoolProperty
+from . import auto_load
+
 
 cwd = os.path.dirname(os.path.realpath(__file__))
 site.addsitedir(os.path.join(cwd, "libs"))
@@ -48,44 +53,28 @@ site.addsitedir(os.path.join(cwd, "libs"))
 # Import modules
 # ----------------------------------------------
 if "bpy" in locals():
-    import importlib
-    #importlib.reload(measureit_arch_geometry)
-    #importlib.reload(measureit_arch_annotations)
-    #importlib.reload(measureit_arch_baseclass)
-    #importlib.reload(measureit_arch_main)
-    #importlib.reload(measureit_arch_lines)
-    #importlib.reload(measureit_arch_render)
-    #importlib.reload(measureit_arch_styles)
-    #importlib.reload(measureit_arch_dimensions)
+    # import importlib
+    # importlib.reload(measureit_arch_geometry)
+    # importlib.reload(measureit_arch_annotations)
+    # importlib.reload(measureit_arch_baseclass)
+    # importlib.reload(measureit_arch_main)
+    # importlib.reload(measureit_arch_lines)
+    # importlib.reload(measureit_arch_render)
+    # importlib.reload(measureit_arch_styles)
+    # importlib.reload(measureit_arch_dimensions)
     print("measureit_arch: Reloaded multifiles")
 else:
-    #from . import measureit_arch_geometry
-    #from . import measureit_arch_annotations
-    #from . import measureit_arch_baseclass
-    #from . import measureit_arch_main
-    #from . import measureit_arch_lines
-    #from . import measureit_arch_render
-    #from . import measureit_arch_styles
-    #from . import measureit_arch_dimensions
+    # from . import measureit_arch_geometry
+    # from . import measureit_arch_annotations
+    # from . import measureit_arch_baseclass
+    # from . import measureit_arch_main
+    # from . import measureit_arch_lines
+    # from . import measureit_arch_render
+    # from . import measureit_arch_styles
+    # from . import measureit_arch_dimensions
     print("measureit_arch: Imported multifiles")
 
-import bpy
-from bpy.types import (
-        PropertyGroup,
-        AddonPreferences,
-        Scene,
-        WindowManager,
-        )
-from bpy.props import (
-        CollectionProperty,
-        FloatVectorProperty,
-        IntProperty,
-        BoolProperty,
-        StringProperty,
-        FloatProperty,
-        EnumProperty,
-        )
-from . import auto_load
+
 auto_load.init()
 
 
@@ -98,16 +87,16 @@ auto_load.init()
 # noinspection PyUnusedLocal
 def register():
     auto_load.register()
-    # Define properties\
-    wm = WindowManager
+
     # register internal property
-    wm.measureit_arch_run_opengl = BoolProperty(default=False)
-    
+    WindowManager.measureit_arch_run_opengl = BoolProperty(default=False)
+
 def unregister():
     auto_load.unregister()
 
     # remove OpenGL data
-    measureit_arch_main.ShowHideViewportButton.handle_remove(measureit_arch_main.ShowHideViewportButton, bpy.context)
+    measureit_arch_main.ShowHideViewportButton.handle_remove(
+        measureit_arch_main.ShowHideViewportButton, bpy.context)
     wm = bpy.context.window_manager
     p = 'measureit_arch_run_opengl'
     if p in wm:
