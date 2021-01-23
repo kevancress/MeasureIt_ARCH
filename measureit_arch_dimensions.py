@@ -34,7 +34,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     PointerProperty, BoolVectorProperty
 from mathutils import Vector
 
-from .measureit_arch_main import get_selected_faces, get_selected_vertex_history
+from .measureit_arch_main import get_selected_faces, get_selected_vertex_history, get_smart_selected
 from .measureit_arch_baseclass import BaseDim, recalc_dimWrapper_index
 
 
