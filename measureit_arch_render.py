@@ -23,41 +23,31 @@
 #
 # ----------------------------------------------------------
 
-import bpy
-
 import bgl
+import bpy
 import gpu
 import os
-
-import blf
-from os import path, remove
-from sys import exc_info
 import svgwrite
-from addon_utils import check, paths, enable
 import xml.etree.ElementTree as ET
 
-import bpy_extras.image_utils as img_utils
-
-import bpy_extras.object_utils as object_utils
-# noinspection PyUnresolvedReferences
-from bpy_extras import view3d_utils
-from math import ceil
-
-from gpu_extras.presets import draw_texture_2d
+from addon_utils import check, paths
 from bgl import *
-import numpy as np
-import bmesh
-from .measureit_arch_geometry import *
-from .measureit_arch_main import draw_main, draw_main_3d, draw_titleblock
 from bpy.props import IntProperty
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
-depthOnlyshader = gpu.types.GPUShader(Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
+from bpy.types import Panel, Operator
+from sys import exc_info
 
-global svg
+from .measureit_arch_geometry import *
+from .measureit_arch_main import draw_titleblock
+
+depthOnlyshader = gpu.types.GPUShader(
+    Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
+
 
 # ------------------------------------------------------------------
 # Define panel class for render functions.
 # ------------------------------------------------------------------
+
+
 class RENDER_PT_MeasureitArch_Panel(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -86,12 +76,16 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
         col.label(text="MeasureIt_ARCH Render")
         col = layout.column(align=True)
         col.scale_y = 1.5
-        col.operator("measureit_arch.render_image", icon='RENDER_STILL', text= "MeasureIt_ARCH Image")
-        col.operator("measureit_arch.render_anim", icon='RENDER_ANIMATION', text= "MeasureIt_ARCH Animation")
-        col.operator("measureit_arch.rendersvgbutton", icon='DOCUMENTS', text= "MeasureIt_ARCH Vector")
+        col.operator("measureit_arch.renderimagebutton",
+                     icon='RENDER_STILL', text="MeasureIt_ARCH Image")
+        col.operator("measureit_arch.renderanimbutton",
+                     icon='RENDER_ANIMATION', text="MeasureIt_ARCH Animation")
+        col.operator("measureit_arch.rendersvgbutton",
+                     icon='DOCUMENTS', text="MeasureIt_ARCH Vector")
         if sceneProps.enable_experimental:
             col = layout.column()
-            col.prop(sceneProps, "vector_depthtest", text="Use Vector DepthTest")
+            col.prop(sceneProps, "vector_depthtest",
+                     text="Use Vector DepthTest")
         col = layout.column()
 
         col.prop(sceneProps, "vector_z_order",)
@@ -100,8 +94,7 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
         col = layout.column()
         freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
         col.active = freestyle_svg_export
-        col.prop(sceneProps, "embed_freestyle_svg", text = "Embed FreeStyle SVG")
-        
+        col.prop(sceneProps, "embed_freestyle_svg", text="Embed FreeStyle SVG")
 
 
 # -------------------------------------------------------------
@@ -110,7 +103,7 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
 # -------------------------------------------------------------
 
 class RenderSegmentButton(Operator):
-    bl_idname = "measureit_arch.render_image"
+    bl_idname = "measureit_arch.renderimagebutton"
     bl_label = "Render"
     bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
     bl_category = 'MeasureitArch'
@@ -135,39 +128,37 @@ class RenderSegmentButton(Operator):
         # -----------------------------
 
         print("MeasureIt_ARCH: Rendering image")
-        #bpy.ops.render.render()
         render_result = render_main(self, context)
-        #render_result = [True, 0]
-        if render_result[0] is True:
+        if render_result[0]:
             self.report({'INFO'}, msg)
-        del render_result
 
         return {'FINISHED'}
 
 
 class MeasureitRenderAnim(bpy.types.Operator):
     """Operator which runs its self from a timer"""
-    bl_idname = "measureit_arch.render_anim"
+    bl_idname = "measureit_arch.renderanimbutton"
     bl_label = "Render MeasureIt_ARCH animation"
 
     _timer = None
     _updating = False
-    view3d = None 
+    view3d = None
 
     def modal(self, context, event):
         scene = context.scene
         wm = context.window_manager
-        
+
         if event.type in {'RIGHTMOUSE', 'ESC'}:
             self.cancel(context)
             return {'CANCELLED'}
-            
+
         if event.type == 'TIMER' and not self._updating:
-            self._updating=True
+            self._updating = True
             if scene.frame_current <= scene.frame_end:
                 scene.frame_set(scene.frame_current)
-                self.view3d.tag_redraw()      
-                print("MeasureIt_ARCH: Rendering frame: " + str(scene.frame_current))
+                self.view3d.tag_redraw()
+                print("MeasureIt_ARCH: Rendering frame: " +
+                      str(scene.frame_current))
                 render_main(self, context, True)
                 self._updating = False
                 scene.frame_current += 1
@@ -175,9 +166,9 @@ class MeasureitRenderAnim(bpy.types.Operator):
                 self.cancel(context)
                 return {'CANCELLED'}
 
-        self.view3d.tag_redraw() 
+        self.view3d.tag_redraw()
         return {'PASS_THROUGH'}
-                
+
     def execute(self, context):
         scene = context.scene
         msg = "New image created with measures. Open it in UV/image editor"
@@ -192,9 +183,10 @@ class MeasureitRenderAnim(bpy.types.Operator):
         for area in context.screen.areas:
             if area.type == 'VIEW_3D':
                 self.view3d = area
-        
-        if self.view3d == None:
-            self.report({'ERROR'}, 'A 3D Viewport must be open to render MeasureIt_ARCH Animations')
+
+        if self.view3d is None:
+            self.report(
+                {'ERROR'}, 'A 3D Viewport must be open to render MeasureIt_ARCH Animations')
             self.cancel(context)
             return {'CANCELLED'}
 
@@ -236,12 +228,11 @@ class RenderSvgButton(Operator):
         # -----------------------------
 
         print("MeasureIt_ARCH: Rendering image")
-        #bpy.ops.render.render()
-        if render_main_svg(self, context) is True:
+        # bpy.ops.render.render()
+        if render_main_svg(self, context):
             self.report({'INFO'}, msg)
 
         return {'FINISHED'}
-
 
 
 # -------------------------------------------------------------
@@ -251,55 +242,52 @@ class RenderSvgButton(Operator):
 def render_main(self, context, animation=False):
 
     scene = context.scene
-    sceneProps= scene.MeasureItArchProps
+    sceneProps = scene.MeasureItArchProps
     sceneProps.is_render_draw = True
 
     clipdepth = context.scene.camera.data.clip_end
     objlist = context.view_layer.objects
-
 
     # Get resolution
     render_scale = scene.render.resolution_percentage / 100
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
 
-
     # Draw all lines in Offsecreen
     renderoffscreen = gpu.types.GPUOffScreen(width, height)
-    
+
     view_matrix_3d = scene.camera.matrix_world.inverted()
-    projection_matrix = scene.camera.calc_matrix_camera(context.view_layer.depsgraph, x=width, y=height)
+    projection_matrix = scene.camera.calc_matrix_camera(
+        context.view_layer.depsgraph, x=width, y=height)
 
     set_OpenGL_Settings(True)
     with renderoffscreen.bind():
 
         # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
         bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-        bgl.glClearDepth(clipdepth) 
+        bgl.glClearDepth(clipdepth)
 
         gpu.matrix.reset()
         gpu.matrix.load_matrix(view_matrix_3d)
         gpu.matrix.load_projection_matrix(projection_matrix)
 
-
         # Draw Scene for the depth buffer
-        draw_scene(self, context, projection_matrix) 
+        draw_scene(self, context, projection_matrix)
 
-        
         # Clear Color Buffer, we only need the depth info
-        bgl.glClearColor(0,0,0,0)
+        bgl.glClearColor(0, 0, 0, 0)
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
         # -----------------------------
         # Loop to draw all objects
         # -----------------------------
-        draw3d_loop(context,objlist)
+        draw3d_loop(context, objlist)
         draw_titleblock(context)
-        
+
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
         bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
-        bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
-    
+        bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
+                         bgl.GL_UNSIGNED_BYTE, buffer)
 
     # -----------------------------
     # Create image
@@ -329,6 +317,8 @@ def render_main(self, context, animation=False):
 # -------------------------------------
 # Save image to file
 # -------------------------------------
+
+
 def save_image(self, filepath, myimage):
     # noinspection PyBroadException
     try:
@@ -354,9 +344,10 @@ def save_image(self, filepath, myimage):
         self.report({'ERROR'}, "MeasureIt_ARCH: Unable to save render image")
         return
 
-#--------------------------------------
+# --------------------------------------
 # Draw Scene Geometry for Depth Buffer
-#--------------------------------------
+# --------------------------------------
+
 
 def draw_scene(self, context, projection_matrix):
 
@@ -365,11 +356,11 @@ def draw_scene(self, context, projection_matrix):
     deps = bpy.context.view_layer.depsgraph
     for obj_int in deps.object_instances:
         obj = obj_int.object
-        if obj.type == 'MESH' and obj.hide_render == False :
-
+        if obj.type == 'MESH' and not obj.hide_render:
             mat = obj_int.matrix_world
             obj_eval = obj.evaluated_get(deps)
-            mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=bpy.context.view_layer.depsgraph)
+            mesh = obj_eval.to_mesh(
+                preserve_all_data_layers=True, depsgraph=bpy.context.view_layer.depsgraph)
             mesh.calc_loop_triangles()
             tris = mesh.loop_triangles
             vertices = []
@@ -380,17 +371,17 @@ def draw_scene(self, context, projection_matrix):
                 vertices.append(mat @ vert.co)
 
             for tri in tris:
-                indices.append(tri.vertices)      
+                indices.append(tri.vertices)
 
-           
-            batch = batch_for_shader(depthOnlyshader, 'TRIS', {"pos": vertices}, indices=indices)
+            batch = batch_for_shader(depthOnlyshader, 'TRIS', {
+                                     "pos": vertices}, indices=indices)
             batch.program_set(depthOnlyshader)
             batch.draw()
             obj_eval.to_mesh_clear()
             gpu.shader.unbind()
 
-    #Write to Image for Debug
-    debug=False
+    # Write to Image for Debug
+    debug = False
     if debug:
         scene = context.scene
         render_scale = scene.render.resolution_percentage / 100
@@ -399,7 +390,8 @@ def draw_scene(self, context, projection_matrix):
 
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
         bgl.glReadBuffer(bgl.COLOR_ATTACHMENT0)
-        bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, buffer)
+        bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
+                         bgl.GL_UNSIGNED_BYTE, buffer)
 
         image_name = "measureit_arch_depth"
         if image_name not in bpy.data.images:
@@ -411,11 +403,12 @@ def draw_scene(self, context, projection_matrix):
 
     set_OpenGL_Settings(False)
 
+
 def render_main_svg(self, context, animation=False):
 
     # Save old info
     scene = context.scene
-    sceneProps= scene.MeasureItArchProps
+    sceneProps = scene.MeasureItArchProps
     sceneProps.is_render_draw = True
     sceneProps.is_vector_draw = True
 
@@ -430,11 +423,12 @@ def render_main_svg(self, context, animation=False):
     render_scale = scene.render.resolution_percentage / 100
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
-    
+
     offscreen = gpu.types.GPUOffScreen(width, height)
-    
+
     view_matrix_3d = scene.camera.matrix_world.inverted()
-    projection_matrix = scene.camera.calc_matrix_camera(context.view_layer.depsgraph, x=width, y=height)
+    projection_matrix = scene.camera.calc_matrix_camera(
+        context.view_layer.depsgraph, x=width, y=height)
 
     # Render Depth Buffer
     print("Rendering Depth Buffer")
@@ -445,7 +439,7 @@ def render_main_svg(self, context, animation=False):
             bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
             bgl.glClearDepth(clipdepth)
             bgl.glEnable(bgl.GL_DEPTH_TEST)
-            bgl.glDepthFunc(bgl.GL_LEQUAL)  
+            bgl.glDepthFunc(bgl.GL_LEQUAL)
 
             gpu.matrix.reset()
             gpu.matrix.load_matrix(view_matrix_3d)
@@ -453,10 +447,11 @@ def render_main_svg(self, context, animation=False):
 
             texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
 
-            draw_scene(self, context, projection_matrix) 
+            draw_scene(self, context, projection_matrix)
 
             bgl.glReadBuffer(bgl.GL_BACK)
-            bgl.glReadPixels(0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
+            bgl.glReadPixels(
+                0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
 
             if 'depthbuffer' in sceneProps:
                 del sceneProps['depthbuffer']
@@ -467,7 +462,8 @@ def render_main_svg(self, context, animation=False):
         if False:
             imageName = 'depthBufferTest'
             if not imageName in bpy.data.images:
-                bpy.data.images.new(imageName, width, height, alpha=False, float_buffer=True, is_data=True)
+                bpy.data.images.new(imageName, width, height,
+                                    alpha=False, float_buffer=True, is_data=True)
             image = bpy.data.images[imageName]
 
             image.scale(width, height)
@@ -490,20 +486,20 @@ def render_main_svg(self, context, animation=False):
 
     # Setup basic svg
     svg = svgwrite.Drawing(
-            outpath,
-            debug=False,
-            size=('{}in'.format(paperWidth), '{}in'.format(paperHeight)),
-            viewBox=('0 0 {} {}'.format(width,height)),
-            id='root',
-        )
-    
+        outpath,
+        debug=False,
+        size=('{}in'.format(paperWidth), '{}in'.format(paperHeight)),
+        viewBox=('0 0 {} {}'.format(width, height)),
+        id='root',
+    )
+
     if sceneProps.embed_scene_render:
-        
+
         lastformat = scene.render.image_settings.file_format
         scene.render.image_settings.file_format = 'PNG'
         scene.render.use_file_extension = True
         bpy.ops.render.render(write_still=True)
-        
+
         image_path = bpy.context.scene.render.filepath
         png_image_path = os.path.basename("{}.png".format(image_path))
         svg.add(svg.image(
@@ -515,12 +511,11 @@ def render_main_svg(self, context, animation=False):
 
         scene.render.image_settings.file_format = lastformat
 
-
     # -----------------------------
     # Loop to draw all objects
     # -----------------------------
-    draw3d_loop(context,objlist,svg=svg)
-    draw_titleblock(context,svg=svg)
+    draw3d_loop(context, objlist, svg=svg)
+    draw_titleblock(context, svg=svg)
 
     if sceneProps.embed_freestyle_svg:
         # If "FreeStyle SVG export" addon is loaded, we render the scene to SVG
@@ -532,7 +527,7 @@ def render_main_svg(self, context, animation=False):
             scene.render.use_freestyle = True
             scene.svg_export.use_svg_export = True
             scene.svg_export.mode = 'FRAME'
-        
+
         base_path = bpy.context.scene.render.filepath
         bpy.context.scene.render.filepath += '_freestyle_'
         scene.render.image_settings.file_format = 'PNG'
@@ -540,26 +535,22 @@ def render_main_svg(self, context, animation=False):
         bpy.ops.render.render(write_still=False)
 
         image_path = bpy.context.scene.render.filepath
-       
+
         if freestyle_svg_export:
             frame = scene.frame_current
-            svg_image_path = bpy.path.abspath("{}{:04d}.svg".format(image_path, frame))
+            svg_image_path = bpy.path.abspath(
+                "{}{:04d}.svg".format(image_path, frame))
             svg_root = ET.parse(svg_image_path).getroot()
             for elem in svg_root:
                 svg.add(SVGWriteElement(elem))
-            # TODO: should we delete file `svg_image_path`?
             if os.path.exists(svg_image_path) and not sceneProps.keep_freestyle_svg:
                 os.remove(svg_image_path)
-       
 
         scene.render.image_settings.file_format = lastformat[0]
         scene.render.use_freestyle = lastformat[1]
         scene.svg_export.use_svg_export = lastformat[2]
         scene.svg_export.mode = lastformat[3]
         bpy.context.scene.render.filepath = base_path
-
-
- 
 
     svg.save(pretty=True)
     # restore default value
