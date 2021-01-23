@@ -36,11 +36,11 @@ from gpu_extras.batch import batch_for_shader
 
 from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-                      FloatProperty, EnumProperty
+    FloatProperty, EnumProperty
 from bpy.app.handlers import persistent
 from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_areaDimension, \
-                        draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, \
-                        get_mesh_vertices, printTime, draw_sheet_views, preview_dual, get_view, draw_hatches, draw3d_loop, get_rv3d
+    draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, \
+    get_mesh_vertices, printTime, draw_sheet_views, preview_dual, get_view, draw_hatches, draw3d_loop, get_rv3d
 
 draw_instanced = True
 
@@ -49,10 +49,10 @@ draw_instanced = True
 #
 # ------------------------------------------------------
 
+
 @persistent
 def load_handler(dummy):
     ShowHideViewportButton.handle_remove(None, bpy.context)
-
 
 
 # ------------------------------------------------------
@@ -62,7 +62,7 @@ def load_handler(dummy):
 # ------------------------------------------------------
 
 @persistent
-def save_handler(dummy):        
+def save_handler(dummy):
     cleanScene = True
     if cleanScene:
         # Check all Scenes for phantom objects
@@ -79,7 +79,7 @@ def save_handler(dummy):
             if obj.name in objlist or obj is None:
                 pass
             else:
-                print (str(obj.name) + ' Data Removed')
+                print(str(obj.name) + ' Data Removed')
                 if 'DimensionGenerator' in obj:
                     dimgen = obj.DimensionGenerator
                     if 'alignedDimensions' in dimgen:
@@ -106,17 +106,15 @@ def save_handler(dummy):
                         obj.AnnotationGenerator.annotations.remove(0)
                         obj.AnnotationGenerator.num_annotations = 0
 
+
 bpy.app.handlers.load_post.append(load_handler)
 bpy.app.handlers.save_pre.append(save_handler)
-
-
-
 
 
 # Rough Attempts to add a m-ARCH tab to the properties panel navigation bar
 # Not solved yet (not entirely sure its possible), but kept for future reference.
 
-#class MeasureIt_nav_button(Panel):
+# class MeasureIt_nav_button(Panel):
 #    bl_space_type = 'PROPERTIES'
 #    bl_region_type = 'NAVIGATION_BAR'
 #    bl_label = "Navigation Bar"
@@ -127,7 +125,7 @@ bpy.app.handlers.save_pre.append(save_handler)
 #        layout.scale_x = 1.4
 #        layout.scale_y = 1.4
 #        layout.operator("measureit_arch.addaligneddimensionbutton", text="Aligned", icon="DRIVER_DISTANCE")
-       
+
 
 # ------------------------------------------------------------------
 # Define panel class for main functions.
@@ -150,15 +148,14 @@ class MEASUREIT_PT_main_panel(Panel):
         StyleGen = scene.StyleGenerator
         hasGen = True
 
-       
         # ------------------------------
         # Display Buttons
         # ------------------------------
-       
+
         box = layout.box()
         box.label(text="Show/Hide MeasureIt_ARCH")
         row = box.row(align=True)
-        
+
         if context.window_manager.measureit_arch_run_opengl is False:
             icon = 'PLAY'
             txt = 'Show'
@@ -167,7 +164,7 @@ class MEASUREIT_PT_main_panel(Panel):
             txt = 'Hide'
 
         sceneProps = scene.MeasureItArchProps
-        row.operator("measureit_arch.runopenglbutton", text=txt, icon=icon ,)
+        row.operator("measureit_arch.runopenglbutton", text=txt, icon=icon,)
         row.prop(sceneProps, "show_all", text="", icon='GHOST_ENABLED')
         row.prop(sceneProps, 'highlight_selected', text="", icon='VIS_SEL_11')
         row.prop(sceneProps, "show_gizmos", text="", icon='GIZMO')
@@ -181,66 +178,79 @@ class MEASUREIT_PT_main_panel(Panel):
         box.label(text="Add Dimensions")
 
         col = box.column(align=True)
-        col.operator("measureit_arch.addaligneddimensionbutton", text="Aligned", icon="DRIVER_DISTANCE")
-        split = col.split(factor=0.7,align=True)
-        split.operator("measureit_arch.addaxisdimensionbutton", text="Axis", icon="TRACKING_FORWARDS_SINGLE")
-        split.prop(sceneProps,'measureit_arch_dim_axis',text="")
+        col.operator("measureit_arch.addaligneddimensionbutton",
+                     text="Aligned", icon="DRIVER_DISTANCE")
+        split = col.split(factor=0.7, align=True)
+        split.operator("measureit_arch.addaxisdimensionbutton",
+                       text="Axis", icon="TRACKING_FORWARDS_SINGLE")
+        split.prop(sceneProps, 'measureit_arch_dim_axis', text="")
 
-        split = col.split(factor=0.7,align=True)
-        split.operator("measureit_arch.addboundingdimensionbutton", text="Bounds", icon="SHADING_BBOX")
+        split = col.split(factor=0.7, align=True)
+        split.operator("measureit_arch.addboundingdimensionbutton",
+                       text="Bounds", icon="SHADING_BBOX")
         row = split.row(align=True)
-        row.prop(sceneProps,'bound_x',text="X", toggle = 1)
-        row.prop(sceneProps,'bound_y',text="Y", toggle = 1)
-        row.prop(sceneProps,'bound_z',text="Z", toggle = 1)
+        row.prop(sceneProps, 'bound_x', text="X", toggle=1)
+        row.prop(sceneProps, 'bound_y', text="Y", toggle=1)
+        row.prop(sceneProps, 'bound_z', text="Z", toggle=1)
 
         col = box.column(align=True)
-        col.operator("measureit_arch.addanglebutton", text="Angle", icon="DRIVER_ROTATIONAL_DIFFERENCE")
-        col.operator("measureit_arch.addarcbutton", text="Arc", icon="MOD_THICKNESS")
+        col.operator("measureit_arch.addanglebutton", text="Angle",
+                     icon="DRIVER_ROTATIONAL_DIFFERENCE")
+        col.operator("measureit_arch.addarcbutton",
+                     text="Arc", icon="MOD_THICKNESS")
 
         col = box.column(align=True)
-        col.operator("measureit_arch.addareabutton", text="Area", icon="MESH_GRID")
+        col.operator("measureit_arch.addareabutton",
+                     text="Area", icon="MESH_GRID")
 
         col = box.column(align=True)
         if hasGen:
-            col.prop_search(sceneProps,'default_dimension_style', StyleGen,'alignedDimensions',text="", icon='COLOR')
-        col.prop(sceneProps,'viewPlane',text='')
-
+            col.prop_search(sceneProps, 'default_dimension_style',
+                            StyleGen, 'alignedDimensions', text="", icon='COLOR')
+        col.prop(sceneProps, 'viewPlane', text='')
 
         # ------------------------------
         # Linework Tools
         # ------------------------------
-    
+
         box = layout.box()
         box.label(text="Add Lines")
 
         col = box.column(align=True)
-        col.operator("measureit_arch.addlinebutton", text="Line Group", icon="MESH_CUBE")
-       
-        op = col.operator("measureit_arch.addlinebyproperty", text="Line Group by Crease", icon="MESH_CUBE")
+        col.operator("measureit_arch.addlinebutton",
+                     text="Line Group", icon="MESH_CUBE")
+
+        op = col.operator("measureit_arch.addlinebyproperty",
+                          text="Line Group by Crease", icon="MESH_CUBE")
         op.calledFromGroup = False
 
-        col.operator("measureit_arch.adddynamiclinebutton", text="Dynamic Line Group", icon="MESH_CUBE")
+        col.operator("measureit_arch.adddynamiclinebutton",
+                     text="Dynamic Line Group", icon="MESH_CUBE")
 
         col = box.column(align=True)
         if hasGen:
-            col.prop_search(sceneProps,'default_line_style', StyleGen,'line_groups',text="", icon='COLOR')
+            col.prop_search(sceneProps, 'default_line_style',
+                            StyleGen, 'line_groups', text="", icon='COLOR')
 
         # ------------------------------
         # Annotation Tools
         # ------------------------------
         box = layout.box()
         box.label(text="Add Annotations")
-        
+
         col = box.column(align=True)
-        col.operator("measureit_arch.addannotationbutton", text="Annotation", icon="FONT_DATA")
+        col.operator("measureit_arch.addannotationbutton",
+                     text="Annotation", icon="FONT_DATA")
 
         col = box.column(align=True)
         if hasGen:
-            col.prop_search(sceneProps,'default_annotation_style', StyleGen,'annotations',text="", icon='COLOR')
+            col.prop_search(sceneProps, 'default_annotation_style',
+                            StyleGen, 'annotations', text="", icon='COLOR')
 
 # ------------------------------------------------------------------
 # New Panel to group Object Properties
 # ------------------------------------------------------------------
+
 
 class OBJECT_PT_Panel(Panel):
     """Creates a Panel in the Object properties window"""
@@ -252,7 +262,8 @@ class OBJECT_PT_Panel(Panel):
 
     def draw(self, context):
         pass
-       
+
+
 bpy.utils.register_class(OBJECT_PT_Panel)
 
 
@@ -269,7 +280,8 @@ class SCENE_PT_Panel(bpy.types.Panel):
 
     def draw(self, context):
         pass
-       
+
+
 bpy.utils.register_class(SCENE_PT_Panel)
 
 
@@ -281,11 +293,11 @@ class SCENE_PT_MARCH_Settings(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'scene'
-    
+
     def draw_header(self, context):
         layout = self.layout
         row = layout.row()
-        row.label(text="", icon= 'SETTINGS')
+        row.label(text="", icon='SETTINGS')
 
     # -----------------------------------------------------
     # Draw (create UI interface)
@@ -297,26 +309,25 @@ class SCENE_PT_MARCH_Settings(Panel):
         layout.use_property_split = True
         scene = context.scene
         sceneProps = scene.MeasureItArchProps
-        
+
         col = layout.column(align=True, heading='Settings')
-        #col.prop(sceneProps, 'show_dim_text',) I Dont Know why this would be usefull
+        # col.prop(sceneProps, 'show_dim_text',) I Dont Know why this would be usefull
         col.prop(sceneProps, 'hide_units')
         col.prop(sceneProps, "eval_mods")
         col.prop(sceneProps, "use_text_autoplacement")
         col.prop(sceneProps, 'default_resolution', text="Default Resolution")
         col.prop(sceneProps, 'keep_freestyle_svg', text="Keep Freestyle SVG")
-        
-        col = layout.column(align = True, heading='Debug')
+
+        col = layout.column(align=True, heading='Debug')
         col.prop(sceneProps, "measureit_arch_debug_text")
         col.prop(sceneProps, "show_text_cards")
-        
-        col = layout.column(align = True, heading='Experimental')
+
+        col = layout.column(align=True, heading='Experimental')
         col.prop(sceneProps, "enable_experimental")
-        
+
         if sceneProps.enable_experimental:
             col.prop(sceneProps, "instance_dims")
         #col.prop(sceneProps, "debug_flip_text")
-
 
 
 # -------------------------------------------------------------
@@ -334,13 +345,15 @@ class ShowHideViewportButton(Operator):
     # ----------------------------------
     # Enable gl drawing adding handler
     # ----------------------------------
+
     @staticmethod
     def handle_add(self, context):
         if ShowHideViewportButton._handle is None:
             ShowHideViewportButton._handle = SpaceView3D.draw_handler_add(draw_callback_px, (self, context),
-                                                                        'WINDOW',
-                                                                        'POST_PIXEL')
-            ShowHideViewportButton._handle3d = SpaceView3D.draw_handler_add(draw_callback_3d, (self,context), 'WINDOW', 'POST_VIEW')
+                                                                          'WINDOW',
+                                                                          'POST_PIXEL')
+            ShowHideViewportButton._handle3d = SpaceView3D.draw_handler_add(
+                draw_callback_3d, (self, context), 'WINDOW', 'POST_VIEW')
             context.window_manager.measureit_arch_run_opengl = True
 
     # ------------------------------------
@@ -350,8 +363,10 @@ class ShowHideViewportButton(Operator):
     @staticmethod
     def handle_remove(self, context):
         if ShowHideViewportButton._handle is not None:
-            SpaceView3D.draw_handler_remove(ShowHideViewportButton._handle, 'WINDOW')
-            SpaceView3D.draw_handler_remove(ShowHideViewportButton._handle3d, 'WINDOW')
+            SpaceView3D.draw_handler_remove(
+                ShowHideViewportButton._handle, 'WINDOW')
+            SpaceView3D.draw_handler_remove(
+                ShowHideViewportButton._handle3d, 'WINDOW')
         ShowHideViewportButton._handle = None
         context.window_manager.measureit_arch_run_opengl = False
 
@@ -373,11 +388,6 @@ class ShowHideViewportButton(Operator):
                         "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
-
-
-
-
-
 
 
 # -------------------------------------------------------------
@@ -420,14 +430,14 @@ def draw_main(context):
     # ---------------------------------------
     # Generate all OpenGL calls for measures
     # ---------------------------------------
-    text_update_loop(context,objlist)
+    text_update_loop(context, objlist)
 
     view = get_view()
     if view != None and view.titleBlock != "":
         camera = view.camera
         titleblockScene = bpy.data.scenes[view.titleBlock]
         objlist = titleblockScene.objects
-        text_update_loop(context,objlist)
+        text_update_loop(context, objlist)
 
     # Reset Style & Scene Update Flags
     StyleGen = context.scene.StyleGenerator
@@ -437,66 +447,73 @@ def draw_main(context):
         style.text_updated = False
     for style in dimStyles:
         style.text_updated = False
-    
+
     sceneProps = scene.MeasureItArchProps
     sceneProps.text_updated = False
 
-def text_update_loop(context,objlist):
+
+def text_update_loop(context, objlist):
 
     for myobj in objlist:
         if myobj.hide_get() is False:
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator
                 for alignedDim in DimGen.alignedDimensions:
-                    
+
                     alignedDimProps = alignedDim
                     if alignedDim.uses_style:
                         for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if alignedDimStyle.name == alignedDim.style:
-                                alignedDimProps= alignedDimStyle
+                                alignedDimProps = alignedDimStyle
 
-                    update_text(textobj=alignedDim,props=alignedDimProps,context=context)
-                
-                for angleDim in DimGen.angleDimensions: 
+                    update_text(textobj=alignedDim,
+                                props=alignedDimProps, context=context)
+
+                for angleDim in DimGen.angleDimensions:
                     dimProps = angleDim
                     if angleDim.uses_style:
                         for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == angleDim.style:
-                                dimProps= dimStyle
-                    update_text(textobj=angleDim,props=dimProps,context=context)
-                
-                for axisDim in DimGen.axisDimensions: 
+                                dimProps = dimStyle
+                    update_text(textobj=angleDim,
+                                props=dimProps, context=context)
+
+                for axisDim in DimGen.axisDimensions:
                     dimProps = axisDim
                     if axisDim.uses_style:
                         for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == axisDim.style:
-                                dimProps= dimStyle
-                    update_text(textobj=axisDim,props=dimProps,context=context)
+                                dimProps = dimStyle
+                    update_text(textobj=axisDim,
+                                props=dimProps, context=context)
 
-                for boundsDim in DimGen.boundsDimensions: 
+                for boundsDim in DimGen.boundsDimensions:
                     dimProps = boundsDim
                     if boundsDim.uses_style:
                         for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == boundsDim.style:
-                                dimProps= dimStyle
-                    update_text(textobj=boundsDim,props=dimProps,context=context)
-                
-                for arcDim in DimGen.arcDimensions: 
+                                dimProps = dimStyle
+                    update_text(textobj=boundsDim,
+                                props=dimProps, context=context)
+
+                for arcDim in DimGen.arcDimensions:
                     dimProps = arcDim
                     if arcDim.uses_style:
                         for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == arcDim.style:
-                                dimProps= dimStyle
-                    update_text(textobj=arcDim,props=dimProps,context=context)
+                                dimProps = dimStyle
+                    update_text(textobj=arcDim, props=dimProps,
+                                context=context)
 
-                for areaDim in DimGen.areaDimensions: 
+                for areaDim in DimGen.areaDimensions:
                     dimProps = areaDim
                     if areaDim.uses_style:
                         for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == areaDim.style:
-                                dimProps= dimStyle
-                    update_text(textobj=areaDim,props=dimProps,context=context)
-        
+                                dimProps = dimStyle
+                    update_text(textobj=areaDim,
+                                props=dimProps, context=context)
+
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator
                 for annotation in annotationGen.annotations:
@@ -507,17 +524,20 @@ def text_update_loop(context,objlist):
                                 annotationProps = annotationStyle
                     if annotation.annotationTextSource is not '':
                         try:
-                            if len(annotation.textFields)>1:
+                            if len(annotation.textFields) > 1:
                                 annotation.textFields[0].text = annotation.annotationTextSource
-                                annotation.textFields[1].text = str(myobj[annotation.annotationTextSource])
-                            else:  
-                                 annotation.textFields[0].text = str(myobj[annotation.annotationTextSource])
+                                annotation.textFields[1].text = str(
+                                    myobj[annotation.annotationTextSource])
+                            else:
+                                annotation.textFields[0].text = str(
+                                    myobj[annotation.annotationTextSource])
 
                         except:
                             pr = scene.measureit_arch_gl_precision
                             fmt = "%1." + str(pr) + "f"
                             annotation.text = fmt % myobj[annotation.annotationTextSource]
-                    update_text(textobj=annotation,props=annotationProps,context=context)
+                    update_text(textobj=annotation,
+                                props=annotationProps, context=context)
 
                 # Draw Instanced Objects
 
@@ -530,50 +550,55 @@ def text_update_loop(context,objlist):
                 if 'DimensionGenerator' in myobj:
                     DimGen = myobj.DimensionGenerator
                     for alignedDim in DimGen.alignedDimensions:
-                        
+
                         alignedDimProps = alignedDim
                         if alignedDim.uses_style:
                             for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
                                 if alignedDimStyle.name == alignedDim.style:
-                                    alignedDimProps= alignedDimStyle
+                                    alignedDimProps = alignedDimStyle
 
-                        update_text(textobj=alignedDim,props=alignedDimProps,context=context)
-                    
-                    for angleDim in DimGen.angleDimensions: 
+                        update_text(textobj=alignedDim,
+                                    props=alignedDimProps, context=context)
+
+                    for angleDim in DimGen.angleDimensions:
                         dimProps = angleDim
                         if angleDim.uses_style:
                             for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                                 if dimStyle.name == angleDim.style:
-                                    dimProps= dimStyle
-                        update_text(textobj=angleDim,props=dimProps,context=context)
-                    
-                    for axisDim in DimGen.axisDimensions: 
+                                    dimProps = dimStyle
+                        update_text(textobj=angleDim,
+                                    props=dimProps, context=context)
+
+                    for axisDim in DimGen.axisDimensions:
                         dimProps = axisDim
                         if axisDim.uses_style:
                             for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                                 if dimStyle.name == axisDim.style:
-                                    dimProps= dimStyle
-                        update_text(textobj=axisDim,props=dimProps,context=context)
+                                    dimProps = dimStyle
+                        update_text(textobj=axisDim,
+                                    props=dimProps, context=context)
 
-                    for boundsDim in DimGen.boundsDimensions: 
+                    for boundsDim in DimGen.boundsDimensions:
                         dimProps = boundsDim
                         if boundsDim.uses_style:
                             for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                                 if dimStyle.name == boundsDim.style:
-                                    dimProps= dimStyle
-                        update_text(textobj=boundsDim,props=dimProps,context=context)
-                    
-                    for arcDim in DimGen.arcDimensions: 
+                                    dimProps = dimStyle
+                        update_text(textobj=boundsDim,
+                                    props=dimProps, context=context)
+
+                    for arcDim in DimGen.arcDimensions:
                         dimProps = arcDim
                         if arcDim.uses_style:
                             for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                                 if dimStyle.name == arcDim.style:
-                                    dimProps= dimStyle
-                        update_text(textobj=arcDim,props=dimProps,context=context)
+                                    dimProps = dimStyle
+                        update_text(textobj=arcDim, props=dimProps,
+                                    context=context)
 
 
-def draw_main_3d (context):
-   
+def draw_main_3d(context):
+
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
@@ -583,35 +608,34 @@ def draw_main_3d (context):
     else:
         objlist = context.view_layer.objects
 
-    draw3d_loop(context,objlist)
-    #preview_dual(context)
+    draw3d_loop(context, objlist)
+    # preview_dual(context)
 
     # Draw TitleBlock
     draw_titleblock(context)
 
 
-
-def draw_titleblock(context,svg=None):
+def draw_titleblock(context, svg=None):
     view = get_view()
     rv3d = get_rv3d()
-    sceneProps =  context.scene.MeasureItArchProps
+    sceneProps = context.scene.MeasureItArchProps
 
     if sceneProps.is_vector_draw:
         titleblock = svg.g(id='TitleBlock')
 
-    if view is not None and view.titleBlock !="":
+    if view is not None and view.titleBlock != "":
         if not sceneProps.is_render_draw:
             if rv3d.view_perspective != 'CAMERA':
                 return
 
         camera = view.camera
-        
+
         titleblockScene = bpy.data.scenes[view.titleBlock]
 
         objlist = titleblockScene.objects
 
         cameraMat = camera.matrix_world
-        offsetVec = Vector((0,0,-1.1))
+        offsetVec = Vector((0, 0, -1.1))
         offsetVec *= camera.data.clip_start
         #offsetVec = cameraMat @ offsetVec
 
@@ -621,9 +645,8 @@ def draw_titleblock(context,svg=None):
         scaleMat *= (view.model_scale / view.paper_scale)
         scaleMat.resize_4x4()
 
-        extMat =  cameraMat @ transMat @ scaleMat
-        draw3d_loop(context,objlist,extMat=extMat,svg=svg,multMat=True)
-
+        extMat = cameraMat @ transMat @ scaleMat
+        draw3d_loop(context, objlist, extMat=extMat, svg=svg, multMat=True)
 
 
 # -------------------------------------------------------------
@@ -632,11 +655,9 @@ def draw_titleblock(context,svg=None):
 def draw_callback_px(self, context):
     draw_main(context)
 
+
 def draw_callback_3d(self, context):
     draw_main_3d(context)
-
-
-
 
 
 # -------------------------------------------------------------
@@ -670,7 +691,8 @@ def get_selected_vertex(myobject):
     bmhistory = bm.select_history
     if len(bmhistory) > 0:
         for v in bmhistory:
-            if len(mylist)==0: mylist.extend([v.index])
+            if len(mylist) == 0:
+                mylist.extend([v.index])
             else:
                 mylist.extend([v.index])
                 mylist.extend([v.index])
@@ -718,9 +740,9 @@ def get_selected_vertex_history(myobject):
 # -------------------------------------------------------------
 
 
-## Adds verts to a vertex dictionary to be processed by the add function
+# Adds verts to a vertex dictionary to be processed by the add function
 
-def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
+def get_smart_selected(filterObj=None, forceEdges=False, usePairs=True):
     pointList = []
     warningStr = ''
 
@@ -745,7 +767,7 @@ def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
                     pointData = {}
                     pointData['vert'] = 9999999
                     pointData['obj'] = objs[idx+1]
-                    pointList.append(pointData) 
+                    pointList.append(pointData)
                 except IndexError:
                     pass
 
@@ -765,12 +787,12 @@ def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
                 # Ignore force Edges if Selection History exists
                 if len(bm.select_history) >= 2:
                     forceEdges = False
-                
+
                 # Vertex Selection
                 if selectionMode[0] and not forceEdges:
                     # Get Selected Verts:
                     verts = []
-                    #use History if avaialable fall back to basic selection
+                    # use History if avaialable fall back to basic selection
                     if len(bm.select_history) > 0:
                         for vert in bm.select_history:
                             verts.append(vert)
@@ -778,7 +800,7 @@ def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
                         for v in obj.data.vertices:
                             if v.select:
                                 verts.append(v)
-                        
+
                     # reverse selection history
                     verts.reverse()
                     idx = 0
@@ -795,13 +817,13 @@ def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
                         pointData = {}
                         pointData['vert'] = vert.index
                         pointData['obj'] = obj
-                        pointList.append(pointData) 
+                        pointList.append(pointData)
 
                         if dupFlag:
                             pointData = {}
                             pointData['vert'] = vert.index
                             pointData['obj'] = obj
-                            pointList.append(pointData) 
+                            pointList.append(pointData)
                             dupFlag = False
 
                         if usePairs:
@@ -809,12 +831,11 @@ def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
                                 pointData = {}
                                 pointData['vert'] = verts[idx+1].index
                                 pointData['obj'] = obj
-                                pointList.append(pointData) 
+                                pointList.append(pointData)
 
                             except IndexError:
                                 pass
                         idx += 1
-
 
                 # Edge Selection
                 elif selectionMode[1] or forceEdges:
@@ -824,17 +845,17 @@ def get_smart_selected(filterObj = None, forceEdges = False, usePairs=True):
                                 pointData = {}
                                 pointData['vert'] = vert.index
                                 pointData['obj'] = obj
-                                pointList.append(pointData)    
-            
-            
+                                pointList.append(pointData)
 
         print('In Edit Mode')
-    
-    #print(pointList)
+
+    # print(pointList)
     return pointList, warningStr
 # -------------------------------------------------------------
 # Get vertex selected faces
 # -------------------------------------------------------------
+
+
 def get_selected_faces(myobject):
     mylist = []
     # if not mesh, no vertex
@@ -864,9 +885,6 @@ def get_selected_faces(myobject):
     return mylist
 
 
-
-
-
 # MeasureIt_ARCH Unit settings
 class SCENE_PT_MARCH_units(Panel):
     bl_parent_id = 'SCENE_PT_unit'
@@ -875,11 +893,11 @@ class SCENE_PT_MARCH_units(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = 'scene'
-    
+
     def draw_header(self, context):
         layout = self.layout
         row = layout.row()
-        row.label(text="", icon= 'SNAP_INCREMENT')
+        row.label(text="", icon='SNAP_INCREMENT')
 
     # -----------------------------------------------------
     # Draw (create UI interface)
@@ -891,7 +909,7 @@ class SCENE_PT_MARCH_units(Panel):
         layout = self.layout
         layout.use_property_decorate = False
         layout.use_property_split = True
-        
+
         scene = context.scene
 
         col = layout.column()
@@ -901,6 +919,3 @@ class SCENE_PT_MARCH_units(Panel):
 
         col = layout.column(align=True)
         col.prop(sceneProps, 'default_scale', text="Default Scale 1:")
-        
-
-
