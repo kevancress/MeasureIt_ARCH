@@ -140,11 +140,16 @@ def clear_batches():
     hiddenBatch3D.clear()
 
 
-def update_text(textobj, props, context):
+def update_text(textobj, props, context, fields = []):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-    for textField in textobj.textFields:
+    textFields = textobj.textFields
+    if len(fields) != 0:
+        textFields = fields
+
+
+    for textField in textFields:
         if textobj.text_updated or props.text_updated:
             textField.text_updated = True
 
@@ -2433,7 +2438,20 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 annotation.textFields[0].text = annotation.text
                 annotation.name = annotation.text
 
+            fields = []
+            notesFlag = False
             for textField in annotation.textFields:
+                fields.append(textField)
+                if textField.autoFillText and textField.textSource == 'NOTES':
+                    notesFlag = True
+
+            if notesFlag:
+                view = get_view()
+                for textField in view.textFields:
+                    fields.append(textField)
+
+
+            for textField in fields:
                 set_text(textField, myobj)
                 origin = p2
                 xDir = rotMatrix @ rotMat @ Vector((1, 0, 0))
@@ -2443,7 +2461,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
                 textcard = generate_text_card(
                     context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
-
                 textField['textcard'] = textcard
                 fieldIdx += 1
             # Set Gizmo Properties
@@ -2465,7 +2482,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 coords.append(p2)
                 coords.append(p2)
 
-                textcard = annotation.textFields[0]['textcard']
+                textcard = fields[0]['textcard']
 
                 if annotationProps.textPosition == 'T':
                     coords.append(textcard[3])
@@ -2502,7 +2519,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 draw_filled_coords(filledCoords, rgb, polySmooth=False)
 
             if sceneProps.show_dim_text:
-                for textField in annotation.textFields:
+                for textField in fields:
                     textcard = textField['textcard']
                     draw_text_3D(context, textField,
                                  annotationProps, myobj, textcard)
@@ -2518,7 +2535,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                         annotation, customFilledCoords, rgb, svg, parent=svg_anno)
                 svg_shaders.svg_fill_shader(
                     annotation, filledCoords, rgb, svg, parent=svg_anno)
-                for textField in annotation.textFields:
+                for textField in fields:
                     textcard = textField['textcard']
                     svg_shaders.svg_text_shader(
                         annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
@@ -2541,6 +2558,9 @@ def set_text(textField, obj):
             view = get_view()
             if view is not None:
                 textField.text = view.name
+
+        elif textField.textSource == 'NOTES':
+            textField.text = ''
 
         # CUSTOM PROP
         elif textField.textSource == 'RNAPROP':
@@ -2895,7 +2915,7 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
         coord = rotMat @ coord
 
         coord += basePoint
-        coords.append(coord)
+        coords.append(tuple(coord))
 
     return (coords)
 

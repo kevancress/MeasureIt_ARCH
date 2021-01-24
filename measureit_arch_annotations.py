@@ -380,11 +380,13 @@ class OBJECT_PT_UIAnnotations(Panel):
                     row.emboss = 'PULLDOWN_MENU'
                     txtAddOp = row.operator(
                         "measureit_arch.addtextfield", text="", icon="ADD")
+                    txtAddOp.propPath = 'bpy.context.active_object.AnnotationGenerator[0].annotations[bpy.context.active_object.AnnotationGenerator[0].active_annotation_index].textFields'
                     txtAddOp.idx = annoGen.active_annotation_index
                     txtAddOp.add = True
 
                     txtRemoveOp = row.operator(
                         "measureit_arch.addtextfield", text="", icon="REMOVE")
+                    txtRemoveOp.propPath = 'bpy.context.active_object.AnnotationGenerator[0].annotations[bpy.context.active_object.AnnotationGenerator[0].active_annotation_index].textFields'
                     txtRemoveOp.idx = annoGen.active_annotation_index
                     txtRemoveOp.add = False
 
