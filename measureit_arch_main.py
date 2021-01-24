@@ -522,22 +522,21 @@ def text_update_loop(context, objlist):
                         for annotationStyle in context.scene.StyleGenerator.annotations:
                             if annotationStyle.name == annotation.style:
                                 annotationProps = annotationStyle
-                    if annotation.annotationTextSource is not '':
-                        try:
-                            if len(annotation.textFields) > 1:
-                                annotation.textFields[0].text = annotation.annotationTextSource
-                                annotation.textFields[1].text = str(
-                                    myobj[annotation.annotationTextSource])
-                            else:
-                                annotation.textFields[0].text = str(
-                                    myobj[annotation.annotationTextSource])
 
-                        except:
-                            pr = scene.measureit_arch_gl_precision
-                            fmt = "%1." + str(pr) + "f"
-                            annotation.text = fmt % myobj[annotation.annotationTextSource]
+                    fields = []
+                    notesFlag = False
+                    for textField in annotation.textFields:
+                        fields.append(textField)
+                        if textField.autoFillText and textField.textSource == 'NOTES':
+                            notesFlag = True
+
+                    if notesFlag:
+                        view = get_view()
+                        for textField in view.textFields:
+                            fields.append(textField)
+
                     update_text(textobj=annotation,
-                                props=annotationProps, context=context)
+                                props=annotationProps, context=context, fields = fields)
 
                 # Draw Instanced Objects
 

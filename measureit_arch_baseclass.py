@@ -170,6 +170,7 @@ class TextField(PropertyGroup):
     textSource: EnumProperty(
         items=(('VIEW', "View", "", 'DOCUMENTS', 1),
                ('DATE', "Date", "", 'TIME', 2),
+               ('NOTES',"Notes","",'LONGDISPLAY',3),
                ('RNAPROP', "Custom Property", "", 'RNA', 99)),
         name="Text Source",
         default='RNAPROP',
