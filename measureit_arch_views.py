@@ -15,6 +15,7 @@ from datetime import datetime
 
 from .custom_preset_base import Custom_Preset_Base
 from .measureit_arch_render import render_main
+from .measureit_arch_baseclass import TextField
 
 
 def scene_text_update_flag(self, context):
@@ -122,6 +123,8 @@ def camera_poll(self, object):
 
 
 class ViewProperties(PropertyGroup):
+
+    textFields: CollectionProperty(type=TextField)
 
     camera: PointerProperty(
         type=bpy.types.Object,
@@ -278,6 +281,7 @@ class ViewContainer(PropertyGroup):
         update=change_scene_camera)
 
     show_settings: BoolProperty(name='Show View Settings', default=False)
+    show_text_fields: BoolProperty(name='Show Text Fields', default=False)
 
     # Array of views
     views: CollectionProperty(type=ViewProperties)
@@ -394,8 +398,70 @@ class SCENE_PT_Views(Panel):
 
         # Settings Below List
         if len(ViewGen.views) > 0 and ViewGen.active_index < len(ViewGen.views):
-
             view = ViewGen.views[ViewGen.active_index]
+
+            if ViewGen.show_text_fields:
+                fieldsIcon = 'DISCLOSURE_TRI_DOWN'
+            else:
+                fieldsIcon = 'DISCLOSURE_TRI_RIGHT'
+
+            box = layout.box()
+            col = box.column()
+            row = col.row(align=True)
+            row.prop(ViewGen, 'show_text_fields',
+                        text="", icon=fieldsIcon, emboss=False)
+            row.label(text=view.name + ' Text Fields:')
+
+            row.emboss = 'PULLDOWN_MENU'
+            txtAddOp = row.operator(
+                "measureit_arch.addtextfield", text="", icon="ADD")
+            txtAddOp.idx = ViewGen.active_index
+            txtAddOp.add = True
+
+            txtRemoveOp = row.operator(
+                "measureit_arch.addtextfield", text="", icon="REMOVE")
+            txtRemoveOp.idx = ViewGen.active_index
+            txtRemoveOp.add = False
+
+            if ViewGen.show_text_fields:
+
+                col = box.column(align=True)
+                idx = 0
+                for textField in view.textFields:
+                    col = box.column(align=True)
+
+                    row = col.row(align=True)
+
+                    split = row.split(factor=0.2)
+                    split.label(text='Text Field ' + str(idx + 1))
+
+                    row = split.row(align=True)
+                    row.prop(textField, 'autoFillText',
+                                text="", icon="FILE_TEXT")
+
+                    if textField.autoFillText:
+                        row.prop(textField, 'textSource', text="")
+                    else:
+                        row.prop(textField, 'text', text="")
+
+                    if textField.textSource == 'RNAPROP' and textField.autoFillText:
+                        row.prop(textField, 'rnaProp', text="")
+
+                    row.emboss = 'PULLDOWN_MENU'
+                    op = row.operator(
+                        'measureit_arch.moveitem', text="", icon='TRIA_DOWN')
+                    op.propPath = 'bpy.context.active_object.ViewGenerator.views[bpy.context.active_object.ViewGenerator.active_index].textFields'
+                    op.upDown = False
+                    op.idx = idx
+
+                    op = row.operator(
+                        'measureit_arch.moveitem', text="", icon='TRIA_UP')
+                    op.propPath = 'bpy.context.active_object.ViewGenerator.views[bpy.context.active_object.ViewGenerator.active_index].textFields'
+                    op.upDown = True
+                    op.idx = idx
+                    idx += 1
+
+
 
             if ViewGen.show_settings:
                 settingsIcon = 'DISCLOSURE_TRI_DOWN'
