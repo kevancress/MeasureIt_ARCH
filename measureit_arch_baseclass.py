@@ -537,6 +537,8 @@ class AddTextField(Operator):
     bl_label = "Add Text Field"
     bl_description = "Add or Remove a new field"
     bl_category = 'MeasureitArch'
+
+    propPath: StringProperty()
     idx: IntProperty()
     add: BoolProperty()
 
@@ -545,13 +547,11 @@ class AddTextField(Operator):
     # ------------------------------
     def execute(self, context):
         mainobject = context.object
-        if 'AnnotationGenerator' in mainobject:
-            textFields = mainobject.AnnotationGenerator.annotations[self.idx].textFields
-            if self.add:
-                textFields.add()
-            else:
-                textFields.remove(len(textFields)-1)
-            return {'FINISHED'}
+        textFields = eval(self.propPath)
+        if self.add:
+            textFields.add()
+        else:
+            textFields.remove(len(textFields)-1)
         return {'FINISHED'}
 
 
