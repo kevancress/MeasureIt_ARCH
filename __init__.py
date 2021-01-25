@@ -88,7 +88,7 @@ auto_load.init()
 def register():
     auto_load.register()
 
-    # register internal property
+    # Property on the WM that indicates if we want to draw the measurements in the viewport
     WindowManager.measureit_arch_run_opengl = BoolProperty(default=False)
 
 
@@ -99,8 +99,8 @@ def unregister():
     measureit_arch_main.ShowHideViewportButton.handle_remove(
         measureit_arch_main.ShowHideViewportButton, bpy.context)
     wm = bpy.context.window_manager
-    if hasattr(wm, 'measureit_arch_run_opengl'):
-        delattr(wm, 'measureit_arch_run_opengl')
+    if 'measureit_arch_run_opengl' in wm:
+        del wm['measureit_arch_run_opengl']
 
 
 if __name__ == '__main__':
