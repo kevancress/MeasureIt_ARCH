@@ -2907,7 +2907,7 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
         coord = rotMat @ coord
 
         coord += basePoint
-        coords.append(tuple(coord))
+        coords.append(coord)
 
     return (coords)
 
