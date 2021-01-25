@@ -27,16 +27,16 @@
 import bpy
 import bmesh
 import math
-import time
 
 from bpy.types import PropertyGroup, Panel, Object, Operator, UIList
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, PointerProperty
+from mathutils import Vector
 
-from .measureit_arch_main import get_smart_selected, get_selected_vertex
-from .measureit_arch_geometry import *
-from .measureit_arch_render import *
+# from .measureit_arch_geometry import *
+# from .measureit_arch_render import *
 from .measureit_arch_baseclass import BaseProp
+from .measureit_arch_utils import get_smart_selected, get_selected_vertex
 
 
 class LineProperties(BaseProp, PropertyGroup):
@@ -128,7 +128,8 @@ class LineProperties(BaseProp, PropertyGroup):
 
     useDynamicCrease: BoolProperty(
         name="Use Dynamic Crease",
-        description='Dynamically update LineGroup by Crease (accounting for modifiers) \n WARNING: This can be quite slow for large meshes \n or complex modifier stacks',
+        description='Dynamically update LineGroup by Crease (accounting for modifiers)\n'
+                    'WARNING: This can be quite slow for large meshes \n or complex modifier stacks',
         default=False)
 
     creaseAngle: FloatProperty(
@@ -311,10 +312,10 @@ class M_ARCH_UL_lines_list(UIList):
             else:
                 visIcon = 'HIDE_ON'
 
-            if line.isOutline:
-                outIcon = 'SEQ_CHROMA_SCOPE'
-            else:
-                outIcon = 'FILE_3D'
+            # if line.isOutline:
+            #     outIcon = 'SEQ_CHROMA_SCOPE'
+            # else:
+            #     outIcon = 'FILE_3D'
 
             if line.lineDrawHidden:
                 hiddenIcon = 'MOD_WIREFRAME'
@@ -331,7 +332,7 @@ class M_ARCH_UL_lines_list(UIList):
                 subrow.scale_x = 0.5
                 subrow.prop(line, 'color', emboss=True, text="")
                 subrow.separator()
-                #row.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
+                # row.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
                 row.prop(line, 'lineDrawHidden', text="",
                          toggle=True, icon=hiddenIcon, emboss=False)
             else:
@@ -369,10 +370,8 @@ class OBJECT_PT_UILines(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        obj = context.object
         if context.object is not None:
             if 'LineGenerator' in context.object:
-                scene = context.scene
                 lineGen = context.object.LineGenerator[0]
 
                 row = layout.row()
@@ -426,7 +425,8 @@ class OBJECT_PT_UILines(Panel):
                             col = box.column(align=True)
                             col.prop(line, 'lineWeight', text="Lineweight")
                             col.prop_search(
-                                line, "lineWeightGroup", context.active_object, "vertex_groups", text="Line Weight Group")
+                                line, "lineWeightGroup", context.active_object, "vertex_groups",
+                                text="Line Weight Group")
                             col.prop(line, 'weightGroupInfluence',
                                      text="Influence")
 
@@ -440,7 +440,7 @@ class OBJECT_PT_UILines(Panel):
                             col = box.column(align=True)
                             col.prop(line, 'lineOverExtension',
                                      text="Extension")
-                            #col.prop(line, 'randomSeed', text="Seed" )
+                            # col.prop(line, 'randomSeed', text="Seed" )
 
                             col = box.column(align=True)
                             if line.lineDrawHidden:
@@ -476,7 +476,6 @@ class OBJECT_MT_lines_menu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
         lineGen = context.object.LineGenerator[0]
 
         op = layout.operator('measureit_arch.addtolinegroup',
@@ -541,9 +540,9 @@ class AddToLineGroup(Operator):
                         lGroup = lineGen.line_groups[self.tag]
 
                         bufferList = lGroup['lineBuffer'].to_list()
-                        for x in range(0, len(mylist)-1, 2):
+                        for x in range(0, len(mylist) - 1, 2):
                             bufferList.append(mylist[x])
-                            bufferList.append(mylist[x+1])
+                            bufferList.append(mylist[x + 1])
                             lGroup.numLines += 1
 
                         # redraw
@@ -592,7 +591,6 @@ class AddLineByProperty(Operator):
                 if area.type == 'VIEW_3D':
                     # get selected
                     selObjects = context.view_layer.objects.selected
-                    start = time.time()
                     for obj in selObjects:
 
                         if 'LineGenerator' not in obj:
@@ -656,7 +654,6 @@ class AddLineByProperty(Operator):
         return wm.invoke_props_dialog(self)
 
     def draw(self, context):
-        mesh = context.object.data
         layout = self.layout
         col = layout.column()
         col.prop(self, 'creaseAngle', text='Set Crease Angle')
@@ -710,15 +707,14 @@ class RemoveFromLineGroup(Operator):
 
                         lineGen = mainobject.LineGenerator[0]
                         lGroup = lineGen.line_groups[self.tag]
-                        idx = 0
                         bufferList = lGroup['lineBuffer'].to_list()
                         for x in range(0, len(lGroup['lineBuffer']), 2):
                             pointA = lGroup['lineBuffer'][x]
-                            pointB = lGroup['lineBuffer'][x+1]
+                            pointB = lGroup['lineBuffer'][x + 1]
                             for y in range(0, len(mylist), 2):
-                                if sLineExists(pointA, pointB, mylist[y], mylist[y+1]):
-                                    #print("checked Pair: (" + str(mylist[y]) +   "," + str(mylist[y+1]) + ")" )
-                                    #print("A:" + str(pointA) + "B:" + str(pointB) )
+                                if sLineExists(pointA, pointB, mylist[y], mylist[y + 1]):
+                                    # print("checked Pair: (" + str(mylist[y]) +   "," + str(mylist[y+1]) + ")" )
+                                    # print("A:" + str(pointA) + "B:" + str(pointB) )
                                     del bufferList[x]
                                     del bufferList[x]
                                     lGroup.numLines -= 1
@@ -771,7 +767,7 @@ def sLineExists(pointA, pointB, a, b):
 def lineExists(lGroup, a, b):
     for x in range(0, len(lGroup['lineBuffer']), 2):
         pointA = lGroup['lineBuffer'][x]
-        pointB = lGroup['lineBuffer'][x+1]
+        pointB = lGroup['lineBuffer'][x + 1]
         if (pointA == a and pointB == b):
             return True
         elif (pointA == b and pointB == a):

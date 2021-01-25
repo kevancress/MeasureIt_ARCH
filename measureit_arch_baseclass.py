@@ -254,14 +254,17 @@ class BaseWithText(BaseProp):
 
     fontSize: IntProperty(
         name='Font Size',
-        description="Font Size in pt (1pt = 1/72\") \nNote: Font size is relative to the current scale \nScale is defined in your active view, or in the Scene unit settings ",
+        description="Font Size in pt (1pt = 1/72\")\n"
+                    "Note: Font size is relative to the current scale\n"
+                    "Scale is defined in your active view, or in the Scene unit settings",
         default=18)
 
     font: PointerProperty(
         type=bpy.types.VectorFont,
         update=update_flag)
 
-    # endcap properties are defined here to ensure compatiblity but the enumProps are overwritten in child property groups
+    # Endcap properties are defined here to ensure compatiblity but the
+    # enumProps are overwritten in child property groups
     endcapSize: IntProperty(
         name="dimEndcapSize",
         description="End Cap size",
@@ -449,12 +452,15 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     instance_dims: BoolProperty(
         name="Instance Dimensions",
-        description="WARNING: Only the most recent Instance's Dimension text will adapt to local changes in scale or rotation",
+        description="WARNING: Only the most recent Instance's Dimension text "
+                    "will adapt to local changes in scale or rotation",
         default=False)
 
     eval_mods: BoolProperty(
         name="Evaluate Depsgraph",
-        description="All MeasureIt_ARCH elements will attempt to evaluate the dependency graph (Modifiers, Shape Keys, etc.) before drawing, May make dimensions and linework unstable",
+        description="All MeasureIt_ARCH elements will attempt to evaluate the "
+                    "dependency graph (Modifiers, Shape Keys, etc.) before "
+                    "drawing, may make dimensions and linework unstable",
         default=False)
 
     is_render_draw: BoolProperty(
@@ -474,7 +480,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     vector_depthtest: BoolProperty(
         name="Use Vector Depth Test",
-        description="Check for Occlusion when rending to SVG \n WARNING: SLOW, open system console before rendering to view progress",
+        description="Check for Occlusion when rending to SVG\n"
+                    "WARNING: SLOW, open system console before rendering to view progress",
         default=False)
 
     show_gizmos: BoolProperty(
@@ -504,7 +511,9 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     embed_freestyle_svg: BoolProperty(
         name="Embed Freestyle SVG",
-        description="Render a Freestyle SVG and automatically combine the rendered image with the Measureit-ARCH render pass \n Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
+        description="Render a Freestyle SVG and automatically combine the rendered "
+                    "image with the Measureit-ARCH render pass\n"
+                    "Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
         default=False,
         update=freestyle_update_flag)
 
@@ -518,7 +527,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name='Default Paper Scale', min=1, default=25,
         description="Default Paper Scale (used for font sizing)")
 
-    default_resolution:  IntProperty(
+    default_resolution: IntProperty(
         name='Default Resolution ', min=1,
         default=150,
         soft_min=50,
@@ -633,12 +642,11 @@ class AddTextField(Operator):
     # Execute button action
     # ------------------------------
     def execute(self, context):
-        mainobject = context.object
         textFields = eval(self.propPath)
         if self.add:
             textFields.add()
         else:
-            textFields.remove(len(textFields)-1)
+            textFields.remove(len(textFields) - 1)
         return {'FINISHED'}
 
 
@@ -679,7 +687,7 @@ class MoveItem(Operator):
         self.copyKeys(source, destination)
         self.copyKeys(temp, source)
 
-        collectionProp.remove(len(collectionProp)-1)
+        collectionProp.remove(len(collectionProp) - 1)
 
         return {'FINISHED'}
 
@@ -748,4 +756,4 @@ class DeleteAllItemsButton(Operator):
         return wm.invoke_props_dialog(self)
 
     def draw(self, context):
-        layout = self.layout
+        pass

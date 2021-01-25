@@ -25,7 +25,6 @@
 # ----------------------------------------------------------
 import bpy
 import bmesh
-import math
 import random
 
 from bpy.types import PropertyGroup, Panel, Object, Operator, UIList, Collection
@@ -34,9 +33,9 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     PointerProperty, BoolVectorProperty
 from mathutils import Vector
 
-from .measureit_arch_main import get_selected_faces, get_selected_vertex_history, get_smart_selected
 from .measureit_arch_baseclass import BaseDim, recalc_dimWrapper_index
-
+from .measureit_arch_utils import get_selected_faces, get_selected_vertex_history, \
+    get_smart_selected
 
 # ------------------------------------------------------------------
 # Define property group class for measureit_arch faces index
@@ -381,8 +380,6 @@ class AddBoundingDimensionButton(Operator):
             scene = context.scene
             sceneProps = scene.MeasureItArchProps
 
-            newDimensions = []
-
             # Object Context
             if bpy.context.mode == 'OBJECT':
                 mainobject = context.object
@@ -390,9 +387,12 @@ class AddBoundingDimensionButton(Operator):
                 if 'DimensionGenerator' not in mainobject:
                     mainobject.DimensionGenerator.add()
 
-                # Basically I dont need to do anything here, I want to handle the measureing and the selection of which bounding box
-                # verts to anchor to in the draw method, so that the most visible verts can be selected depending on the current view.
-                # all we need to do is to create a  Bounds dimension and set its defualt props. We do the tricky part in the draw.
+                # Basically I dont need to do anything here, I want to handle
+                # the measuring and the selection of which bounding box verts
+                # to anchor to in the draw method, so that the most visible
+                # verts can be selected depending on the current view. all we
+                # need to do is to create a  Bounds dimension and set its
+                # defualt props. We do the tricky part in the draw.
 
                 # Add Bounds Dim with Axis
                 DimGen = mainobject.DimensionGenerator[0]
@@ -563,8 +563,6 @@ class AddAreaButton(Operator):
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
-            scene = context.scene
-            sceneProps = scene.MeasureItArchProps
             myobj = context.object
 
             # Get all selected faces
@@ -607,7 +605,6 @@ class AddAreaButton(Operator):
 
                 # User last Selected face as text origin
                 try:
-                    lastIdx = len(mylist) - 1
                     newDim.originFaceIdx = bm.select_history[-1].index
                 except IndexError:
                     newDim.originFaceIdx = mylist[len(mylist) - 1]
@@ -742,8 +739,6 @@ class AddArcButton(Operator):
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
-            scene = context.scene
-            sceneProps = scene.MeasureItArchProps
             mainobject = context.object
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:
@@ -793,7 +788,6 @@ class CursorToArcOrigin(Operator):
             return False
         else:
             dimGen = myobj.DimensionGenerator[0]
-            activeIndex = dimGen.active_dimension_index
             activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
 
             if activeWrapperItem.itemType == 'D-ARC':
@@ -808,7 +802,6 @@ class CursorToArcOrigin(Operator):
     def execute(self, context):
         myobj = context.active_object
         dimGen = myobj.DimensionGenerator[0]
-        activeIndex = dimGen.active_dimension_index
         activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
         cursor = context.scene.cursor
 
@@ -842,7 +835,6 @@ class AddFaceToArea(Operator):
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator[0]
-                    activeIndex = dimGen.active_dimension_index
                     activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
 
                     if activeWrapperItem.itemType == 'D-AREA':
@@ -869,7 +861,6 @@ class AddFaceToArea(Operator):
                     myobj = context.object
                     mylist = get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator[0]
-                    activeIndex = dimGen.active_dimension_index
                     activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
 
                     if activeWrapperItem.itemType == 'D-AREA':
@@ -925,7 +916,6 @@ class RemoveFaceFromArea(Operator):
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator[0]
-                    activeIndex = dimGen.active_dimension_index
                     activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
 
                     if activeWrapperItem.itemType == 'D-AREA':
@@ -952,7 +942,6 @@ class RemoveFaceFromArea(Operator):
                     myobj = context.object
                     mylist = get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator[0]
-                    activeIndex = dimGen.active_dimension_index
                     activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
 
                     if activeWrapperItem.itemType == 'D-AREA':
@@ -1008,8 +997,8 @@ class M_ARCH_UL_dimension_list(UIList):
         StyleGen = scene.StyleGenerator
         hasGen = True
 
-        # I should define this in the dimension container itself so that I dont have to edit this each time I define a new dimension type...
-        #
+        # I should define this in the dimension container itself so that I dont
+        # have to edit this each time I define a new dimension type...
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.use_property_decorate = False
@@ -1096,7 +1085,6 @@ class OBJECT_PT_UIDimensions(Panel):
 
         obj = context.object
         if 'DimensionGenerator' in context.object:
-            scene = context.scene
             dimGen = obj.DimensionGenerator[0]
 
             row = layout.row()
@@ -1166,15 +1154,18 @@ class OBJECT_MT_dimension_menu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        op = layout.operator('measureit_arch.addfacetoarea',
-                             text="Add To Area", icon='ADD')
-        op = layout.operator('measureit_arch.removefacefromarea',
-                             text="Remove From Area", icon='REMOVE')
+        layout.operator(
+            'measureit_arch.addfacetoarea',
+            text="Add To Area", icon='ADD')
+        layout.operator(
+            'measureit_arch.removefacefromarea',
+            text="Remove From Area", icon='REMOVE')
 
         layout.separator()
 
-        op = layout.operator('measureit_arch.cursortoarcorigin',
-                             text="Cursor to Arc Origin", icon='MOD_THICKNESS')
+        layout.operator(
+            'measureit_arch.cursortoarcorigin',
+            text="Cursor to Arc Origin", icon='MOD_THICKNESS')
 
         layout.separator()
 
@@ -1479,10 +1470,8 @@ class TranslateDimensionOp(bpy.types.Operator):
         myobj = context.selected_objects[self.objIndex]
         dimension = getattr(myobj, self.dimType)
         unit_system = bpy.context.scene.unit_settings.system
-        unit_length = bpy.context.scene.unit_settings.length_unit
 
         toFeet = 3.28084
-        toInches = 39.3700787401574887
 
         # Set Tweak Flags
         tweak_snap = event.ctrl

@@ -126,7 +126,7 @@ def get_dim_coords(context, myobj, DimGen, dim, mat, offset_pos=True):
     p1 = sortedPoints[0]
     p2 = sortedPoints[1]
 
-    distVector = Vector(p1)-Vector(p2)
+    distVector = Vector(p1) - Vector(p2)
     dist = distVector.length
     midpoint = interpolate3d(p1, p2, fabs(dist / 2))
     normDistVector = distVector.normalized()
@@ -136,15 +136,15 @@ def get_dim_coords(context, myobj, DimGen, dim, mat, offset_pos=True):
     selectedNormal = Vector(select_normal(
         myobj, dim, normDistVector, midpoint, dimProps))
 
-    userOffsetVector = rotationMatrix@selectedNormal
-    offsetDistance = userOffsetVector*offset
-    geoOffsetDistance = offsetDistance.normalized()*geoOffset
+    userOffsetVector = rotationMatrix @ selectedNormal
+    offsetDistance = userOffsetVector * offset
+    geoOffsetDistance = offsetDistance.normalized() * geoOffset
 
     if offsetDistance < geoOffsetDistance:
         offsetDistance = geoOffsetDistance
 
-    dimLineStart = Vector(p1)+offsetDistance
-    dimLineEnd = Vector(p2)+offsetDistance
+    dimLineStart = Vector(p1) + offsetDistance
+    dimLineEnd = Vector(p2) + offsetDistance
 
     if offset_pos:
         return [dimLineStart, dimLineEnd]

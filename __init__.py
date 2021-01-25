@@ -22,6 +22,14 @@
 # Author: Antonio Vazquez (antonioya), Kevan Cress
 # ----------------------------------------------------------
 
+import os
+import site
+import bpy
+
+from bpy.types import WindowManager
+from bpy.props import BoolProperty
+from . import auto_load
+
 # ----------------------------------------------
 # Define Addon info
 # ----------------------------------------------
@@ -36,14 +44,6 @@ bl_info = {
     "doc_url": "https://github.com/kevancress/MeasureIt_ARCH/",
     "category": "3D View"
 }
-
-import os
-import site
-import bpy
-
-from bpy.types import WindowManager
-from bpy.props import BoolProperty
-from . import auto_load
 
 
 cwd = os.path.dirname(os.path.realpath(__file__))
@@ -91,6 +91,7 @@ def register():
     # register internal property
     WindowManager.measureit_arch_run_opengl = BoolProperty(default=False)
 
+
 def unregister():
     auto_load.unregister()
 
@@ -98,9 +99,9 @@ def unregister():
     measureit_arch_main.ShowHideViewportButton.handle_remove(
         measureit_arch_main.ShowHideViewportButton, bpy.context)
     wm = bpy.context.window_manager
-    p = 'measureit_arch_run_opengl'
-    if p in wm:
-        del wm[p]
+    if hasattr(wm, 'measureit_arch_run_opengl'):
+        delattr(wm, 'measureit_arch_run_opengl')
+
 
 if __name__ == '__main__':
     register()

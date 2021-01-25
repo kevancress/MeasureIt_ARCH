@@ -49,7 +49,7 @@ from bpy.props import (
 from mathutils import Vector
 
 from .measureit_arch_baseclass import BaseWithText
-from .measureit_arch_main import get_smart_selected
+from .measureit_arch_utils import get_smart_selected
 
 
 def annotation_update_flag(self, context):
@@ -215,7 +215,7 @@ class AddAnnotationButton(Operator):
             # If no obj selected, created an empty
             if len(context.selected_objects) == 0:
                 cursorLoc = bpy.context.scene.cursor.location
-                newEmpty = bpy.ops.object.empty_add(
+                bpy.ops.object.empty_add(
                     type='SPHERE', radius=0.01, location=cursorLoc)
                 context.object.name = 'Annotation Empty'
                 emptyAnnoFlag = True
@@ -256,8 +256,7 @@ class AddAnnotationButton(Operator):
                 newAnnotation.name = (
                     "Annotation " + str(annotationGen.num_annotations))
                 field = newAnnotation.textFields.add()
-                field.text = ("Annotation " +
-                              str(annotationGen.num_annotations))
+                field.text = ("Annotation " + str(annotationGen.num_annotations))
                 field2 = newAnnotation.textFields.add()
                 field2.text = ("")
 
@@ -336,10 +335,8 @@ class OBJECT_PT_UIAnnotations(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        obj = context.object
         if context.object is not None:
             if 'AnnotationGenerator' in context.object:
-                scene = context.scene
                 annoGen = context.object.AnnotationGenerator[0]
 
                 row = layout.row()
@@ -451,7 +448,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                                  text='Custom Shape Scale')
                         col.prop(annotation, 'custom_local_transforms',
                                  text='Use Local Transforms')
-                        #col.prop(annotation, 'custom_fit_text', text = 'Fit Text')
+                        # col.prop(annotation, 'custom_fit_text', text = 'Fit Text')
 
                         if not annotation.uses_style:
                             col = box.column(align=True)
@@ -507,7 +504,6 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
         delOp.is_style = False
         delOp.item_type = 'A'
         if 'AnnotationGenerator' in context.object:
-            scene = context.scene
             annoGen = context.object.AnnotationGenerator[0]
 
 
@@ -655,21 +651,21 @@ class RotateAnnotationOp(bpy.types.Operator):
             tweak_snap = True
         else:
             tweak_snap = False
-        if event.shift:
-            tweak_precise = True
-        else:
-            tweak_precise = False
+        # if event.shift:
+        #     tweak_precise = True
+        # else:
+        #     tweak_precise = False
 
         if event.type == 'MOUSEMOVE':
             sensitivity = 1
 
             vecDelta = Vector((event.mouse_x, event.mouse_y))
             vecDelta -= center
-            delta += vecDelta.angle_signed(vecLast)*sensitivity
+            delta += vecDelta.angle_signed(vecLast) * sensitivity
 
             delta = math.degrees(delta)
             if tweak_snap:
-                delta = 5*round(delta/5)
+                delta = 5 * round(delta / 5)
 
             if self.constrainAxis[0]:
                 annotation.annotationRotation[0] = self.init_x - \
@@ -686,7 +682,7 @@ class RotateAnnotationOp(bpy.types.Operator):
 
             vecLast = vecDelta
             context.area.header_text_set(
-                "Rotate "+axisText + "%.4f" % delta + "\u00b0")
+                "Rotate " + axisText + "%.4f" % delta + "\u00b0")
 
         elif event.type == 'LEFTMOUSE':
             # Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes

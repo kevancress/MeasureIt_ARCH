@@ -99,7 +99,7 @@ def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
     rotMatrix = rot.to_matrix()
     rotMatrix.resize_4x4()
 
-    basisMatrix.translation = Vector(dim.gizLoc)+(Vector(dim.gizRotDir)*0.2)
+    basisMatrix.translation = Vector(dim.gizLoc) + (Vector(dim.gizRotDir) * 0.2)
     basisMatrix = basisMatrix @ rotMatrix
 
     # Offset Gizmo
@@ -116,24 +116,24 @@ def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
     dimOffsetGiz.use_draw_value = False
 
     dimOffsetGiz.scale_basis = 1
-    dimOffsetGiz.color = (pow(dimProps.color[0], (1/2.2)), pow(
-        dimProps.color[1], (1/2.2)), pow(dimProps.color[2], (1/2.2)))
+    dimOffsetGiz.color = (pow(dimProps.color[0], (1 / 2.2)), pow(
+        dimProps.color[1], (1 / 2.2)), pow(dimProps.color[2], (1 / 2.2)))
     dimOffsetGiz.alpha = 0.3
 
-    dimOffsetGiz.color_highlight = (pow(dimProps.color[0], (1/2.2)), pow(
-        dimProps.color[1], (1/2.2)), pow(dimProps.color[2], (1/2.2)))
+    dimOffsetGiz.color_highlight = (pow(dimProps.color[0], (1 / 2.2)), pow(
+        dimProps.color[1], (1 / 2.2)), pow(dimProps.color[2], (1 / 2.2)))
     dimOffsetGiz.alpha_highlight = 1
 
     # Button Gizmo
-    #dimButton = group.gizmos.new("GIZMO_GT_button_2d")
-    #dimButton.icon = 'PREFERENCES'
-    #dimButton.scale_basis = 0.2
-    #dimButton.matrix_basis = basisMatrix
+    # dimButton = group.gizmos.new("GIZMO_GT_button_2d")
+    # dimButton.icon = 'PREFERENCES'
+    # dimButton.scale_basis = 0.2
+    # dimButton.matrix_basis = basisMatrix
 
     # Add Gizmos to group
     group.offset_widget = dimOffsetGiz
-    #group.settings_widget = dimButton
-    #self.rotate_widget = rotateGiz
+    # group.settings_widget = dimButton
+    # self.rotate_widget = rotateGiz
 
 
 def createAnnotationTranslateGiz(group, annotationGen, objIndex):

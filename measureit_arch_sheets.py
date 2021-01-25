@@ -80,8 +80,6 @@ class AddSheetViewButton(Operator):
             for area in screen.areas:
                 if area.type == 'VIEW_3D':
                     # Add properties
-
-                    scene = context.scene
                     SheetGen = obj.SheetGenerator
 
                     newView = SheetGen.sheet_views.add()
@@ -112,8 +110,6 @@ class DeleteSheetViewButton(Operator):
 
 class M_ARCH_UL_Sheets_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        scene = bpy.context.scene
-
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             view = item
             layout.use_property_decorate = False
@@ -168,11 +164,11 @@ class SCENE_PT_Sheet(Panel):
         op.tag = SheetGen.active_index  # saves internal data
 
         # col.separator()
-        #col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+        # col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 
         # Settings Below List
         if (len(SheetGen.sheet_views) > 0 and
-                SheetGen.active_index < len(SheetGen.sheet_views)):
+            SheetGen.active_index < len(SheetGen.sheet_views)):
 
             view = SheetGen.sheet_views[SheetGen.active_index]
 
@@ -199,4 +195,4 @@ class SCENE_PT_Sheet(Panel):
                                     text="View", icon='CAMERA_DATA')
 
                     col.prop(view, 'location', text='Location')
-                    #col.prop(view, 'rotation', text='Rotation')
+                    # col.prop(view, 'rotation', text='Rotation')

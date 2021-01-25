@@ -1,5 +1,6 @@
 [flake8]
-max_line_length = 80
+ignore = F722, F821
+max_line_length = 120
 exclude =
   .git,
   __pycache__,

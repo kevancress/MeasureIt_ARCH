@@ -117,8 +117,6 @@ class DeleteHatchButton(Operator):
 
 class M_ARCH_UL_Hatches_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        scene = bpy.context.scene
-
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             hatch = item
 
@@ -175,7 +173,7 @@ class SCENE_PT_Hatches(Panel):
         op.tag = HatchGen.active_index  # saves internal data
 
         # col.separator()
-        #col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+        # col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 
         # Settings Below List
         # I'll bring this back, but right now hatches only do fills so

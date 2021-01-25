@@ -38,7 +38,7 @@ def update(self, context):
         view.end_frame = view.start_frame
     scene.frame_end = view.end_frame
     scene.frame_start = view.start_frame
-    #scene.frame_current = view.start_frame
+    # scene.frame_current = view.start_frame
 
     if view.res_type == 'res_type_paper':
         update_camera(scene, camera)
@@ -78,11 +78,11 @@ def update_camera(scene, camera):
     render.resolution_y = height * ppi * 39.3701
 
     if width > height:
-        camera.ortho_scale = (render.resolution_x / ppi /
-                              39.3701) * (modelScale / paperScale)
+        camera.ortho_scale = (
+            render.resolution_x / ppi / 39.3701) * (modelScale / paperScale)
     else:
-        camera.ortho_scale = (render.resolution_y / ppi /
-                              39.3701) * (modelScale / paperScale)
+        camera.ortho_scale = (
+            render.resolution_y / ppi / 39.3701) * (modelScale / paperScale)
 
 
 def update_camera_px(scene, camera):
@@ -101,10 +101,10 @@ def update_camera_px(scene, camera):
 
     if width_px > height_px:
         camera.ortho_scale = (render.resolution_x) * \
-            (modelScale/(pixelScale*(percentScale/100)))
+            (modelScale / (pixelScale * (percentScale / 100)))
     else:
         camera.ortho_scale = (render.resolution_y) * \
-            (modelScale/(pixelScale*(percentScale/100)))
+            (modelScale / (pixelScale * (percentScale / 100)))
 
 
 def change_scene_camera(self, context):
@@ -320,7 +320,7 @@ class DuplicateViewButton(Operator):
     def poll(cls, context):
         Generator = context.scene.ViewGenerator
         try:
-            ActiveView = Generator.views[Generator.active_index]
+            Generator.views[Generator.active_index]
             return True
         except:
             return False
@@ -344,9 +344,8 @@ class DuplicateViewButton(Operator):
 
 
 class M_ARCH_UL_Views_list(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        scene = bpy.context.scene
-
+    def draw_item(self, context, layout, data, item, icon,
+                  active_data, active_propname):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             view = item
             layout.use_property_decorate = False
@@ -418,8 +417,8 @@ class SCENE_PT_Views(Panel):
                 col = box.column()
                 if view.camera is not None:
 
-                    camera = view.camera.data
-                    #col.operator("measureit_arch.renderpreviewbutton", icon='RENDER_STILL', text="Render View Preview")
+                    # col.operator("measureit_arch.renderpreviewbutton",
+                    #              icon='RENDER_STILL', text="Render View Preview")
                     col.prop(view, "cameraType", text="Camera Type")
                     col.prop_search(view, 'view_layer', context.scene,
                                     'view_layers', text='View Layer')
@@ -438,9 +437,9 @@ class SCENE_PT_Views(Panel):
                         col.alignment = 'RIGHT'
                         row = split.row(align=True)
 
-                        #row.menu(CAMERA_PAPER_Presets.__name__, text=CAMERA_PAPER_Presets.bl_label)
-                        #row.operator(AddPaperResPreset.bl_idname, text="", icon='ADD')
-                        #row.operator(AddPaperResPreset.bl_idname, text="", icon='REMOVE').remove_active = True
+                        # row.menu(CAMERA_PAPER_Presets.__name__, text=CAMERA_PAPER_Presets.bl_label)
+                        # row.operator(AddPaperResPreset.bl_idname, text="", icon='ADD')
+                        # row.operator(AddPaperResPreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
                         col = box.column(align=True)
                         col.prop(view, 'width', text='Width:')
@@ -454,9 +453,9 @@ class SCENE_PT_Views(Panel):
                         col.alignment = 'RIGHT'
                         row = split.row(align=True)
 
-                        #row.menu(CAMERA_PX_Presets.__name__, text=CAMERA_PX_Presets.bl_label)
-                        #row.operator(AddPixelResPreset.bl_idname, text="", icon='ADD')
-                        #row.operator(AddPixelResPreset.bl_idname, text="", icon='REMOVE').remove_active = True
+                        # row.menu(CAMERA_PX_Presets.__name__, text=CAMERA_PX_Presets.bl_label)
+                        # row.operator(AddPixelResPreset.bl_idname, text="", icon='ADD')
+                        # row.operator(AddPixelResPreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
                         col = box.column(align=True)
                         col.prop(view, 'width_px', text="Resolution X")
@@ -467,10 +466,10 @@ class SCENE_PT_Views(Panel):
                     col = box.column(align=True)
                     col.active = view.camera.data.type == 'ORTHO'
                     if view.res_type == 'res_type_paper':
-                        #row = col.row(align=True)
-                        #row.menu(CAMERA_PAPER_SCALE_Presets.__name__, text=CAMERA_PAPER_SCALE_Presets.bl_label)
-                        #row.operator(AddPaperScalePreset.bl_idname, text="", icon='ADD')
-                        #row.operator(AddPaperScalePreset.bl_idname, text="", icon='REMOVE').remove_active = True
+                        # row = col.row(align=True)
+                        # row.menu(CAMERA_PAPER_SCALE_Presets.__name__, text=CAMERA_PAPER_SCALE_Presets.bl_label)
+                        # row.operator(AddPaperScalePreset.bl_idname, text="", icon='ADD')
+                        # row.operator(AddPaperScalePreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
                         row = col.row(align=True)
                         row.prop(view, 'paper_scale', text="Scale")
@@ -478,10 +477,10 @@ class SCENE_PT_Views(Panel):
 
                     else:
 
-                        #row = col.row(align=True)
-                        #row.menu(CAMERA_PX_SCALE_Presets.__name__, text=CAMERA_PX_SCALE_Presets.bl_label)
-                        #row.operator(AddPixelScalePreset.bl_idname, text="", icon='ADD')
-                        #row.operator(AddPixelScalePreset.bl_idname, text="", icon='REMOVE').remove_active = True
+                        # row = col.row(align=True)
+                        # row.menu(CAMERA_PX_SCALE_Presets.__name__, text=CAMERA_PX_SCALE_Presets.bl_label)
+                        # row.operator(AddPixelScalePreset.bl_idname, text="", icon='ADD')
+                        # row.operator(AddPixelScalePreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
                         row = col.row(align=True)
                         row.prop(view, 'pixel_scale', text="Scale")
@@ -571,10 +570,7 @@ class SCENE_MT_Views_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
     def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-
-        op = layout.operator(
+        self.layout.operator(
             'measureit_arch.duplicateviewbutton',
             text="Duplicate Selected View", icon='DUPLICATE')
 
@@ -607,7 +603,8 @@ class AddViewButton(Operator):
 class M_ARCH_OP_Render_Preview(Operator):
     bl_idname = "measureit_arch.renderpreviewbutton"
     bl_label = "Render Veiw Preview"
-    bl_description = " Create A Preview Render of this view to be used in sheet layouts. \n The Results can also be accessed in the Image Editor"
+    bl_description = "Create A Preview Render of this view to be used in sheet layouts.\n" \
+                     "The Results can also be accessed in the Image Editor"
     bl_category = 'MeasureitArch'
     tag: IntProperty()
 
@@ -645,9 +642,9 @@ class M_ARCH_OP_Render_Preview(Operator):
         return {'FINISHED'}
 
 
-############################
-#### LEGACY PRESET CODE ####
-############################
+######################
+# LEGACY PRESET CODE #
+######################
 
 class CAMERA_MT_PX_Presets(Menu):
     bl_label = "Resolution Presets"

@@ -114,7 +114,7 @@ class AddColumnButton(Operator):
         schedule = Generator.schedules[Generator.active_index]
 
         if self.removeFlag:
-            schedule.columns.remove(len(schedule.columns)-1)
+            schedule.columns.remove(len(schedule.columns) - 1)
         else:
             col = schedule.columns.add()
             col.name = "Column " + str(len(schedule.columns))
@@ -175,7 +175,7 @@ class GenerateSchedule(Operator):
         if len(collection.children) > 0:
             for subCol in collection.children:
                 returned_rows = self.check_collections(
-                    subCol, schedule, depth=depth+1)
+                    subCol, schedule, depth=depth + 1)
                 data.append(returned_rows)
 
         return data
@@ -229,13 +229,10 @@ class GenerateSchedule(Operator):
         return data
 
     def unpack_data(self, data, depth=0):
-        Generator = bpy.context.scene.ScheduleGenerator
-        schedule = Generator.schedules[Generator.active_index]
-
         row_list = []
         if type(data[0]) != str:
             for item in data:
-                return_list = self.unpack_data(item, depth=depth+1)
+                return_list = self.unpack_data(item, depth=depth + 1)
                 for row in return_list:
                     row_list.append(row)
 
@@ -334,8 +331,6 @@ class DuplicateScheduleButton(Operator):
 
 class M_ARCH_UL_Schedules_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        scene = bpy.context.scene
-
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             schedule = item
             layout.use_property_decorate = False
@@ -456,10 +451,7 @@ class SCENE_MT_Schedules_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
     def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-
-        op = layout.operator('measureit_arch.duplicateschedulebutton',
+        self.layout.operator('measureit_arch.duplicateschedulebutton',
                              text="Duplicate Selected Schedule", icon='DUPLICATE')
 
 

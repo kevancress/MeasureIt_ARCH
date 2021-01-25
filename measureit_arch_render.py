@@ -31,13 +31,14 @@ import svgwrite
 import xml.etree.ElementTree as ET
 
 from addon_utils import check, paths
-from bgl import *
 from bpy.props import IntProperty
 from bpy.types import Panel, Operator
 from sys import exc_info
 
-from .measureit_arch_geometry import *
+from .measureit_arch_geometry import set_OpenGL_Settings, draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_titleblock
+from .measureit_arch_utils import get_view
+from .shaders import Base_Shader_3D, DepthOnlyFrag
 
 depthOnlyshader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
@@ -55,11 +56,11 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
     bl_options = {'HIDE_HEADER'}
     bl_label = "MeasureIt_ARCH Render"
 
-    #bl_idname = "measureit_arch_render_panel"
-    #bl_label = "MeasureIt_ARCH Render"
-    #bl_space_type = 'PROPERTIES'
-    #bl_region_type = "WINDOW"
-    #bl_context = "render"
+    # bl_idname = "measureit_arch_render_panel"
+    # bl_label = "MeasureIt_ARCH Render"
+    # bl_space_type = 'PROPERTIES'
+    # bl_region_type = "WINDOW"
+    # bl_context = "render"
 
     # ------------------------------
     # Draw UI
@@ -146,7 +147,6 @@ class MeasureitRenderAnim(bpy.types.Operator):
 
     def modal(self, context, event):
         scene = context.scene
-        wm = context.window_manager
 
         if event.type in {'RIGHTMOUSE', 'ESC'}:
             self.cancel(context)
@@ -157,8 +157,7 @@ class MeasureitRenderAnim(bpy.types.Operator):
             if scene.frame_current <= scene.frame_end:
                 scene.frame_set(scene.frame_current)
                 self.view3d.tag_redraw()
-                print("MeasureIt_ARCH: Rendering frame: " +
-                      str(scene.frame_current))
+                print("MeasureIt_ARCH: Rendering frame: " + str(scene.frame_current))
                 render_main(self, context, True)
                 self._updating = False
                 scene.frame_current += 1
@@ -171,7 +170,6 @@ class MeasureitRenderAnim(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        msg = "New image created with measures. Open it in UV/image editor"
         camera_msg = "Unable to render. No camera found"
         # -----------------------------
         # Check camera
@@ -461,7 +459,7 @@ def render_main_svg(self, context, animation=False):
 
         if False:
             imageName = 'depthBufferTest'
-            if not imageName in bpy.data.images:
+            if imageName not in bpy.data.images:
                 bpy.data.images.new(imageName, width, height,
                                     alpha=False, float_buffer=True, is_data=True)
             image = bpy.data.images[imageName]
@@ -522,7 +520,11 @@ def render_main_svg(self, context, animation=False):
         # and embed the output in the final SVG.
         freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
 
-        lastformat = scene.render.image_settings.file_format, scene.render.use_freestyle, scene.svg_export.use_svg_export, scene.svg_export.mode
+        lastformat = (
+            scene.render.image_settings.file_format,
+            scene.render.use_freestyle,
+            scene.svg_export.use_svg_export,
+            scene.svg_export.mode)
         if freestyle_svg_export:
             scene.render.use_freestyle = True
             scene.svg_export.use_svg_export = True
