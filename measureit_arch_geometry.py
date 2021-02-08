@@ -2337,40 +2337,40 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 draw3d_loop(context, objs, svg=svg, extMat=extMat,
                             multMat=annotationProps.custom_local_transforms)
 
-                for obj in objs:
-                    if obj.type == 'MESH' and False:
-                        tempCoords = []
-                        bm = bmesh.new()
-                        bm.from_object(
-                            obj, bpy.context.view_layer.depsgraph, deform=True)
-                        bm.edges.ensure_lookup_table()
-                        bm.verts.ensure_lookup_table()
-                        for e in bm.edges:
-                            tempCoords.extend([e.verts[0].co])
-                            tempCoords.extend([e.verts[1].co])
+                # for obj in objs:
+                #     if obj.type == 'MESH':
+                #         tempCoords = []
+                #         bm = bmesh.new()
+                #         bm.from_object(
+                #             obj, bpy.context.view_layer.depsgraph, deform=True)
+                #         bm.edges.ensure_lookup_table()
+                #         bm.verts.ensure_lookup_table()
+                #         for e in bm.edges:
+                #             tempCoords.extend([e.verts[0].co])
+                #             tempCoords.extend([e.verts[1].co])
 
-                        mesh = obj.data
-                        mesh.calc_loop_triangles()
-                        tris = mesh.loop_triangles
-                        indices = []
+                #         mesh = obj.data
+                #         mesh.calc_loop_triangles()
+                #         tris = mesh.loop_triangles
+                #         indices = []
 
-                        for tri in tris:
-                            for vert in tri.vertices:
-                                indices.append(bm.verts[vert].co)
+                #         for tri in tris:
+                #             for vert in tri.vertices:
+                #                 indices.append(bm.verts[vert].co)
 
-                        for coord in tempCoords:
-                            newCoord = (mat @ offsetMat @ rotMat @ coord)
-                            customCoords.append(newCoord)
+                #         for coord in tempCoords:
+                #             newCoord = (mat @ offsetMat @ rotMat @ coord)
+                #             customCoords.append(newCoord)
 
-                        customFilledCoords = []
-                        for vert in indices:
-                            newVert = (mat @ offsetMat @ rotMat @ vert)
-                            customFilledCoords.append(newVert)
+                #         customFilledCoords = []
+                #         for vert in indices:
+                #             newVert = (mat @ offsetMat @ rotMat @ vert)
+                #             customFilledCoords.append(newVert)
 
-                        draw_lines(lineWeight, rgb, customCoords,
-                                   twoPass=True, pointPass=True)
-                        draw_filled_coords(
-                            customFilledCoords, rgb, polySmooth=False)
+                #         draw_lines(lineWeight, rgb, customCoords,
+                #                    twoPass=True, pointPass=True)
+                #         draw_filled_coords(
+                #             customFilledCoords, rgb, polySmooth=False)
 
             fieldIdx = 0
             if 'textFields' not in annotation:
@@ -2392,7 +2392,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 view = get_view()
                 for textField in view.textFields:
                     fields.append(textField)
-
 
             for textField in fields:
                 set_text(textField, myobj)
@@ -2491,10 +2490,7 @@ def set_text(textField, obj):
     if textField.autoFillText:
         # DATE
         if textField.textSource == 'DATE':
-            today = datetime.now()
-            dateStr = today.strftime(
-                '%y') + '/' + today.strftime('%m') + '/' + today.strftime('%d')
-            textField.text = dateStr
+            textField.text = datetime.now().strftime('%y/%m/%d')
 
         # VIEW
         elif textField.textSource == 'VIEW':
@@ -2799,9 +2795,18 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
     return capCoords, filledCoords
 
 
-def generate_text_card(context, textobj, textProps,
-                       rotation=Vector((0, 0, 0)), basePoint=Vector((0, 0, 0)),
-                       xDir=Vector((1, 0, 0)), yDir=Vector((0, 1, 0)), cardIdx=0):
+def generate_text_card(
+        context, textobj, textProps, rotation=None, basePoint=None, xDir=None,
+        yDir=None, cardIdx=0):
+
+    if not rotation:
+        rotation = Vector((0, 0, 0))
+    if not basePoint:
+        basePoint = Vector((0, 0, 0))
+    if not xDir:
+        xDir = Vector((1, 0, 0))
+    if not yDir:
+        yDir = Vector((0, 1, 0))
 
     width = textobj.textWidth
     height = textobj.textHeight
@@ -3421,6 +3426,9 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
 
     square = generate_text_card(
         context, dimText, dimProps, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
+
+    # TODO: This gives error:
+    # TypeError: unsupported operand type(s) for -: 'tuple' and 'tuple'
     cardX = square[3] - square[0]
     cardY = square[1] - square[0]
 

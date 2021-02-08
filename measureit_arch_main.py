@@ -520,7 +520,7 @@ def text_update_loop(context, objlist):
                             fields.append(textField)
 
                     update_text(textobj=annotation,
-                                props=annotationProps, context=context, fields = fields)
+                                props=annotationProps, context=context, fields=fields)
 
                 # Draw Instanced Objects
 

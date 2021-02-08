@@ -499,7 +499,6 @@ class SCENE_PT_Views(Panel):
                     row.prop(view, 'start_frame', text="Frame Range")
                     row.prop(view, 'end_frame', text="")
 
-
             # Notes below Settings
             if ViewGen.show_text_fields:
                 fieldsIcon = 'DISCLOSURE_TRI_DOWN'
@@ -509,8 +508,7 @@ class SCENE_PT_Views(Panel):
             box = layout.box()
             col = box.column()
             row = col.row(align=True)
-            row.prop(ViewGen, 'show_text_fields',
-                        text="", icon=fieldsIcon, emboss=False)
+            row.prop(ViewGen, 'show_text_fields', text="", icon=fieldsIcon, emboss=False)
             row.label(text=view.name + ' Notes:')
 
             row.emboss = 'PULLDOWN_MENU'
@@ -565,7 +563,6 @@ class SCENE_PT_Views(Panel):
                     idx += 1
 
 
-
 class SCENE_MT_Views_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
@@ -602,7 +599,7 @@ class AddViewButton(Operator):
 
 class M_ARCH_OP_Render_Preview(Operator):
     bl_idname = "measureit_arch.renderpreviewbutton"
-    bl_label = "Render Veiw Preview"
+    bl_label = "Render Preview"
     bl_description = "Create A Preview Render of this view to be used in sheet layouts.\n" \
                      "The Results can also be accessed in the Image Editor"
     bl_category = 'MeasureitArch'
