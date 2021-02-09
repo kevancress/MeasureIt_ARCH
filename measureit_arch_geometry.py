@@ -2798,6 +2798,9 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
 def generate_text_card(
         context, textobj, textProps, rotation=None, basePoint=None, xDir=None,
         yDir=None, cardIdx=0):
+    """
+    Returns a list of 4 Vectors
+    """
 
     if not rotation:
         rotation = Vector((0, 0, 0))
@@ -2815,9 +2818,9 @@ def generate_text_card(
 
     # Define annotation Card Geometry
     resolution = get_resolution()
-    # get font size in pt more stupid fudge factors :(
-    size = textProps.fontSize / 803
-    size *= scale
+
+    # Get font size in pt more stupid fudge factors :(
+    size = (textProps.fontSize / 803) * scale
 
     sx = (width / resolution) * size
     sy = (height / resolution) * size
@@ -2825,8 +2828,12 @@ def generate_text_card(
     cardX = xDir.normalized() * sx
     cardY = yDir.normalized() * sy
 
-    square = [(basePoint - (cardX / 2)), (basePoint - (cardX / 2) + cardY),
-              (basePoint + (cardX / 2) + cardY), (basePoint + (cardX / 2))]
+    square = [
+        basePoint - (cardX / 2),
+        basePoint - (cardX / 2) + cardY,
+        basePoint + (cardX / 2) + cardY,
+        basePoint + (cardX / 2),
+    ]
 
     # pick approprate card based on alignment
     if textProps.textAlignment == 'R':
@@ -2845,7 +2852,7 @@ def generate_text_card(
 
     cardOffset = cardIdx * cardY
 
-    # Define Transformation Matricies
+    # Define transformation matrices
     rotMat = Matrix.Identity(3)
     rotEuler = Euler(rotation, 'XYZ')
     rotMat.rotate(rotEuler)
@@ -2854,14 +2861,10 @@ def generate_text_card(
     coords = []
     for coord in square:
         coord = Vector(coord) - aOff - pOff - cardOffset
-        coord -= basePoint
+        coord = (rotMat @ (coord - basePoint)) + basePoint
+        coords.append(coord)
 
-        coord = rotMat @ coord
-
-        coord += basePoint
-        coords.append(tuple(coord))
-
-    return (coords)
+    return coords
 
 
 def sortPoints(p1, p2):
