@@ -709,7 +709,6 @@ class AddAngleButton(Operator):
 
 
 class AddArcButton(Operator):
-
     bl_idname = "measureit_arch.addarcbutton"
     bl_label = "Angle"
     bl_description = "(EDITMODE only) Add a new arc measure (select 3 vertices of the arc," \
@@ -781,7 +780,7 @@ class CursorToArcOrigin(Operator):
     # ------------------------------
     # Poll
     # ------------------------------
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         myobj = context.object
         if myobj is None:
@@ -798,7 +797,6 @@ class CursorToArcOrigin(Operator):
     # ------------------------------
     # Execute button action
     # ------------------------------
-
     def execute(self, context):
         myobj = context.active_object
         dimGen = myobj.DimensionGenerator[0]
@@ -849,7 +847,6 @@ class AddFaceToArea(Operator):
     # ------------------------------
     # Execute button action
     # ------------------------------
-
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
             screen = window.screen
@@ -930,7 +927,6 @@ class RemoveFaceFromArea(Operator):
     # ------------------------------
     # Execute button action
     # ------------------------------
-
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
             screen = window.screen
@@ -1105,7 +1101,9 @@ class OBJECT_PT_UIDimensions(Panel):
             col.menu("OBJECT_MT_dimension_menu", icon='DOWNARROW_HLT', text="")
 
             # Settings Below List
-            if len(dimGen.wrappedDimensions) > 0 and dimGen.active_dimension_index < len(dimGen.wrappedDimensions):
+            if (len(dimGen.wrappedDimensions) > 0 and
+                dimGen.active_dimension_index < len(dimGen.wrappedDimensions)):
+
                 activeWrapperItem = dimGen.wrappedDimensions[dimGen.active_dimension_index]
 
                 if activeWrapperItem.itemType == 'D-ALIGNED':
@@ -1468,7 +1466,7 @@ class TranslateDimensionOp(bpy.types.Operator):
 
     def modal(self, context, event):
         myobj = context.selected_objects[self.objIndex]
-        dimension = getattr(myobj, self.dimType)
+        dimension = eval('myobj.' + self.dimType)
         unit_system = bpy.context.scene.unit_settings.system
 
         toFeet = 3.28084
@@ -1554,7 +1552,7 @@ class TranslateDimensionOp(bpy.types.Operator):
     def invoke(self, context, event):
         myobj = context.selected_objects[self.objIndex]
 
-        dimension = getattr(myobj, self.dimType)
+        dimension = eval('myobj.' + self.dimType)
         self.init_mouse_x = event.mouse_x
         self.init_mouse_y = event.mouse_y
 
