@@ -366,9 +366,9 @@ class DuplicateViewButton(Operator):
         Generator = context.scene.ViewGenerator
         try:
             Generator.views[Generator.active_index]
-            return True
         except:
             return False
+        return True
 
     def execute(self, context):
         # Add properties
@@ -638,40 +638,4 @@ class AddViewButton(Operator):
 
                     context.area.tag_redraw()
                     return {'FINISHED'}
-        return {'FINISHED'}
-
-
-class M_ARCH_OP_Render_Preview(Operator):
-    bl_idname = "measureit_arch.renderpreviewbutton"
-    bl_label = "Render Preview"
-    bl_description = "Create A Preview Render of this view to be used in sheet layouts.\n" \
-                     "The Results can also be accessed in the Image Editor"
-    bl_category = 'MeasureitArch'
-    tag: IntProperty()
-
-    def execute(self, context):
-        scene = context.scene
-        ViewGen = scene.ViewGenerator
-        view = ViewGen.views[ViewGen.active_index]
-
-        msg = "New image created with measures. Open it in UV/image editor"
-        camera_msg = "Unable to render. No camera found"
-
-        # Check camera
-        if scene.camera is None:
-            self.report({'ERROR'}, camera_msg)
-            return {'FINISHED'}
-
-        # Use default render
-        print("MeasureIt_ARCH: Rendering image")
-
-        # bpy.ops.render.render()
-        render_results = render_main(self, context)
-        if render_results[0]:
-            self.report({'INFO'}, msg)
-            if 'preview' in view:
-                del view['preview']
-            view['preview'] = render_results[1]
-        del render_results
-
         return {'FINISHED'}
