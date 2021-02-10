@@ -76,9 +76,6 @@ class CustomProperties(PropertyGroup):
     name: StringProperty(name='Custom Properties')
 
 
-bpy.utils.register_class(CustomProperties)
-
-
 def custom_shape_poll(self, collection):
     myobj = self.annotationAnchorObject
     try:
@@ -161,9 +158,6 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
         description="Add arrows to point A")
 
 
-bpy.utils.register_class(AnnotationProperties)
-
-
 class AnnotationContainer(PropertyGroup):
     num_annotations: IntProperty(
         name='Number of Annotations', min=0, max=1000, default=0,
@@ -175,10 +169,6 @@ class AnnotationContainer(PropertyGroup):
         name='Show Annotation Text Fields', default=False)
     # Array of segments
     annotations: CollectionProperty(type=AnnotationProperties)
-
-
-bpy.utils.register_class(AnnotationContainer)
-Object.AnnotationGenerator = CollectionProperty(type=AnnotationContainer)
 
 
 class AddAnnotationButton(Operator):
@@ -507,7 +497,7 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
             annoGen = context.object.AnnotationGenerator[0]
 
 
-class TranlateAnnotationOp(bpy.types.Operator):
+class TranslateAnnotationOp(bpy.types.Operator):
     """Move Annotation"""
     bl_idname = "measureit_arch.translate_annotation"
     bl_label = "Translate Annotation"

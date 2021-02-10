@@ -28,7 +28,7 @@ import bpy
 import bmesh
 import math
 
-from bpy.types import PropertyGroup, Panel, Object, Operator, UIList
+from bpy.types import PropertyGroup, Panel, Operator, UIList
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, PointerProperty
 from mathutils import Vector
@@ -139,9 +139,6 @@ class LineProperties(BaseProp, PropertyGroup):
         subtype='ANGLE')
 
 
-bpy.utils.register_class(LineProperties)
-
-
 class LineContainer(PropertyGroup):
     line_num: IntProperty(
         name='Number of Line Groups', min=0, max=1000, default=0,
@@ -153,10 +150,6 @@ class LineContainer(PropertyGroup):
 
     # Array of segments
     line_groups: CollectionProperty(type=LineProperties)
-
-
-bpy.utils.register_class(LineContainer)
-Object.LineGenerator = CollectionProperty(type=LineContainer)
 
 
 class AddLineButton(Operator):

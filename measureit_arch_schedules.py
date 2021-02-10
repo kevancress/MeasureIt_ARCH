@@ -43,9 +43,6 @@ class ColumnProps(PropertyGroup):
         description="data")
 
 
-bpy.utils.register_class(ColumnProps)
-
-
 class ScheduleProperties(PropertyGroup):
 
     name: StringProperty()
@@ -77,9 +74,6 @@ class ScheduleProperties(PropertyGroup):
     columns: CollectionProperty(type=ColumnProps)
 
 
-bpy.utils.register_class(ScheduleProperties)
-
-
 class ScheduleContainer(PropertyGroup):
     active_index: IntProperty(
         name='Active Schedule Index', min=0, max=1000, default=0,
@@ -90,10 +84,6 @@ class ScheduleContainer(PropertyGroup):
 
     # Array of schedules
     schedules: CollectionProperty(type=ScheduleProperties)
-
-
-bpy.utils.register_class(ScheduleContainer)
-Scene.ScheduleGenerator = bpy.props.PointerProperty(type=ScheduleContainer)
 
 
 class AddColumnButton(Operator):
@@ -253,7 +243,7 @@ class GenerateSchedule(Operator):
             today = datetime.now()
             datepath = os.path.join(file_path, today.strftime('%Y%m%d'))
             if not os.path.exists(datepath):
-                os.mkdir(file_path + today.strftime('%Y%m%d'))
+                os.mkdir(datepath)
             file_path = datepath
 
         row_list = []

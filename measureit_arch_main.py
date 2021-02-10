@@ -35,27 +35,16 @@ from .measureit_arch_geometry import clear_batches, update_text, \
 from .measureit_arch_utils import get_view
 
 
-draw_instanced = True
-
-# ------------------------------------------------------
-# Handler to detect new Blend load
-#
-# ------------------------------------------------------
-
-
 @persistent
 def load_handler(dummy):
+    """ Handler called when a Blender file is loaded """
     ShowHideViewportButton.handle_remove(None, bpy.context)
 
 
-# ------------------------------------------------------
-# Handler to detect save Blend
-# Clear not used measured
-#
-# ------------------------------------------------------
-
 @persistent
 def save_handler(dummy):
+    """ Handler called when a Blender file is saved """
+    # Clear not used measured
     cleanScene = True
     if cleanScene:
         # Check all Scenes for phantom objects
@@ -102,10 +91,6 @@ def save_handler(dummy):
                         obj.AnnotationGenerator[0].num_annotations = 0
 
 
-bpy.app.handlers.load_post.append(load_handler)
-bpy.app.handlers.save_pre.append(save_handler)
-
-
 # Rough Attempts to add a m-ARCH tab to the properties panel navigation bar
 # Not solved yet (not entirely sure its possible), but kept for future reference.
 
@@ -146,7 +131,6 @@ class MEASUREIT_PT_main_panel(Panel):
         # ------------------------------
         # Display Buttons
         # ------------------------------
-
         box = layout.box()
         box.label(text="Show/Hide MeasureIt_ARCH")
         row = box.row(align=True)
@@ -207,7 +191,6 @@ class MEASUREIT_PT_main_panel(Panel):
         # ------------------------------
         # Linework Tools
         # ------------------------------
-
         box = layout.box()
         box.label(text="Add Lines")
 
@@ -240,13 +223,9 @@ class MEASUREIT_PT_main_panel(Panel):
             col.prop_search(sceneProps, 'default_annotation_style',
                             StyleGen, 'annotations', text="", icon='COLOR')
 
-# ------------------------------------------------------------------
-# New Panel to group Object Properties
-# ------------------------------------------------------------------
-
 
 class OBJECT_PT_Panel(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ Panel in the object properties window """
     bl_idname = 'OBJECT_PT_Panel'
     bl_label = "MeasureIt_ARCH"
     bl_space_type = 'PROPERTIES'
@@ -257,14 +236,8 @@ class OBJECT_PT_Panel(Panel):
         pass
 
 
-bpy.utils.register_class(OBJECT_PT_Panel)
-
-
-# ------------------------------------------------------------------
-# New Panel to group Scene Properties
-# ------------------------------------------------------------------
 class SCENE_PT_Panel(bpy.types.Panel):
-    """Main Properties Panel"""
+    """ Main (scene) properties panel """
     bl_idname = "SCENE_PT_Panel"
     bl_label = "MeasureIt_ARCH"
     bl_space_type = 'PROPERTIES'
@@ -275,11 +248,8 @@ class SCENE_PT_Panel(bpy.types.Panel):
         pass
 
 
-bpy.utils.register_class(SCENE_PT_Panel)
-
-
-# MeasureIt_ARCH settings
 class SCENE_PT_MARCH_Settings(Panel):
+    """ Settings panel """
     bl_parent_id = 'SCENE_PT_Panel'
     bl_idname = "SCENE_PT_MARCH_Settings"
     bl_label = "Settings"
@@ -325,7 +295,6 @@ class SCENE_PT_MARCH_Settings(Panel):
 
 # -------------------------------------------------------------
 # Defines button that enables/disables Viewport Display
-#
 # -------------------------------------------------------------
 class ShowHideViewportButton(Operator):
     bl_idname = "measureit_arch.runopenglbutton"
@@ -335,18 +304,17 @@ class ShowHideViewportButton(Operator):
 
     _handle = None  # keep function handler
     _handle3d = None
+
     # ----------------------------------
     # Enable gl drawing adding handler
     # ----------------------------------
-
     @staticmethod
     def handle_add(self, context):
         if ShowHideViewportButton._handle is None:
-            ShowHideViewportButton._handle = SpaceView3D.draw_handler_add(draw_callback_px, (self, context),
-                                                                          'WINDOW',
-                                                                          'POST_PIXEL')
+            ShowHideViewportButton._handle = SpaceView3D.draw_handler_add(
+                draw_main, (context,), 'WINDOW', 'POST_PIXEL')
             ShowHideViewportButton._handle3d = SpaceView3D.draw_handler_add(
-                draw_callback_3d, (self, context), 'WINDOW', 'POST_VIEW')
+                draw_main_3d, (context,), 'WINDOW', 'POST_VIEW')
             context.window_manager.measureit_arch_run_opengl = True
 
     # ------------------------------------
@@ -438,7 +406,6 @@ def draw_main(context):
 
 
 def text_update_loop(context, objlist):
-
     for myobj in objlist:
         if not myobj.hide_get():
             if 'DimensionGenerator' in myobj:
@@ -522,66 +489,63 @@ def text_update_loop(context, objlist):
                     update_text(textobj=annotation,
                                 props=annotationProps, context=context, fields=fields)
 
-                # Draw Instanced Objects
+    # Draw Instanced Objects
+    deps = bpy.context.view_layer.depsgraph
+    for obj_int in deps.object_instances:
+        if obj_int.is_instance:
+            myobj = obj_int.object
 
-    if draw_instanced:
-        deps = bpy.context.view_layer.depsgraph
-        for obj_int in deps.object_instances:
-            if obj_int.is_instance:
-                myobj = obj_int.object
+            if 'DimensionGenerator' in myobj:
+                DimGen = myobj.DimensionGenerator[0]
+                for alignedDim in DimGen.alignedDimensions:
 
-                if 'DimensionGenerator' in myobj:
-                    DimGen = myobj.DimensionGenerator[0]
-                    for alignedDim in DimGen.alignedDimensions:
+                    alignedDimProps = alignedDim
+                    if alignedDim.uses_style:
+                        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if alignedDimStyle.name == alignedDim.style:
+                                alignedDimProps = alignedDimStyle
 
-                        alignedDimProps = alignedDim
-                        if alignedDim.uses_style:
-                            for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if alignedDimStyle.name == alignedDim.style:
-                                    alignedDimProps = alignedDimStyle
+                    update_text(textobj=alignedDim,
+                                props=alignedDimProps, context=context)
 
-                        update_text(textobj=alignedDim,
-                                    props=alignedDimProps, context=context)
+                for angleDim in DimGen.angleDimensions:
+                    dimProps = angleDim
+                    if angleDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == angleDim.style:
+                                dimProps = dimStyle
+                    update_text(textobj=angleDim,
+                                props=dimProps, context=context)
 
-                    for angleDim in DimGen.angleDimensions:
-                        dimProps = angleDim
-                        if angleDim.uses_style:
-                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if dimStyle.name == angleDim.style:
-                                    dimProps = dimStyle
-                        update_text(textobj=angleDim,
-                                    props=dimProps, context=context)
+                for axisDim in DimGen.axisDimensions:
+                    dimProps = axisDim
+                    if axisDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == axisDim.style:
+                                dimProps = dimStyle
+                    update_text(textobj=axisDim,
+                                props=dimProps, context=context)
 
-                    for axisDim in DimGen.axisDimensions:
-                        dimProps = axisDim
-                        if axisDim.uses_style:
-                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if dimStyle.name == axisDim.style:
-                                    dimProps = dimStyle
-                        update_text(textobj=axisDim,
-                                    props=dimProps, context=context)
+                for boundsDim in DimGen.boundsDimensions:
+                    dimProps = boundsDim
+                    if boundsDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == boundsDim.style:
+                                dimProps = dimStyle
+                    update_text(textobj=boundsDim,
+                                props=dimProps, context=context)
 
-                    for boundsDim in DimGen.boundsDimensions:
-                        dimProps = boundsDim
-                        if boundsDim.uses_style:
-                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if dimStyle.name == boundsDim.style:
-                                    dimProps = dimStyle
-                        update_text(textobj=boundsDim,
-                                    props=dimProps, context=context)
-
-                    for arcDim in DimGen.arcDimensions:
-                        dimProps = arcDim
-                        if arcDim.uses_style:
-                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if dimStyle.name == arcDim.style:
-                                    dimProps = dimStyle
-                        update_text(textobj=arcDim, props=dimProps,
-                                    context=context)
+                for arcDim in DimGen.arcDimensions:
+                    dimProps = arcDim
+                    if arcDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == arcDim.style:
+                                dimProps = dimStyle
+                    update_text(textobj=arcDim, props=dimProps,
+                                context=context)
 
 
 def draw_main_3d(context):
-
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
@@ -626,17 +590,6 @@ def draw_titleblock(context, svg=None):
 
         extMat = cameraMat @ transMat @ scaleMat
         draw3d_loop(context, objlist, extMat=extMat, svg=svg, multMat=True)
-
-
-# -------------------------------------------------------------
-# Handlers for drawing OpenGl
-# -------------------------------------------------------------
-def draw_callback_px(self, context):
-    draw_main(context)
-
-
-def draw_callback_3d(self, context):
-    draw_main_3d(context)
 
 
 # MeasureIt_ARCH Unit settings

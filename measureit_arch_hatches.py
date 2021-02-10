@@ -7,7 +7,7 @@ from bpy.props import (
     BoolProperty,
     FloatProperty,
     PointerProperty)
-from bpy.types import PropertyGroup, Panel, Operator, Scene, UIList, Collection
+from bpy.types import PropertyGroup, Panel, Operator, UIList, Collection
 
 
 class HatchProperties(PropertyGroup):
@@ -80,9 +80,6 @@ class HatchProperties(PropertyGroup):
         min=0)
 
 
-bpy.utils.register_class(HatchProperties)
-
-
 class HatchContainer(PropertyGroup):
     active_index: IntProperty(
         name='Active Hatch Index', min=0, max=1000, default=0,
@@ -92,10 +89,6 @@ class HatchContainer(PropertyGroup):
 
     # Array of hatches
     hatches: CollectionProperty(type=HatchProperties)
-
-
-bpy.utils.register_class(HatchContainer)
-Scene.HatchGenerator = bpy.props.PointerProperty(type=HatchContainer)
 
 
 class DeleteHatchButton(Operator):

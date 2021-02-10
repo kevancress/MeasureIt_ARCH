@@ -26,7 +26,7 @@
 
 import bpy
 
-from bpy.types import PropertyGroup, Panel, Object, Operator, UIList, Scene
+from bpy.types import PropertyGroup, Panel, Operator, UIList, Scene
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, PointerProperty
 
@@ -50,9 +50,6 @@ class SheetViewProperties(PropertyGroup):
     scene: PointerProperty(type=Scene)
 
 
-bpy.utils.register_class(SheetViewProperties)
-
-
 class SheetViewContainer(PropertyGroup):
 
     active_index: IntProperty(name='Active Sheet View Index')
@@ -61,10 +58,6 @@ class SheetViewContainer(PropertyGroup):
 
     # Array of segments
     sheet_views: CollectionProperty(type=SheetViewProperties)
-
-
-bpy.utils.register_class(SheetViewContainer)
-Object.SheetGenerator = bpy.props.PointerProperty(type=SheetViewContainer)
 
 
 class AddSheetViewButton(Operator):

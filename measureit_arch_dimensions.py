@@ -81,9 +81,6 @@ class AreaDimensionProperties(BaseDim, PropertyGroup):
         size=4)
 
 
-bpy.utils.register_class(AreaDimensionProperties)
-
-
 class AlignedDimensionProperties(BaseDim, PropertyGroup):
 
     gen_group: StringProperty(
@@ -94,9 +91,6 @@ class AlignedDimensionProperties(BaseDim, PropertyGroup):
     dimObjectA: PointerProperty(type=Object)
 
     dimObjectB: PointerProperty(type=Object)
-
-
-bpy.utils.register_class(AlignedDimensionProperties)
 
 
 class AxisDimensionProperties(BaseDim, PropertyGroup):
@@ -120,9 +114,6 @@ class AxisDimensionProperties(BaseDim, PropertyGroup):
         description="Measurement Axis")
 
 
-bpy.utils.register_class(AxisDimensionProperties)
-
-
 class BoundsDimensionProperties(BaseDim, PropertyGroup):
     gen_group: StringProperty(
         name="Generator Group",
@@ -138,9 +129,6 @@ class BoundsDimensionProperties(BaseDim, PropertyGroup):
     dimCollection: PointerProperty(type=Collection)
 
     calcAxisAligned: BoolProperty()
-
-
-bpy.utils.register_class(BoundsDimensionProperties)
 
 
 class ArcDimensionProperties(BaseDim, PropertyGroup):
@@ -179,9 +167,6 @@ class ArcDimensionProperties(BaseDim, PropertyGroup):
         description="Add arrows to Radius Leader")
 
 
-bpy.utils.register_class(ArcDimensionProperties)
-
-
 class AngleDimensionProperties(BaseDim, PropertyGroup):
     gen_group: StringProperty(
         name="Generator Group",
@@ -204,9 +189,6 @@ class AngleDimensionProperties(BaseDim, PropertyGroup):
         default=False)
 
 
-bpy.utils.register_class(AngleDimensionProperties)
-
-
 # A Wrapper object so multiple dimension types can be
 # Shown in the same UI List
 
@@ -222,9 +204,6 @@ class DimensionWrapper(PropertyGroup):
         update=recalc_dimWrapper_index)
 
     itemIndex: IntProperty(name='Dimension Index')
-
-
-bpy.utils.register_class(DimensionWrapper)
 
 
 class DimensionContainer(PropertyGroup):
@@ -245,10 +224,6 @@ class DimensionContainer(PropertyGroup):
 
     # Collection of Wrapped dimensions for list UI display
     wrappedDimensions: CollectionProperty(type=DimensionWrapper)
-
-
-bpy.utils.register_class(DimensionContainer)
-Object.DimensionGenerator = CollectionProperty(type=DimensionContainer)
 
 
 class AddAlignedDimensionButton(Operator):

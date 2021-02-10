@@ -84,9 +84,6 @@ class StyleWrapper(PropertyGroup):
     itemIndex: IntProperty(name='Item Index')
 
 
-bpy.utils.register_class(StyleWrapper)
-
-
 class StyleContainer(PropertyGroup):
     active_style_index: IntProperty(
         name='Active Style Index', min=0, max=1000, default=0,
@@ -100,10 +97,6 @@ class StyleContainer(PropertyGroup):
     line_groups: CollectionProperty(type=LineProperties)
 
     wrappedStyles: CollectionProperty(type=StyleWrapper)
-
-
-bpy.utils.register_class(StyleContainer)
-Scene.StyleGenerator = bpy.props.PointerProperty(type=StyleContainer)
 
 
 class M_ARCH_UL_styles_list(UIList):
@@ -134,7 +127,7 @@ class M_ARCH_UL_styles_list(UIList):
 
 
 class SCENE_PT_UIStyles(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ Creates a Panel in the Object properties window """
     bl_parent_id = 'SCENE_PT_Panel'
     bl_label = "Styles"
     bl_space_type = 'PROPERTIES'

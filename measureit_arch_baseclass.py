@@ -1,7 +1,7 @@
 import bpy
 import math
 
-from bpy.types import PropertyGroup, Operator, Scene
+from bpy.types import PropertyGroup, Operator
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
@@ -222,9 +222,6 @@ class TextField(PropertyGroup):
         name='texture_updated',
         description='flag when text texture need to be redrawn',
         default=False)
-
-
-bpy.utils.register_class(TextField)
 
 
 class BaseWithText(BaseProp):
@@ -553,11 +550,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
                ('64', "1/64\"", "1/64th Inch")),
         name="Imperial Precision",
         description="Measurement Precision for Imperial Units")
-
-
-bpy.utils.register_class(MeasureItARCHSceneProps)
-Scene.MeasureItArchProps = bpy.props.PointerProperty(
-    type=MeasureItARCHSceneProps)
 
 
 class DeletePropButton(Operator):

@@ -3011,7 +3011,6 @@ def get_arc_data(pointa, pointb, pointc, pointd):
 
 # -------------------------------------------------------------
 # Format a number to the right unit
-#
 # -------------------------------------------------------------
 def format_distance(fmt, value, factor=1, isArea=False):
     # Superscript two THIS IS LEGACY (but being kept for when Area Measurements are re-implimented)

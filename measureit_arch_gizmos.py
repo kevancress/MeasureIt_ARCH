@@ -81,9 +81,6 @@ class mArchGizmoGroup(GizmoGroup):
         self.createGiz(obj)
 
 
-bpy.utils.register_class(mArchGizmoGroup)
-
-
 def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
     context = bpy.context
     dimProps = dim

@@ -47,20 +47,12 @@ depthOnlyshader = gpu.types.GPUShader(
 # ------------------------------------------------------------------
 # Define panel class for render functions.
 # ------------------------------------------------------------------
-
-
 class RENDER_PT_MeasureitArch_Panel(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "output"
     bl_options = {'HIDE_HEADER'}
     bl_label = "MeasureIt_ARCH Render"
-
-    # bl_idname = "measureit_arch_render_panel"
-    # bl_label = "MeasureIt_ARCH Render"
-    # bl_space_type = 'PROPERTIES'
-    # bl_region_type = "WINDOW"
-    # bl_context = "render"
 
     # ------------------------------
     # Draw UI
@@ -158,7 +150,7 @@ class MeasureitRenderAnim(bpy.types.Operator):
                 scene.frame_set(scene.frame_current)
                 self.view3d.tag_redraw()
                 print("MeasureIt_ARCH: Rendering frame: " + str(scene.frame_current))
-                render_main(self, context, True)
+                render_main(self, context)
                 self._updating = False
                 scene.frame_current += 1
             else:
@@ -235,10 +227,8 @@ class RenderSvgButton(Operator):
 
 # -------------------------------------------------------------
 # Render image main entry point
-#
 # -------------------------------------------------------------
-def render_main(self, context, animation=False):
-
+def render_main(self, context):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     sceneProps.is_render_draw = True
@@ -312,11 +302,11 @@ def render_main(self, context, animation=False):
     set_OpenGL_Settings(False)
     sceneProps.is_render_draw = False
     return True, buffer
+
+
 # -------------------------------------
 # Save image to file
 # -------------------------------------
-
-
 def save_image(self, filepath, myimage):
     # noinspection PyBroadException
     try:
@@ -457,15 +447,14 @@ def render_main_svg(self, context, animation=False):
         offscreen.free()
         set_OpenGL_Settings(False)
 
-        if False:
-            imageName = 'depthBufferTest'
-            if imageName not in bpy.data.images:
-                bpy.data.images.new(imageName, width, height,
-                                    alpha=False, float_buffer=True, is_data=True)
-            image = bpy.data.images[imageName]
+        # imageName = 'depthBufferTest'
+        # if imageName not in bpy.data.images:
+        #     bpy.data.images.new(imageName, width, height,
+        #                         alpha=False, float_buffer=True, is_data=True)
+        # image = bpy.data.images[imageName]
 
-            image.scale(width, height)
-            image.pixels = [v for v in texture_buffer]
+        # image.scale(width, height)
+        # image.pixels = [v for v in texture_buffer]
 
     # Setup Output Path
     outpath = "{}_{:04d}.svg".format(path, scene.frame_current)

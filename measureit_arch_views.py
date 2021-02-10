@@ -10,10 +10,9 @@ from bpy.props import (
     EnumProperty,
     PointerProperty
 )
-from bpy.types import PropertyGroup, Panel, Operator, Scene, UIList, Menu
+from bpy.types import PropertyGroup, Panel, Operator, UIList
 from datetime import datetime
 
-from .custom_preset_base import Custom_Preset_Base
 from .measureit_arch_render import render_main
 from .measureit_arch_baseclass import TextField
 
@@ -271,9 +270,6 @@ class ViewProperties(PropertyGroup):
         update=update)
 
 
-bpy.utils.register_class(ViewProperties)
-
-
 class ViewContainer(PropertyGroup):
     active_index: IntProperty(
         name='Active View Index', min=0, max=1000, default=0,
@@ -285,10 +281,6 @@ class ViewContainer(PropertyGroup):
 
     # Array of views
     views: CollectionProperty(type=ViewProperties)
-
-
-bpy.utils.register_class(ViewContainer)
-Scene.ViewGenerator = bpy.props.PointerProperty(type=ViewContainer)
 
 
 class DeleteViewButton(Operator):
@@ -396,7 +388,9 @@ class SCENE_PT_Views(Panel):
         col.menu("SCENE_MT_Views_menu", icon='DOWNARROW_HLT', text="")
 
 
-        if len(ViewGen.views) > 0 and ViewGen.active_index < len(ViewGen.views):
+        if (len(ViewGen.views) > 0 and
+            ViewGen.active_index < len(ViewGen.views)):
+
             view = ViewGen.views[ViewGen.active_index]
 
             # Settings Below List
@@ -537,8 +531,7 @@ class SCENE_PT_Views(Panel):
                     split.label(text='Text Field ' + str(idx + 1))
 
                     row = split.row(align=True)
-                    row.prop(textField, 'autoFillText',
-                                text="", icon="FILE_TEXT")
+                    row.prop(textField, 'autoFillText', text="", icon="FILE_TEXT")
 
                     if textField.autoFillText:
                         row.prop(textField, 'textSource', text="")
@@ -637,122 +630,3 @@ class M_ARCH_OP_Render_Preview(Operator):
         del render_results
 
         return {'FINISHED'}
-
-
-######################
-# LEGACY PRESET CODE #
-######################
-
-class CAMERA_MT_PX_Presets(Menu):
-    bl_label = "Resolution Presets"
-    default_lable = "Resolution Presets"
-    preset_subdir = "pixel"
-    preset_operator = "script.execute_preset"
-    draw = Custom_Preset_Base.draw_preset
-
-
-class AddPixelResPreset(Custom_Preset_Base, Operator):
-    '''Add a Object Draw Preset'''
-    bl_idname = "camera.add_pixel_res_preset"
-    bl_label = "Add Camera Res Preset"
-    preset_menu = "CAMERA_PX_Presets"
-
-    # variable used for all preset values
-    preset_defines = [
-        "camera = bpy.context.camera"
-    ]
-
-    # properties to store in the preset
-    preset_values = [
-        "camera.width_px",
-        "camera.height_px",
-        "camera.percent_scale"
-    ]
-
-    # where to store the preset
-    preset_subdir = "pixel"
-
-
-class CAMERA_MT_PX_SCALE_Presets(Menu):
-    bl_label = "Pixel Scale"
-    default_lable = "Pixel Scale"
-    preset_subdir = "scale_pixel"
-    preset_operator = "script.execute_preset"
-    draw = Custom_Preset_Base.draw_preset
-
-
-class AddPixelScalePreset(Custom_Preset_Base, Operator):
-    '''Add a Object Draw Preset'''
-    bl_idname = "camera.add_pixel_scale_preset"
-    bl_label = "Add Camera Scale Preset"
-    preset_menu = "CAMERA_PX_SCALE_Presets"
-
-    # variable used for all preset values
-    preset_defines = [
-        "camera = bpy.context.camera"
-    ]
-
-    # properties to store in the preset
-    preset_values = [
-        "camera.pixel_scale",
-        "camera.mod_scale"
-    ]
-
-    # where to store the preset
-    preset_subdir = "scale_pixel"
-
-
-class CAMERA_MT_PAPER_Presets(Menu):
-    bl_label = "Paper Size Presets"
-    default_lable = "Paper Size Presets"
-    preset_subdir = "paper"
-    preset_operator = "script.execute_preset"
-    draw = Custom_Preset_Base.draw_preset
-
-
-class AddPaperResPreset(Custom_Preset_Base, Operator):
-    bl_idname = "camera.add_paper_res_preset"
-    bl_label = "Add Camera Res Preset"
-    preset_menu = "CAMERA_PAPER_Presets"
-
-    # variable used for all preset values
-    preset_defines = [
-        "camera = bpy.context.camera"
-    ]
-
-    # properties to store in the preset
-    preset_values = [
-        "camera.width",
-        "camera.height"
-    ]
-
-    # where to store the preset
-    preset_subdir = "paper"
-
-
-class CAMERA_MT_PAPER_SCALE_Presets(Menu):
-    bl_label = "Paper Scale"
-    default_lable = "Paper Scale"
-    preset_subdir = "scale_paper"
-    preset_operator = "script.execute_preset"
-    draw = Custom_Preset_Base.draw_preset
-
-
-class AddPaperScalePreset(Custom_Preset_Base, Operator):
-    bl_idname = "camera.add_paper_scale_preset"
-    bl_label = "Add paper scale preset"
-    preset_menu = "CAMERA_PAPER_SCALE_Presets"
-
-    # variable used for all preset values
-    preset_defines = [
-        "camera = bpy.context.camera"
-    ]
-
-    # properties to store in the preset
-    preset_values = [
-        "camera.paper_scale",
-        "camera.mod_scale"
-    ]
-
-    # where to store the preset
-    preset_subdir = "scale_paper"
