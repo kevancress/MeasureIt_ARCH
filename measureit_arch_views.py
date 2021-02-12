@@ -352,7 +352,7 @@ class M_ARCH_UL_Views_list(UIList):
 
 
 class SCENE_PT_Views(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ A panel in the Object properties window """
     bl_parent_id = 'SCENE_PT_Panel'
     bl_label = "Views"
     bl_space_type = 'PROPERTIES'
@@ -598,10 +598,6 @@ class M_ARCH_OP_Render_Preview(Operator):
     bl_category = 'MeasureitArch'
     tag: IntProperty()
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def execute(self, context):
         scene = context.scene
         ViewGen = scene.ViewGenerator
@@ -609,17 +605,15 @@ class M_ARCH_OP_Render_Preview(Operator):
 
         msg = "New image created with measures. Open it in UV/image editor"
         camera_msg = "Unable to render. No camera found"
-        # -----------------------------
+
         # Check camera
-        # -----------------------------
         if scene.camera is None:
             self.report({'ERROR'}, camera_msg)
             return {'FINISHED'}
-        # -----------------------------
-        # Use default render
-        # -----------------------------
 
+        # Use default render
         print("MeasureIt_ARCH: Rendering image")
+
         # bpy.ops.render.render()
         render_results = render_main(self, context)
         if render_results[0]:

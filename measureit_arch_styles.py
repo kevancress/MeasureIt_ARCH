@@ -69,11 +69,14 @@ def recalc_index(self, context):
             style.itemIndex = id_a
             id_a += 1
 
-# A Wrapper Object so multiple MeasureIt_ARCH element
-# types can be shown in the same UI List
 
 
 class StyleWrapper(PropertyGroup):
+    """
+    A Wrapper Object so multiple MeasureIt_ARCH element types can be shown in
+    the same UI List
+    """
+
     itemType: EnumProperty(
         items=(('L', "Line", ""),
                ('A', "Annotation", ""),
@@ -100,6 +103,7 @@ class StyleContainer(PropertyGroup):
 
 
 class M_ARCH_UL_styles_list(UIList):
+
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         StyleGen = bpy.context.scene.StyleGenerator
         lineStyles = StyleGen.line_groups
@@ -127,7 +131,8 @@ class M_ARCH_UL_styles_list(UIList):
 
 
 class SCENE_PT_UIStyles(Panel):
-    """ Creates a Panel in the Object properties window """
+    """ A panel in the Object properties window """
+
     bl_parent_id = 'SCENE_PT_Panel'
     bl_label = "Styles"
     bl_space_type = 'PROPERTIES'
@@ -335,10 +340,10 @@ def draw_line_style_row(line, layout):
     else:
         visIcon = 'HIDE_ON'
 
-        # if line.isOutline:
-        #     outIcon = 'SEQ_CHROMA_SCOPE'
-        # else:
-        #     outIcon = 'FILE_3D'
+    # if line.isOutline:
+    #     outIcon = 'SEQ_CHROMA_SCOPE'
+    # else:
+    #     outIcon = 'FILE_3D'
 
     if line.lineDrawHidden:
         hiddenIcon = 'MOD_WIREFRAME'

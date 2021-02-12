@@ -293,10 +293,9 @@ class SCENE_PT_MARCH_Settings(Panel):
         # col.prop(sceneProps, "debug_flip_text")
 
 
-# -------------------------------------------------------------
-# Defines button that enables/disables Viewport Display
-# -------------------------------------------------------------
 class ShowHideViewportButton(Operator):
+    """ A button that enables/disables Viewport Display """
+
     bl_idname = "measureit_arch.runopenglbutton"
     bl_label = "Display hint data manager"
     bl_description = "Main control for enabling or disabling the display of measurements in the viewport"
@@ -351,10 +350,9 @@ class ShowHideViewportButton(Operator):
         return {'CANCELLED'}
 
 
-# -------------------------------------------------------------
-# Handle all 2d draw routines (Text Updating mostly)
-# -------------------------------------------------------------
 def draw_main(context):
+    """ Handle all 2D draw routines (Text Updating mostly) """
+
     region = bpy.context.region
     # Detect if Quadview to get drawing area
     if context.space_data.region_quadviews:
@@ -592,8 +590,9 @@ def draw_titleblock(context, svg=None):
         draw3d_loop(context, objlist, extMat=extMat, svg=svg, multMat=True)
 
 
-# MeasureIt_ARCH Unit settings
 class SCENE_PT_MARCH_units(Panel):
+    """ MeasureIt_ARCH Unit settings """
+
     bl_parent_id = 'SCENE_PT_unit'
     bl_idname = "SCENE_PT_MARCH_Units"
     bl_label = "MeasureIt_ARCH Unit Settings"

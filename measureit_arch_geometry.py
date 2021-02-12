@@ -2898,10 +2898,8 @@ def get_dom_axis(vector):
     return domAxis
 
 
-# ------------------------------------------
-# Get area using Heron formula
-# ------------------------------------------
 def get_triangle_area(p1, p2, p3):
+    """ Get area using Heron formula """
     d1, dn = distance(p1, p2)
     d2, dn = distance(p2, p3)
     d3, dn = distance(p1, p3)
@@ -2910,14 +2908,15 @@ def get_triangle_area(p1, p2, p3):
     return area
 
 
-# --------------------------------------------------------------------
-# Distance between 2 points in 3D space
-# v1: first point
-# v2: second point
-# locx/y/z: Use this axis
-# return: distance
-# --------------------------------------------------------------------
 def distance(v1, v2, locx=True, locy=True, locz=True):
+    """
+    Calculate distance between 2 points in 3D space
+    v1: first point
+    v2: second point
+    locx/y/z: Use this axis
+    return: distance
+    """
+
     x = sqrt((v2[0] - v1[0]) ** 2 + (v2[1] - v1[1]) ** 2 + (v2[2] - v1[2]) ** 2)
 
     # If axis is not used, make equal both (no distance)
@@ -2935,14 +2934,15 @@ def distance(v1, v2, locx=True, locy=True, locz=True):
     return x, xloc
 
 
-# --------------------------------------------------------------------
-# Interpolate 2 points in 3D space
-# v1: first point
-# v2: second point
-# d1: distance
-# return: interpolate point
-# --------------------------------------------------------------------
 def interpolate3d(v1, v2, d1):
+    """
+    Interpolate 2 points in 3D space
+    v1: first point
+    v2: second point
+    d1: distance
+    return: interpolate point
+    """
+
     # calculate vector
     v = (v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2])
     # calculate distance between points
@@ -2959,12 +2959,14 @@ def interpolate3d(v1, v2, d1):
     return final
 
 
-# --------------------------------------------------------------------
-# Get point rotated and relative to parent
-# v1: point
-# mainobject
-# --------------------------------------------------------------------
 def get_point(v1, mainobject, mat):
+    """
+    Get point rotated and relative to parent
+
+    v1: point
+    mainobject
+    mat
+    """
     # Using World Matrix
     vt = Vector((v1[0], v1[1], v1[2], 1))
     m4 = mat
@@ -2974,30 +2976,30 @@ def get_point(v1, mainobject, mat):
     return v2
 
 
-# --------------------------------------------------------------------
-# Get location in world space
-# v1: point
-# mainobject
-# --------------------------------------------------------------------
 def get_location(mainobject):
+    """
+    Get location in world space
+    """
     # Using World Matrix
     m4 = mainobject.matrix_world
     return [m4[0][3], m4[1][3], m4[2][3]]
 
 
 # ---------------------------------------------------------
-# Get center of circle base on 3 points
-#
-# Point a: (x,y,z) arc start
-# Point b: (x,y,z) center
-# Point c: (x,y,z) midle point in the arc
-# Point d: (x,y,z) arc end
-# Return:
-# ang: angle (radians)
-# len: len of arc
 #
 # ---------------------------------------------------------
 def get_arc_data(pointa, pointb, pointc, pointd):
+    """
+    Get center of circle base on 3 points
+
+    Point a: (x,y,z) arc start
+    Point b: (x,y,z) center
+    Point c: (x,y,z) midle point in the arc
+    Point d: (x,y,z) arc end
+    Return:
+    ang: angle (radians)
+    len: len of arc
+    """
     v1 = pointa - pointb
     v2 = pointc - pointb
     v3 = pointd - pointb
@@ -3009,10 +3011,10 @@ def get_arc_data(pointa, pointb, pointc, pointd):
     return angle, rclength
 
 
-# -------------------------------------------------------------
-# Format a number to the right unit
-# -------------------------------------------------------------
 def format_distance(fmt, value, factor=1, isArea=False):
+    """
+    Format a number to the right unit
+    """
     # Superscript two THIS IS LEGACY (but being kept for when Area Measurements are re-implimented)
     s_code = "\u00b2"
 
@@ -3142,11 +3144,8 @@ def format_distance(fmt, value, factor=1, isArea=False):
     return tx_dist
 
 
-# --------------------------------------------------------------------
-# Get vertex data
-# mainobject
-# --------------------------------------------------------------------
 def get_mesh_vertices(myobj):
+    """ Get vertex data """
     sceneProps = bpy.context.scene.MeasureItArchProps
     try:
         obverts = []
@@ -3429,8 +3428,6 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     square = generate_text_card(
         context, dimText, dimProps, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
 
-    # TODO: This gives error:
-    # TypeError: unsupported operand type(s) for -: 'tuple' and 'tuple'
     cardX = square[3] - square[0]
     cardY = square[1] - square[0]
 
@@ -3581,9 +3578,9 @@ def get_camera_z_dist(location):
 
 
 def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
-    # ---------------------------------------
-    # Generate all OpenGL calls
-    # ---------------------------------------
+    """
+    Generate all OpenGL calls
+    """
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 

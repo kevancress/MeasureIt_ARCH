@@ -116,7 +116,8 @@ class M_ARCH_UL_Sheets_list(UIList):
 
 
 class SCENE_PT_Sheet(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ A panel in the Object properties window """
+
     bl_parent_id = 'OBJECT_PT_Panel'
     bl_label = "MeasureIt_ARCH Sheet"
     bl_space_type = 'PROPERTIES'

@@ -33,8 +33,6 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, PointerProperty
 from mathutils import Vector
 
-# from .measureit_arch_geometry import *
-# from .measureit_arch_render import *
 from .measureit_arch_baseclass import BaseProp
 from .measureit_arch_utils import get_smart_selected, get_selected_vertex
 
@@ -158,9 +156,6 @@ class AddLineButton(Operator):
     bl_description = "(EDITMODE) Creates a new Line Group from the selected edges"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -175,9 +170,6 @@ class AddLineButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
@@ -231,9 +223,6 @@ class AddDynamicLineButton(Operator):
     bl_description = "(EDITMODE) Creates a new Dynamic Line Group"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -248,9 +237,6 @@ class AddDynamicLineButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
@@ -346,7 +332,7 @@ class M_ARCH_UL_lines_list(UIList):
 
 
 class OBJECT_PT_UILines(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ A panel in the Object properties window """
     bl_parent_id = 'OBJECT_PT_Panel'
     bl_label = "Line Groups"
     bl_space_type = 'PROPERTIES'
@@ -493,9 +479,6 @@ class AddToLineGroup(Operator):
     bl_category = 'MeasureitArch'
     tag: IntProperty()
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -509,10 +492,6 @@ class AddToLineGroup(Operator):
                     return False
             else:
                 return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
@@ -554,9 +533,6 @@ class AddLineByProperty(Operator):
     includeNonManifold: BoolProperty(default=True)
     creaseAngle: FloatProperty(default=math.radians(30), subtype='ANGLE')
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -570,10 +546,6 @@ class AddLineByProperty(Operator):
                     return False
             else:
                 return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
@@ -661,9 +633,6 @@ class RemoveFromLineGroup(Operator):
     bl_category = 'MeasureitArch'
     tag: IntProperty()
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -677,10 +646,6 @@ class RemoveFromLineGroup(Operator):
                     return False
             else:
                 return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:

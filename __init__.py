@@ -143,9 +143,9 @@ classes = (
     measureit_arch_lines.OBJECT_MT_lines_menu,
 
     measureit_arch_render.RENDER_PT_MeasureitArch_Panel,
-    measureit_arch_render.RenderSegmentButton,
-    measureit_arch_render.MeasureitRenderAnim,
-    measureit_arch_render.RenderSvgButton,
+    measureit_arch_render.RenderImageButton,
+    measureit_arch_render.RenderAnimationButton,
+    measureit_arch_render.RenderVectorButton,
 
     measureit_arch_schedules.SCENE_PT_Schedules,
     measureit_arch_schedules.ColumnProps,

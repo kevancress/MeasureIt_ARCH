@@ -563,9 +563,6 @@ class DeletePropButton(Operator):
     item_type: StringProperty()
     is_style: BoolProperty()
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         # Add properties
         mainObj = context.object
@@ -630,9 +627,6 @@ class AddTextField(Operator):
     idx: IntProperty()
     add: BoolProperty()
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         textFields = eval(self.propPath)
         if self.add:
@@ -692,10 +686,6 @@ class DeleteAllItemsButton(Operator):
     item_type: StringProperty()
     is_style: BoolProperty()
     passedItem: PointerProperty(type=PropertyGroup)
-    # -----------------------
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
 
     def execute(self, context):
         # Add properties

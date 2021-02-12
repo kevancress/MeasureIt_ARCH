@@ -232,5 +232,4 @@ def get_smart_selected(filterObj=None, forceEdges=False, usePairs=True):
 
         print('In Edit Mode')
 
-    # print(pointList)
-    return pointList, warningStr
+    return (pointList, warningStr)

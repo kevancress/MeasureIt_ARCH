@@ -44,19 +44,15 @@ depthOnlyshader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
 
 
-# ------------------------------------------------------------------
-# Define panel class for render functions.
-# ------------------------------------------------------------------
 class RENDER_PT_MeasureitArch_Panel(Panel):
+    """ Panel class for render functions """
+
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "output"
     bl_options = {'HIDE_HEADER'}
     bl_label = "MeasureIt_ARCH Render"
 
-    # ------------------------------
-    # Draw UI
-    # ------------------------------
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -73,7 +69,7 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
                      icon='RENDER_STILL', text="MeasureIt_ARCH Image")
         col.operator("measureit_arch.renderanimbutton",
                      icon='RENDER_ANIMATION', text="MeasureIt_ARCH Animation")
-        col.operator("measureit_arch.rendersvgbutton",
+        col.operator("measureit_arch.rendervectorbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH Vector")
         if sceneProps.enable_experimental:
             col = layout.column()
@@ -90,48 +86,34 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
         col.prop(sceneProps, "embed_freestyle_svg", text="Embed FreeStyle SVG")
 
 
-# -------------------------------------------------------------
-# Defines button for render option
-#
-# -------------------------------------------------------------
+class RenderImageButton(Operator):
+    """ Button for render option """
 
-class RenderSegmentButton(Operator):
     bl_idname = "measureit_arch.renderimagebutton"
-    bl_label = "Render"
-    bl_description = "Create a render image with measures. Use UV/Image editor to view image generated"
+    bl_label = "Render image"
+    bl_description = "Render an image with measures. Use UV/Image editor to view image generated."
     bl_category = 'MeasureitArch'
-    tag: IntProperty()
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def execute(self, context):
-        scene = context.scene
-        msg = "New image created with measures. Open it in UV/image editor"
-        camera_msg = "Unable to render. No camera found"
-        # -----------------------------
         # Check camera
-        # -----------------------------
-        if scene.camera is None:
-            self.report({'ERROR'}, camera_msg)
+        if not context.scene.camera:
+            self.report({'ERROR'}, "Unable to render: no camera found!")
             return {'FINISHED'}
-        # -----------------------------
-        # Use default render
-        # -----------------------------
 
-        print("MeasureIt_ARCH: Rendering image")
-        render_result = render_main(self, context)
-        if render_result[0]:
-            self.report({'INFO'}, msg)
+        outpath = render_main(self, context)
+        if outpath:
+            self.report({'INFO'}, "Image exported to: {}".format(outpath))
 
         return {'FINISHED'}
 
 
-class MeasureitRenderAnim(bpy.types.Operator):
-    """Operator which runs its self from a timer"""
+class RenderAnimationButton(Operator):
+    """ Operator which runs its self from a timer """
+
     bl_idname = "measureit_arch.renderanimbutton"
-    bl_label = "Render MeasureIt_ARCH animation"
+    bl_label = "Render animation"
+    bl_description = "Render an animation, saved to render output path."
+    bl_category = 'MeasureitArch'
 
     _timer = None
     _updating = False
@@ -161,13 +143,9 @@ class MeasureitRenderAnim(bpy.types.Operator):
         return {'PASS_THROUGH'}
 
     def execute(self, context):
-        scene = context.scene
-        camera_msg = "Unable to render. No camera found"
-        # -----------------------------
         # Check camera
-        # -----------------------------
-        if scene.camera is None:
-            self.report({'ERROR'}, camera_msg)
+        if not context.scene.camera:
+            self.report({'ERROR'}, "Unable to render: no camera found!")
             return {'FINISHED'}
 
         for area in context.screen.areas:
@@ -182,7 +160,7 @@ class MeasureitRenderAnim(bpy.types.Operator):
 
         wm = context.window_manager
         self._timer = wm.event_timer_add(0.1, window=context.window)
-        scene.frame_current = scene.frame_start
+        context.scene.frame_current = context.scene.frame_start
         wm.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
@@ -192,46 +170,29 @@ class MeasureitRenderAnim(bpy.types.Operator):
         return {'CANCELLED'}
 
 
-class RenderSvgButton(Operator):
-    bl_idname = "measureit_arch.rendersvgbutton"
-    bl_label = "Render"
-    bl_description = "WARNING: EXPERIMENTAL - Create a Vector Drawing. Saved to Render output path"
+class RenderVectorButton(Operator):
+    bl_idname = "measureit_arch.rendervectorbutton"
+    bl_label = "Render vector"
+    bl_description = "Create a SVG drawing, saved to render output path."
     bl_category = 'MeasureitArch'
-    tag: IntProperty()
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def execute(self, context):
-        scene = context.scene
-        msg = "New Svg created with measures. Saved to Output Path"
-        camera_msg = "Unable to render. No camera found"
-        # -----------------------------
         # Check camera
-        # -----------------------------
-        if scene.camera is None:
-            self.report({'ERROR'}, camera_msg)
+        if not context.scene.camera:
+            self.report({'ERROR'}, "Unable to render: no camera found!")
             return {'FINISHED'}
-        # -----------------------------
-        # Use default render
-        # -----------------------------
 
-        print("MeasureIt_ARCH: Rendering image")
-        # bpy.ops.render.render()
-        if render_main_svg(self, context):
-            self.report({'INFO'}, msg)
-
+        outpath = render_main_svg(self, context)
+        self.report({'INFO'}, "SVG exported to: {}".format(outpath))
         return {'FINISHED'}
 
 
-# -------------------------------------------------------------
-# Render image main entry point
-# -------------------------------------------------------------
 def render_main(self, context):
+    """ Render image main entry point """
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     sceneProps.is_render_draw = True
+
 
     clipdepth = context.scene.camera.data.clip_end
     objlist = context.view_layer.objects
@@ -241,7 +202,7 @@ def render_main(self, context):
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
 
-    # Draw all lines in Offsecreen
+    # Draw all lines offscreen
     renderoffscreen = gpu.types.GPUOffScreen(width, height)
 
     view_matrix_3d = scene.camera.matrix_world.inverted()
@@ -277,38 +238,33 @@ def render_main(self, context):
         bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
                          bgl.GL_UNSIGNED_BYTE, buffer)
 
-    # -----------------------------
     # Create image
-    # -----------------------------
     image_name = "measureit_arch_output"
     if image_name not in bpy.data.images:
         image = bpy.data.images.new(image_name, width, height)
 
     image = bpy.data.images[image_name]
-
     image.scale(width, height)
     image.pixels = [v / 255 for v in buffer]
 
     renderoffscreen.free()
-    # Saves image
+
+    # Save image
+    outpath = None
     if image is not None:
-        ren_path = bpy.context.scene.render.filepath
-        filename = "_"
-        ftxt = "%04d" % scene.frame_current
-        outpath = (ren_path + filename + ftxt + '.png')
+        path = bpy.path.abspath(scene.render.filepath)
+        outpath = "{}_{:04d}.png".format(path, scene.frame_current)
         save_image(self, outpath, image)
 
-    # restore default value
+    # Restore default value
     set_OpenGL_Settings(False)
     sceneProps.is_render_draw = False
-    return True, buffer
+    return outpath
 
 
-# -------------------------------------
-# Save image to file
-# -------------------------------------
 def save_image(self, filepath, myimage):
-    # noinspection PyBroadException
+    """ Save image to file """
+
     try:
         # Save old info
         settings = bpy.context.scene.render.image_settings
@@ -321,7 +277,7 @@ def save_image(self, filepath, myimage):
         settings.color_mode = "RGBA"
         settings.color_depth = '16'
         myimage.save_render(filepath)
-        print("MeasureIt_ARCH: Image " + filepath + " saved")
+        self.report({'INFO'}, "Image exported to: {}".format(filepath))
 
         # Restore old info
         settings.file_format = myformat
@@ -332,12 +288,9 @@ def save_image(self, filepath, myimage):
         self.report({'ERROR'}, "MeasureIt_ARCH: Unable to save render image")
         return
 
-# --------------------------------------
-# Draw Scene Geometry for Depth Buffer
-# --------------------------------------
-
 
 def draw_scene(self, context, projection_matrix):
+    """ Draw Scene Geometry for Depth Buffer """
 
     set_OpenGL_Settings(True)
     # Get List of Mesh Objects
@@ -393,7 +346,6 @@ def draw_scene(self, context, projection_matrix):
 
 
 def render_main_svg(self, context, animation=False):
-
     # Save old info
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -404,10 +356,7 @@ def render_main_svg(self, context, animation=False):
     path = bpy.path.abspath(scene.render.filepath)
     objlist = context.view_layer.objects
 
-    # --------------------
     # Get resolution
-    # --------------------
-
     render_scale = scene.render.resolution_percentage / 100
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
@@ -460,15 +409,12 @@ def render_main_svg(self, context, animation=False):
     outpath = "{}_{:04d}.svg".format(path, scene.frame_current)
 
     view = get_view()
-
-    paperWidth = width / sceneProps.default_resolution
-    paperHeight = height / sceneProps.default_resolution
-
-    try:
-        if view.res_type == 'res_type_paper':
-            paperWidth = round(view.width * 39.370078740196853, 3)
-            paperHeight = round(view.height * 39.370078740196853, 3)
-    except:
+    if view and view.res_type == 'res_type_paper':
+        paperWidth = round(view.width * 39.370078740196853, 3)
+        paperHeight = round(view.height * 39.370078740196853, 3)
+    else:
+        paperWidth = width / sceneProps.default_resolution
+        paperHeight = height / sceneProps.default_resolution
         print('No View Present, using default resolution')
 
     # Setup basic svg
@@ -481,7 +427,6 @@ def render_main_svg(self, context, animation=False):
     )
 
     if sceneProps.embed_scene_render:
-
         lastformat = scene.render.image_settings.file_format
         scene.render.image_settings.file_format = 'PNG'
         scene.render.use_file_extension = True
@@ -547,7 +492,7 @@ def render_main_svg(self, context, animation=False):
     # restore default value
     sceneProps.is_render_draw = False
     sceneProps.is_vector_draw = False
-    return True
+    return outpath
 
 
 def get_loaded_addons():

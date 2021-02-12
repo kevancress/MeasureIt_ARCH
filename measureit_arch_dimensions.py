@@ -37,12 +37,9 @@ from .measureit_arch_baseclass import BaseDim, recalc_dimWrapper_index
 from .measureit_arch_utils import get_selected_faces, get_selected_vertex_history, \
     get_smart_selected
 
-# ------------------------------------------------------------------
-# Define property group class for measureit_arch faces index
-# ------------------------------------------------------------------
-
 
 class AreaDimensionProperties(BaseDim, PropertyGroup):
+    """ Property group class for measureit_arch faces index """
 
     gen_group: StringProperty(
         name="Generator Group",
@@ -82,7 +79,6 @@ class AreaDimensionProperties(BaseDim, PropertyGroup):
 
 
 class AlignedDimensionProperties(BaseDim, PropertyGroup):
-
     gen_group: StringProperty(
         name="Generator Group",
         description="group in the generator - api property",
@@ -94,7 +90,6 @@ class AlignedDimensionProperties(BaseDim, PropertyGroup):
 
 
 class AxisDimensionProperties(BaseDim, PropertyGroup):
-
     gen_group: StringProperty(
         name="Generator Group",
         description="group in the generator - api property",
@@ -189,10 +184,12 @@ class AngleDimensionProperties(BaseDim, PropertyGroup):
         default=False)
 
 
-# A Wrapper object so multiple dimension types can be
-# Shown in the same UI List
 
 class DimensionWrapper(PropertyGroup):
+    """
+    A Wrapper object so multiple dimension types can be shown in the same UI
+    list
+    """
     itemType: EnumProperty(
         items=(('D-ALIGNED', "Aligned Dimension", ""),
                ('D-ANGLE', "Angle Dimension", ""),
@@ -232,9 +229,6 @@ class AddAlignedDimensionButton(Operator):
     bl_description = "Add Aligned Dimension (Dimension Properties can be edited in the Object Properties)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -246,9 +240,6 @@ class AddAlignedDimensionButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # get selected
@@ -332,9 +323,6 @@ class AddBoundingDimensionButton(Operator):
     bl_description = "Add a Bounding Box Dimension (Dimension Properties can be edited in the Object Properties)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -346,9 +334,6 @@ class AddBoundingDimensionButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # get selected
@@ -410,9 +395,6 @@ class AddAxisDimensionButton(Operator):
     bl_description = "Add Single Axis Dimension (Dimension Properties can be edited in the Object Properties)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -424,9 +406,6 @@ class AddAxisDimensionButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # get selected
@@ -515,10 +494,7 @@ class AddAreaButton(Operator):
         The active face determines text placement"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         o = context.object
         if o is None:
@@ -532,9 +508,6 @@ class AddAreaButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
@@ -609,11 +582,7 @@ class AddAngleButton(Operator):
     bl_description = "(EDITMODE only) Add a new angle measure (select 3 vertices, 2nd is angle vertex)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
-
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         o = context.object
         if o is None:
@@ -627,9 +596,6 @@ class AddAngleButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
@@ -690,10 +656,7 @@ class AddArcButton(Operator):
                      " vertices 1st and 3rd are arc extremes)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         o = context.object
         if o is None:
@@ -707,9 +670,6 @@ class AddArcButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
@@ -752,9 +712,6 @@ class CursorToArcOrigin(Operator):
     bl_description = "Move the 3D Cursor to the Arc's Origin"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         myobj = context.object
@@ -769,9 +726,6 @@ class CursorToArcOrigin(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         myobj = context.active_object
         dimGen = myobj.DimensionGenerator[0]
@@ -796,10 +750,7 @@ class AddFaceToArea(Operator):
     bl_category = 'MeasureitArch'
     tag: IntProperty()
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         myobj = context.object
         if myobj is None:
@@ -819,9 +770,6 @@ class AddFaceToArea(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
             screen = window.screen
@@ -876,10 +824,7 @@ class RemoveFaceFromArea(Operator):
     bl_description = "(EDIT MODE) Removes the currently selected faces from the active Area Dimension"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
-    @ classmethod
+    @classmethod
     def poll(cls, context):
         myobj = context.object
         if myobj is None:
@@ -899,9 +844,6 @@ class RemoveFaceFromArea(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
             screen = window.screen
@@ -1037,7 +979,7 @@ class M_ARCH_UL_dimension_list(UIList):
 
 
 class OBJECT_PT_UIDimensions(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ A Panel in the Object properties window """
     bl_parent_id = 'OBJECT_PT_Panel'
     bl_label = "Dimensions"
     bl_space_type = 'PROPERTIES'
