@@ -83,7 +83,7 @@ def update(self, context):
 
 
 def update_paper_size(self, context):
-    if self.paper_size == 'CUSTOM':
+    if self.paper_size == 'Custom':
         return
 
     for name, (width, height) in PAPER_SIZES:
@@ -93,7 +93,7 @@ def update_paper_size(self, context):
     if self.paper_orientation == 'LANDSCAPE':
         width, height = height, width
 
-    unit_system = "METRIC"  # or "IMPERIAL"
+    unit_system = context.scene.unit_settings.system
     self.width = bpy.utils.units.to_value(unit_system, "LENGTH", width)
     self.height = bpy.utils.units.to_value(unit_system, "LENGTH", height)
 
@@ -272,10 +272,10 @@ class ViewProperties(PropertyGroup):
         update=update)
 
     paper_size: EnumProperty(
-        items=map(lambda o: (o[0].upper(), o[0], ''), PAPER_SIZES),
+        items=map(lambda o: (o[0], o[0], ''), PAPER_SIZES),
         name="Paper size",
         description="Paper size used for rendering",
-        default='CUSTOM',
+        default='Custom',
         update=update_paper_size)
 
     paper_orientation: EnumProperty(
@@ -483,7 +483,7 @@ class SCENE_PT_Views(Panel):
                         col = box.column(align=True)
                         col.prop(view, 'paper_size', text='Paper size:')
 
-                        if view.paper_size == 'CUSTOM':
+                        if view.paper_size == 'Custom':
                             col.prop(view, 'width', text='Width:')
                             col.prop(view, 'height', text='Height:')
                         else:
