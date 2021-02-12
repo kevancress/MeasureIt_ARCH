@@ -31,14 +31,14 @@ import svgwrite
 import xml.etree.ElementTree as ET
 
 from addon_utils import check, paths
-from bpy.props import IntProperty
 from bpy.types import Panel, Operator
 from sys import exc_info
 
 from .measureit_arch_geometry import set_OpenGL_Settings, draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_titleblock
-from .measureit_arch_utils import get_view
+from .measureit_arch_utils import get_view, local_attrs
 from .shaders import Base_Shader_3D, DepthOnlyFrag
+
 
 depthOnlyshader = gpu.types.GPUShader(
     Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
@@ -262,31 +262,22 @@ def render_main(self, context):
     return outpath
 
 
-def save_image(self, filepath, myimage):
+def save_image(self, filepath, image):
     """ Save image to file """
-
     try:
-        # Save old info
         settings = bpy.context.scene.render.image_settings
-        myformat = settings.file_format
-        mode = settings.color_mode
-        depth = settings.color_depth
-
-        # Apply new info and save
-        settings.file_format = 'PNG'
-        settings.color_mode = "RGBA"
-        settings.color_depth = '16'
-        myimage.save_render(filepath)
-        self.report({'INFO'}, "Image exported to: {}".format(filepath))
-
-        # Restore old info
-        settings.file_format = myformat
-        settings.color_mode = mode
-        settings.color_depth = depth
+        with local_attrs(settings, [
+                'file_format',
+                'color_mode',
+                'color_depth']):
+            settings.file_format = 'PNG'
+            settings.color_mode = 'RGBA'
+            settings.color_depth = '16'
+            image.save_render(filepath)
+            self.report({'INFO'}, "Image exported to: {}".format(filepath))
     except:
         print("Unexpected error:" + str(exc_info()))
         self.report({'ERROR'}, "MeasureIt_ARCH: Unable to save render image")
-        return
 
 
 def draw_scene(self, context, projection_matrix):
@@ -345,8 +336,7 @@ def draw_scene(self, context, projection_matrix):
     set_OpenGL_Settings(False)
 
 
-def render_main_svg(self, context, animation=False):
-    # Save old info
+def render_main_svg(self, context):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     sceneProps.is_render_draw = True
@@ -413,9 +403,9 @@ def render_main_svg(self, context, animation=False):
         paperWidth = round(view.width * 39.370078740196853, 3)
         paperHeight = round(view.height * 39.370078740196853, 3)
     else:
+        print('No View Present, using default resolution')
         paperWidth = width / sceneProps.default_resolution
         paperHeight = height / sceneProps.default_resolution
-        print('No View Present, using default resolution')
 
     # Setup basic svg
     svg = svgwrite.Drawing(
@@ -427,21 +417,21 @@ def render_main_svg(self, context, animation=False):
     )
 
     if sceneProps.embed_scene_render:
-        lastformat = scene.render.image_settings.file_format
-        scene.render.image_settings.file_format = 'PNG'
-        scene.render.use_file_extension = True
-        bpy.ops.render.render(write_still=True)
+        with local_attrs(scene, [
+                'render.image_settings.file_format',
+                'render.use_file_extension']):
+            scene.render.image_settings.file_format = 'PNG'
+            scene.render.use_file_extension = True
+            bpy.ops.render.render(write_still=True)
 
-        image_path = bpy.context.scene.render.filepath
-        png_image_path = os.path.basename("{}.png".format(image_path))
-        svg.add(svg.image(
-            png_image_path, **{
-                'width': width,
-                'height': height
-            }
-        ))
-
-        scene.render.image_settings.file_format = lastformat
+            image_path = scene.render.filepath
+            png_image_path = os.path.basename("{}.png".format(image_path))
+            svg.add(svg.image(
+                png_image_path, **{
+                    'width': width,
+                    'height': height
+                }
+            ))
 
     # -----------------------------
     # Loop to draw all objects
@@ -449,46 +439,40 @@ def render_main_svg(self, context, animation=False):
     draw3d_loop(context, objlist, svg=svg)
     draw_titleblock(context, svg=svg)
 
-    if sceneProps.embed_freestyle_svg:
+    freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
+    if sceneProps.embed_freestyle_svg and freestyle_svg_export:
         # If "FreeStyle SVG export" addon is loaded, we render the scene to SVG
         # and embed the output in the final SVG.
-        freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
 
-        lastformat = (
-            scene.render.image_settings.file_format,
-            scene.render.use_freestyle,
-            scene.svg_export.use_svg_export,
-            scene.svg_export.mode)
-        if freestyle_svg_export:
+        with local_attrs(scene, [
+                'render.filepath',
+                'render.image_settings.file_format',
+                'render.use_freestyle',
+                'svg_export.use_svg_export',
+                'svg_export.mode']):
+
             scene.render.use_freestyle = True
             scene.svg_export.use_svg_export = True
             scene.svg_export.mode = 'FRAME'
+            scene.render.filepath += '_freestyle_'
+            scene.render.image_settings.file_format = 'PNG'
+            scene.render.use_file_extension = True
+            bpy.ops.render.render(write_still=False)
 
-        base_path = bpy.context.scene.render.filepath
-        bpy.context.scene.render.filepath += '_freestyle_'
-        scene.render.image_settings.file_format = 'PNG'
-        scene.render.use_file_extension = True
-        bpy.ops.render.render(write_still=False)
-
-        image_path = bpy.context.scene.render.filepath
-
-        if freestyle_svg_export:
+            image_path = scene.render.filepath
             frame = scene.frame_current
             svg_image_path = bpy.path.abspath(
                 "{}{:04d}.svg".format(image_path, frame))
             svg_root = ET.parse(svg_image_path).getroot()
             for elem in svg_root:
                 svg.add(SVGWriteElement(elem))
-            if os.path.exists(svg_image_path) and not sceneProps.keep_freestyle_svg:
+
+            if (os.path.exists(svg_image_path) and
+                not sceneProps.keep_freestyle_svg):
                 os.remove(svg_image_path)
 
-        scene.render.image_settings.file_format = lastformat[0]
-        scene.render.use_freestyle = lastformat[1]
-        scene.svg_export.use_svg_export = lastformat[2]
-        scene.svg_export.mode = lastformat[3]
-        bpy.context.scene.render.filepath = base_path
-
     svg.save(pretty=True)
+
     # restore default value
     sceneProps.is_render_draw = False
     sceneProps.is_vector_draw = False

@@ -6,7 +6,10 @@ __all__ = (
     'get_selected_faces',
     'get_selected_vertex',
     'get_selected_vertex_history',
-    'get_smart_selected'
+    'get_smart_selected',
+    'local_attrs',
+    'multi_getattr',
+    'multi_setattr',
 )
 
 
@@ -233,3 +236,70 @@ def get_smart_selected(filterObj=None, forceEdges=False, usePairs=True):
         print('In Edit Mode')
 
     return (pointList, warningStr)
+
+
+
+class local_attrs(object):
+    def __init__(self, obj, property_list):
+        """
+        Context manager that allows you to modify object attributes in a code
+        block, and restore them to the values as of the beginning of the code
+        block when done.
+
+        :param obj: object for which attributes need to be restored
+        :param property_list: list of attributes
+          (they may contain dots for nested attributes)
+        :type property_list: list of strings
+        """
+        self.obj = obj
+        self.property_list = property_list
+        self.state = {}
+
+    def __enter__(self):
+        for prop in self.property_list:
+            self.state[prop] = multi_getattr(self.obj, prop)
+
+    def __exit__(self, type, value, traceback):
+        for prop in self.property_list:
+            multi_setattr(self.obj, prop, self.state[prop])
+
+# From:
+# https://code.activestate.com/recipes/577346-getattr-with-arbitrary-depth/
+
+def multi_getattr(obj, attr, default=None):
+    """
+    Get a named attribute from an object; multi_getattr(x, 'a.b.c.d') is
+    equivalent to x.a.b.c.d. When a default argument is given, it is returned
+    when any attribute in the chain doesn't exist; without it, an exception is
+    raised when a missing attribute is encountered.
+    """
+    attributes = attr.split(".")
+    for i in attributes:
+        try:
+            obj = getattr(obj, i)
+        except AttributeError:
+            if default:
+                return default
+            else:
+                raise
+    return obj
+
+
+def multi_setattr(obj, attr, value):
+    """
+    Set a named attribute from an object; multi_setattr(x, 'a.b.c.d', value)
+    is equivalent to x.a.b.c.d = value. An exception is raised when a missing
+    attribute is encountered.
+    """
+    try:
+        init, last = attr.rsplit(".", 1)
+    except ValueError:
+        init, last = [], attr
+    else:
+        init = init.split(".")
+    for i in init:
+        try:
+            obj = getattr(obj, i)
+        except AttributeError:
+            raise
+    setattr(obj, last, value)
