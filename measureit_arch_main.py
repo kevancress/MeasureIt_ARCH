@@ -113,7 +113,7 @@ def save_handler(dummy):
 # ------------------------------------------------------------------
 class MEASUREIT_PT_main_panel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
-    bl_label = "MeasureIt_ARCH v0.5.0(git)"
+    bl_label = "MeasureIt_ARCH v0.5.0(dev)"
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
     bl_category = 'MeasureIt_ARCH'
