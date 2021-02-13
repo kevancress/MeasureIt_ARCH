@@ -25,21 +25,28 @@
 # ----------------------------------------------------------
 
 import bpy
-from .measureit_arch_main import SCENE_PT_Panel
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList
+
+from bpy.types import (
+    PropertyGroup,
+    Panel,
+    Operator,
+    Scene,
+    UIList
+)
 from bpy.props import (
     CollectionProperty,
-    FloatVectorProperty,
     IntProperty,
     BoolProperty,
     StringProperty,
-    FloatProperty,
-    EnumProperty,
-    PointerProperty
+    EnumProperty
 )
 
 from .measureit_arch_baseclass import DeletePropButton
-from .measureit_arch_dimensions import AlignedDimensionProperties, recalc_dimWrapper_index, draw_alignedDimensions_settings
+from .measureit_arch_dimensions import (
+    AlignedDimensionProperties,
+    recalc_dimWrapper_index,
+    draw_aligned_dimension_settings
+)
 from .measureit_arch_annotations import AnnotationProperties
 from .measureit_arch_lines import LineProperties
 
@@ -62,8 +69,7 @@ def recalc_index(self, context):
             style.itemIndex = id_a
             id_a += 1
 
-# A Wrapper Object so multiple MeasureIt_ARCH element
-# types can be shown in the same UI List
+
 
 
 class StyleWrapper(PropertyGroup):
@@ -76,8 +82,6 @@ class StyleWrapper(PropertyGroup):
 
     itemIndex: IntProperty(name='Item Index')
 
-
-bpy.utils.register_class(StyleWrapper)
 
 
 class StyleContainer(PropertyGroup):
@@ -95,11 +99,10 @@ class StyleContainer(PropertyGroup):
     wrapper: CollectionProperty(type=StyleWrapper)
 
 
-bpy.utils.register_class(StyleContainer)
-Scene.StyleGenerator = bpy.props.PointerProperty(type=StyleContainer)
 
 
 class M_ARCH_UL_styles_list(UIList):
+
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         StyleGen = bpy.context.scene.StyleGenerator
         lineStyles = StyleGen.line_groups
@@ -127,7 +130,8 @@ class M_ARCH_UL_styles_list(UIList):
 
 
 class SCENE_PT_UIStyles(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ A panel in the Object properties window """
+
     bl_parent_id = 'SCENE_PT_Panel'
     bl_label = "Styles"
     bl_space_type = 'PROPERTIES'
@@ -348,7 +352,7 @@ def draw_line_style_row(line, layout):
     subrow.prop(line, 'color', emboss=True, text="")
     subrow.separator()
     subrow = row.row(align=True)
-    #subrow.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
+    # subrow.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
     subrow.prop(line, 'lineDrawHidden', text="",
                 toggle=True, icon=hiddenIcon, emboss=False)
     subrow.prop(line, "visible", text="", icon=visIcon)

@@ -26,122 +26,130 @@
 
 import bpy
 import bmesh
-import bgl
-import gpu
-from .measureit_arch_main import OBJECT_PT_Panel
-from bmesh import from_edit_mesh
-from math import degrees, radians
-from gpu_extras.batch import batch_for_shader
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList, VertexGroup
-from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-    FloatProperty, EnumProperty, PointerProperty
-from bpy.app.handlers import persistent
-from .measureit_arch_geometry import *
-from .measureit_arch_render import *
-from .measureit_arch_main import get_smart_selected, get_selected_vertex, get_selected_vertex_history
+import math
+
+from bpy.types import PropertyGroup, Panel, Operator, UIList
+from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
+    BoolProperty, StringProperty, FloatProperty, PointerProperty
+from mathutils import Vector
+
 from .measureit_arch_baseclass import BaseProp
+from .measureit_arch_utils import get_smart_selected, get_selected_vertex
+
 
 
 class LineProperties(BaseProp, PropertyGroup):
-    pointPass: BoolProperty(name="Draw Round Caps",
-                            description="Draw Round Caps",
-                            default=True)
+    pointPass: BoolProperty(
+        name="Draw Round Caps",
+        description="Draw Round Caps",
+        default=True)
 
-    numLines: IntProperty(name="Number of Lines",
-                          description="Number Of Single Lines")
+    numLines: IntProperty(
+        name="Number of Lines",
+        description="Number Of Single Lines")
 
-    lineDrawHidden: BoolProperty(name="Draw Hidden Lines",
-                                 description="Draw Hidden Lines",
-                                 default=False)
+    lineDrawHidden: BoolProperty(
+        name="Draw Hidden Lines",
+        description="Draw Hidden Lines",
+        default=False)
 
-    lineDrawDashed: BoolProperty(name="Draw Dashed",
-                                 description="Force Line Group to Draw Dashed",
-                                 default=False)
+    lineDrawDashed: BoolProperty(
+        name="Draw Dashed",
+        description="Force Line Group to Draw Dashed",
+        default=False)
 
-    screenSpaceDashes: BoolProperty(name="Screen Space Dashed",
-                                    description="Draw Dashes in Screen Space",
-                                    default=False)
+    screenSpaceDashes: BoolProperty(
+        name="Screen Space Dashed",
+        description="Draw Dashes in Screen Space",
+        default=False)
 
-    lineHiddenColor: FloatVectorProperty(name="Hidden Line Color",
-                                         description="Color for Hidden Lines",
-                                         default=(0.2, 0.2, 0.2, 1.0),
-                                         min=0.0,
-                                         max=1,
-                                         subtype='COLOR',
-                                         size=4)
+    lineHiddenColor: FloatVectorProperty(
+        name="Hidden Line Color",
+        description="Color for Hidden Lines",
+        default=(0.2, 0.2, 0.2, 1.0),
+        min=0.0,
+        max=1,
+        subtype='COLOR',
+        size=4)
 
-    lineHiddenWeight: FloatProperty(name="Hidden Line Lineweight",
-                                    description="Hidden Line Lineweight",
-                                    default=1.0,
-                                    soft_min=1.0,
-                                    step=25,
-                                    min=0)
+    lineHiddenWeight: FloatProperty(
+        name="Hidden Line Lineweight",
+        description="Hidden Line Lineweight",
+        default=1.0,
+        soft_min=1.0,
+        step=25,
+        min=0)
 
     lineWeightGroup: StringProperty(name='Line Weight Group')
 
-    weightGroupInfluence: FloatProperty(name='Group Influence',
-                                        min=0,
-                                        soft_max=1.0,
-                                        max=10,
-                                        default=1,
-                                        subtype='FACTOR')
+    weightGroupInfluence: FloatProperty(
+        name='Group Influence',
+        min=0,
+        soft_max=1.0,
+        max=10,
+        default=1,
+        subtype='FACTOR')
 
-    lineHiddenDashScale: IntProperty(name="Hidden Line Dash Scale",
-                                     description="Hidden Line Dash Scale",
-                                     default=10,
-                                     min=0)
+    lineHiddenDashScale: IntProperty(
+        name="Hidden Line Dash Scale",
+        description="Hidden Line Dash Scale",
+        default=10,
+        min=0)
 
-    lineDashSpace: FloatProperty(name="Dash Spacing",
-                                 description="Dash Spacing",
-                                 default=0.5,
-                                 min=0,
-                                 max=1)
+    lineDashSpace: FloatProperty(
+        name="Dash Spacing",
+        description="Dash Spacing",
+        default=0.5,
+        min=0,
+        max=1)
 
-    isOutline: BoolProperty(name="Is Outline",
-                            description="Line Group Is For Drawing Outlines",
-                            default=False)
+    isOutline: BoolProperty(
+        name="Is Outline",
+        description="Line Group Is For Drawing Outlines",
+        default=False)
 
     lineTexture: PointerProperty(type=bpy.types.Texture)
 
-    useLineTexture: BoolProperty(name="Use Line Texture",
-                                 description='Use Line Texture',
-                                 default=False)
+    useLineTexture: BoolProperty(
+        name="Use Line Texture",
+        description='Use Line Texture',
+        default=False)
 
-    lineDepthOffset: FloatProperty(name="Line Depth Offset",
-                                   description="Z buffer Offset tweak for clean rendering, TEMP",
-                                   default=0.0)
+    lineDepthOffset: FloatProperty(
+        name="Line Depth Offset",
+        description="Z buffer Offset tweak for clean rendering, TEMP",
+        default=0.0)
 
-    lineOverExtension: FloatProperty(name="Line Over Extension",
-                                     default=0.0)
+    lineOverExtension: FloatProperty(
+        name="Line Over Extension",
+        default=0.0)
     randomSeed: IntProperty()
 
-    useDynamicCrease: BoolProperty(name="Use Dynamic Crease",
-                                   description='Dynamically update LineGroup by Crease (accounting for modifiers) \n WARNING: This can be quite slow for large meshes \n or complex modifier stacks',
-                                   default=False)
+    useDynamicCrease: BoolProperty(
+        name="Use Dynamic Crease",
+        description='Dynamically update LineGroup by Crease (accounting for modifiers)\n'
+                    'WARNING: This can be quite slow for large meshes \n or complex modifier stacks',
+        default=False)
 
-    creaseAngle: FloatProperty(name='Crease Angle',
-                               min=0,
-                               default=radians(30),
-                               subtype='ANGLE')
+    creaseAngle: FloatProperty(
+        name='Crease Angle',
+        min=0,
+        default=math.radians(30),
+        subtype='ANGLE')
 
-
-bpy.utils.register_class(LineProperties)
 
 
 class LineContainer(PropertyGroup):
-    line_num: IntProperty(name='Number of Line Groups', min=0, max=1000, default=0,
-                          description='Number total of line groups')
+    line_num: IntProperty(
+        name='Number of Line Groups', min=0, max=1000, default=0,
+        description='Number total of line groups')
 
-    active_line_index: IntProperty(name='Active Line Index')
+    active_index: IntProperty(name='Active Line Index')
 
     show_line_settings: BoolProperty(name='Show Line Settings', default=False)
 
     # Array of segments
     line_groups: CollectionProperty(type=LineProperties)
-
-
-bpy.utils.register_class(LineContainer)
-Object.LineGenerator = PointerProperty(type=LineContainer)
 
 
 class AddLineButton(Operator):
@@ -150,9 +158,6 @@ class AddLineButton(Operator):
     bl_description = "(EDITMODE) Creates a new Line Group from the selected edges"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -167,9 +172,6 @@ class AddLineButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
@@ -187,7 +189,7 @@ class AddLineButton(Operator):
                 # Set values
                 lGroup.itemType = 'L'
                 lGroup.style = sceneProps.default_line_style
-                if sceneProps.default_line_style is not '':
+                if sceneProps.default_line_style != '':
                     lGroup.uses_style = True
                 else:
                     lGroup.uses_style = False
@@ -221,9 +223,6 @@ class AddDynamicLineButton(Operator):
     bl_description = "(EDITMODE) Creates a new Dynamic Line Group"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -238,9 +237,6 @@ class AddDynamicLineButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
@@ -254,7 +250,7 @@ class AddDynamicLineButton(Operator):
             # Set values
             lGroup.itemType = 'L'
             lGroup.style = sceneProps.default_line_style
-            if sceneProps.default_line_style is not '':
+            if sceneProps.default_line_style != '':
                 lGroup.uses_style = True
             else:
                 lGroup.uses_style = False
@@ -333,7 +329,7 @@ class M_ARCH_UL_lines_list(UIList):
 
 
 class OBJECT_PT_UILines(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ A panel in the Object properties window """
     bl_parent_id = 'OBJECT_PT_Panel'
     bl_label = "Line Groups"
     bl_space_type = 'PROPERTIES'
@@ -408,7 +404,8 @@ class OBJECT_PT_UILines(Panel):
                             col = box.column(align=True)
                             col.prop(line, 'lineWeight', text="Lineweight")
                             col.prop_search(
-                                line, "lineWeightGroup", context.active_object, "vertex_groups", text="Line Weight Group")
+                                line, "lineWeightGroup", context.active_object, "vertex_groups",
+                                text="Line Weight Group")
                             col.prop(line, 'weightGroupInfluence',
                                      text="Influence")
 
@@ -422,7 +419,7 @@ class OBJECT_PT_UILines(Panel):
                             col = box.column(align=True)
                             col.prop(line, 'lineOverExtension',
                                      text="Extension")
-                            #col.prop(line, 'randomSeed', text="Seed" )
+                            # col.prop(line, 'randomSeed', text="Seed" )
 
                             col = box.column(align=True)
                             if line.lineDrawHidden:
@@ -441,13 +438,11 @@ class OBJECT_PT_UILines(Panel):
                                 col.enabled = False
                             col.prop(line, 'lineHiddenDashScale',
                                      text="Dash Scale")
-                            col.prop(line, 'lineDashSpace',
-                                     text="Dash Spacing")
+                            col.prop(line, 'lineDashSpace', text="Dash Spacing")
 
                             col = box.column(align=True)
 
-                            col.prop(line, 'lineDrawDashed',
-                                     text="Draw Dashed")
+                            col.prop(line, 'lineDrawDashed', text="Draw Dashed")
                             col.prop(line, 'screenSpaceDashes',
                                      text="Screen Space Dashes")
                             col.prop(line, 'inFront', text="Draw In Front")
@@ -485,9 +480,6 @@ class AddToLineGroup(Operator):
     bl_category = 'MeasureitArch'
     tag: IntProperty()
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -501,10 +493,6 @@ class AddToLineGroup(Operator):
                     return False
             else:
                 return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
@@ -525,10 +513,9 @@ class AddToLineGroup(Operator):
                         lGroup = lineGen.line_groups[self.tag]
 
                         bufferList = lGroup['lineBuffer'].to_list()
-                        for x in range(0, len(mylist)-1, 2):
-                            # if lineExists(lGroup,mylist[x],mylist[x+1]) is False:
+                        for x in range(0, len(mylist) - 1, 2):
                             bufferList.append(mylist[x])
-                            bufferList.append(mylist[x+1])
+                            bufferList.append(mylist[x + 1])
                             lGroup.numLines += 1
 
                         # redraw
@@ -545,11 +532,8 @@ class AddLineByProperty(Operator):
     tag: IntProperty()
     calledFromGroup: BoolProperty(default=False)
     includeNonManifold: BoolProperty(default=True)
-    creaseAngle: FloatProperty(default=radians(30), subtype='ANGLE')
+    creaseAngle: FloatProperty(default=math.radians(30), subtype='ANGLE')
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -564,10 +548,6 @@ class AddLineByProperty(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
             screen = window.screen
@@ -577,7 +557,6 @@ class AddLineByProperty(Operator):
                 if area.type == 'VIEW_3D':
                     # get selected
                     selObjects = context.view_layer.objects.selected
-                    start = time.time()
                     for obj in selObjects:
 
                         lineGen = obj.LineGenerator
@@ -586,7 +565,7 @@ class AddLineByProperty(Operator):
                         # Set values
                         lGroup.itemType = 'L'
                         lGroup.style = sceneProps.default_line_style
-                        if sceneProps.default_line_style is not '':
+                        if sceneProps.default_line_style != '':
                             lGroup.uses_style = True
                         else:
                             lGroup.uses_style = False
@@ -653,9 +632,6 @@ class RemoveFromLineGroup(Operator):
     bl_category = 'MeasureitArch'
     tag: IntProperty()
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -669,10 +645,6 @@ class RemoveFromLineGroup(Operator):
                     return False
             else:
                 return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
@@ -692,15 +664,14 @@ class RemoveFromLineGroup(Operator):
 
                         lineGen = mainobject.LineGenerator
                         lGroup = lineGen.line_groups[self.tag]
-                        idx = 0
                         bufferList = lGroup['lineBuffer'].to_list()
                         for x in range(0, len(lGroup['lineBuffer']), 2):
                             pointA = lGroup['lineBuffer'][x]
-                            pointB = lGroup['lineBuffer'][x+1]
+                            pointB = lGroup['lineBuffer'][x + 1]
                             for y in range(0, len(mylist), 2):
-                                if sLineExists(pointA, pointB, mylist[y], mylist[y+1]):
-                                    #print("checked Pair: (" + str(mylist[y]) +   "," + str(mylist[y+1]) + ")" )
-                                    #print("A:" + str(pointA) + "B:" + str(pointB) )
+                                if sLineExists(pointA, pointB, mylist[y], mylist[y + 1]):
+                                    # print("checked Pair: (" + str(mylist[y]) +   "," + str(mylist[y+1]) + ")" )
+                                    # print("A:" + str(pointA) + "B:" + str(pointB) )
                                     del bufferList[x]
                                     del bufferList[x]
                                     lGroup.numLines -= 1
@@ -723,7 +694,7 @@ class RemoveFromLineGroup(Operator):
 #     def execute(self, context):
 #         mainObj = context.object
 
-#         if self.is_style is True:
+#         if self.is_style:
 #             Generator = context.scene.StyleGenerator
 #         else:
 #             Generator = mainObj.LineGenerator
@@ -753,7 +724,7 @@ def sLineExists(pointA, pointB, a, b):
 def lineExists(lGroup, a, b):
     for x in range(0, len(lGroup['lineBuffer']), 2):
         pointA = lGroup['lineBuffer'][x]
-        pointB = lGroup['lineBuffer'][x+1]
+        pointB = lGroup['lineBuffer'][x + 1]
         if (pointA == a and pointB == b):
             return True
         elif (pointA == b and pointB == a):

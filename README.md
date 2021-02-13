@@ -300,7 +300,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
  * __Alignment__: The Dimension text alignment relative to the dimension line (Left, Center, Right).
  * __Arrow Start & End__: Set the style of the dimension terminations. ![image](docs/ui-arrowstyles.jpg)
  * __Arrow Size__: The size of the Dimension's terminations.
- * __Arrow Angle__: The angle the of Dimension's triangle and arrow terminations.
+ * __Arrow Angle__: The angle of Dimension's triangle and arrow terminations.
  * __Draw In Front__: Makes this element Ignore Visibility tests.
  * __Evaluate Depsgraph__: Evaluate Blender's Dependency Graph before drawing this MeasureIt_ARCH element.
 

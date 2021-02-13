@@ -24,45 +24,28 @@
 #
 # ----------------------------------------------------------
 import bpy
-import bmesh
-from bmesh import from_edit_mesh
 import bgl
-import gpu
-import time
-import math
 
-from mathutils import Vector, Matrix, Euler, Quaternion
-from gpu_extras.batch import batch_for_shader
-
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D
-from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-    FloatProperty, EnumProperty
+from bpy.types import Panel, Operator, SpaceView3D
 from bpy.app.handlers import persistent
-from .measureit_arch_geometry import clear_batches, draw_annotation, draw_arcDimension, draw_areaDimension, \
-    draw_alignedDimension, draw_line_group, draw_angleDimension, update_text, draw_axisDimension, draw_boundsDimension, \
-    get_mesh_vertices, printTime, draw_sheet_views, preview_dual, get_view, draw_hatches, draw3d_loop, get_rv3d
+from mathutils import Vector, Matrix
 
-draw_instanced = True
+from .measureit_arch_geometry import clear_batches, update_text, \
+    draw3d_loop, get_rv3d
+from .measureit_arch_utils import get_view
 
-# ------------------------------------------------------
-# Handler to detect new Blend load
-#
-# ------------------------------------------------------
 
 
 @persistent
 def load_handler(dummy):
+    """ Handler called when a Blender file is loaded """
     ShowHideViewportButton.handle_remove(None, bpy.context)
 
 
-# ------------------------------------------------------
-# Handler to detect save Blend
-# Clear not used measured
-#
-# ------------------------------------------------------
-
 @persistent
 def save_handler(dummy):
+    """ Handler called when a Blender file is saved """
+    # Clear not used measured
     cleanScene = True
     if cleanScene:
         # Check all Scenes for phantom objects
@@ -107,9 +90,6 @@ def save_handler(dummy):
                         obj.AnnotationGenerator.num_annotations = 0
 
 
-bpy.app.handlers.load_post.append(load_handler)
-bpy.app.handlers.save_pre.append(save_handler)
-
 
 # Rough Attempts to add a m-ARCH tab to the properties panel navigation bar
 # Not solved yet (not entirely sure its possible), but kept for future reference.
@@ -151,16 +131,15 @@ class MEASUREIT_PT_main_panel(Panel):
         # ------------------------------
         # Display Buttons
         # ------------------------------
-
         box = layout.box()
         box.label(text="Show/Hide MeasureIt_ARCH")
         row = box.row(align=True)
 
-        if context.window_manager.measureit_arch_run_opengl is False:
+        if not context.window_manager.measureit_arch_run_opengl:
             icon = 'PLAY'
             txt = 'Show'
         else:
-            icon = "PAUSE"
+            icon = 'PAUSE'
             txt = 'Hide'
 
         sceneProps = scene.MeasureItArchProps
@@ -212,14 +191,12 @@ class MEASUREIT_PT_main_panel(Panel):
         # ------------------------------
         # Linework Tools
         # ------------------------------
-
         box = layout.box()
         box.label(text="Add Lines")
 
         col = box.column(align=True)
         col.operator("measureit_arch.addlinebutton",
                      text="Line Group", icon="MESH_CUBE")
-
         op = col.operator("measureit_arch.addlinebyproperty",
                           text="Line Group by Crease", icon="MESH_CUBE")
         op.calledFromGroup = False
@@ -247,13 +224,10 @@ class MEASUREIT_PT_main_panel(Panel):
             col.prop_search(sceneProps, 'default_annotation_style',
                             StyleGen, 'annotations', text="", icon='COLOR')
 
-# ------------------------------------------------------------------
-# New Panel to group Object Properties
-# ------------------------------------------------------------------
 
 
 class OBJECT_PT_Panel(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ Panel in the object properties window """
     bl_idname = 'OBJECT_PT_Panel'
     bl_label = "MeasureIt_ARCH"
     bl_space_type = 'PROPERTIES'
@@ -263,15 +237,8 @@ class OBJECT_PT_Panel(Panel):
     def draw(self, context):
         pass
 
-
-bpy.utils.register_class(OBJECT_PT_Panel)
-
-
-# ------------------------------------------------------------------
-# New Panel to group Scene Properties
-# ------------------------------------------------------------------
 class SCENE_PT_Panel(bpy.types.Panel):
-    """Main Properties Panel"""
+    """ Main (scene) properties panel """
     bl_idname = "SCENE_PT_Panel"
     bl_label = "MeasureIt_ARCH"
     bl_space_type = 'PROPERTIES'
@@ -282,11 +249,8 @@ class SCENE_PT_Panel(bpy.types.Panel):
         pass
 
 
-bpy.utils.register_class(SCENE_PT_Panel)
-
-
-# MeasureIt_ARCH settings
 class SCENE_PT_MARCH_Settings(Panel):
+    """ Settings panel """
     bl_parent_id = 'SCENE_PT_Panel'
     bl_idname = "SCENE_PT_MARCH_Settings"
     bl_label = "Settings"
@@ -327,14 +291,11 @@ class SCENE_PT_MARCH_Settings(Panel):
 
         if sceneProps.enable_experimental:
             col.prop(sceneProps, "instance_dims")
-        #col.prop(sceneProps, "debug_flip_text")
+        # col.prop(sceneProps, "debug_flip_text")
 
-
-# -------------------------------------------------------------
-# Defines button that enables/disables Viewport Display
-#
-# -------------------------------------------------------------
 class ShowHideViewportButton(Operator):
+    """ A button that enables/disables Viewport Display """
+
     bl_idname = "measureit_arch.runopenglbutton"
     bl_label = "Display hint data manager"
     bl_description = "Main control for enabling or disabling the display of measurements in the viewport"
@@ -342,6 +303,7 @@ class ShowHideViewportButton(Operator):
 
     _handle = None  # keep function handler
     _handle3d = None
+
     # ----------------------------------
     # Enable gl drawing adding handler
     # ----------------------------------
@@ -349,11 +311,10 @@ class ShowHideViewportButton(Operator):
     @staticmethod
     def handle_add(self, context):
         if ShowHideViewportButton._handle is None:
-            ShowHideViewportButton._handle = SpaceView3D.draw_handler_add(draw_callback_px, (self, context),
-                                                                          'WINDOW',
-                                                                          'POST_PIXEL')
+            ShowHideViewportButton._handle = SpaceView3D.draw_handler_add(
+                draw_main, (context,), 'WINDOW', 'POST_PIXEL')
             ShowHideViewportButton._handle3d = SpaceView3D.draw_handler_add(
-                draw_callback_3d, (self, context), 'WINDOW', 'POST_VIEW')
+                draw_main_3d, (context,), 'WINDOW', 'POST_VIEW')
             context.window_manager.measureit_arch_run_opengl = True
 
     # ------------------------------------
@@ -375,7 +336,7 @@ class ShowHideViewportButton(Operator):
     # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
-            if context.window_manager.measureit_arch_run_opengl is False:
+            if not context.window_manager.measureit_arch_run_opengl:
                 self.handle_add(self, context)
                 context.area.tag_redraw()
             else:
@@ -390,15 +351,12 @@ class ShowHideViewportButton(Operator):
         return {'CANCELLED'}
 
 
-# -------------------------------------------------------------
-# Handle all 2d draw routines (Text Updating mostly)
-# -------------------------------------------------------------
 def draw_main(context):
+    """ Handle all 2D draw routines (Text Updating mostly) """
+
     region = bpy.context.region
     # Detect if Quadview to get drawing area
-    if not context.space_data.region_quadviews:
-        rv3d = bpy.context.space_data.region_3d
-    else:
+    if context.space_data.region_quadviews:
         # verify area
         if context.area.type != 'VIEW_3D' or context.space_data.type != 'VIEW_3D':
             return
@@ -411,16 +369,11 @@ def draw_main(context):
         else:
             return
 
-        rv3d = context.space_data.region_quadviews[i]
-
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps
 
-    # Get visible collections
-    viewLayer = bpy.context.view_layer
-
     # Display selected or all
-    if sceneProps.show_all is False:
+    if not sceneProps.show_all:
         objlist = context.selected_objects
     else:
         objlist = context.view_layer.objects
@@ -433,8 +386,7 @@ def draw_main(context):
     text_update_loop(context, objlist)
 
     view = get_view()
-    if view != None and view.titleBlock != "":
-        camera = view.camera
+    if view is not None and view.titleBlock != "":
         titleblockScene = bpy.data.scenes[view.titleBlock]
         objlist = titleblockScene.objects
         text_update_loop(context, objlist)
@@ -453,9 +405,8 @@ def draw_main(context):
 
 
 def text_update_loop(context, objlist):
-
     for myobj in objlist:
-        if myobj.hide_get() is False:
+        if not myobj.hide_get():
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator
                 for alignedDim in DimGen.alignedDimensions:
@@ -502,8 +453,7 @@ def text_update_loop(context, objlist):
                         for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == arcDim.style:
                                 dimProps = dimStyle
-                    update_text(textobj=arcDim, props=dimProps,
-                                context=context)
+                    update_text(textobj=arcDim, props=dimProps, context=context)
 
                 for areaDim in DimGen.areaDimensions:
                     dimProps = areaDim
@@ -602,7 +552,7 @@ def draw_main_3d(context):
     sceneProps = scene.MeasureItArchProps
 
     # Display selected or all
-    if sceneProps.show_all is False:
+    if not sceneProps.show_all:
         objlist = context.selected_objects
     else:
         objlist = context.view_layer.objects
@@ -636,7 +586,6 @@ def draw_titleblock(context, svg=None):
         cameraMat = camera.matrix_world
         offsetVec = Vector((0, 0, -1.1))
         offsetVec *= camera.data.clip_start
-        #offsetVec = cameraMat @ offsetVec
 
         transMat = Matrix.Translation(offsetVec)
 
@@ -886,6 +835,8 @@ def get_selected_faces(myobject):
 
 # MeasureIt_ARCH Unit settings
 class SCENE_PT_MARCH_units(Panel):
+    """ MeasureIt_ARCH Unit settings """
+
     bl_parent_id = 'SCENE_PT_unit'
     bl_idname = "SCENE_PT_MARCH_Units"
     bl_label = "MeasureIt_ARCH Unit Settings"

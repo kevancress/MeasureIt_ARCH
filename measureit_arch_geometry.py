@@ -22,31 +22,29 @@
 # Author: Antonio Vazquez (antonioya), Kevan Cress
 #
 # ----------------------------------------------------------
-# noinspection PyUnresolvedReferences
-import bpy
-# noinspection PyUnresolvedReferences
+
 import bgl
-import gpu
-from gpu_extras.batch import batch_for_shader
-# noinspection PyUnresolvedReferences
 import blf
-from blf import ROTATION
-from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
-from mathutils import Vector, Matrix, Euler, Quaternion
 import bmesh
 from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
 from sys import exc_info, getrecursionlimit, setrecursionlimit
 from .shaders import *
 import math
-import time
 import numpy as np
-from array import array
-import random
-from . import svg_shaders
-from datetime import datetime
-from .measureit_arch_baseclass import recalc_dimWrapper_index
 import svgwrite
+import time
+
+from bpy_extras import mesh_utils
+from datetime import datetime
+from gpu_extras.batch import batch_for_shader
+from math import fabs, degrees, radians, sqrt, sin, pi, floor
+from mathutils import Vector, Matrix, Euler, Quaternion
+
+from . import svg_shaders
+from .shaders import *
+from .measureit_arch_baseclass import recalc_dimWrapper_index
+from .measureit_arch_utils import get_view
 
 lastMode = {}
 lineBatch3D = {}
@@ -134,8 +132,11 @@ def update_text(textobj, props, context, fields = []):
         if textField.text_updated or sceneProps.text_updated:
             # Get textitem Properties
             rawRGB = props.color
-            rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1],
-                                                (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
+            rgb = (
+                pow(rawRGB[0], (1 / 2.2)),
+                pow(rawRGB[1], (1 / 2.2)),
+                pow(rawRGB[2], (1 / 2.2)),
+                rawRGB[3])
             size = 20
             resolution = get_resolution()
 
@@ -160,7 +161,7 @@ def update_text(textobj, props, context, fields = []):
             fheight = blf.dimensions(font_id, 'Tpg"')[1]
             fwidth = blf.dimensions(font_id, text)[0]
             width = math.ceil(fwidth)
-            height = math.ceil(fheight*1.3)
+            height = math.ceil(fheight * 1.3)
 
             # Save Texture size to textobj Properties
             textField.textHeight = height
@@ -185,7 +186,7 @@ def update_text(textobj, props, context, fields = []):
                     gpu.matrix.load_matrix(view_matrix)
                     gpu.matrix.load_projection_matrix(Matrix.Identity(4))
 
-                    blf.position(font_id, 0, height*0.3, 0)
+                    blf.position(font_id, 0, height * 0.3, 0)
                     blf.draw(font_id, text)
 
                     # Read Offscreen To Texture Buffer
@@ -215,7 +216,7 @@ def update_text(textobj, props, context, fields = []):
 
 def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
 
-    if sheet_view.scene == None:
+    if sheet_view.scene is None:
         return
 
     if sheet_view.view == "":
@@ -232,7 +233,7 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
     normalizedDeviceUVs = [(-1.3, -1.3), (-1.3, 1.3), (1.3, 1.3), (1.3, -1.3)]
     uvs = []
     for normUV in normalizedDeviceUVs:
-        uv = (Vector(normUV) + Vector((1, 1)))*0.5
+        uv = (Vector(normUV) + Vector((1, 1))) * 0.5
         uvs.append(uv)
 
     # Scale Card
@@ -241,9 +242,9 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
         sx = refView.width
         sy = refView.height
     else:
-        percentScale = refView.percent_scale/100
-        sx = (refView.width_px * percentScale)/1200
-        sy = (refView.height_px * percentScale)/1200
+        percentScale = refView.percent_scale / 100
+        sx = (refView.width_px * percentScale) / 1200
+        sy = (refView.height_px * percentScale) / 1200
     scaleMatrix = Matrix([
         [sx, 0, 0, 0],
         [0, sy, 0, 0],
@@ -271,7 +272,7 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
         width = int(paperWidth * ppi * 39.3701)
         height = int(paperHeight * ppi * 39.3701)
     else:
-        percentScale = refView.percent_scale/100
+        percentScale = refView.percent_scale / 100
         width = int(refView.width_px * percentScale)
         height = int(refView.height_px * percentScale)
 
@@ -326,12 +327,10 @@ def draw_hatches(context, myobj, hatchGen, mat, svg=None):
 
         bm = bmesh.new()
         if myobj.mode == 'OBJECT':
-            bm.from_object(
-                myobj, bpy.context.view_layer.depsgraph, deform=True)
+            bm.from_object(myobj, bpy.context.view_layer.depsgraph, deform=True)
         else:
             bm = bmesh.from_edit_mesh(mesh)
 
-        tris = bm.calc_loop_triangles()
         bm.edges.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
         faces = bm.faces
@@ -344,11 +343,10 @@ def draw_hatches(context, myobj, hatchGen, mat, svg=None):
         objMaterials = []
         hatchMaterials = []
         hatchDict = {}
-        hatchPatterns = {}
 
         for hatch in hatchGen.hatches:
             hatchMaterials.append(hatch.material)
-            if hatch.pattern != None:
+            if hatch.pattern is not None:
                 name = hatch.name + '_' + hatch.pattern.name
                 objs = hatch.pattern.objects
                 weight = hatch.patternWeight
@@ -510,7 +508,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         p2 = sortedPoints[1]
 
         # calculate distance & MidpointGY
-        distVector = Vector(p1)-Vector(p2)
+        distVector = Vector(p1) - Vector(p2)
         dist = distVector.length
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
         normDistVector = distVector.normalized()
@@ -521,9 +519,9 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         selectedNormal = Vector(select_normal(
             myobj, dim, normDistVector, midpoint, dimProps))
 
-        userOffsetVector = rotationMatrix@selectedNormal
-        offsetDistance = userOffsetVector*offset
-        geoOffsetDistance = offsetDistance.normalized()*geoOffset
+        userOffsetVector = rotationMatrix @ selectedNormal
+        offsetDistance = userOffsetVector * offset
+        geoOffsetDistance = offsetDistance.normalized() * geoOffset
 
         if offsetDistance < geoOffsetDistance:
             offsetDistance = geoOffsetDistance
@@ -541,8 +539,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         leadEndB = Vector(p2) + offsetDistance + \
             cap_extension(offsetDistance, capSize, dimProps.endcapArrowAngle)
 
-        dimLineStart = Vector(p1)+offsetDistance
-        dimLineEnd = Vector(p2)+offsetDistance
+        dimLineStart = Vector(p1) + offsetDistance
+        dimLineEnd = Vector(p2) + offsetDistance
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
         # i,j,k as card axis
@@ -577,7 +575,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         dimLineEndCoord = dimLineEnd - dimLineVec * dimLineExtension
         dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension
 
-        #square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
+        # square = [(origin-(cardX/2)),(origin-(cardX/2)+cardY ),(origin+(cardX/2)+cardY ),(origin+(cardX/2))]
 
         if sceneProps.show_dim_text:
             draw_text_3D(context, dimText, dimProps, myobj, square)
@@ -618,8 +616,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
 
 
 def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
-
-    scene = context.scene
     sceneProps = context.scene.MeasureItArchProps
 
     dimProps = dim
@@ -636,7 +632,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
 
         # Obj Properties
         # For Collection Bounding Box
-        if dim.dimCollection != None:
+        if dim.dimCollection is not None:
             collection = dim.dimCollection
             objects = collection.all_objects
 
@@ -668,14 +664,16 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 else:  # otherwise get its points and calc its AABB directly
 
                     try:
-                        if myobj.matrix_world.to_quaternion() != Quaternion(dim[rotStr]) or myobj.location != Vector(dim[locStr]) or myobj.scale != Vector(dim[scaleStr]):
+                        if (myobj.matrix_world.to_quaternion() != Quaternion(dim[rotStr]) or
+                            myobj.location != Vector(dim[locStr]) or
+                            myobj.scale != Vector(dim[scaleStr])):
+
                             obverts = get_mesh_vertices(myobj)
                             worldObverts = [myobj.matrix_world @
                                             coord for coord in obverts]
                             maxX, minX, maxY, minY, maxZ, minZ = get_axis_aligned_bounds(
                                 worldObverts)
-                            dim[boundsStr] = [
-                                maxX, minX, maxY, minY, maxZ, minZ]
+                            dim[boundsStr] = [maxX, minX, maxY, minY, maxZ, minZ]
                             dim[rotStr] = myobj.matrix_world.to_quaternion()
                             dim[locStr] = myobj.location
                             dim[scaleStr] = myobj.scale
@@ -696,8 +694,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                     coords.append(Vector((minX, minY, minZ)))
 
             # Get the axis aligned bounding coords for that set of coords
-            maxX, minX, maxY, minY, maxZ, minZ = get_axis_aligned_bounds(
-                coords)
+            maxX, minX, maxY, minY, maxZ, minZ = get_axis_aligned_bounds(coords)
 
             distX = maxX - minX
             distY = maxY - minY
@@ -713,7 +710,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
             p7 = Vector((maxX, maxY, minZ))
 
             bounds = [p0, p1, p2, p3, p4, p5, p6, p7]
-            #print ("X: " + str(distX) + ", Y: " + str(distY) + ", Z: " + str(distZ))
+            # print ("X: " + str(distX) + ", Y: " + str(distY) + ", Z: " + str(distZ))
 
         # Single object bounding Box
         else:
@@ -819,14 +816,10 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
 
         viewVec = Vector((0, 0, 0))  # dummy vector to avoid errors
 
-        if sceneProps.is_render_draw:
-            cameraLoc = context.scene.camera.location.normalized()
-            viewAxis = cameraLoc
-        else:
+        if not sceneProps.is_render_draw:
             viewRot = context.area.spaces[0].region_3d.view_rotation
             viewVec = k.copy()
             viewVec.rotate(viewRot)
-            viewAxis = viewVec
 
         bestPairs = [xpairs[2], ypairs[1], zpairs[0]]
         pairs = [xpairs, ypairs, zpairs]
@@ -863,15 +856,13 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
 
                 selectedNormal = placementVec[idx]
 
-                if dim.dimCollection == None and dim.calcAxisAligned == False:
+                if dim.dimCollection is None and not dim.calcAxisAligned:
                     rot = myobj.matrix_world.to_quaternion()
                     selectedNormal.rotate(rot)
 
-                #print(str(idx) + " " + str(abs(selectedNormal.dot(selectionVectors[idx]))))
-
-                userOffsetVector = rotationMatrix@selectedNormal
-                offsetDistance = userOffsetVector*offset
-                geoOffsetDistance = offsetDistance.normalized()*geoOffset
+                userOffsetVector = rotationMatrix @ selectedNormal
+                offsetDistance = userOffsetVector * offset
+                geoOffsetDistance = offsetDistance.normalized() * geoOffset
 
                 if offsetDistance < geoOffsetDistance:
                     offsetDistance = geoOffsetDistance
@@ -890,8 +881,8 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 leadEndB = Vector(p2) + offsetDistance + cap_extension(
                     offsetDistance, capSize, dimProps.endcapArrowAngle)
 
-                dimLineStart = Vector(p1)+offsetDistance
-                dimLineEnd = Vector(p2)+offsetDistance
+                dimLineStart = Vector(p1) + offsetDistance
+                dimLineEnd = Vector(p2) + offsetDistance
                 textLoc = interpolate3d(
                     dimLineStart, dimLineEnd, fabs(dist / 2))
                 origin = Vector(textLoc)
@@ -902,7 +893,6 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 k = Vector((0, 0, 1))
 
                 # Check for text field
-                #print (len(dim.textFields))
                 dimText = dim.textFields[idx]
 
                 # format text and update if necessary
@@ -989,7 +979,6 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             viewRot = context.area.spaces[0].region_3d.view_rotation
 
         # Obj Properties
-        scene = context.scene
         pr = sceneProps.metric_precision
         textFormat = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
@@ -1072,7 +1061,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
                 viewAxis = viewVec
 
         # define axis relatd values
-        #basicThreshold = 0.5773
+        # basicThreshold = 0.5773
         if axis == 'X':
             xThreshold = 0.95796
             yThreshold = 0.22146
@@ -1106,14 +1095,14 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             viewSector = (0, 0, -1)
 
         # rotate the axis vector if necessary
-        if dim.dimAxisObject != None:
+        if dim.dimAxisObject is not None:
             customMat = dim.dimAxisObject.matrix_world
             rot = customMat.to_quaternion()
             axisVec.rotate(rot)
 
         # calculate distance by projecting the distance vector onto the axis vector
 
-        alignedDistVector = Vector(p1)-Vector(p2)
+        alignedDistVector = Vector(p1) - Vector(p2)
         distVector = alignedDistVector.project(axisVec)
 
         dist = distVector.length
@@ -1133,9 +1122,9 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             dirVector.negate()
         selectedNormal = dirVector.normalized()
 
-        userOffsetVector = rotationMatrix@selectedNormal
-        offsetDistance = userOffsetVector*offset
-        geoOffsetDistance = offsetDistance.normalized()*geoOffset
+        userOffsetVector = rotationMatrix @ selectedNormal
+        offsetDistance = userOffsetVector * offset
+        geoOffsetDistance = offsetDistance.normalized() * geoOffset
 
         if offsetDistance < geoOffsetDistance:
             offsetDistance = geoOffsetDistance
@@ -1146,10 +1135,14 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
 
         # Define Lines
         # get the components of p1 & p1 in the direction zvector
-        p1Dir = Vector((p1[0]*dirVector[0], p1[1] *
-                        dirVector[1], p1[2]*dirVector[2]))
-        p2Dir = Vector((p2[0]*dirVector[0], p2[1] *
-                        dirVector[1], p2[2]*dirVector[2]))
+        p1Dir = Vector((
+            p1[0] * dirVector[0],
+            p1[1] * dirVector[1],
+            p1[2] * dirVector[2]))
+        p2Dir = Vector((
+            p2[0] * dirVector[0],
+            p2[1] * dirVector[1],
+            p2[2] * dirVector[2]))
 
         domAxis = get_dom_axis(p1Dir)
 
@@ -1157,20 +1150,22 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             basePoint = p1
             secondPoint = p2
             secondPointAxis = distVector
-            alignedDistVector = Vector(p2)-Vector(p1)
+            alignedDistVector = Vector(p2) - Vector(p1)
         else:
             basePoint = p2
             secondPoint = p1
             secondPointAxis = -distVector
-            alignedDistVector = Vector(p1)-Vector(p2)
+            alignedDistVector = Vector(p1) - Vector(p2)
 
-        # get the difference between the points in the view axis
+        # Get the difference between the points in the view axis
         if viewPlane == '99':
             viewAxis = Vector(viewSector)
             if viewAxis[0] < 0 or viewAxis[1] < 0 or viewAxis[2] < 0:
                 viewAxis *= -1
-        viewAxisDiff = Vector(
-            (alignedDistVector[0]*viewAxis[0], alignedDistVector[1]*viewAxis[1], alignedDistVector[2]*viewAxis[2]))
+        viewAxisDiff = Vector((
+            alignedDistVector[0] * viewAxis[0],
+            alignedDistVector[1] * viewAxis[1],
+            alignedDistVector[2] * viewAxis[2]))
 
         dim.gizRotAxis = alignedDistVector
 
@@ -1190,7 +1185,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
         origin = Vector(textLoc)
 
-       # Check for text field
+        # Check for text field
         if len(dim.textFields) == 0:
             dim.textFields.add()
 
@@ -1213,10 +1208,6 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         dimLineEndCoord = dimLineEnd - dimLineExtension * secondPointAxis.normalized()
         dimLineStartCoord = dimLineStart + dimLineExtension * secondPointAxis.normalized()
 
-       # end = time.perf_counter()
-        #print(("calc time: "+ "%.3f"%((end-start)*1000)) + ' ms')
-
-        #start = time.perf_counter()
         if sceneProps.show_dim_text:
             draw_text_3D(context, dimText, dimProps, myobj, square)
 
@@ -1268,14 +1259,9 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
 
         lineWeight = dimProps.lineWeight
 
-        scene = context.scene
-        pr = sceneProps.metric_precision
-        a_code = "\u00b0"  # degree
-        fmt = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
         rgb = get_color(rawRGB, myobj, is_active=dim.is_active)
         radius = dim.dimRadius
-        offset = 0.001
 
         p1 = Vector(get_point(get_mesh_vertex(
             myobj, dim.dimPointA, dimProps.evalMods), myobj, mat))
@@ -1285,22 +1271,22 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
             myobj, dim.dimPointC, dimProps.evalMods), myobj, mat))
 
         # calc normal to plane defined by points
-        vecA = (p1-p2)
+        vecA = (p1 - p2)
         vecA.normalize()
-        vecB = (p3-p2)
+        vecB = (p3 - p2)
         vecB.normalize()
         norm = vecA.cross(vecB).normalized()
 
-        distVector = vecA-vecB
+        distVector = vecA - vecB
         dist = distVector.length
         angle = vecA.angle(vecB)
         startVec = vecA.copy()
         endVec = vecB.copy()
 
         # get Midpoint for Text Placement
-        midVec = Vector(interpolate3d(vecA, vecB, (dist/2)))
+        midVec = Vector(interpolate3d(vecA, vecB, (dist / 2)))
         midVec.normalize()
-        midPoint = (midVec*radius*1.05) + p2
+        midPoint = (midVec * radius * 1.05) + p2
 
         # Check use reflex Angle (reflex angle is an angle between 180 and 360 degrees)
         if dim.reflexAngle:
@@ -1308,13 +1294,13 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
             startVec = vecB.copy()
             endVec = vecA.copy()
             midVec.rotate(Quaternion(norm, radians(180)))
-            midPoint = Vector((midVec*radius*1.05) + p2)
+            midPoint = Vector((midVec * radius * 1.05) + p2)
 
         # making it a circle
-        numCircleVerts = math.ceil(radius/.2) + int((degrees(angle))/2)
+        numCircleVerts = math.ceil(radius / .2) + int((degrees(angle)) / 2)
         verts = []
-        for idx in range(numCircleVerts+1):
-            rotangle = (angle/(numCircleVerts+1))*idx
+        for idx in range(numCircleVerts + 1):
+            rotangle = (angle / (numCircleVerts + 1)) * idx
             point = startVec.copy()
             point.rotate(Quaternion(norm, rotangle))
             # point.normalize()
@@ -1344,30 +1330,29 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
 
         # Get coords for point pass
         pointCoords = []
-        pointCoords.append((startVec*radius)+p2)
+        pointCoords.append((startVec * radius) + p2)
         for vert in verts:
-            pointCoords.append((vert*radius)+p2)
-        pointCoords.append((endVec*radius)+p2)
+            pointCoords.append((vert * radius) + p2)
+        pointCoords.append((endVec * radius) + p2)
 
         # batch & Draw Shader
         coords = []
-        coords.append((startVec*radius)+p2)
+        coords.append((startVec * radius) + p2)
         for vert in verts:
-            coords.append((vert*radius)+p2)
-            coords.append((vert*radius)+p2)
-        coords.append((endVec*radius)+p2)
+            coords.append((vert * radius) + p2)
+            coords.append((vert * radius) + p2)
+        coords.append((endVec * radius) + p2)
 
         filledCoords = []
         caps = (dimProps.endcapA, dimProps.endcapB)
         capSize = dimProps.endcapSize
-        pos = ((startVec*radius)+p2, (endVec*radius)+p2)
+        pos = ((startVec * radius) + p2, (endVec * radius) + p2)
         # Clamp cap size between 0 and the length of the coords
-        arrowoffset = int(max(0, min(capSize, len(coords)/4)))
+        arrowoffset = int(max(0, min(capSize, len(coords) / 4)))
         # offset the arrow direction as arrow size increases
-        mids = (coords[arrowoffset+1], coords[len(coords)-arrowoffset-1])
+        mids = (coords[arrowoffset + 1], coords[len(coords) - arrowoffset - 1])
         i = 0
         for cap in caps:
-            # def        generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
             capCoords = generate_end_caps(
                 context, dimProps, cap, capSize, pos[i], midVec, mids[i], i, False)
             i += 1
@@ -1414,7 +1399,6 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
         scene = context.scene
         pr = sceneProps.metric_precision
         arc_code = ""
-        fmt = "%1." + str(pr) + "f"
         rawRGB = dimProps.color
         rgb = get_color(rawRGB, myobj, is_active=dim.is_active)
         offset = 0.001
@@ -1443,9 +1427,9 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
             return
 
         # calc normal to plane defined by points
-        vecA = (p1-p2)
+        vecA = (p1 - p2)
         vecA.normalize()
-        vecB = (p3-p2)
+        vecB = (p3 - p2)
         vecB.normalize()
         norm = vecA.cross(vecB).normalized()
 
@@ -1456,18 +1440,30 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
         an_p2 = p2.copy()
         an_p3 = p3.copy()
 
-        an_p12 = Vector(
-            (an_p1[0] - an_p2[0], an_p1[1] - an_p2[1], an_p1[2] - an_p2[2]))
-        an_p13 = Vector(
-            (an_p1[0] - an_p3[0], an_p1[1] - an_p3[1], an_p1[2] - an_p3[2]))
-        an_p21 = Vector(
-            (an_p2[0] - an_p1[0], an_p2[1] - an_p1[1], an_p2[2] - an_p1[2]))
-        an_p23 = Vector(
-            (an_p2[0] - an_p3[0], an_p2[1] - an_p3[1], an_p2[2] - an_p3[2]))
-        an_p31 = Vector(
-            (an_p3[0] - an_p1[0], an_p3[1] - an_p1[1], an_p3[2] - an_p1[2]))
-        an_p32 = Vector(
-            (an_p3[0] - an_p2[0], an_p3[1] - an_p2[1], an_p3[2] - an_p2[2]))
+        an_p12 = Vector((
+            an_p1[0] - an_p2[0],
+            an_p1[1] - an_p2[1],
+            an_p1[2] - an_p2[2]))
+        an_p13 = Vector((
+            an_p1[0] - an_p3[0],
+            an_p1[1] - an_p3[1],
+            an_p1[2] - an_p3[2]))
+        an_p21 = Vector((
+            an_p2[0] - an_p1[0],
+            an_p2[1] - an_p1[1],
+            an_p2[2] - an_p1[2]))
+        an_p23 = Vector((
+            an_p2[0] - an_p3[0],
+            an_p2[1] - an_p3[1],
+            an_p2[2] - an_p3[2]))
+        an_p31 = Vector((
+            an_p3[0] - an_p1[0],
+            an_p3[1] - an_p1[1],
+            an_p3[2] - an_p1[2]))
+        an_p32 = Vector((
+            an_p3[0] - an_p2[0],
+            an_p3[1] - an_p2[1],
+            an_p3[2] - an_p2[2]))
         an_p12xp23 = an_p12.copy().cross(an_p23)
 
         alpha = pow(an_p23.length, 2) * an_p12.dot(an_p13) / \
@@ -1482,7 +1478,6 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
                 alpha * an_p1[1] + beta * an_p2[1] + gamma * an_p3[1],
                 alpha * an_p1[2] + beta * an_p2[2] + gamma * an_p3[2])
 
-        b_p1 = (an_p2[0], an_p2[1], an_p2[2])
         a_n = an_p12.cross(an_p23)
         a_n.normalize()  # normal vector
         arc_angle, arc_length = get_arc_data(an_p1, a_p1, an_p2, an_p3)
@@ -1501,10 +1496,10 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
         # get circle verts
         startVec = A
         arc_angle = arc_angle
-        numCircleVerts = math.ceil(radius/.2) + int((degrees(arc_angle))/2)
+        numCircleVerts = math.ceil(radius / .2) + int((degrees(arc_angle)) / 2)
         verts = []
-        for idx in range(numCircleVerts+2):
-            rotangle = -(arc_angle/(numCircleVerts+1))*idx
+        for idx in range(numCircleVerts + 2):
+            rotangle = -(arc_angle / (numCircleVerts + 1)) * idx
             point = startVec.copy()
             point.rotate(Quaternion(norm, rotangle))
             verts.append((point).normalized())
@@ -1516,19 +1511,19 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
         coords = []
 
         # Map raw Circle Verts to radius for marker
-        startVec = (verts[0]*offsetRadius)
+        startVec = (verts[0] * offsetRadius)
         coords.append(startVec)
         for vert in verts:
-            coords.append((vert*offsetRadius))
-            coords.append((vert*offsetRadius))
-        endVec = (verts[len(verts)-1]*offsetRadius)
+            coords.append((vert * offsetRadius))
+            coords.append((vert * offsetRadius))
+        endVec = (verts[len(verts) - 1] * offsetRadius)
         coords.append(endVec)
 
         # Define Radius Leader
         zeroVec = Vector((0, 0, 0))
         radiusLeader = C.copy()
-        radiusLeader.rotate(Quaternion(norm, arc_angle/2))
-        radiusMid = Vector(interpolate3d(radiusLeader, zeroVec, radius/2))
+        radiusLeader.rotate(Quaternion(norm, arc_angle / 2))
+        radiusMid = Vector(interpolate3d(radiusLeader, zeroVec, radius / 2))
 
         # Generate end caps
         # Set up properties
@@ -1542,14 +1537,12 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
             pos.append(radiusLeader)
 
         capSize = dimProps.endcapSize
-        arrowoffset = 3 + int(max(0, min(math.ceil(capSize/4), len(coords)/5)))
+        arrowoffset = 3 + int(max(0, min(math.ceil(capSize / 4), len(coords) / 5)))
         # offset the arrow direction as arrow size increases
-        mids = (coords[arrowoffset],
-                coords[len(coords)-arrowoffset], radiusMid)
+        mids = (coords[arrowoffset], coords[len(coords) - arrowoffset], radiusMid)
 
         i = 0
         for cap in caps:
-            # def        generate_end_caps(context,item,capType,capSize,pos,userOffsetVector,midpoint,posflag,flipCaps):
             capCoords = generate_end_caps(
                 context, dimProps, cap, capSize, pos[i], midVec, mids[i], i, False)
             i += 1
@@ -1558,12 +1551,12 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
             for filledCoord in capCoords[1]:
                 filledCoords.append(center + filledCoord)
 
-         # Add A and C Extension Lines
+        # Add A and C Extension Lines
         coords.append(A)
-        coords.append((((A).normalized())*(offsetRadius + arrowoffset/1000)))
+        coords.append((((A).normalized()) * (offsetRadius + arrowoffset / 1000)))
 
         coords.append(C)
-        coords.append((((C).normalized())*(offsetRadius + arrowoffset/1000)))
+        coords.append((((C).normalized()) * (offsetRadius + arrowoffset / 1000)))
 
         # Add Radius leader
         if dim.showRadius:
@@ -1601,10 +1594,10 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
                 radiusText.text_updated = True
 
             # make Radius text card
-            midPoint = Vector(interpolate3d(zeroVec, radiusLeader, radius/2))
+            midPoint = Vector(interpolate3d(zeroVec, radiusLeader, radius / 2))
             vecY = midPoint.cross(norm).normalized()
             vecX = midPoint.normalized()
-            rad_origin = Vector(midPoint) + 0.04*vecY + center
+            rad_origin = Vector(midPoint) + 0.04 * vecY + center
             dim.textAlignment = 'C'
             rad_square = generate_text_card(
                 context, radiusText, dimProps, basePoint=rad_origin, xDir=vecX, yDir=vecY)
@@ -1614,7 +1607,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
                     context, dim.textFields[0], dimProps, myobj, rad_square)
 
         # make Length text card
-        midPoint = radiusLeader.normalized()*offsetRadius
+        midPoint = radiusLeader.normalized() * offsetRadius
         vecX = midPoint.cross(norm).normalized()
         vecY = midPoint.normalized()
         len_origin = Vector(midPoint) + center
@@ -1628,8 +1621,8 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
         measure_coords = []
         measure_pointCoords = []
         for coord in coords:
-            measure_coords.append(coord+center)
-            measure_pointCoords.append(coord+center)
+            measure_coords.append(coord + center)
+            measure_pointCoords.append(coord + center)
 
         # Draw Our Measurement
         draw_lines(lineWeight, rgb, measure_coords, twoPass=True,
@@ -1637,26 +1630,26 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
 
         # Draw the arc itself
         coords = []
-        startVec = (verts[0]*radius)
+        startVec = (verts[0] * radius)
         coords.append(startVec)
         for vert in verts:
-            coords.append((vert*radius))
-            coords.append((vert*radius))
-        endVec = (verts[len(verts)-1]*radius)
+            coords.append((vert * radius))
+            coords.append((vert * radius))
+        endVec = (verts[len(verts) - 1] * radius)
         coords.append(endVec)
 
         arc_coords = []
         arc_pointCoords = []
         for coord in coords:
-            arc_coords.append(coord+center)
-            arc_pointCoords.append(coord+center)
+            arc_coords.append(coord + center)
+            arc_pointCoords.append(coord + center)
 
-        draw_lines(lineWeight*2, rgb, arc_coords, twoPass=True,
+        draw_lines(lineWeight * 2, rgb, arc_coords, twoPass=True,
                    pointPass=True, pointCoords=arc_pointCoords)
 
         if dim.showRadius:
             pointCenter = [center]
-            draw_points(lineWeight*5, rgb, pointCenter)
+            draw_points(lineWeight * 5, rgb, pointCenter)
 
         if len(filledCoords) != 0:
             draw_filled_coords(filledCoords, rgb)
@@ -1666,7 +1659,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
             svg_shaders.svg_line_shader(
                 dim, coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_line_shader(
-                dim, measure_coords, lineWeight*2, rgb, svg, parent=svg_dim)
+                dim, measure_coords, lineWeight * 2, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
@@ -1682,7 +1675,6 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
 def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
     dimProps = dim
     sceneProps = context.scene.MeasureItArchProps
-    scene = context.scene
 
     if dim.uses_style:
         for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
@@ -1749,8 +1741,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         for edgeIdx in dim['perimeterEdgeBuffer'].to_list():
             edge = bm.edges[edgeIdx]
             verts = edge.verts
-            perimeterCoords.append(mat@verts[0].co)
-            perimeterCoords.append(mat@verts[1].co)
+            perimeterCoords.append(mat @ verts[0].co)
+            perimeterCoords.append(mat @ verts[1].co)
 
         # Format and draw Text
         if 'textFields' not in dim:
@@ -1781,7 +1773,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         normal = rotMatrix @ originFace.normal
         tangent = rotMatrix @ originFace.calc_tangent_edge()
 
-        origin += dim.dimTextPos + normal*0.001
+        origin += dim.dimTextPos + normal * 0.001
 
         vecY = normal.cross(tangent)
         vecX = normal.cross(vecY)
@@ -1792,9 +1784,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         vecY.rotate(Quaternion(normal, dim.dimRotation))
         vecX.rotate(Quaternion(normal, dim.dimRotation))
 
-        origin = mat@origin
-        #vecY = mat@ vecY
-        #vecX = mat@ vecX
+        origin = mat @ origin
 
         dimProps.textAlignment = 'C'
         dimProps.textPosition = 'M'
@@ -1823,10 +1813,12 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
 
     set_OpenGL_Settings(False)
 
+
 # takes a set of co-ordinates returns the min and max value for each axis
-
-
 def get_axis_aligned_bounds(coords):
+    """
+    Takes a set of co-ordinates returns the min and max value for each axis
+    """
     maxX = None
     minX = None
     maxY = None
@@ -1835,7 +1827,7 @@ def get_axis_aligned_bounds(coords):
     minZ = None
 
     for coord in coords:
-        if maxX == None:
+        if maxX is None:
             maxX = coord[0]
             minX = coord[0]
             maxY = coord[1]
@@ -1894,7 +1886,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
                 if space.type == 'VIEW_3D':
                     space3D = space
 
-            if space3D == None:
+            if space3D is None:
                 return Vector((0, 0, 0))
 
             viewRot = space3D.region_3d.view_rotation
@@ -1923,7 +1915,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 
         # get Adjacent Face normals if possible
         possibleNormals = []
-        faces = myobj.data.polygons
+
         # Create a Bmesh Instance from the selected object
         bm = bmesh.new()
         bm.from_mesh(myobj.data)
@@ -2025,7 +2017,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
             lineWeight = lineProps.lineWeight
 
             # Calculate Offset with User Tweaks
-            offset = lineWeight/2.5
+            offset = lineWeight / 2.5
             offset += lineProps.lineDepthOffset
             if isOrtho:
                 offset /= 15
@@ -2120,22 +2112,25 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
             # line weight group setup
             tempWeights = []
-            if lineGroup.lineWeightGroup is not "":
+            if lineGroup.lineWeightGroup != "":
                 vertexGroup = myobj.vertex_groups[lineGroup.lineWeightGroup]
                 for idx in lineGroup['lineBuffer']:
                     tempWeights.append(vertexGroup.weight(idx))
             else:
                 tempWeights = [1.0] * len(coords)
 
-            if drawHidden == True:
+            if drawHidden:
                 # Invert The Depth test for hidden lines
                 bgl.glDepthFunc(bgl.GL_GREATER)
                 hiddenLineWeight = lineProps.lineHiddenWeight
 
                 rawRGB = lineProps.lineHiddenColor
                 # undo blenders Default Gamma Correction
-                dashRGB = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1],
-                                                        (1/2.2)), pow(rawRGB[2], (1/2.2)), rawRGB[3])
+                dashRGB = (
+                    pow(rawRGB[0], (1 / 2.2)),
+                    pow(rawRGB[1], (1 / 2.2)),
+                    pow(rawRGB[2], (1 / 2.2)),
+                    rawRGB[3])
 
                 dashedLineShader.bind()
                 dashedLineShader.uniform_float(
@@ -2180,7 +2175,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 dashedLineShader.uniform_float(
                     "screenSpaceDash", lineProps.screenSpaceDashes)
                 dashedLineShader.uniform_float(
-                    "finalColor",  (rgb[0], rgb[1], rgb[2], rgb[3]))
+                    "finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 dashedLineShader.uniform_float("offset", -offset)
 
                 global dashedBatch3D
@@ -2203,7 +2198,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 lineGroupShader.uniform_float("objectMatrix", mat)
                 lineGroupShader.uniform_float("thickness", lineWeight)
                 lineGroupShader.uniform_float(
-                    "extension", lineProps.lineOverExtension)
+                    "extension", lineGroup.lineOverExtension)
                 lineGroupShader.uniform_float("pointPass", lineGroup.pointPass)
                 lineGroupShader.uniform_float(
                     "weightInfluence", lineGroup.weightGroupInfluence)
@@ -2211,7 +2206,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     "finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
                 lineGroupShader.uniform_float("zOffset", -offset)
 
-                #colors = [(rgb[0], rgb[1], rgb[2], rgb[3]) for coord in range(len(coords))]
+                # colors = [(rgb[0], rgb[1], rgb[2], rgb[3]) for coord in range(len(coords))]
 
                 global lineBatch3D
                 batchKey = myobj.name + lineGroup.name
@@ -2327,7 +2322,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                     idx += 1
 
             loc = mat.to_translation()
-            diff = Vector(p1) - Vector(loc)
             offset = annotation.annotationOffset
 
             offset = Vector(offset)
@@ -2443,7 +2437,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 for textField in view.textFields:
                     fields.append(textField)
 
-
             for textField in fields:
                 set_text(textField, myobj)
                 origin = p2
@@ -2497,13 +2490,13 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             if endcap == 'T':
                 axis = Vector(p1) - Vector(p2)
                 line = interpolate3d(Vector((0, 0, 0)), axis, -0.1)
-                line = Vector(line) * endcapSize/10
+                line = Vector(line) * endcapSize / 10
                 perp = line.orthogonal()
-                rotangle = annotationProps.endcapArrowAngle-radians(5)
+                rotangle = annotationProps.endcapArrowAngle - radians(5)
                 line.rotate(Quaternion(perp, rotangle))
 
                 for idx in range(12):
-                    rotangle = radians(360/12)
+                    rotangle = radians(360 / 12)
                     filledCoords.append(line.copy() + Vector(p1))
                     filledCoords.append(Vector((0, 0, 0)) + Vector(p1))
                     line.rotate(Quaternion(axis, rotangle))
@@ -2541,10 +2534,7 @@ def set_text(textField, obj):
     if textField.autoFillText:
         # DATE
         if textField.textSource == 'DATE':
-            today = datetime.now()
-            dateStr = today.strftime(
-                '%y') + '/' + today.strftime('%m') + '/' + today.strftime('%d')
-            textField.text = dateStr
+            textField.text = datetime.now().strftime('%y/%m/%d')
 
         # VIEW
         elif textField.textSource == 'VIEW':
@@ -2559,6 +2549,7 @@ def set_text(textField, obj):
         elif textField.textSource == 'RNAPROP':
             if textField.rnaProp != '':
                 try:
+                    # TODO: `eval` is evil
                     data = eval(
                         'bpy.data.objects[\'' + obj.name + '\']' + textField.rnaProp)
                     textField.text = str(data)
@@ -2592,7 +2583,7 @@ def preview_dual(context):
         faces = edge.link_faces
         for face in faces:
             center = face.calc_center_median()
-            coords.append(mat@center)
+            coords.append(mat @ center)
 
     draw_lines(3, (1, 0, 0, 1), coords, twoPass=True, offset=-0.0005)
     set_OpenGL_Settings(False)
@@ -2619,7 +2610,6 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
     # Get View rotation
     debug_camera = False
     if sceneProps.is_render_draw or debug_camera:
-        cameraLoc = context.scene.camera.location.normalized()
         viewRot = context.scene.camera.rotation_euler.to_quaternion()
     else:
         viewRot = context.area.spaces[0].region_3d.view_rotation
@@ -2643,8 +2633,8 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
     #     |                |
     #     0----------------3
 
-    cardDirX = (card[3]-card[0]).normalized()
-    cardDirY = (card[1]-card[0]).normalized()
+    cardDirX = (card[3] - card[0]).normalized()
+    cardDirY = (card[1] - card[0]).normalized()
     cardDirZ = cardDirX.cross(cardDirY)
 
     viewAxisX = i.copy()
@@ -2674,20 +2664,20 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
     if cardDirX.dot(viewAxisX) < 0:
         flippedUVs = []
         for uv in normalizedDeviceUVs:
-            uv = flipMatrixX@Vector(uv)
+            uv = flipMatrixX @ Vector(uv)
             flippedUVs.append(uv)
         normalizedDeviceUVs = flippedUVs
 
     if cardDirY.dot(viewAxisY) < 0:
         flippedUVs = []
         for uv in normalizedDeviceUVs:
-            uv = flipMatrixY@Vector(uv)
+            uv = flipMatrixY @ Vector(uv)
             flippedUVs.append(uv)
         normalizedDeviceUVs = flippedUVs
 
     # Draw View Axis in Red and Card Axis in Green for debug
     autoflipdebug = sceneProps.debug_flip_text
-    if autoflipdebug == True:
+    if autoflipdebug:
         viewport = [context.area.width, context.area.height]
         lineShader.bind()
         lineShader.uniform_float("Viewport", viewport)
@@ -2696,13 +2686,13 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
         lineShader.uniform_float("offset", 0)
 
         zero = Vector((0, 0, 0))
-        coords = [zero, viewAxisX/2, zero, viewAxisY]
+        coords = [zero, viewAxisX / 2, zero, viewAxisY]
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
         batch.program_set(lineShader)
         batch.draw()
 
         lineShader.uniform_float("finalColor", (0, 1, 0, 1))
-        coords = [zero, cardDirX/2, zero, cardDirY]
+        coords = [zero, cardDirX / 2, zero, cardDirY]
         batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
         batch.program_set(lineShader)
         batch.draw()
@@ -2712,7 +2702,7 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
 
     uvs = []
     for normUV in normalizedDeviceUVs:
-        uv = (Vector(normUV) + Vector((1, 1)))*0.5
+        uv = (Vector(normUV) + Vector((1, 1))) * 0.5
         uvs.append(uv)
 
     # Gets Texture from Object
@@ -2773,16 +2763,14 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
     capCoords = []
     filledCoords = []
 
-    scene = context.scene
-
     scale = get_scale()
 
-    size = (capSize / 393.701)/4
+    size = (capSize / 393.701) / 4
     size *= scale
 
-    distVector = Vector(pos-Vector(midpoint)).normalized()
+    distVector = Vector(pos - Vector(midpoint)).normalized()
     norm = distVector.cross(userOffsetVector).normalized()
-    line = distVector*size
+    line = distVector * size
     arrowAngle = item.endcapArrowAngle
 
     if flipCaps:
@@ -2797,7 +2785,7 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
         line.rotate(Quaternion(norm, rotangle))
         p1 = (pos - line)
         p2 = (pos)
-        line.rotate(Quaternion(norm, -(rotangle*2)))
+        line.rotate(Quaternion(norm, -(rotangle * 2)))
         p3 = (pos - line)
 
         if capType == 'T':
@@ -2815,7 +2803,7 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
     elif capType == 'D':
         rotangle = radians(-90)
         line = userOffsetVector.copy()
-        line *= 1/20
+        line *= 1 / 20
         line.rotate(Quaternion(norm, rotangle))
         p1 = (pos - line)
         p2 = (pos + line)
@@ -2830,10 +2818,10 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
         a = 0.055
         b = 0.085
 
-        s1 = (a*x) + (b*y)
-        s2 = (b*x) + (a*y)
-        s3 = (-a*x) + (-b*y)
-        s4 = (-b*x) + (-a*y)
+        s1 = (a * x) + (b * y)
+        s2 = (b * x) + (a * y)
+        s3 = (-a * x) + (-b * y)
+        s4 = (-b * x) + (-a * y)
 
         square = (s1, s2, s3, s4)
 
@@ -2867,8 +2855,8 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
     size = textProps.fontSize / 803
     size *= scale
 
-    sx = (width/resolution)*size
-    sy = (height/resolution)*size
+    # Get font size in pt more stupid fudge factors :(
+    size = (textProps.fontSize / 803) * scale
 
     cardX = xDir.normalized() * sx
     cardY = yDir.normalized() * sy
@@ -2878,22 +2866,22 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
 
     # pick approprate card based on alignment
     if textProps.textAlignment == 'R':
-        aOff = 0.5*cardX
+        aOff = 0.5 * cardX
     elif textProps.textAlignment == 'L':
-        aOff = -0.5*cardX
+        aOff = -0.5 * cardX
     else:
         aOff = Vector((0.0, 0.0, 0.0))
 
     if textProps.textPosition == 'M':
-        pOff = 0.5*cardY
+        pOff = 0.5 * cardY
     elif textProps.textPosition == 'B':
-        pOff = 1.0*cardY
+        pOff = 1.0 * cardY
     else:
         pOff = Vector((0.0, 0.0, 0.0))
 
     cardOffset = cardIdx * cardY
 
-    # Define Transformation Matricies
+    # Define transformation matrices
     rotMat = Matrix.Identity(3)
     rotEuler = Euler(rotation, 'XYZ')
     rotMat.rotate(rotEuler)
@@ -2909,12 +2897,11 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
         coord += basePoint
         coords.append(coord)
 
-    return (coords)
+    return coords
 
 
 def sortPoints(p1, p2):
-    tempDirVec = Vector(p1)-Vector(p2)
-
+    tempDirVec = Vector(p1) - Vector(p2)
     domAxis = get_dom_axis(tempDirVec)
 
     # check dom axis alignment for text
@@ -2944,10 +2931,8 @@ def get_dom_axis(vector):
     return domAxis
 
 
-# ------------------------------------------
-# Get area using Heron formula
-# ------------------------------------------
 def get_triangle_area(p1, p2, p3):
+    """ Get area using Heron formula """
     d1, dn = distance(p1, p2)
     d2, dn = distance(p2, p3)
     d3, dn = distance(p1, p3)
@@ -2996,11 +2981,11 @@ def distance(v1, v2, locx=True, locy=True, locz=True):
     # If axis is not used, make equal both (no distance)
     v1b = [v1[0], v1[1], v1[2]]
     v2b = [v2[0], v2[1], v2[2]]
-    if locx is False:
+    if not locx:
         v2b[0] = v1b[0]
-    if locy is False:
+    if not locy:
         v2b[1] = v1b[1]
-    if locz is False:
+    if not locz:
         v2b[2] = v1b[2]
 
     xloc = sqrt((v2b[0] - v1b[0]) ** 2 + (v2b[1] - v1b[1])
@@ -3009,14 +2994,15 @@ def distance(v1, v2, locx=True, locy=True, locz=True):
     return x, xloc
 
 
-# --------------------------------------------------------------------
-# Interpolate 2 points in 3D space
-# v1: first point
-# v2: second point
-# d1: distance
-# return: interpolate point
-# --------------------------------------------------------------------
 def interpolate3d(v1, v2, d1):
+    """
+    Interpolate 2 points in 3D space
+    v1: first point
+    v2: second point
+    d1: distance
+    return: interpolate point
+    """
+
     # calculate vector
     v = (v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2])
     # calculate distance between points
@@ -3033,12 +3019,14 @@ def interpolate3d(v1, v2, d1):
     return final
 
 
-# --------------------------------------------------------------------
-# Get point rotated and relative to parent
-# v1: point
-# mainobject
-# --------------------------------------------------------------------
 def get_point(v1, mainobject, mat):
+    """
+    Get point rotated and relative to parent
+
+    v1: point
+    mainobject
+    mat
+    """
     # Using World Matrix
     vt = Vector((v1[0], v1[1], v1[2], 1))
     m4 = mat
@@ -3048,36 +3036,16 @@ def get_point(v1, mainobject, mat):
     return v2
 
 
-# --------------------------------------------------------------------
-# Get location in world space
-# v1: point
-# mainobject
-# --------------------------------------------------------------------
 def get_location(mainobject):
+    """
+    Get location in world space
+    """
     # Using World Matrix
     m4 = mainobject.matrix_world
-
     return [m4[0][3], m4[1][3], m4[2][3]]
 
 
-# --------------------------------------------------------------------
-# Get position for scale text
-#
-# --------------------------------------------------------------------
 
-
-# ---------------------------------------------------------
-# Get center of circle base on 3 points
-#
-# Point a: (x,y,z) arc start
-# Point b: (x,y,z) center
-# Point c: (x,y,z) midle point in the arc
-# Point d: (x,y,z) arc end
-# Return:
-# ang: angle (radians)
-# len: len of arc
-#
-# ---------------------------------------------------------
 def get_arc_data(pointa, pointb, pointc, pointd):
     v1 = Vector((pointa[0] - pointb[0], pointa[1] -
                  pointb[1], pointa[2] - pointb[2]))
@@ -3128,25 +3096,25 @@ def format_distance(fmt, value, factor=1, isArea=False):
         # Seperate ft and inches
         # Unless Inches are the specified Length Unit
         if unit_length != 'INCHES':
-            feet = floor(decInches/inPerFoot)
-            decInches -= feet*inPerFoot
+            feet = floor(decInches / inPerFoot)
+            decInches -= feet * inPerFoot
         else:
             feet = 0
 
         # Seperate Fractional Inches
         inches = floor(decInches)
         if inches != 0:
-            frac = round(base*(decInches-inches))
+            frac = round(base * (decInches - inches))
         else:
-            frac = round(base*(decInches))
+            frac = round(base * (decInches))
 
         # Set proper numerator and denominator
         if frac != base:
             numcycles = int(math.log2(base))
             for i in range(numcycles):
                 if frac % 2 == 0:
-                    frac = int(frac/2)
-                    base = int(base/2)
+                    frac = int(frac / 2)
+                    base = int(base / 2)
                 else:
                     break
         else:
@@ -3180,25 +3148,25 @@ def format_distance(fmt, value, factor=1, isArea=False):
         if not isArea:
             tx_dist = feetString + inchesString + fracString
         else:
-            tx_dist = str(fmt % (value*toInches/inPerFoot)) + " sq. ft."
+            tx_dist = str(fmt % (value * toInches / inPerFoot)) + " sq. ft."
 
     # METRIC FORMATING
     elif unit_system == "METRIC":
 
         # Meters
         if unit_length == 'METERS':
-            if hide_units is False:
+            if not hide_units:
                 fmt += " m"
             tx_dist = fmt % value
         # Centimeters
         elif unit_length == 'CENTIMETERS':
-            if hide_units is False:
+            if not hide_units:
                 fmt += " cm"
             d_cm = value * (100)
             tx_dist = fmt % d_cm
         # Millimeters
         elif unit_length == 'MILLIMETERS':
-            if hide_units is False:
+            if not hide_units:
                 fmt += " mm"
             d_mm = value * (1000)
             tx_dist = fmt % d_mm
@@ -3206,17 +3174,17 @@ def format_distance(fmt, value, factor=1, isArea=False):
         # Otherwise Use Adaptive Units
         else:
             if round(value, 2) >= 1.0:
-                if hide_units is False:
+                if not hide_units:
                     fmt += " m"
                 tx_dist = fmt % value
             else:
                 if round(value, 2) >= 0.01:
-                    if hide_units is False:
+                    if not hide_units:
                         fmt += " cm"
                     d_cm = value * (100)
                     tx_dist = fmt % d_cm
                 else:
-                    if hide_units is False:
+                    if not hide_units:
                         fmt += " mm"
                     d_mm = value * (1000)
                     tx_dist = fmt % d_mm
@@ -3233,6 +3201,7 @@ def format_distance(fmt, value, factor=1, isArea=False):
 # mainobject
 # --------------------------------------------------------------------
 def get_mesh_vertices(myobj):
+    """ Get vertex data """
     sceneProps = bpy.context.scene.MeasureItArchProps
     try:
         obverts = []
@@ -3278,7 +3247,7 @@ def get_line_vertex(idx, verts, mat):
 
 def archipack_datablock(o):
     """
-     Return archipack datablock from object
+    Return archipack datablock from object
     """
     try:
         return o.data.archipack_dimension_auto[0]
@@ -3341,7 +3310,7 @@ def check_mods(myobj):
                 'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH', 'COLLISION',
                 'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
                 'SMOKE', 'SOFT_BODY', 'SURFACE', 'SOLIDIFY']
-    if myobj.modifiers == None:
+    if myobj.modifiers is None:
         return False
     for mod in myobj.modifiers:
         if mod.type not in goodMods:
@@ -3369,8 +3338,8 @@ def check_vis(item, props):
 
 
 def rgb_gamma_correct(rawRGB):
-    rgb = (pow(rawRGB[0], (1/2.2)), pow(rawRGB[1], (1/2.2)),
-           pow(rawRGB[2], (1/2.2)), rawRGB[3])
+    rgb = (pow(rawRGB[0], (1 / 2.2)), pow(rawRGB[1], (1 / 2.2)),
+           pow(rawRGB[2], (1 / 2.2)), rawRGB[3])
     return Vector(rgb)
 
 
@@ -3478,7 +3447,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False, pointPass=
     gpu.shader.unbind()
 
     if pointPass:
-        if pointCoords == None:
+        if pointCoords is None:
             pointCoords = coords
         draw_points(lineWeight, rgb, pointCoords, offset)
 
@@ -3492,7 +3461,7 @@ def cap_extension(dirVec, capSize, capAngle):
 
 def dim_line_extension(capSize):
     scale = get_scale()
-    return (capSize / 750)*scale
+    return (capSize / 750) * scale
 
 
 def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize=0):
@@ -3509,16 +3478,17 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
         dimProps.textPosition = 'M'
         flipCaps = True
         dimLineExtension = dim_line_extension(capSize)
-        origin += Vector((dist/2 + dimLineExtension*1.2) * normDistVector)
+        origin += Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     elif dimProps.textAlignment == 'R':
         flipCaps = True
         dimProps.textPosition = 'M'
         dimLineExtension = dim_line_extension(capSize)
-        origin -= Vector((dist/2 + dimLineExtension*1.2) * normDistVector)
+        origin -= Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     square = generate_text_card(
         context, dimText, dimProps, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
+
     cardX = square[3] - square[0]
     cardY = square[1] - square[0]
 
@@ -3527,8 +3497,7 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
         if dimProps.textAlignment == 'C':
             flipCaps = True
             dimLineExtension = dim_line_extension(capSize)
-            origin += distVec*-0.5 - \
-                (dimLineExtension*normDistVector) - cardX/2 - cardY/2
+            origin += distVec * -0.5 - (dimLineExtension * normDistVector) - cardX / 2 - cardY / 2
             square = generate_text_card(
                 context, dimText, dimProps, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
 
@@ -3699,19 +3668,14 @@ def get_camera_z_dist(location):
 
 
 def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
-    # ---------------------------------------
-    # Generate all OpenGL calls
-    # ---------------------------------------
+    """
+    Generate all OpenGL calls
+    """
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
     idx = 1
     totalobjs = len(objlist)
-
-    if sceneProps.is_vector_draw:
-        drawing = svg.g(id='Drawing')
-        hatches = svg.g(id='Hatches')
-        titleblock = svg.g(id='TitleBlock')
 
     if sceneProps.vector_z_order and sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist)
@@ -3723,7 +3687,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
                   str(totalobjs) + " Name: " + myobj.name)
             startTime = time.time()
 
-        if myobj.hide_get() is False:
+        if not myobj.hide_get():
             mat = myobj.matrix_world
             if extMat is not None:
                 if multMat:
@@ -3732,8 +3696,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
                     mat = extMat
 
             if sceneProps.is_vector_draw and myobj.type == 'MESH':
-                draw_hatches(context, myobj,
-                             scene.HatchGenerator, mat, svg=svg)
+                draw_hatches(context, myobj, scene.HatchGenerator, mat, svg=svg)
 
             sheetGen = myobj.SheetGenerator
             for sheet_view in sheetGen.sheet_views:

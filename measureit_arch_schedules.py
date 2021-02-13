@@ -3,29 +3,25 @@ import csv
 import os
 import copy
 
-from .measureit_arch_main import SCENE_PT_Panel
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu, Collection
-from rna_prop_ui import PropertyPanel
-from bl_operators.presets import AddPresetBase
-from .custom_preset_base import Custom_Preset_Base
-from .measureit_arch_geometry import format_distance
-
-from bpy.app.handlers import persistent
 from bpy.props import (
     CollectionProperty,
-    FloatVectorProperty,
     IntProperty,
     BoolProperty,
     StringProperty,
-    FloatProperty,
     EnumProperty,
-    PointerProperty,
-    BoolVectorProperty
+    PointerProperty
 )
-
-from .measureit_arch_render import render_main
+from bpy.types import (
+    PropertyGroup,
+    Panel,
+    Operator,
+    Scene,
+    UIList,
+    Collection
+)
 from datetime import datetime
 
+from .measureit_arch_geometry import format_distance
 
 class ColumnProps(PropertyGroup):
 
@@ -46,24 +42,24 @@ class ColumnProps(PropertyGroup):
         description="data")
 
 
-bpy.utils.register_class(ColumnProps)
-
-
 class ScheduleProperties(PropertyGroup):
 
     name: StringProperty()
 
-    date_folder: BoolProperty(name="Date Folder",
-                              description="Adds a Folder with todays date to the end of the output path",
-                              default=False)
+    date_folder: BoolProperty(
+        name="Date Folder",
+        description="Adds a Folder with todays date to the end of the output path",
+        default=False)
 
-    group_rows: BoolProperty(name="Group Rows",
-                             description="Group Identical Rows and include a Count",
-                             default=False)
+    group_rows: BoolProperty(
+        name="Group Rows",
+        description="Group Identical Rows and include a Count",
+        default=False)
 
-    sort_subcollections: BoolProperty(name="Sort Sub Collections",
-                                      description="Adds A section Header to the .csv to Sub Collections",
-                                      default=False)
+    sort_subcollections: BoolProperty(
+        name="Sort Sub Collections",
+        description="Adds A section Header to the .csv to Sub Collections",
+        default=False)
 
     output_path: StringProperty(
         name="Output Path",
@@ -77,21 +73,17 @@ class ScheduleProperties(PropertyGroup):
     columns: CollectionProperty(type=ColumnProps)
 
 
-bpy.utils.register_class(ScheduleProperties)
-
 
 class ScheduleContainer(PropertyGroup):
-    active_index: IntProperty(name='Active Schedule Index', min=0, max=1000, default=0,
-                              description='Index of the current Schedule')
+    active_index: IntProperty(
+        name='Active Schedule Index', min=0, max=1000, default=0,
+        description='Index of the current Schedule')
 
-    show_settings: BoolProperty(name='Show Schedule Settings', default=False)
+    show_settings: BoolProperty(
+        name='Show Schedule Settings', default=False)
 
     # Array of schedules
     schedules: CollectionProperty(type=ScheduleProperties)
-
-
-bpy.utils.register_class(ScheduleContainer)
-Scene.ScheduleGenerator = bpy.props.PointerProperty(type=ScheduleContainer)
 
 
 class AddColumnButton(Operator):
@@ -112,7 +104,7 @@ class AddColumnButton(Operator):
         schedule = Generator.schedules[Generator.active_index]
 
         if self.removeFlag:
-            schedule.columns.remove(len(schedule.columns)-1)
+            schedule.columns.remove(len(schedule.columns) - 1)
         else:
             col = schedule.columns.add()
             col.name = "Column " + str(len(schedule.columns))
@@ -173,7 +165,7 @@ class GenerateSchedule(Operator):
         if len(collection.children) > 0:
             for subCol in collection.children:
                 returned_rows = self.check_collections(
-                    subCol, schedule, depth=depth+1)
+                    subCol, schedule, depth=depth + 1)
                 data.append(returned_rows)
 
         return data
@@ -184,9 +176,11 @@ class GenerateSchedule(Operator):
 
         try:
             if column.data == '--':
+                # TODO: `eval` considered harmful
                 data = eval(
                     'bpy.data.objects[\'' + obj.name + '\']' + column.data_path)
             else:
+                # TODO: here too
                 data = eval(
                     'bpy.data.objects[\'' + obj.name + '\']' + column.data)
 
@@ -225,13 +219,10 @@ class GenerateSchedule(Operator):
         return data
 
     def unpack_data(self, data, depth=0):
-        Generator = bpy.context.scene.ScheduleGenerator
-        schedule = Generator.schedules[Generator.active_index]
-
         row_list = []
         if type(data[0]) != str:
             for item in data:
-                return_list = self.unpack_data(item, depth=depth+1)
+                return_list = self.unpack_data(item, depth=depth + 1)
                 for row in return_list:
                     row_list.append(row)
 
@@ -252,7 +243,7 @@ class GenerateSchedule(Operator):
             today = datetime.now()
             datepath = os.path.join(file_path, today.strftime('%Y%m%d'))
             if not os.path.exists(datepath):
-                os.mkdir(file_path + today.strftime('%Y%m%d'))
+                os.mkdir(datepath)
             file_path = datepath
 
         row_list = []
@@ -345,7 +336,8 @@ class M_ARCH_UL_Schedules_list(UIList):
 
 
 class SCENE_PT_Schedules(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ A panel in the Object properties window """
+
     bl_parent_id = 'SCENE_PT_Panel'
     bl_label = "Schedules"
     bl_space_type = 'PROPERTIES'

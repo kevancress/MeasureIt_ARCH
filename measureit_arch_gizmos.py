@@ -25,13 +25,11 @@
 # ----------------------------------------------------------
 
 import bpy
-from mathutils import Vector, Matrix, Euler, Quaternion
-from math import degrees, radians
-from bpy.types import (
-    GizmoGroup,
-    Gizmo,
-    Scene
-)
+
+from bpy.types import GizmoGroup
+from mathutils import Vector, Matrix, Quaternion
+from math import radians
+
 
 
 class mArchGizmoGroup(GizmoGroup):
@@ -84,9 +82,6 @@ class mArchGizmoGroup(GizmoGroup):
         self.createGiz(obj)
 
 
-bpy.utils.register_class(mArchGizmoGroup)
-
-
 def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
     context = bpy.context
     dimProps = dim
@@ -102,12 +97,12 @@ def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
     rotMatrix = rot.to_matrix()
     rotMatrix.resize_4x4()
 
-    basisMatrix.translation = Vector(dim.gizLoc)+(Vector(dim.gizRotDir)*0.2)
+    basisMatrix.translation = Vector(dim.gizLoc) + (Vector(dim.gizRotDir) * 0.2)
     basisMatrix = basisMatrix @ rotMatrix
 
     # Offset Gizmo
     dimOffsetGiz = group.gizmos.new("GIZMO_GT_arrow_3d")
-    op = dimOffsetGiz.target_set_operator("measureit_arch.dimesnion_offset")
+    op = dimOffsetGiz.target_set_operator("measureit_arch.dimension_offset")
     op.objIndex = objIndex
     op.idx = idx
     op.dimType = dimStr
@@ -119,24 +114,24 @@ def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
     dimOffsetGiz.use_draw_value = False
 
     dimOffsetGiz.scale_basis = 1
-    dimOffsetGiz.color = (pow(dimProps.color[0], (1/2.2)), pow(
-        dimProps.color[1], (1/2.2)), pow(dimProps.color[2], (1/2.2)))
+    dimOffsetGiz.color = (pow(dimProps.color[0], (1 / 2.2)), pow(
+        dimProps.color[1], (1 / 2.2)), pow(dimProps.color[2], (1 / 2.2)))
     dimOffsetGiz.alpha = 0.3
 
-    dimOffsetGiz.color_highlight = (pow(dimProps.color[0], (1/2.2)), pow(
-        dimProps.color[1], (1/2.2)), pow(dimProps.color[2], (1/2.2)))
+    dimOffsetGiz.color_highlight = (pow(dimProps.color[0], (1 / 2.2)), pow(
+        dimProps.color[1], (1 / 2.2)), pow(dimProps.color[2], (1 / 2.2)))
     dimOffsetGiz.alpha_highlight = 1
 
     # Button Gizmo
-    #dimButton = group.gizmos.new("GIZMO_GT_button_2d")
-    #dimButton.icon = 'PREFERENCES'
-    #dimButton.scale_basis = 0.2
-    #dimButton.matrix_basis = basisMatrix
+    # dimButton = group.gizmos.new("GIZMO_GT_button_2d")
+    # dimButton.icon = 'PREFERENCES'
+    # dimButton.scale_basis = 0.2
+    # dimButton.matrix_basis = basisMatrix
 
     # Add Gizmos to group
     group.offset_widget = dimOffsetGiz
-    #group.settings_widget = dimButton
-    #self.rotate_widget = rotateGiz
+    # group.settings_widget = dimButton
+    # self.rotate_widget = rotateGiz
 
 
 def createAnnotationTranslateGiz(group, annotationGen, objIndex):

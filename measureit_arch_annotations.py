@@ -81,12 +81,11 @@ class CustomProperties(PropertyGroup):
     name: StringProperty(name='Custom Properties')
 
 
-bpy.utils.register_class(CustomProperties)
-
 
 def custom_shape_poll(self, collection):
     myobj = self.annotationAnchorObject
     try:
+        # TODO: should this be collection.objects ?
         col.objects[myobj.name]
     except:
         return collection
@@ -98,17 +97,20 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
     customShape: PointerProperty(
         name='Custom Annotation Shape', type=Collection, poll=custom_shape_poll)
 
-    custom_local_transforms: BoolProperty(name='Use Local Transforms',
-                                          description='Uses the Local transforms of custom annotation objects',
-                                          default=True)
+    custom_local_transforms: BoolProperty(
+        name='Use Local Transforms',
+        description='Uses the Local transforms of custom annotation objects',
+        default=True)
 
-    custom_fit_text: BoolProperty(name='Fit Text',
-                                  description='Scale Custom Shap to Text Length',
-                                  default=True)
+    custom_fit_text: BoolProperty(
+        name='Fit Text',
+        description='Scale Custom Shap to Text Length',
+        default=True)
 
-    custom_scale: FloatProperty(name='Custom Shape Scale',
-                                description='Scale Custom Shape',
-                                default=1.0,)
+    custom_scale: FloatProperty(
+        name='Custom Shape Scale',
+        description='Scale Custom Shape',
+        default=1.0,)
 
     custom_shape_location: EnumProperty(
         items=(('A', "Anchor", "Anchor"),
@@ -116,36 +118,43 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
         name="Custom Shape Location",
         description="Define Where a custom shape is anchored")
 
-    draw_leader: BoolProperty(name='Use Leader',
-                              description='Draw A Leader Line from the annotation to the anchor',
-                              default=True)
+    draw_leader: BoolProperty(
+        name='Use Leader',
+        description='Draw A Leader Line from the annotation to the anchor',
+        default=True)
 
-    shape_to_text: BoolProperty(name='Shape to text',
-                                description='Align the custom annotation shape with the annotation text, rather than the anchor point',
-                                default=False)
+    shape_to_text: BoolProperty(
+        name='Shape to text',
+        description='Align the custom annotation shape with the annotation text, rather than the anchor point',
+        default=False)
 
-    annotationRotation: FloatVectorProperty(name='annotationOffset',
-                                            description='Rotation for Annotation',
-                                            default=(0.0, 0.0, 0.0),
-                                            subtype='EULER')
+    annotationRotation: FloatVectorProperty(
+        name='annotationOffset',
+        description='Rotation for Annotation',
+        default=(0.0, 0.0, 0.0),
+        subtype='EULER')
 
-    annotationOffset: FloatVectorProperty(name='annotationOffset',
-                                          description='Offset for Annotation',
-                                          default=(1.0, 1.0, 1.0),
-                                          subtype='TRANSLATION')
+    annotationOffset: FloatVectorProperty(
+        name='annotationOffset',
+        description='Offset for Annotation',
+        default=(1.0, 1.0, 1.0),
+        subtype='TRANSLATION')
 
-    annotationTextSource: StringProperty(name='annotationTextSource',
-                                         description="Text Source",
-                                         update=annotation_update_flag)
+    annotationTextSource: StringProperty(
+        name='annotationTextSource',
+        description="Text Source",
+        update=annotation_update_flag)
 
     annotationAnchorObject: PointerProperty(type=Object)
 
-    annotationAnchor: IntProperty(name="annotationAnchor",
-                                  description="Index of Vertex that the annotation is Anchored to")
+    annotationAnchor: IntProperty(
+        name="annotationAnchor",
+        description="Index of Vertex that the annotation is Anchored to")
 
-    endcapSize: IntProperty(name="dimEndcapSize",
-                            description="End Cap size",
-                            default=15, min=1, max=500)
+    endcapSize: IntProperty(
+        name="dimEndcapSize",
+        description="End Cap size",
+        default=15, min=1, max=500)
 
     endcapA: EnumProperty(
         items=(('99', "--", "No Cap"),
@@ -155,24 +164,18 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
         description="Add arrows to point A")
 
 
-bpy.utils.register_class(AnnotationProperties)
-
 
 class AnnotationContainer(PropertyGroup):
-    num_annotations: IntProperty(name='Number of Annotations', min=0, max=1000, default=0,
-                                 description='Number total of Annotations')
-    active_index: IntProperty(name='Active Annotation Index',
-                              update=update_active_annotation)
+    num_annotations: IntProperty(
+        name='Number of Annotations', min=0, max=1000, default=0,
+        description='Number total of Annotations')
+    active_index: IntProperty(name='Active Annotation Index')
     show_annotation_settings: BoolProperty(
         name='Show Annotation Settings', default=False)
     show_annotation_fields: BoolProperty(
         name='Show Annotation Text Fields', default=False)
     # Array of segments
     annotations: CollectionProperty(type=AnnotationProperties)
-
-
-bpy.utils.register_class(AnnotationContainer)
-Object.AnnotationGenerator = PointerProperty(type=AnnotationContainer)
 
 
 class AddAnnotationButton(Operator):
@@ -337,8 +340,8 @@ class OBJECT_PT_UIAnnotations(Panel):
                 row = layout.row()
 
                 # Draw The UI List
-                row.template_list("M_ARCH_UL_annotations_list", "", annoGen,
-                                  "annotations", annoGen, "active_index", rows=2, type='DEFAULT')
+                row.template_list("M_ARCH_UL_annotations_list", "", annoGen, "annotations",
+                                  annoGen, "active_annotation_index", rows=2, type='DEFAULT')
 
                 # Operators Next to List
                 col = row.column(align=True)
@@ -436,15 +439,15 @@ class OBJECT_PT_UIAnnotations(Panel):
                     if annoGen.show_annotation_settings:
 
                         col = box.column(align=True)
-                        col.prop_search(
-                            annotation, 'customShape', bpy.data, 'collections', text='Custom Shape')
+                        col.prop_search(annotation, 'customShape',
+                                        bpy.data, 'collections', text='Custom Shape')
                         col.prop(annotation, 'custom_shape_location',
                                  text='Custom Shape Location')
                         col.prop(annotation, 'custom_scale',
                                  text='Custom Shape Scale')
                         col.prop(annotation, 'custom_local_transforms',
                                  text='Use Local Transforms')
-                        #col.prop(annotation, 'custom_fit_text', text = 'Fit Text')
+                        # col.prop(annotation, 'custom_fit_text', text = 'Fit Text')
 
                         if not annotation.uses_style:
                             col = box.column(align=True)
@@ -504,22 +507,24 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
             annoGen = context.object.AnnotationGenerator
 
 
-class TranlateAnnotationOp(bpy.types.Operator):
+
+class TranslateAnnotationOp(bpy.types.Operator):
     """Move Annotation"""
     bl_idname = "measureit_arch.translate_annotation"
     bl_label = "Translate Annotation"
     bl_options = {'GRAB_CURSOR', 'INTERNAL', 'BLOCKING', 'UNDO'}
 
     idx: IntProperty()
+
     constrainAxis: BoolVectorProperty(
         name="Constrain Axis",
         size=3,
-        subtype='XYZ'
-    )
+        subtype='XYZ')
+
     offset: FloatVectorProperty(
         name="Offset",
-        size=3,
-    )
+        size=3)
+
     objIndex: IntProperty()
 
     def modal(self, context, event):
@@ -617,15 +622,15 @@ class RotateAnnotationOp(bpy.types.Operator):
     bl_options = {'INTERNAL', 'BLOCKING', 'UNDO'}
 
     idx: IntProperty()
+
     constrainAxis: BoolVectorProperty(
         name="Constrain Axis",
         size=3,
-        subtype='XYZ'
-    )
+        subtype='XYZ')
+
     offset: FloatVectorProperty(
         name="Offset",
-        size=3,
-    )
+        size=3)
 
     objIndex: IntProperty()
 
@@ -678,7 +683,7 @@ class RotateAnnotationOp(bpy.types.Operator):
 
             vecLast = vecDelta
             context.area.header_text_set(
-                "Rotate "+axisText + "%.4f" % delta + "\u00b0")
+                "Rotate " + axisText + "%.4f" % delta + "\u00b0")
 
         elif event.type == 'LEFTMOUSE':
             # Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes

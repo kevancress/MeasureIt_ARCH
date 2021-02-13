@@ -25,38 +25,30 @@
 # ----------------------------------------------------------
 
 import bpy
-import bmesh
-import bgl
-import gpu
-from .measureit_arch_main import OBJECT_PT_Panel
-from bmesh import from_edit_mesh
-from math import degrees, radians
-from gpu_extras.batch import batch_for_shader
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList, VertexGroup, Scene
-from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-    FloatProperty, EnumProperty, PointerProperty
 
-from .measureit_arch_main import get_smart_selected, get_selected_vertex
-from .measureit_arch_baseclass import BaseProp
-from .measureit_arch_views import ViewProperties
+from bpy.types import PropertyGroup, Panel, Operator, UIList, Scene
+from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
+    BoolProperty, StringProperty, PointerProperty
+
 
 
 class SheetViewProperties(PropertyGroup):
-    rotation: FloatVectorProperty(name='annotationOffset',
-                                  description='Rotation for Annotation',
-                                  default=(0.0, 0.0, 0.0),
-                                  subtype='EULER')
 
-    location: FloatVectorProperty(name='annotationOffset',
-                                  description='Offset for Annotation',
-                                  default=(0.0, 0.0, 0.0),
-                                  subtype='TRANSLATION')
+    rotation: FloatVectorProperty(
+        name='annotationOffset',
+        description='Rotation for Annotation',
+        default=(0.0, 0.0, 0.0),
+        subtype='EULER')
+
+    location: FloatVectorProperty(
+        name='annotationOffset',
+        description='Offset for Annotation',
+        default=(0.0, 0.0, 0.0),
+        subtype='TRANSLATION')
 
     view: StringProperty(name="View Name")
+
     scene: PointerProperty(type=Scene)
-
-
-bpy.utils.register_class(SheetViewProperties)
 
 
 class SheetViewContainer(PropertyGroup):
@@ -67,10 +59,6 @@ class SheetViewContainer(PropertyGroup):
 
     # Array of segments
     sheet_views: CollectionProperty(type=SheetViewProperties)
-
-
-bpy.utils.register_class(SheetViewContainer)
-Object.SheetGenerator = bpy.props.PointerProperty(type=SheetViewContainer)
 
 
 class AddSheetViewButton(Operator):
@@ -86,8 +74,6 @@ class AddSheetViewButton(Operator):
             for area in screen.areas:
                 if area.type == 'VIEW_3D':
                     # Add properties
-
-                    scene = context.scene
                     SheetGen = obj.SheetGenerator
 
                     newView = SheetGen.sheet_views.add()
@@ -104,6 +90,7 @@ class DeleteSheetViewButton(Operator):
     bl_description = "Delete a View"
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'}
+
     tag: IntProperty()
 
     def execute(self, context):
@@ -132,7 +119,8 @@ class M_ARCH_UL_Sheets_list(UIList):
 
 
 class SCENE_PT_Sheet(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ A panel in the Object properties window """
+
     bl_parent_id = 'OBJECT_PT_Panel'
     bl_label = "MeasureIt_ARCH Sheet"
     bl_space_type = 'PROPERTIES'
@@ -162,8 +150,9 @@ class SCENE_PT_Sheet(Panel):
         row = layout.row()
 
         # Draw The UI List
-        row.template_list("M_ARCH_UL_Sheets_list", "", SheetGen,
-                          "sheet_views", SheetGen, "active_index", rows=2, type='DEFAULT')
+        row.template_list(
+            "M_ARCH_UL_Sheets_list", "", SheetGen, "sheet_views", SheetGen,
+            "active_index", rows=2, type='DEFAULT')
 
         # Operators Next to List
         col = row.column(align=True)
@@ -203,4 +192,4 @@ class SCENE_PT_Sheet(Panel):
                                     text="View", icon='CAMERA_DATA')
 
                     col.prop(view, 'location', text='Location')
-                    #col.prop(view, 'rotation', text='Rotation')
+                    # col.prop(view, 'rotation', text='Rotation')

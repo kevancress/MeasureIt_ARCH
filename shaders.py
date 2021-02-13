@@ -30,52 +30,41 @@ class Base_Shader_2D ():
     vertex_shader = '''
         uniform mat4 ModelViewProjectionMatrix;
         in vec2 pos;
-        void main()
-        {
+
+        void main() {
             gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
         }
-    
     '''
 
     fragment_shader = '''
-
         uniform vec4 color;
         in vec4 fColor;
         out vec4 fragColor;
 
-
-        void main()
-        {
-
+        void main() {
             fragColor = color;
-
         }
     '''
 
 class Base_Shader_3D ():
 
     vertex_shader = '''
-
         uniform mat4 ModelViewProjectionMatrix;
         uniform float offset;
         in vec3 pos;
-        
         vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
         vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
 
-        void main()
-        {
+        void main() {
            gl_Position = project + vecOffset;
         }
-
-        '''
+    '''
 
     fragment_shader = '''
         uniform vec4 finalColor;
         out vec4 fragColor;
 
-        void main()
-        {
+        void main() {
             fragColor = finalColor;
         }
     '''
@@ -93,8 +82,7 @@ class Base_Shader_3D_AA ():
 
         out vec4 fragColor;
 
-        void main()
-        {
+        void main() {
             vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha);
             vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
@@ -109,13 +97,13 @@ class Base_Shader_3D_AA ():
 
             aaColor = mix(mixColor,aaColor,aa);
 
-            if(depthPass){
-                if (aa<1){
+            if (depthPass) {
+                if (aa<1) {
                     discard;
                 }
             }
-            
-            fragColor = aaColor; 
+
+            fragColor = aaColor;
         }
     '''
 
@@ -166,7 +154,7 @@ class Line_Shader_3D ():
 
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
-            
+
             vec2 ssp1 = vec2(p1.xy / p1.w);
             vec2 ssp2 = vec2(p2.xy / p2.w);
 
@@ -179,7 +167,7 @@ class Line_Shader_3D ():
             // get offset factor from normal and user input thickness
             vec2 offset = get_line_width(normal,width);
             float lineAlpha = get_line_alpha(normal,width);
-            
+
 
             vec4 coords[4];
             vec2 texCoords[4];
@@ -203,28 +191,24 @@ class Line_Shader_3D ():
                 EmitVertex();
             }
             EndPrimitive();
-        }  
+        }
     '''
 
 class Line_Group_Shader_3D ():
     vertex_shader = '''
-
         uniform mat4 ModelViewProjectionMatrix;
         in vec3 pos;
         in float weight;
 
-        out VS_OUT
-        {
+        out VS_OUT {
             float weightOut;
         } vs_out;
 
-        void main()
-        {
+        void main() {
            gl_Position = vec4(pos, 1.0);
            vs_out.weightOut = weight;
         }
-
-        '''
+    '''
 
 
     geometry_shader = '''
@@ -233,7 +217,7 @@ class Line_Group_Shader_3D ():
 
         in VS_OUT {
             float weightOut;
-        } gs_in[]; 
+        } gs_in[];
 
         uniform mat4 ModelViewProjectionMatrix;
         uniform mat4 objectMatrix;
@@ -256,8 +240,8 @@ class Line_Group_Shader_3D ():
         vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
 
         float minLength = 1.0*length(pxVec);
-        
-        vec2 get_line_width(vec2 normal, float width){
+
+        vec2 get_line_width(vec2 normal, float width) {
             vec2 offsetvec = vec2(normal * width);
             offsetvec.x /= Viewport.x;
             offsetvec.y /= Viewport.y;
@@ -269,7 +253,7 @@ class Line_Group_Shader_3D ():
             return(offsetvec);
         }
 
-        float get_line_alpha(vec2 normal, float width){
+        float get_line_alpha(vec2 normal, float width) {
             vec2 offsetvec = vec2(normal * width);
             offsetvec.x /= Viewport.x;
             offsetvec.y /= Viewport.y;
@@ -283,7 +267,7 @@ class Line_Group_Shader_3D ():
 
 
         void main() {
-            //calculate world space line normal and extension
+            // Calculate world space line normal and extension
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
 
@@ -291,7 +275,6 @@ class Line_Group_Shader_3D ():
 
             vec4 p1ExtLocal = vec4(p1 - dir3d*extAmount);
             vec4 p2ExtLocal = vec4(p2 + dir3d*extAmount);
-
 
             // Project to Clip space Using Object and veiw matrix
             vec4 p1worldPos = objectMatrix * p1ExtLocal;
@@ -311,10 +294,8 @@ class Line_Group_Shader_3D ():
             // Get Width per point
             float width1 = mix(width, gs_in[0].weightOut * width, weightInfluence);
             radius = width1;
-            
-            float width2 = mix(width, gs_in[1].weightOut * width, weightInfluence);
-            
 
+            float width2 = mix(width, gs_in[1].weightOut * width, weightInfluence);
 
             // Screen Space direction and normal
             vec2 dir = normalize(ssp2 - ssp1);
@@ -327,10 +308,6 @@ class Line_Group_Shader_3D ():
 
             vec2 lineOffset2 = get_line_width(normal, width2);
             float alpha2 = get_line_alpha(normal,width2);
-
-
-
-            
 
             // Generate the rectangle Coords
             vec4 coords[4];
@@ -353,12 +330,9 @@ class Line_Group_Shader_3D ():
             texCoords[3] = vec2(0,0);
             alphas[3] = alpha2;
 
-
-
             // Draw Point pass
             // Get Center Point in Screen Space
             if (pointPass){
-
                 vec4 worldPos = objectMatrix * p1;
                 vec4 project = ModelViewProjectionMatrix * worldPos;
 
@@ -395,8 +369,6 @@ class Line_Group_Shader_3D ():
                 EndPrimitive();
 
             }
-            
-
 
             // Draw Rectange
             for (int i = 0; i < 4; ++i) {
@@ -406,7 +378,7 @@ class Line_Group_Shader_3D ():
                 EmitVertex();
             }
             EndPrimitive();
-        }  
+        }
     '''
 
 class Frag_Shaders_3D_B283 ():
@@ -415,20 +387,19 @@ class Frag_Shaders_3D_B283 ():
         out vec4 fragColor;
         uniform bool depthPass;
 
-        void main()
-        {
+        void main() {
             float aa = finalColor[3];
 
             if(depthPass){
                 aa = 1.0;
             }
-            
+
             vec4 outColor = vec4(finalColor[0],finalColor[1],finalColor[2],aa);
             fragColor = blender_srgb_to_framebuffer_space(outColor);
 
         }
     '''
-    
+
     aa_fragment_shader = '''
         in vec2 mTexCoord;
         in vec4 fcolor;
@@ -440,9 +411,7 @@ class Frag_Shaders_3D_B283 ():
 
         out vec4 fragColor;
 
-        void main()
-        {
-            
+        void main() {
             vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha*finalColor[3]);
             vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
@@ -462,8 +431,8 @@ class Frag_Shaders_3D_B283 ():
                     discard;
                 }
             }
-            
-            fragColor = blender_srgb_to_framebuffer_space(aaColor); 
+
+            fragColor = blender_srgb_to_framebuffer_space(aaColor);
         }
     '''
 
@@ -477,8 +446,7 @@ class Frag_Shaders_3D_B283 ():
         in float g_ArcLength;
         out vec4 fragColor;
 
-        void main()
-        {   
+        void main() {
             vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha);
             vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
@@ -492,7 +460,7 @@ class Frag_Shaders_3D_B283 ():
             aa = smoothstep(0,1,aa);
 
             aaColor = mix(mixColor,aaColor,aa);
-           
+
             float mapdashSpace = 2*dashSpace - 1;
             if (step(sin(g_ArcLength * u_Scale), mapdashSpace) == 1) discard;
             fragColor = blender_srgb_to_framebuffer_space(aaColor);
@@ -505,14 +473,13 @@ class Frag_Shaders_3D_B283 ():
         in vec2 uvInterp;
         out vec4 fragColor;
 
-        void main()
-        {   
+        void main() {
             vec4 color = texture(image, uvInterp);
 
             if(color[3]<0.5){
                 discard;
             }
-   
+
             fragColor = blender_srgb_to_framebuffer_space(color);
         }
     '''
@@ -531,12 +498,12 @@ class Dashed_Shader_3D ():
         vec4 project = ModelViewProjectionMatrix * worldPos;
         vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
 
-        void main()
-        {
+        void main() {
             gl_Position = project + vecOffset;
             v_arcpos = pos;
         }
     '''
+
     geometry_shader = '''
         layout(lines) in;
         layout(triangle_strip, max_vertices = 10) out;
@@ -578,9 +545,9 @@ class Dashed_Shader_3D ():
             }
             return alpha;
         }
-        
+
         void main() {
-            //calculate line normal
+            // calculate line normal
 
             vec4 p1 =  gl_in[0].gl_Position;
             vec4 p2 =  gl_in[1].gl_Position;
@@ -592,7 +559,7 @@ class Dashed_Shader_3D ():
 
             vec2 dir = normalize(ssp2 - ssp1);
             vec2 normal = vec2(-dir[1], dir[0]);
-            
+
             // get offset factor from normal and user input thicknes
             vec2 offset = get_line_width(normal,width);
             float lineAlpha = get_line_alpha(normal,width);
@@ -612,16 +579,15 @@ class Dashed_Shader_3D ():
             coords[3] = vec4((ssp2 - offset)*p2.w,p2.z,p2.w);
             texCoords[3] = vec2(0,0);
 
-            
+
             float arcLengths[4];
             arcLengths[0] = 0;
             arcLengths[1] = 0;
-            
+
             if (screenSpaceDash){
                 arcLengths[2] = length(ssp2-ssp1) * 20;
                 arcLengths[3] = length(ssp2-ssp1) * 20;
-            }
-            else{
+            } else {
                 arcLengths[2] = length(v_arcpos[1]-v_arcpos[0])*2;
                 arcLengths[3] = length(v_arcpos[1]-v_arcpos[0])*2;
             }
@@ -634,7 +600,7 @@ class Dashed_Shader_3D ():
                 EmitVertex();
             }
             EndPrimitive();
-        }  
+        }
     '''
 
     fragment_shader = '''
@@ -642,12 +608,12 @@ class Dashed_Shader_3D ():
         uniform float u_Scale;
         uniform vec4 finalColor;
         uniform float dashSpace;
-        
+
         in float g_ArcLength;
         out vec4 fragColor;
 
         void main()
-        {   
+        {
             vec4 aaColor = finalColor;
 
             vec2 center = vec2(0,0.5);
@@ -663,7 +629,7 @@ class Dashed_Shader_3D ():
             aaColor[3] = mix(0,finalColor[3],aa);
 
             fragColor = aaColor;
-            
+
             float mapdashSpace = 2*dashSpace - 1;
             if (step(sin(g_ArcLength * u_Scale), mapdashSpace) == 1) discard;
             fragColor = aaColor;
@@ -672,22 +638,18 @@ class Dashed_Shader_3D ():
 
 class Point_Shader_3D ():
 
-   
     vertex_shader = '''
-
         uniform mat4 ModelViewProjectionMatrix;
         uniform float offset;
         in vec3 pos;
-        
+
         vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
         vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
 
-        void main()
-        {
+        void main() {
             gl_Position = project + vecOffset;
         }
-
-        '''
+    '''
 
     geometry_shader = '''
         layout(points) in;
@@ -701,7 +663,6 @@ class Point_Shader_3D ():
 
         float aspect = Viewport.x/Viewport.y;
 
-
         vec4 p1 =  gl_in[0].gl_Position;
         vec2 ssp1 = vec2(p1.xy / p1.w);
 
@@ -709,11 +670,10 @@ class Point_Shader_3D ():
 
         const float PI = 3.1415926;
 
-        
         vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
         float minLength =  length(pxVec);
 
-        vec2 get_line_width(vec2 normal, float width){
+        vec2 get_line_width(vec2 normal, float width) {
             vec2 offsetvec = vec2(normal * width);
             offsetvec.x /= Viewport.x;
             offsetvec.y /= Viewport.y;
@@ -725,7 +685,7 @@ class Point_Shader_3D ():
             return(offsetvec);
         }
 
-        float get_line_alpha(vec2 normal, float width){
+        float get_line_alpha(vec2 normal, float width) {
             vec2 offsetvec = vec2(normal * width);
             offsetvec.x /= Viewport.x;
             offsetvec.y /= Viewport.y;
@@ -736,18 +696,17 @@ class Point_Shader_3D ():
             }
             return alpha;
         }
-        
+
         float val = 0.8625;
         float radius = length(get_line_width(vec2(val), thickness));
         float lineAlpha = get_line_alpha(vec2(val), thickness);
 
         void main() {
-
             gl_Position = gl_in[0].gl_Position;
             mTexCoord = vec2(0,0.5);
             alpha = lineAlpha;
             EmitVertex();
-            
+
             segments = clamp(segments,0,24);
             for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
@@ -769,26 +728,25 @@ class Point_Shader_3D ():
             }
 
             EndPrimitive();
-        }  
+        }
     '''
 
 class Text_Shader():
     vertex_shader = '''
-    uniform mat4 ModelViewProjectionMatrix;
+        uniform mat4 ModelViewProjectionMatrix;
 
-    in vec3 pos;
-    in vec2 uv;
+        in vec3 pos;
+        in vec2 uv;
 
-    out vec2 uvInterp;
+        out vec2 uvInterp;
 
-    vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
-    vec4 vecOffset = vec4(0.0,0.0,-0.001,0.0);
+        vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
+        vec4 vecOffset = vec4(0.0,0.0,-0.001,0.0);
 
-    void main()
-    {
-        uvInterp = uv;
-        gl_Position = project + vecOffset;
-    }
+        void main() {
+            uvInterp = uv;
+            gl_Position = project + vecOffset;
+        }
     '''
 
     fragment_shader = '''
@@ -797,8 +755,7 @@ class Text_Shader():
         in vec2 uvInterp;
         out vec4 fragColor;
 
-        void main()
-        {   
+        void main() {
             vec4 color = texture(image, uvInterp);
             if (color[3]<0.1){
                 discard;
@@ -808,12 +765,11 @@ class Text_Shader():
     '''
 
 class DepthOnlyFrag():
-    fragment_shader = ''' 
+    fragment_shader = '''
         uniform mat4 ModelViewProjectionMatrix;
         out vec4 fragColor;
 
-        void main()
-        {   
+        void main() {
             float depth = gl_FragCoord.z;
             fragColor = vec4(depth, depth, depth, 1.0);
         }
@@ -824,11 +780,11 @@ class Pass_Through_Geo():
     geometry_shader = '''
         layout(lines) in;
         layout(line_strip, max_vertices = 4) out;
-        
+
         uniform mat4 ModelViewProjectionMatrix;
         uniform float thickness;
-        void main()
-        {
+
+        void main() {
             gl_Position = gl_in[0].gl_Position;
             EmitVertex();
 
@@ -837,4 +793,4 @@ class Pass_Through_Geo():
 
             EndPrimitive();
         }
-        '''
+    '''

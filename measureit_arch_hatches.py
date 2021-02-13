@@ -1,104 +1,96 @@
 import bpy
-from .measureit_arch_main import SCENE_PT_Panel
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, Menu, Collection
-from rna_prop_ui import PropertyPanel
-from bl_operators.presets import AddPresetBase
-from .custom_preset_base import Custom_Preset_Base
-import os
-from bpy.app.handlers import persistent
+
 from bpy.props import (
     CollectionProperty,
     FloatVectorProperty,
     IntProperty,
     BoolProperty,
-    StringProperty,
     FloatProperty,
-    EnumProperty,
-    PointerProperty,
-    BoolVectorProperty
-)
-
-from .measureit_arch_render import render_main
-from datetime import datetime
+    PointerProperty)
+from bpy.types import PropertyGroup, Panel, Operator, UIList, Collection
 
 
 class HatchProperties(PropertyGroup):
 
-    visible: BoolProperty(name="Visibility",
-                          description="how/hide",
-                          default=True)
+    visible: BoolProperty(
+        name="Visibility",
+        description="how/hide",
+        default=True)
 
     material: PointerProperty(type=bpy.types.Material)
 
     pattern: PointerProperty(name='Hatch Pattern', type=Collection)
 
-    patternWeight: FloatProperty(name="Pattern Weight",
-                                 description="Lineweight",
-                                 default=1,
-                                 soft_min=1.0,
-                                 step=25,
-                                 min=0)
+    patternWeight: FloatProperty(
+        name="Pattern Weight",
+        description="Lineweight",
+        default=1,
+        soft_min=1.0,
+        step=25,
+        min=0)
 
-    patternSize: FloatProperty(name="Pattern Size",
-                               description="Lineweight",
-                               default=1,
-                               soft_min=1.0,
-                               step=25,
-                               min=0)
+    patternSize: FloatProperty(
+        name="Pattern Size",
+        description="Lineweight",
+        default=1,
+        soft_min=1.0,
+        step=25,
+        min=0)
 
-    patternRot: FloatProperty(name="Pattern Rotation",
-                              description="Rotation",
-                              default=0,
-                              soft_min=0,
-                              step=25,
-                              subtype='ANGLE')
+    patternRot: FloatProperty(
+        name="Pattern Rotation",
+        description="Rotation",
+        default=0,
+        soft_min=0,
+        step=25,
+        subtype='ANGLE')
 
-    patternOpacity: FloatProperty(name="Pattern Opacity",
-                                  description="Pattern Opacity",
-                                  default=1.0,
-                                  min=0.0,
-                                  max=1.0,
-                                  step=1,)
+    patternOpacity: FloatProperty(
+        name="Pattern Opacity",
+        description="Pattern Opacity",
+        default=1.0,
+        min=0.0,
+        max=1.0,
+        step=1,)
 
-    fill_color: FloatVectorProperty(name="Color",
-                                    description="Color for the Item",
-                                    default=(0.0, 0.0, 0.0, 1.0),
-                                    min=0,
-                                    max=1,
-                                    subtype='COLOR',
-                                    size=4,)
+    fill_color: FloatVectorProperty(
+        name="Color",
+        description="Color for the Item",
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4,)
 
-    line_color: FloatVectorProperty(name="Color",
-                                    description="Color for the Item",
-                                    default=(0.0, 0.0, 0.0, 1.0),
-                                    min=0,
-                                    max=1,
-                                    subtype='COLOR',
-                                    size=4,)
+    line_color: FloatVectorProperty(
+        name="Color",
+        description="Color for the Item",
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4,)
 
-    lineWeight: FloatProperty(name="Line Weight",
-                              description="Lineweight",
-                              default=1,
-                              soft_min=1.0,
-                              step=25,
-                              min=0)
+    lineWeight: FloatProperty(
+        name="Line Weight",
+        description="Lineweight",
+        default=1,
+        soft_min=1.0,
+        step=25,
+        min=0)
 
-
-bpy.utils.register_class(HatchProperties)
 
 
 class HatchContainer(PropertyGroup):
-    active_index: IntProperty(name='Active Hatch Index', min=0, max=1000, default=0,
-                              description='Index of the current Hatch')
+    active_index: IntProperty(
+        name='Active Hatch Index', min=0, max=1000, default=0,
+        description='Index of the current Hatch')
 
     show_settings: BoolProperty(name='Show Hatch Settings', default=False)
 
     # Array of hatches
     hatches: CollectionProperty(type=HatchProperties)
 
-
-bpy.utils.register_class(HatchContainer)
-Scene.HatchGenerator = bpy.props.PointerProperty(type=HatchContainer)
 
 
 class DeleteHatchButton(Operator):
@@ -145,7 +137,7 @@ class M_ARCH_UL_Hatches_list(UIList):
 
 
 class SCENE_PT_Hatches(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ Creates a Panel in the Object properties window """
     bl_parent_id = 'SCENE_PT_Panel'
     bl_label = "Hatches"
     bl_space_type = 'PROPERTIES'
@@ -179,7 +171,7 @@ class SCENE_PT_Hatches(Panel):
         op.tag = HatchGen.active_index  # saves internal data
 
         # col.separator()
-        #col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+        # col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 
         # Settings Below List
         # I'll bring this back, but right now hatches only do fills so

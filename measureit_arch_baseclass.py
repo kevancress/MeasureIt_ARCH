@@ -1,13 +1,9 @@
 import bpy
-import bgl
-import blf
-import gpu
 import math
-from mathutils import Matrix
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene
-from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-    FloatProperty, EnumProperty, PointerProperty
 
+from bpy.types import PropertyGroup, Operator
+from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
+    BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
 def update_flag(self, context):
     self.text_updated = True
@@ -170,16 +166,17 @@ class TextField(PropertyGroup):
     textSource: EnumProperty(
         items=(('VIEW', "View", "", 'DOCUMENTS', 1),
                ('DATE', "Date", "", 'TIME', 2),
-               ('NOTES',"Notes","",'LONGDISPLAY',3),
+               ('NOTES', "Notes", "", 'LONGDISPLAY', 3),
                ('RNAPROP', "Custom Property", "", 'RNA', 99)),
         name="Text Source",
         default='RNAPROP',
         description="Set Text Field Source")
 
-    rnaProp: StringProperty(name="Custom Prop String",
-                            description="RNA Prop String",
-                            default="",
-                            update=update_flag)
+    rnaProp: StringProperty(
+        name="Custom Prop String",
+        description="RNA Prop String",
+        default="",
+        update=update_flag)
 
     textAlignment: EnumProperty(
         items=(('L', "Left", "", 'ALIGN_LEFT', 1),
@@ -196,27 +193,29 @@ class TextField(PropertyGroup):
         name="align Font",
         description="Set Font Position")
 
-    textWidth: IntProperty(name='annotationWidth',
-                           description='Width of annotation')
+    textWidth: IntProperty(
+        name='annotationWidth',
+        description='Width of annotation')
 
-    textHeight: IntProperty(name='annotationHeight',
-                            description='Height of annotation')
+    textHeight: IntProperty(
+        name='annotationHeight',
+        description='Height of annotation')
 
-    texture_updated: BoolProperty(name='texture_updated',
-                                  description='flag when text texture need to be redrawn',
-                                  default=False)
+    texture_updated: BoolProperty(
+        name='texture_updated',
+        description='flag when text texture need to be redrawn',
+        default=False)
 
-
-bpy.utils.register_class(TextField)
 
 
 class BaseWithText(BaseProp):
 
     text: StringProperty(name='legacy text')
 
-    text_updated: BoolProperty(name='text_updated',
-                               description='flag when text needs to be redrawn',
-                               default=False)
+    text_updated: BoolProperty(
+        name='text_updated',
+        description='flag when text needs to be redrawn',
+        default=False)
 
     textFields: CollectionProperty(type=TextField)
 
@@ -234,24 +233,31 @@ class BaseWithText(BaseProp):
         name="align Font",
         description="Set Font Position")
 
-    fontSize: IntProperty(name='Font Size',
-                          description="Font Size in pt (1pt = 1/72\") \nNote: Font size is relative to the current scale \nScale is defined in your active view, or in the Scene unit settings ",
-                          default=18)
+    fontSize: IntProperty(
+        name='Font Size',
+        description="Font Size in pt (1pt = 1/72\")\n"
+                    "Note: Font size is relative to the current scale\n"
+                    "Scale is defined in your active view, or in the Scene unit settings",
+        default=18)
 
-    font: PointerProperty(type=bpy.types.VectorFont,
-                          update=update_flag)
+    font: PointerProperty(
+        type=bpy.types.VectorFont,
+        update=update_flag)
 
-    # endcap properties are defined here to ensure compatiblity but the enumProps are overwritten in child property groups
-    endcapSize: IntProperty(name="dimEndcapSize",
-                            description="End Cap size",
-                            default=12, min=1, max=500)
+    # Endcap properties are defined here to ensure compatiblity but the
+    # enumProps are overwritten in child property groups
+    endcapSize: IntProperty(
+        name="dimEndcapSize",
+        description="End Cap size",
+        default=12, min=1, max=500)
 
-    endcapArrowAngle: FloatProperty(name="endcapArrowAngle",
-                                    description="End Cap Arrow Angle",
-                                    default=math.radians(15),
-                                    soft_min=math.radians(15),
-                                    soft_max=math.radians(45),
-                                    subtype='ANGLE')
+    endcapArrowAngle: FloatProperty(
+        name="endcapArrowAngle",
+        description="End Cap Arrow Angle",
+        default=math.radians(15),
+        soft_min=math.radians(15),
+        soft_max=math.radians(45),
+        subtype='ANGLE')
 
     endcapA: EnumProperty(
         items=(('99', "--", "No arrow"),
@@ -268,32 +274,38 @@ class BaseWithText(BaseProp):
 
 class BaseDim(BaseWithText):
 
-    generator: StringProperty(name="Generator",
-                              description="item generator - api property",
-                              default="DimensionGenerator",)
+    generator: StringProperty(
+        name="Generator",
+        description="item generator - api property",
+        default="DimensionGenerator[0]",)
 
-    dimPointA: IntProperty(name='dimPointA',
-                           description="Dimension Start Vertex Index")
+    dimPointA: IntProperty(
+        name='dimPointA',
+        description="Dimension Start Vertex Index")
 
-    dimPointB: IntProperty(name='dimPointB',
-                           description="Dimension End Vertex Index")
+    dimPointB: IntProperty(
+        name='dimPointB',
+        description="Dimension End Vertex Index")
 
-    dimOffset: FloatProperty(name='Dimension Offset',
-                             description='Offset for Dimension',
-                             default=(0.5),
-                             subtype='DISTANCE',
-                             update=update_active_dim)
+    dimOffset: FloatProperty(
+        name='Dimension Offset',
+        description='Offset for Dimension',
+        default=(0.5),
+        subtype='DISTANCE',
+        update=update_active_dim)
 
-    tweakOffset: FloatProperty(name='Dimension Offset',
-                               description='Offset for Dimension',
-                               default=(0.0),
-                               subtype='DISTANCE',
-                               update=update_active_dim)
+    tweakOffset: FloatProperty(
+        name='Dimension Offset',
+        description='Offset for Dimension',
+        default=(0.0),
+        subtype='DISTANCE',
+        update=update_active_dim)
 
-    dimLeaderOffset: FloatProperty(name='Dimension Offset',
-                                   description='Offset for Dimension',
-                                   default=(0.05),
-                                   subtype='DISTANCE')
+    dimLeaderOffset: FloatProperty(
+        name='Dimension Offset',
+        description='Offset for Dimension',
+        default=(0.05),
+        subtype='DISTANCE')
 
     dimViewPlane: EnumProperty(
         items=(('99', "None", "None", 'EMPTY_AXIS', 0),
@@ -323,10 +335,11 @@ class BaseDim(BaseWithText):
         default='T',
         description="Add arrows to point A")
 
-    dimRotation: FloatProperty(name='annotationOffset',
-                               description='Rotation for Dimension',
-                               default=0.0,
-                               subtype='ANGLE')
+    dimRotation: FloatProperty(
+        name='annotationOffset',
+        description='Rotation for Dimension',
+        default=0.0,
+        subtype='ANGLE')
 
 
 class MeasureItARCHSceneProps(PropertyGroup):
@@ -353,27 +366,33 @@ class MeasureItARCHSceneProps(PropertyGroup):
         subtype='COLOR',
         size=4)
 
-    default_dimension_style: StringProperty(name="Default Style",
-                                            description="Dimension Style to Use")
+    default_dimension_style: StringProperty(
+        name="Default Style",
+        description="Dimension Style to Use")
 
-    default_annotation_style: StringProperty(name="Default Style",
-                                             description="Annotation Style to Use")
+    default_annotation_style: StringProperty(
+        name="Default Style",
+        description="Annotation Style to Use")
 
-    default_line_style: StringProperty(name="Default Style",
-                                       description="Line Style to Use")
+    default_line_style: StringProperty(
+        name="Default Style",
+        description="Line Style to Use")
 
-    show_all: BoolProperty(name="Show All",
-                           description="Display measures for all objects,"
-                           " not only selected",
-                           default=True)
+    show_all: BoolProperty(
+        name="Show All",
+        description="Display measures for all objects,"
+        " not only selected",
+        default=True)
 
-    show_dim_text: BoolProperty(name="Show Dimension Text",
-                                description="Display Dimension Text",
-                                default=True)
+    show_dim_text: BoolProperty(
+        name="Show Dimension Text",
+        description="Display Dimension Text",
+        default=True)
 
-    hide_units: BoolProperty(name="Hide Metric Units",
-                             description="Hide Units on Metric Measurements",
-                             default=False)
+    hide_units: BoolProperty(
+        name="Hide Units",
+        description="Do not display unit of measurement on viewport",
+        default=False)
 
     measureit_arch_dim_axis: EnumProperty(
         items=(('X', "X", "X Axis"),
@@ -488,10 +507,110 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="Imperial Precision",
         description="Measurement Precision for Imperial Units")
 
+    default_color: FloatVectorProperty(
+        name="Default Color",
+        description="Default Color for new Items",
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4,
+        update=update_flag)
 
-bpy.utils.register_class(MeasureItARCHSceneProps)
-Scene.MeasureItArchProps = bpy.props.PointerProperty(
-    type=MeasureItARCHSceneProps)
+    instance_dims: BoolProperty(
+        name="Instance Dimensions",
+        description="WARNING: Only the most recent Instance's Dimension text "
+                    "will adapt to local changes in scale or rotation",
+        default=False)
+
+    eval_mods: BoolProperty(
+        name="Evaluate Depsgraph",
+        description="All MeasureIt_ARCH elements will attempt to evaluate the "
+                    "dependency graph (Modifiers, Shape Keys, etc.) before "
+                    "drawing, may make dimensions and linework unstable",
+        default=False)
+
+    is_render_draw: BoolProperty(
+        name="Is Render",
+        description="Flag to use render size for draw aspect ratio",
+        default=False)
+
+    is_vector_draw: BoolProperty(
+        name="Is Vector Render",
+        description="Flag to use svg draw code",
+        default=False)
+
+    vector_z_order: BoolProperty(
+        name="Vector Z Order",
+        description="Order Vector Layers by Object Z Height",
+        default=False)
+
+    vector_depthtest: BoolProperty(
+        name="Use Vector Depth Test",
+        description="Check for Occlusion when rending to SVG\n"
+                    "WARNING: SLOW, open system console before rendering to view progress",
+        default=False)
+
+    show_gizmos: BoolProperty(
+        name="Show Gizmos",
+        description="Display MeasureIt_ARCH Gizmos",
+        default=False)
+
+    show_text_cards: BoolProperty(
+        name="Debug Text Cards",
+        description="Display MeasureIt_ARCH Text Cards",
+        default=False)
+
+    enable_experimental: BoolProperty(
+        name="Enable Experimental",
+        description="Enable Experimental Features like SVG Rendering",
+        default=False)
+
+    use_text_autoplacement: BoolProperty(
+        name="Use Text Autoplacement",
+        description="Adjust Dimension Text Placement Automatically",
+        default=True)
+
+    embed_scene_render: BoolProperty(
+        name="Embed Scene Render",
+        description="Render the scene and automatically combine the rendered image with the Measureit-ARCH render pass",
+        default=False)
+
+    embed_freestyle_svg: BoolProperty(
+        name="Embed Freestyle SVG",
+        description="Render a Freestyle SVG and automatically combine the rendered "
+                    "image with the Measureit-ARCH render pass\n"
+                    "Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
+        default=False,
+        update=freestyle_update_flag)
+
+    keep_freestyle_svg: BoolProperty(
+        name="Keep Freestyle SVG",
+        description="When Embeding a Freestyle SVG, keep the generated Freestyle SVG as a seperate file as well",
+        default=False,
+        update=freestyle_update_flag)
+
+    default_scale: IntProperty(
+        name='Default Paper Scale', min=1, default=25,
+        description="Default Paper Scale (used for font sizing)")
+
+    default_resolution: IntProperty(
+        name='Default Resolution ', min=1,
+        default=150,
+        soft_min=50,
+        soft_max=1200,
+        description="Default Resolution (used for font sizing)",
+        update=update_flag)
+
+    metric_precision: IntProperty(
+        name='Precision', min=0, max=5, default=2,
+        description="Metric decimal precision")
+
+    angle_precision: IntProperty(
+        name='Angle Precision', min=0, max=5, default=0,
+        description="Angle decimal precision")
+
+
 
 
 class DeletePropButton(Operator):
@@ -505,9 +624,6 @@ class DeletePropButton(Operator):
     item_type: StringProperty()
     is_style: BoolProperty()
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         # Add properties
         mainObj = context.object
@@ -543,16 +659,13 @@ class AddTextField(Operator):
     idx: IntProperty()
     add: BoolProperty()
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         mainobject = context.object
         textFields = eval(self.propPath)
         if self.add:
             textFields.add()
         else:
-            textFields.remove(len(textFields)-1)
+            textFields.remove(len(textFields) - 1)
         return {'FINISHED'}
 
 
@@ -573,6 +686,7 @@ class MoveItem(Operator):
                 self.report({'WARNING'}, "Key: " + key + " not moved")
 
     def execute(self, context):
+        # TODO: `eval` is evil
         collectionProp = eval(self.propPath)
 
         source = collectionProp[self.idx]
@@ -592,7 +706,7 @@ class MoveItem(Operator):
         self.copyKeys(source, destination)
         self.copyKeys(temp, source)
 
-        collectionProp.remove(len(collectionProp)-1)
+        collectionProp.remove(len(collectionProp) - 1)
 
         return {'FINISHED'}
 
@@ -604,10 +718,7 @@ class DeleteAllItemsButton(Operator):
     bl_category = 'MeasureitArch'
     genPath: StringProperty()
     is_style: BoolProperty()
-    # -----------------------
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
+    passedItem: PointerProperty(type=PropertyGroup)
 
     def execute(self, context):
         # Add properties

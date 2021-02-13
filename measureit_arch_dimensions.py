@@ -24,19 +24,14 @@
 #
 # ----------------------------------------------------------
 import bpy
-from .measureit_arch_main import OBJECT_PT_Panel
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, UIList, Collection
-from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, \
-    FloatProperty, EnumProperty, PointerProperty, BoolVectorProperty
-from .measureit_arch_main import *
-from .measureit_arch_baseclass import BaseWithText, BaseDim, recalc_dimWrapper_index
-from mathutils import Vector, Matrix, Euler, Quaternion
-import math
+import bmesh
 import random
-# ------------------------------------------------------------------
-# Define property group class for measureit_arch faces index
-# ------------------------------------------------------------------
 
+from bpy.types import PropertyGroup, Panel, Object, Operator, UIList, Collection
+from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
+    BoolProperty, StringProperty, FloatProperty, EnumProperty, \
+    PointerProperty, BoolVectorProperty
+from mathutils import Vector
 
 def update_active_dim(self, context):
     Generator = context.object.DimensionGenerator
@@ -72,44 +67,41 @@ class AreaDimensionProperties(BaseDim, PropertyGroup):
 
     showOutline: BoolProperty(name='Show Outline')
 
-    fillAlpha: FloatProperty(name='Fill',
-                             min=0,
-                             soft_max=1.0,
-                             max=1,
-                             default=0.5,
-                             subtype='FACTOR')
+    fillAlpha: FloatProperty(
+        name='Fill',
+        min=0,
+        soft_max=1.0,
+        max=1,
+        default=0.5,
+        subtype='FACTOR')
 
-    fillColor: FloatVectorProperty(name="Color",
-                                   description="Color for the Item",
-                                   default=(0.0, 0.0, 0.0, 1.0),
-                                   min=0,
-                                   max=1,
-                                   subtype='COLOR',
-                                   size=4)
+    fillColor: FloatVectorProperty(
+        name="Color",
+        description="Color for the Item",
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4)
 
-
-bpy.utils.register_class(AreaDimensionProperties)
 
 
 class AlignedDimensionProperties(BaseDim, PropertyGroup):
-
-    gen_group: StringProperty(name="Generator Group",
-                              description="group in the generator - api property",
-                              default="alignedDimensions",)
+    gen_group: StringProperty(
+        name="Generator Group",
+        description="group in the generator - api property",
+        default="alignedDimensions")
 
     dimObjectA: PointerProperty(type=Object)
 
     dimObjectB: PointerProperty(type=Object)
 
 
-bpy.utils.register_class(AlignedDimensionProperties)
-
-
 class AxisDimensionProperties(BaseDim, PropertyGroup):
-
-    gen_group: StringProperty(name="Generator Group",
-                              description="group in the generator - api property",
-                              default="axisDimensions",)
+    gen_group: StringProperty(
+        name="Generator Group",
+        description="group in the generator - api property",
+        default="axisDimensions")
 
     dimObjectA: PointerProperty(type=Object)
 
@@ -125,48 +117,49 @@ class AxisDimensionProperties(BaseDim, PropertyGroup):
         description="Measurement Axis")
 
 
-bpy.utils.register_class(AxisDimensionProperties)
-
-
 class BoundsDimensionProperties(BaseDim, PropertyGroup):
-    gen_group: StringProperty(name="Generator Group",
-                              description="group in the generator - api property",
-                              default="boundsDimensions",)
+    gen_group: StringProperty(
+        name="Generator Group",
+        description="group in the generator - api property",
+        default="boundsDimensions")
 
-    drawAxis: BoolVectorProperty(name="Draw Axis",
-                                 description="Axis to Dimension for Bounding Box",
-                                 default=(False, False, False),
-                                 subtype='XYZ')
+    drawAxis: BoolVectorProperty(
+        name="Draw Axis",
+        description="Axis to Dimension for Bounding Box",
+        default=(False, False, False),
+        subtype='XYZ')
 
     dimCollection: PointerProperty(type=Collection)
 
     calcAxisAligned: BoolProperty()
 
 
-bpy.utils.register_class(BoundsDimensionProperties)
-
-
 class ArcDimensionProperties(BaseDim, PropertyGroup):
-    gen_group: StringProperty(name="Generator Group",
-                              description="group in the generator - api property",
-                              default="arcDimensions",)
+    gen_group: StringProperty(
+        name="Generator Group",
+        description="group in the generator - api property",
+        default="arcDimensions")
 
-    dimPointC: IntProperty(name='dimPointC',
-                           description="Angle End Vertex Index")
+    dimPointC: IntProperty(
+        name='dimPointC',
+        description="Angle End Vertex Index")
 
     arcCenter: FloatVectorProperty(name='Arc Center')
 
-    showLength: BoolProperty(name='Show Arc Length',
-                             description='Displays the Arc Length Measurement',
-                             default=True)
+    showLength: BoolProperty(
+        name='Show Arc Length',
+        description='Displays the Arc Length Measurement',
+        default=True)
 
-    showRadius: BoolProperty(name='Show Arc Radius',
-                             description='Displays the Arc Radius and Center',
-                             default=True)
+    showRadius: BoolProperty(
+        name='Show Arc Radius',
+        description='Displays the Arc Radius and Center',
+        default=True)
 
-    displayAsAngle: BoolProperty(name='Display Arc Length as Angle',
-                                 description='Display the Arc Length as the angle between the two extreems',
-                                 default=False)
+    displayAsAngle: BoolProperty(
+        name='Display Arc Length as Angle',
+        description='Display the Arc Length as the angle between the two extreems',
+        default=False)
 
     endcapC: EnumProperty(
         items=(('99', "--", "No Cap"),
@@ -176,35 +169,37 @@ class ArcDimensionProperties(BaseDim, PropertyGroup):
         name="C end",
         description="Add arrows to Radius Leader")
 
-
 bpy.utils.register_class(ArcDimensionProperties)
 
 
 class AngleDimensionProperties(BaseDim, PropertyGroup):
-    gen_group: StringProperty(name="Generator Group",
-                              description="group in the generator - api property",
-                              default="angleDimensions",)
+    gen_group: StringProperty(
+        name="Generator Group",
+        description="group in the generator - api property",
+        default="angleDimensions")
 
-    dimPointC: IntProperty(name='dimPointC',
-                           description="Angle End Vertex Index")
+    dimPointC: IntProperty(
+        name='dimPointC',
+        description="Angle End Vertex Index")
 
-    dimRadius: FloatProperty(name='Dimension Radius',
-                             description='Radius Dimension',
-                             default=(0.05),
-                             subtype='DISTANCE')
+    dimRadius: FloatProperty(
+        name='Dimension Radius',
+        description='Radius Dimension',
+        default=(0.05),
+        subtype='DISTANCE')
 
-    reflexAngle: BoolProperty(name='Show Reflex Angle',
-                              description='Displays the Reflex Angle (Greater then 180 Degrees)',
-                              default=False)
+    reflexAngle: BoolProperty(
+        name='Show Reflex Angle',
+        description='Displays the Reflex Angle (Greater then 180 Degrees)',
+        default=False)
 
 
-bpy.utils.register_class(AngleDimensionProperties)
-
-
-# A Wrapper object so multiple dimension types can be
-# Shown in the same UI List
 
 class DimensionWrapper(PropertyGroup):
+    """
+    A Wrapper object so multiple dimension types can be shown in the same UI
+    list
+    """
     itemType: EnumProperty(
         items=(('alignedDimensions', "Aligned Dimension", ""),
                ('angleDimensions', "Angle Dimension", ""),
@@ -218,14 +213,11 @@ class DimensionWrapper(PropertyGroup):
     itemIndex: IntProperty(name='Dimension Index')
 
 
-bpy.utils.register_class(DimensionWrapper)
-
-
 class DimensionContainer(PropertyGroup):
-    measureit_arch_num: IntProperty(name='Number of measures', min=0, max=1000, default=0,
-                                    description='Number total of measureit_arch elements')
-    active_index: IntProperty(name="Active Dimension Index",
-                              update=update_active_dim)
+    measureit_arch_num: IntProperty(
+        name='Number of measures', min=0, max=1000, default=0,
+        description='Total number of MeasureIt_Arch elements')
+    active_index: IntProperty(name="Active Dimension Index")
     show_dimension_settings: BoolProperty(
         name='Show Dimension Settings', default=False)
 
@@ -241,9 +233,6 @@ class DimensionContainer(PropertyGroup):
     wrapper: CollectionProperty(type=DimensionWrapper)
 
 
-bpy.utils.register_class(DimensionContainer)
-Object.DimensionGenerator = PointerProperty(type=DimensionContainer)
-
 
 class AddAlignedDimensionButton(Operator):
     bl_idname = "measureit_arch.addaligneddimensionbutton"
@@ -251,23 +240,17 @@ class AddAlignedDimensionButton(Operator):
     bl_description = "Add Aligned Dimension (Dimension Properties can be edited in the Object Properties)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
         if o is None:
             return False
         else:
-            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
+            if o.type in {"MESH", "EMPTY", "CAMERA", "LIGHT"}:
                 return True
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # get selected
@@ -288,11 +271,10 @@ class AddAlignedDimensionButton(Operator):
                 # Try To get the next point
                 # If it doesn't exist, we're done with the loop
                 try:
-                    p2 = pointList[idx+1]
+                    p2 = pointList[idx + 1]
                 except IndexError:
                     break
 
-                # Note: We won't need this try except block for v0.5
 
                 DimGen = mainObj.DimensionGenerator
 
@@ -321,7 +303,7 @@ class AddAlignedDimensionButton(Operator):
             for newDimension in newDimensions:
                 newDimension.itemType = 'alignedDimensions'
                 newDimension.style = sceneProps.default_dimension_style
-                if sceneProps.default_dimension_style is not '':
+                if sceneProps.default_dimension_style != '':
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
@@ -337,8 +319,7 @@ class AddAlignedDimensionButton(Operator):
                 DimGen.measureit_arch_num += 1
             return{'FINISHED'}
         else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
+            self.report({'WARNING'}, "View3D not found, cannot run operator")
 
             return {'CANCELLED'}
 
@@ -349,9 +330,6 @@ class AddBoundingDimensionButton(Operator):
     bl_description = "Add a Bounding Box Dimension (Dimension Properties can be edited in the Object Properties)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -363,9 +341,6 @@ class AddBoundingDimensionButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # get selected
@@ -379,9 +354,12 @@ class AddBoundingDimensionButton(Operator):
                 mainobject = context.object
                 # Check Generators
 
-                # Basically I dont need to do anything here, I want to handle the measureing and the selection of which bounding box
-                # verts to anchor to in the draw method, so that the most visible verts can be selected depending on the current view.
-                # all we need to do is to create a  Bounds dimension and set its defualt props. We do the tricky part in the draw.
+                # Basically I dont need to do anything here, I want to handle
+                # the measuring and the selection of which bounding box verts
+                # to anchor to in the draw method, so that the most visible
+                # verts can be selected depending on the current view. all we
+                # need to do is to create a  Bounds dimension and set its
+                # defualt props. We do the tricky part in the draw.
 
                 # Add Bounds Dim with Axis
                 DimGen = mainobject.DimensionGenerator
@@ -399,7 +377,7 @@ class AddBoundingDimensionButton(Operator):
                 newBoundsDimension.textFields.add()
 
                 newBoundsDimension.style = sceneProps.default_dimension_style
-                if sceneProps.default_dimension_style is not '':
+                if sceneProps.default_dimension_style != '':
                     newBoundsDimension.uses_style = True
                 else:
                     newBoundsDimension.uses_style = False
@@ -413,8 +391,7 @@ class AddBoundingDimensionButton(Operator):
 
             return{'FINISHED'}
         else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
+            self.report({'WARNING'}, "View3D not found, cannot run operator")
 
             return {'CANCELLED'}
 
@@ -425,23 +402,17 @@ class AddAxisDimensionButton(Operator):
     bl_description = "Add Single Axis Dimension (Dimension Properties can be edited in the Object Properties)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
         if o is None:
             return False
         else:
-            if o.type == "MESH" or o.type == "EMPTY" or o.type == "CAMERA" or o.type == "LIGHT":
+            if o.type in {"MESH", "EMPTY", "CAMERA", "LIGHT"}:
                 return True
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # get selected
@@ -468,7 +439,7 @@ class AddAxisDimensionButton(Operator):
                 # Try To get the next point
                 # If it doesn't exist, we're done with the loop
                 try:
-                    p2 = pointList[idx+1]
+                    p2 = pointList[idx + 1]
                 except IndexError:
                     break
 
@@ -498,7 +469,7 @@ class AddAxisDimensionButton(Operator):
             for newDimension in newDimensions:
                 newDimension.itemType = 'axisDimensions'
                 newDimension.style = sceneProps.default_dimension_style
-                if sceneProps.default_dimension_style is not '':
+                if sceneProps.default_dimension_style != '':
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
@@ -527,9 +498,6 @@ class AddAreaButton(Operator):
         The active face determines text placement"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -544,14 +512,9 @@ class AddAreaButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
-            scene = context.scene
-            sceneProps = scene.MeasureItArchProps
             myobj = context.object
 
             # Get all selected faces
@@ -592,10 +555,9 @@ class AddAreaButton(Operator):
 
                 # User last Selected face as text origin
                 try:
-                    lastIdx = len(mylist)-1
                     newDim.originFaceIdx = bm.select_history[-1].index
                 except IndexError:
-                    newDim.originFaceIdx = mylist[len(mylist)-1]
+                    newDim.originFaceIdx = mylist[len(mylist) - 1]
 
                 newWrapper = dimGen.wrapper.add()
                 newWrapper.itemType = 'areaDimensions'
@@ -622,10 +584,6 @@ class AddAngleButton(Operator):
     bl_description = "(EDITMODE only) Add a new angle measure (select 3 vertices, 2nd is angle vertex)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
-
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -640,9 +598,6 @@ class AddAngleButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
@@ -664,7 +619,7 @@ class AddAngleButton(Operator):
                 newDimension.visibleInView = scene.camera.data
 
                 newDimension.style = sceneProps.default_dimension_style
-                if sceneProps.default_dimension_style is not '':
+                if sceneProps.default_dimension_style != '':
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
@@ -692,16 +647,12 @@ class AddAngleButton(Operator):
 
 
 class AddArcButton(Operator):
-
     bl_idname = "measureit_arch.addarcbutton"
     bl_label = "Angle"
     bl_description = "(EDITMODE only) Add a new arc measure (select 3 vertices of the arc," \
                      " vertices 1st and 3rd are arc extremes)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         o = context.object
@@ -716,14 +667,9 @@ class AddArcButton(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
             # Add properties
-            scene = context.scene
-            sceneProps = scene.MeasureItArchProps
             mainobject = context.object
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:
@@ -761,9 +707,6 @@ class CursorToArcOrigin(Operator):
     bl_description = "Move the 3D Cursor to the Arc's Origin"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         myobj = context.object
@@ -808,9 +751,6 @@ class AddFaceToArea(Operator):
     bl_category = 'MeasureitArch'
     tag: IntProperty()
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         myobj = context.object
@@ -831,10 +771,6 @@ class AddFaceToArea(Operator):
                     return False
             else:
                 return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
@@ -891,9 +827,6 @@ class RemoveFaceFromArea(Operator):
     bl_description = "(EDIT MODE) Removes the currently selected faces from the active Area Dimension"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         myobj = context.object
@@ -914,10 +847,6 @@ class RemoveFaceFromArea(Operator):
                     return False
             else:
                 return False
-
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
@@ -986,8 +915,8 @@ class M_ARCH_UL_dimension_list(UIList):
         StyleGen = scene.StyleGenerator
         hasGen = True
 
-        # I should define this in the dimension container itself so that I dont have to edit this each time I define a new dimension type...
-        #
+        # I should define this in the dimension container itself so that I dont
+        # have to edit this each time I define a new dimension type...
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.use_property_decorate = False
@@ -1055,7 +984,7 @@ class M_ARCH_UL_dimension_list(UIList):
 
 
 class OBJECT_PT_UIDimensions(Panel):
-    """Creates a Panel in the Object properties window"""
+    """ A Panel in the Object properties window """
     bl_parent_id = 'OBJECT_PT_Panel'
     bl_label = "Dimensions"
     bl_space_type = 'PROPERTIES'
@@ -1124,15 +1053,18 @@ class OBJECT_MT_dimension_menu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        op = layout.operator('measureit_arch.addfacetoarea',
-                             text="Add To Area", icon='ADD')
-        op = layout.operator('measureit_arch.removefacefromarea',
-                             text="Remove From Area", icon='REMOVE')
+        layout.operator(
+            'measureit_arch.addfacetoarea',
+            text="Add To Area", icon='ADD')
+        layout.operator(
+            'measureit_arch.removefacefromarea',
+            text="Remove From Area", icon='REMOVE')
 
         layout.separator()
 
-        op = layout.operator('measureit_arch.cursortoarcorigin',
-                             text="Cursor to Arc Origin", icon='MOD_THICKNESS')
+        layout.operator(
+            'measureit_arch.cursortoarcorigin',
+            text="Cursor to Arc Origin", icon='MOD_THICKNESS')
 
         layout.separator()
 
@@ -1189,12 +1121,12 @@ def draw_alignedDimensions_settings(dim, layout):
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
 
 
-def draw_boundsDimensions_settings(dim, layout):
+def draw_bounds_dimension_settings(dim, layout):
     col = layout.column()
     col.prop_search(dim, 'dimCollection', bpy.data,
                     'collections', text="Collection", icon='GROUP')
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         split = layout.split(factor=0.485)
         col = split.column()
         col.alignment = 'RIGHT'
@@ -1208,7 +1140,7 @@ def draw_boundsDimensions_settings(dim, layout):
     else:
         col.prop(dim, 'dimViewPlane', text='View Plane Overide')
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         col.prop_search(dim, 'visibleInView', bpy.data,
                         'cameras', text='Visible In View')
         col.prop(dim, 'lineWeight', text='Line Weight')
@@ -1226,7 +1158,7 @@ def draw_boundsDimensions_settings(dim, layout):
     col.prop(dim, 'dimLeaderOffset', text='Offset')
     col.prop(dim, 'dimRotation', text='Rotation')
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         col = layout.column(align=True)
         col.prop(dim, 'fontSize', text='Font Size')
         col.prop(dim, 'textAlignment', text='Alignment')
@@ -1244,10 +1176,10 @@ def draw_boundsDimensions_settings(dim, layout):
     col.prop(dim, 'calcAxisAligned', text='Always Use Axis Aligned Bounds')
 
 
-def draw_axisDimensions_settings(dim, layout):
+def draw_axis_dimension_settings(dim, layout):
     col = layout.column()
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         # Text Settings
         col = layout.column(align=True, heading='Text')
         col.template_ID(dim, "font", open="font.open",
@@ -1303,9 +1235,9 @@ def draw_axisDimensions_settings(dim, layout):
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
 
 
-def draw_angleDimensions_settings(dim, layout):
+def draw_angle_dimension_settings(dim, layout):
     col = layout.column()
-    if dim.uses_style is False:
+    if not dim.uses_style:
         split = layout.split(factor=0.485)
         col = split.column()
         col.alignment = 'RIGHT'
@@ -1318,13 +1250,13 @@ def draw_angleDimensions_settings(dim, layout):
 
     col.prop_search(dim, 'visibleInView', bpy.data,
                     'cameras', text='Visible In View')
-    if dim.uses_style is False:
+    if not dim.uses_style:
         col = layout.column(align=True)
         col.prop(dim, 'lineWeight', text='Line Weight')
 
     col.prop(dim, 'dimRadius', text='Radius')
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         col = layout.column(align=True)
         col.prop(dim, 'fontSize', text='Font Size')
         col.prop(dim, 'textAlignment', text='Alignment')
@@ -1336,15 +1268,15 @@ def draw_angleDimensions_settings(dim, layout):
         col.prop(dim, 'inFront', text='Draw in Front')
     col.prop(dim, 'reflexAngle', text='Use Reflex Angle')
     col.prop(dim, 'evalMods')
-    # col.prop(dim,'textPosition',text='Position')
+    # col.prop(dim, 'textPosition', text='Position')
 
     col = layout.column(align=True)
 
 
-def draw_arcDimensions_settings(dim, layout):
+def draw_arc_dimension_settings(dim, layout):
     col = layout.column()
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         split = layout.split(factor=0.485)
         col = split.column()
         col.alignment = 'RIGHT'
@@ -1357,13 +1289,13 @@ def draw_arcDimensions_settings(dim, layout):
 
     col.prop_search(dim, 'visibleInView', bpy.data,
                     'cameras', text='Visible In View')
-    if dim.uses_style is False:
+    if not dim.uses_style:
         col = layout.column(align=True)
         col.prop(dim, 'lineWeight', text='Line Weight')
 
     col.prop(dim, 'dimOffset', text='Radius')
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         col = layout.column(align=True)
         col.prop(dim, 'fontSize', text='Font Size')
         col = layout.column(align=True)
@@ -1381,13 +1313,13 @@ def draw_arcDimensions_settings(dim, layout):
     col = layout.column(align=True)
 
 
-def draw_areaDimensions_settings(dim, layout):
+def draw_area_dimension_settings(dim, layout):
     col = layout.column(align=True)
 
     col.prop(dim, "fillColor", text='Fill Color')
     col.prop(dim, 'fillAlpha', text='Fill Amount')
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         split = layout.split(factor=0.485)
         col = split.column()
         col.alignment = 'RIGHT'
@@ -1401,7 +1333,7 @@ def draw_areaDimensions_settings(dim, layout):
     else:
         col.prop(dim, 'dimViewPlane', text='View Plane Overide')
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         col.prop_search(dim, 'visibleInView', bpy.data,
                         'cameras', text='Visible In View')
         col.prop(dim, 'lineWeight', text='Line Weight')
@@ -1410,7 +1342,7 @@ def draw_areaDimensions_settings(dim, layout):
     col.prop(dim, 'dimTextPos', text='Text Position')
     col.prop(dim, 'dimRotation', text='Text Rotation')
 
-    if dim.uses_style is False:
+    if not dim.uses_style:
         col = layout.column(align=True)
         col.prop(dim, 'fontSize', text='Font Size')
         col.prop(dim, 'textAlignment', text='Alignment')
@@ -1421,44 +1353,29 @@ def draw_areaDimensions_settings(dim, layout):
         col.prop(dim, 'evalMods')
 
 
-class TranlateDimensionOp(bpy.types.Operator):
-    """Move Dimension"""
-    bl_idname = "measureit_arch.dimesnion_offset"
+class TranslateDimensionOp(bpy.types.Operator):
+    """ Move Dimension """
+    bl_idname = "measureit_arch.dimension_offset"
     bl_label = "Adjust Dimension Offset"
     bl_options = {'GRAB_CURSOR', 'INTERNAL', 'BLOCKING', 'UNDO'}
 
     idx: IntProperty()
-
     dimType: StringProperty()
-
-    offset: FloatProperty(
-        name="Offset",
-    )
-
+    offset: FloatProperty(name="Offset")
     objIndex: IntProperty()
 
     def modal(self, context, event):
         myobj = context.selected_objects[self.objIndex]
         dimension = eval('myobj.' + self.dimType)
         unit_system = bpy.context.scene.unit_settings.system
-        unit_length = bpy.context.scene.unit_settings.length_unit\
+        unit_length = bpy.context.scene.unit_settings.length_unit
 
         toFeet = 3.28084
-        toInches = 39.3700787401574887
 
         # Set Tweak Flags
-        if event.ctrl:
-            tweak_snap = True
-        else:
-            tweak_snap = False
-        if event.alt:
-            styleOffset = True
-        else:
-            styleOffset = False
-        if event.shift:
-            tweak_precise = True
-        else:
-            tweak_precise = False
+        tweak_snap = event.ctrl
+        tweak_precise = event.shift
+        styleOffset = event.alt
 
         if event.type == 'MOUSEMOVE':
             sensitivity = 0.01
@@ -1516,13 +1433,15 @@ class TranlateDimensionOp(bpy.types.Operator):
                 "Dimension Offset = " + "%.4f" % (resultInit + delta))
 
         elif event.type == 'LEFTMOUSE':
-            # Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            # Setting hide_viewport is a stupid hack to force Gizmos to update
+            # after operator completes
             context.object.hide_viewport = False
             context.area.header_text_set(None)
             return {'FINISHED'}
 
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
-            # Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            # Setting hide_viewport is a stupid hack to force Gizmos to update
+            # after operator completes
             context.object.hide_viewport = False
             context.area.header_text_set(None)
             dimension.dimOffset = self.init

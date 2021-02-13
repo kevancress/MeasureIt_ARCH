@@ -25,19 +25,20 @@
 #
 # ----------------------------------------------------------
 import bpy
-from mathutils import Vector, Matrix, Euler, Quaternion
-import math
-from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
 import bpy_extras.object_utils as object_utils
+import math
 import svgwrite
-import gpu
 
-from math import fabs
+from math import fabs, sqrt
+from mathutils import Vector, Matrix
+
+from .measureit_arch_utils import get_view
 
 
-def svg_line_shader(item, coords, thickness, color, svg, parent=None, dashed=False, mat=Matrix.Identity(4)):
+def svg_line_shader(item, coords, thickness, color, svg, parent=None,
+                    dashed=False, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
-    svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
+    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
 
     cap = 'round'
     try:
@@ -60,10 +61,10 @@ def svg_line_shader(item, coords, thickness, color, svg, parent=None, dashed=Fal
         svg.add(lines)
 
     for x in range(0, len(coords) - 1, 2):
-        vis, p1, p2 = check_visible(coords[x], coords[x+1], mat, item)
+        vis, p1, p2 = check_visible(coords[x], coords[x + 1], mat, item)
         if vis:
-            p1ss = get_render_location(mat@Vector(p1))
-            p2ss = get_render_location(mat@Vector(p2))
+            p1ss = get_render_location(mat @ Vector(p1))
+            p2ss = get_render_location(mat @ Vector(p2))
             line = svg.line(start=tuple(p1ss), end=tuple(p2ss))
             lines.add(line)
 
@@ -71,7 +72,7 @@ def svg_line_shader(item, coords, thickness, color, svg, parent=None, dashed=Fal
 def svg_fill_shader(item, coords, color, svg, parent=None):
     coords_2d = []
     idName = item.name + "_fills"
-    svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
+    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
     fills = svg.g(id=idName, fill=svgColor)
     parent.add(fills)
 
@@ -121,24 +122,24 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
     #     0----------------3
 
     text_position = get_render_location(mid)
-    svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
+    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
     ssp0 = get_render_location(textCard[0])
     ssp1 = get_render_location(textCard[1])
-    ssp2 = get_render_location(textCard[2])
+    # ssp2 = get_render_location(textCard[2])
     ssp3 = get_render_location(textCard[3])
 
     cardHeight = Vector(ssp1) - Vector(ssp0)
 
     dirVec = Vector(ssp3) - Vector(ssp0)
 
-    heightOffsetAmount = 1/8 * cardHeight.length
+    heightOffsetAmount = 1 / 8 * cardHeight.length
     heightOffset = Vector((dirVec[1], -dirVec[0])).normalized()
 
     heightOffset *= heightOffsetAmount
 
     leftVec = Vector(ssp0)
     rightVec = Vector(ssp3)
-    midVec = (leftVec + rightVec)/2
+    midVec = (leftVec + rightVec) / 2
 
     if dirVec.length == 0:
         return
@@ -148,25 +149,25 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
     if item.textAlignment == 'L':
         text_position = leftVec
         text_anchor = 'start'
-        position_flip = rightVec
+        # position_flip = rightVec
         anchor_flip = 'end'
 
     if item.textAlignment == 'C':
         text_position = midVec
         text_anchor = 'middle'
-        position_flip = midVec
+        # position_flip = midVec
         anchor_flip = 'middle'
 
     if item.textAlignment == 'R':
         text_position = rightVec
         text_anchor = 'end'
-        position_flip = leftVec
+        # position_flip = leftVec
         anchor_flip = 'start'
 
     rotation = math.degrees(dirVec.angle_signed(Vector((1, 0))))
     if rotation > 90 or rotation < -90:
         rotation += 180
-        #text_position = position_flip
+        # text_position = position_flip
         text_anchor = anchor_flip
         heightOffset = -heightOffset
         print('did flip')
@@ -188,7 +189,7 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
         # I wish i could tell you why this fudge factor is necessary, but for some reason
         # spec-ing svg units in inches and using this factor for text size is the only way to get
         # sensible imports in both inkscape and illustrator
-        'font-size': round(item.fontSize * 4.166666667 / (300/res), 2),
+        'font-size': round(item.fontSize * 4.166666667 / (300 / res), 2),
         'font-family': 'Helvetica',
         'text-anchor': text_anchor,
         'text-align': text_anchor
@@ -196,7 +197,7 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
 
 
 def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
-    svgColor = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
+    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
 
     for obj in objs:
         mesh = obj.data
@@ -204,8 +205,8 @@ def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
         for edge in edges:
             pair = []
             for idx in edge.vertices:
-                ssp = (mesh.vertices[idx].co[0]*size,
-                       mesh.vertices[idx].co[1]*size)
+                ssp = (mesh.vertices[idx].co[0] * size,
+                       mesh.vertices[idx].co[1] * size)
                 pair.append(ssp)
             pattern.add(svg.line(start=tuple(pair[0]), end=tuple(
                 pair[1]), stroke_width=weight, stroke=svgColor))
@@ -228,12 +229,11 @@ def get_render_location(mypoint):
     co_2d = object_utils.world_to_camera_view(scene, scene.camera, v1)
     # Get pixel coords
 
-    return [(co_2d.x * width), height-(co_2d.y * height)]
+    return [(co_2d.x * width), height - (co_2d.y * height)]
 
 
 def get_clip_space_coord(mypoint):
     scene = bpy.context.scene
-    camera = scene.camera
 
     v1 = Vector(mypoint)
     co_camera_space = object_utils.world_to_camera_view(
@@ -269,16 +269,15 @@ def true_z_buffer(context, zValue):
 def check_visible(p1, p2, mat, item, numIterations=0):
     context = bpy.context
     scene = bpy.context.scene
-    camera = scene.camera
     render = scene.render
 
     if not scene.MeasureItArchProps.vector_depthtest:
         return True, p1, p2
 
-    #print('Drawing: ' + item.name)
+    # print('Drawing: ' + item.name)
     z_offset = 0.1
     if 'lineDepthOffset' in item:
-        z_offset += item.lineDepthOffset/10
+        z_offset += item.lineDepthOffset / 10
 
     p1Visible = True
     p2Visible = True
@@ -292,32 +291,30 @@ def check_visible(p1, p2, mat, item, numIterations=0):
     height = int(render.resolution_y * render_scale)
 
     # Get Screen Space Points
-    p1ss = get_render_location(mat@Vector(p1))
-    p1ss = Vector((p1ss[0], height-p1ss[1]))
-    p2ss = get_render_location(mat@Vector(p2))
-    p2ss = Vector((p2ss[0], height-p2ss[1]))
+    p1ss = get_render_location(mat @ Vector(p1))
+    p1ss = Vector((p1ss[0], height - p1ss[1]))
+    p2ss = get_render_location(mat @ Vector(p2))
+    p2ss = Vector((p2ss[0], height - p2ss[1]))
 
     # Get Clip Space Points
     p1clip = get_clip_space_coord(mat @ Vector(p1))
     p2clip = get_clip_space_coord(mat @ Vector(p2))
 
     # Get Buffer Index and depthbuffer value based on SS Point
-    p1pxIdx = int(((width * round(p1ss[1])) + round(p1ss[0])-1)*1)
-    p2pxIdx = int(((width * round(p2ss[1])) + round(p2ss[0])-1)*1)
+    p1pxIdx = int(((width * round(p1ss[1])) + round(p1ss[0]) - 1) * 1)
+    p2pxIdx = int(((width * round(p2ss[1])) + round(p2ss[0]) - 1) * 1)
 
     try:
         p1depth = depthbuffer[p1pxIdx]
     except IndexError:
-        print('Index not in Depth Buffer: ' +
-              str(p1pxIdx) + ', ' + str(p2pxIdx))
+        print('Index not in Depth Buffer: ' + str(p1pxIdx) + ', ' + str(p2pxIdx))
         p1Visible = True
         p1depth = 0
 
     try:
         p2depth = depthbuffer[p2pxIdx]
     except IndexError:
-        print('Index not in Depth Buffer: ' +
-              str(p1pxIdx) + ', ' + str(p2pxIdx))
+        print('Index not in Depth Buffer: ' + str(p1pxIdx) + ', ' + str(p2pxIdx))
         p2Visible = True
         p2depth = 0
 
@@ -332,29 +329,29 @@ def check_visible(p1, p2, mat, item, numIterations=0):
     # print('')
     # print('p1')
     # print(p1clip)
-    #print(str(p1depth) + ' vs ' + str(p1vecdepth) + ' at Coords: ' + str(p1ss[0]) + "," + str(p1ss[1]) + 'Index: ' + str(p1pxIdx))
+    # print(str(p1depth) + ' vs ' + str(p1vecdepth) + ' at Coords: ' + str(p1ss[0]) + "," + str(p1ss[1]) + 'Index: ' + str(p1pxIdx))
     if p1depth > p1vecdepth:
         p1Visible = True
     else:
         p1Visible = False
-        #print('p1 not visible')
+        # print('p1 not visible')
 
     # print('')
 
     # print('p2')
     # print(p2clip)
-    #print(str(p2depth) + ' vs ' + str(p2vecdepth) + ' at Coords: ' + str(p2ss[0]) + "," + str(p2ss[1]) + 'Index: ' + str(p2pxIdx))
+    # print(str(p2depth) + ' vs ' + str(p2vecdepth) + ' at Coords: ' + str(p2ss[0]) + "," + str(p2ss[1]) + 'Index: ' + str(p2pxIdx))
     if p2depth > p2vecdepth:
         p2Visible = True
     else:
         p2Visible = False
-        #print('p2 not visible')
+        # print('p2 not visible')
 
     if p1Visible and p2Visible:
-        #print('vis test passed')
+        # print('vis test passed')
         return True, p1, p2
     elif not p1Visible and not p2Visible:
-        #print('vis test failed')
+        # print('vis test failed')
         return False, p1, p2
     else:
         vis = False
@@ -369,12 +366,10 @@ def check_visible(p1, p2, mat, item, numIterations=0):
 
         if numIterations <= maxIter:
             numIterations += 1
-            distVector = Vector(p1)-Vector(p2)
+            distVector = Vector(p1) - Vector(p2)
             dist = distVector.length
-            p3 = interpolate3d(p1, p2, fabs(
-                dist - (dist/maxIter)*numIterations))
-            vis, p1, p2 = check_visible(
-                p1, p3, mat, item, numIterations=numIterations)
+            p3 = interpolate3d(p1, p2, fabs(dist - (dist / maxIter) * numIterations))
+            vis, p1, p2 = check_visible(p1, p3, mat, item, numIterations=numIterations)
         return vis, p1, p2
 
 
@@ -416,11 +411,11 @@ def distance(v1, v2, locx=True, locy=True, locz=True):
     # If axis is not used, make equal both (no distance)
     v1b = [v1[0], v1[1], v1[2]]
     v2b = [v2[0], v2[1], v2[2]]
-    if locx is False:
+    if not locx:
         v2b[0] = v1b[0]
-    if locy is False:
+    if not locy:
         v2b[1] = v1b[1]
-    if locz is False:
+    if not locz:
         v2b[2] = v1b[2]
 
     xloc = sqrt((v2b[0] - v1b[0]) ** 2 + (v2b[1] - v1b[1])

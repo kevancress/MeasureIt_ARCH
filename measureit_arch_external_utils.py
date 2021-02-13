@@ -25,9 +25,11 @@
 # ----------------------------------------------------------
 
 
-from .measureit_arch_geometry import get_mesh_vertex, get_point, sortPoints, select_normal, interpolate3d
-from mathutils import Vector, Matrix, Euler, Quaternion
-from math import fabs, degrees, radians, sqrt, cos, sin, pi, floor
+from mathutils import Vector, Matrix
+from math import fabs
+
+from .measureit_arch_geometry import get_mesh_vertex, get_point, sortPoints, \
+    select_normal, interpolate3d
 
 
 def blenderBIM_get_coords(context, offset_pos=True):
@@ -37,7 +39,7 @@ def blenderBIM_get_coords(context, offset_pos=True):
     sceneProps = scene.MeasureItArchProps
 
     # Display selected or all
-    if sceneProps.show_all is False:
+    if not sceneProps.show_all:
         objlist = context.selected_objects
     else:
         objlist = context.view_layer.objects
@@ -49,7 +51,7 @@ def blenderBIM_get_coords(context, offset_pos=True):
 
         # Stash Object Vertices for use in Draw functions
 
-        if myobj.visible_get() is True:
+        if myobj.visible_get():
             mat = myobj.matrix_world
 
             # if 'LineGenerator' in myobj and myobj.LineGenerator.line_num != 0:
@@ -124,7 +126,7 @@ def get_dim_coords(context, myobj, DimGen, dim, mat, offset_pos=True):
     p1 = sortedPoints[0]
     p2 = sortedPoints[1]
 
-    distVector = Vector(p1)-Vector(p2)
+    distVector = Vector(p1) - Vector(p2)
     dist = distVector.length
     midpoint = interpolate3d(p1, p2, fabs(dist / 2))
     normDistVector = distVector.normalized()
@@ -134,15 +136,15 @@ def get_dim_coords(context, myobj, DimGen, dim, mat, offset_pos=True):
     selectedNormal = Vector(select_normal(
         myobj, dim, normDistVector, midpoint, dimProps))
 
-    userOffsetVector = rotationMatrix@selectedNormal
-    offsetDistance = userOffsetVector*offset
-    geoOffsetDistance = offsetDistance.normalized()*geoOffset
+    userOffsetVector = rotationMatrix @ selectedNormal
+    offsetDistance = userOffsetVector * offset
+    geoOffsetDistance = offsetDistance.normalized() * geoOffset
 
     if offsetDistance < geoOffsetDistance:
         offsetDistance = geoOffsetDistance
 
-    dimLineStart = Vector(p1)+offsetDistance
-    dimLineEnd = Vector(p2)+offsetDistance
+    dimLineStart = Vector(p1) + offsetDistance
+    dimLineEnd = Vector(p2) + offsetDistance
 
     if offset_pos:
         return [dimLineStart, dimLineEnd]
