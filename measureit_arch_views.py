@@ -484,14 +484,28 @@ class SCENE_PT_Views(Panel):
                         row = split.row(align=True)
 
                         col = box.column(align=True)
+                        col.enabled = True
                         col.prop(view, 'paper_size', text='Paper size:')
 
                         if view.paper_size == 'Custom':
-                            col.prop(view, 'width', text='Width:')
-                            col.prop(view, 'height', text='Height:')
+                            col = box.column(align=True)
+                            col.enabled = False
+                            col.row().prop(view, 'paper_orientation', expand=True)
+                            col = box.column(align=True)
+                            col.enabled = True
                         else:
-                            col.prop(view, 'paper_orientation', text='Paper orientation:')
+                            col = box.column(align=True)
+                            col.enabled = True
+                            col.row().prop(view, 'paper_orientation', expand=True)
+                            col = box.column(align=True)
+                            col.enabled = False
 
+
+                        col.prop(view, 'width', text='Width:')
+                        col.prop(view, 'height', text='Height:')
+                        #col.prop(view, 'paper_orientation', text='Paper orientation:')
+                        col = box.column(align=True)
+                        col.enabled = True
                         col.prop(view, 'res', text='Resolution (PPI):')
 
                     else:
