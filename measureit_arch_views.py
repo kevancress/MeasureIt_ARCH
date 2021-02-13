@@ -17,6 +17,27 @@ from .measureit_arch_render import render_main
 from .measureit_arch_baseclass import TextField
 
 
+PAPER_SIZES = (
+    ('Custom',  (None,     None)),
+    ('A0',      ('84.1cm', '118.9cm')),
+    ('A1',      ('59.4cm', '84.1cm')),
+    ('A2',      ('42cm',   '59.4cm')),
+    ('A3',      ('29.7cm', '42cm')),
+    ('A4',      ('21cm',   '29.7cm')),
+    ('Letter',  ('8.5in',  '11in')),
+    ('Legal',   ('8.5in',  '14in')),
+    ('Tabloid', ('11in',   '17in')),
+    ('Arch A',  ('9in',    '12in')),
+    ('Arch B',  ('12in',   '18in')),
+    ('Arch C',  ('18in',   '24in')),
+    ('Arch D',  ('24in',   '36in')),
+    ('Arch E',  ('36in',   '48in')),
+    ('Arch E1', ('30in',   '42in')),
+    ('Arch E2', ('26in',   '38in')),
+    ('Arch E3', ('27in',   '39in')),
+)
+
+
 def scene_text_update_flag(self, context):
     scene = context.scene
     scene.MeasureItArchProps.text_updated = True
@@ -59,6 +80,22 @@ def update(self, context):
             if not os.path.exists(datepath):
                 os.mkdir(renderpath + today.strftime('%Y%m%d'))
             render.filepath = os.path.join(datepath, filenameStr)
+
+
+def update_paper_size(self, context):
+    if self.paper_size == 'Custom':
+        return
+
+    for name, (width, height) in PAPER_SIZES:
+        if name == self.paper_size:
+            break
+
+    if self.paper_orientation == 'LANDSCAPE':
+        width, height = height, width
+
+    unit_system = context.scene.unit_settings.system
+    self.width = bpy.utils.units.to_value(unit_system, "LENGTH", width)
+    self.height = bpy.utils.units.to_value(unit_system, "LENGTH", height)
 
 
 def update_camera(scene, camera):
@@ -233,8 +270,24 @@ class ViewProperties(PropertyGroup):
         name="Resolution Type",
         description='Method For Defining Render Size',
         default='res_type_paper',
-        # options='ENUM_FLAG'
         update=update)
+
+    paper_size: EnumProperty(
+        items=map(lambda o: (o[0], o[0], ''), PAPER_SIZES),
+        name="Paper size",
+        description="Paper size used for rendering",
+        default='Custom',
+        update=update_paper_size)
+
+    paper_orientation: EnumProperty(
+        items=(
+            ('PORTRAIT', 'Portrait', ''),
+            ('LANDSCAPE', 'Landscape', ''),
+        ),
+        name="Paper orientation",
+        description="Paper orientation used for rendering",
+        default='PORTRAIT',
+        update=update_paper_size)
 
     date_folder: BoolProperty(
         name="Date Folder",
@@ -316,9 +369,9 @@ class DuplicateViewButton(Operator):
         Generator = context.scene.ViewGenerator
         try:
             Generator.views[Generator.active_index]
-            return True
         except:
             return False
+        return True
 
     def execute(self, context):
         # Add properties
@@ -412,9 +465,6 @@ class SCENE_PT_Views(Panel):
             if ViewGen.show_settings:
                 col = box.column()
                 if view.camera is not None:
-
-                    # col.operator("measureit_arch.renderpreviewbutton",
-                    #              icon='RENDER_STILL', text="Render View Preview")
                     col.prop(view, "cameraType", text="Camera Type")
                     col.prop_search(view, 'view_layer', context.scene,
                                     'view_layers', text='View Layer')
@@ -433,13 +483,15 @@ class SCENE_PT_Views(Panel):
                         col.alignment = 'RIGHT'
                         row = split.row(align=True)
 
-                        # row.menu(CAMERA_PAPER_Presets.__name__, text=CAMERA_PAPER_Presets.bl_label)
-                        # row.operator(AddPaperResPreset.bl_idname, text="", icon='ADD')
-                        # row.operator(AddPaperResPreset.bl_idname, text="", icon='REMOVE').remove_active = True
-
                         col = box.column(align=True)
-                        col.prop(view, 'width', text='Width:')
-                        col.prop(view, 'height', text='Height:')
+                        col.prop(view, 'paper_size', text='Paper size:')
+
+                        if view.paper_size == 'Custom':
+                            col.prop(view, 'width', text='Width:')
+                            col.prop(view, 'height', text='Height:')
+                        else:
+                            col.prop(view, 'paper_orientation', text='Paper orientation:')
+
                         col.prop(view, 'res', text='Resolution (PPI):')
 
                     else:
