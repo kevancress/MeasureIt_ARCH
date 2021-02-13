@@ -36,7 +36,7 @@ from mathutils import Vector, Matrix, Euler, Quaternion
 import bmesh
 from bpy_extras import view3d_utils, mesh_utils
 import bpy_extras.object_utils as object_utils
-from sys import exc_info
+from sys import exc_info, getrecursionlimit, setrecursionlimit
 from .shaders import *
 import math
 import time
@@ -3665,9 +3665,10 @@ def sort_camera_z(obj, ordered_list, idx=0):
 def z_order_faces(face_list, obj):
     ordered_face_list = []
 
-    for face in face_list:
-        idx = sort_camera_z_faces(face, ordered_face_list, obj)
-        ordered_face_list.insert(idx, face)
+    with recursionlimit(getrecursionlimit() + len(face_list)*len(face_list)):
+        for face in face_list:
+            idx = sort_camera_z_faces(face, ordered_face_list, obj)
+            ordered_face_list.insert(idx, face)
 
     return ordered_face_list
 
@@ -3811,3 +3812,16 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
                         for axisDim in DimGen.axisDimensions:
                             draw_axisDimension(
                                 context, myobj, DimGen, axisDim, mat, svg=svg)
+
+
+
+class recursionlimit:
+    def __init__(self, limit):
+        self.limit = limit
+        self.old_limit = getrecursionlimit()
+
+    def __enter__(self):
+        setrecursionlimit(self.limit)
+
+    def __exit__(self, type, value, tb):
+        setrecursionlimit(self.old_limit)
