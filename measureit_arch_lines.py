@@ -356,14 +356,14 @@ class OBJECT_PT_UILines(Panel):
 
                 # Draw The UI List
                 row.template_list("M_ARCH_UL_lines_list", "", lineGen, "line_groups",
-                                  lineGen, "active_line_index", rows=2, type='DEFAULT')
+                                  lineGen, "active_index", rows=2, type='DEFAULT')
 
                 # Operators Next to List
                 col = row.column(align=True)
                 op = col.operator(
                     "measureit_arch.deletepropbutton", text="", icon="X")
                 op.genPath = 'bpy.context.object.LineGenerator'
-                op.tag = lineGen.active_line_index  # saves internal data
+                op.tag = lineGen.active_index  # saves internal data
                 op.item_type = 'line_groups'
                 op.is_style = False
                 col.separator()
@@ -371,9 +371,9 @@ class OBJECT_PT_UILines(Panel):
                 col.menu("OBJECT_MT_lines_menu", icon='DOWNARROW_HLT', text="")
 
                 # Settings Below List
-                if len(lineGen.line_groups) > 0 and lineGen.active_line_index < len(lineGen.line_groups):
+                if len(lineGen.line_groups) > 0 and lineGen.active_index < len(lineGen.line_groups):
 
-                    line = lineGen.line_groups[lineGen.active_line_index]
+                    line = lineGen.line_groups[lineGen.active_index]
                     if lineGen.show_line_settings:
                         settingsIcon = 'DISCLOSURE_TRI_DOWN'
                     else:
@@ -460,10 +460,10 @@ class OBJECT_MT_lines_menu(bpy.types.Menu):
 
         op = layout.operator('measureit_arch.addtolinegroup',
                              text="Add To Line Group", icon='ADD')
-        op.tag = lineGen.active_line_index  # saves internal data
+        op.tag = lineGen.active_index  # saves internal data
         op = layout.operator('measureit_arch.removefromlinegroup',
                              text="Remove From Line Group", icon='REMOVE')
-        op.tag = lineGen.active_line_index  # saves internal data
+        op.tag = lineGen.active_index  # saves internal data
 
         layout.separator()
 

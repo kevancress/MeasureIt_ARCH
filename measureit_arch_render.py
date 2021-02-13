@@ -105,7 +105,7 @@ class RenderImageButton(Operator):
         render_result = render_main(self, context)
         #render_result = [True, 0]
         if render_result[0] is True:
-            self.report({'INFO'}, msg)
+            self.report({'INFO'}, "Render Completed, Check Image Editor for Result")
         del render_result
 
         return {'FINISHED'}
@@ -193,14 +193,13 @@ class RenderVectorButton(Operator):
         print("MeasureIt_ARCH: Rendering image")
         # bpy.ops.render.render()
         if render_main_svg(self, context) is True:
-            self.report({'INFO'}, msg)
+            outpath = render_main_svg(self, context)
+            self.report({'INFO'}, "SVG exported to: {}".format(outpath))
 
-        outpath = render_main_svg(self, context)
-        self.report({'INFO'}, "SVG exported to: {}".format(outpath))
         return {'FINISHED'}
 
 
-def render_main(self, context):
+def render_main(self, context, animation=False):
     """ Render image main entry point """
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -278,16 +277,23 @@ def render_main(self, context):
 def save_image(self, filepath, myimage):
 
     try:
+        # Save old info
         settings = bpy.context.scene.render.image_settings
-        with local_attrs(settings, [
-                'file_format',
-                'color_mode',
-                'color_depth']):
-            settings.file_format = 'PNG'
-            settings.color_mode = 'RGBA'
-            settings.color_depth = '16'
-            image.save_render(filepath)
-            self.report({'INFO'}, "Image exported to: {}".format(filepath))
+        myformat = settings.file_format
+        mode = settings.color_mode
+        depth = settings.color_depth
+
+        # Apply new info and save
+        settings.file_format = 'PNG'
+        settings.color_mode = "RGBA"
+        settings.color_depth = '16'
+        myimage.save_render(filepath)
+        print("MeasureIt_ARCH: Image " + filepath + " saved")
+
+        # Restore old info
+        settings.file_format = myformat
+        settings.color_mode = mode
+        settings.color_depth = depth
     except:
         print("Unexpected error:" + str(exc_info()))
         self.report({'ERROR'}, "MeasureIt_ARCH: Unable to save render image")

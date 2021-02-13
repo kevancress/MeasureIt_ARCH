@@ -78,13 +78,27 @@ else:
     from . import measureit_arch_views
 
 classes = (
+    measureit_arch_main.ShowHideViewportButton,
     measureit_arch_main.MEASUREIT_PT_main_panel,
     measureit_arch_main.OBJECT_PT_Panel,
-    measureit_arch_main.SCENE_PT_Panel,
-    measureit_arch_main.SCENE_PT_MARCH_Settings,
     measureit_arch_main.SCENE_PT_MARCH_units,
-    measureit_arch_main.ShowHideViewportButton,
 
+    # Scene UI Panels
+    measureit_arch_main.SCENE_PT_Panel,
+    measureit_arch_views.SCENE_PT_Views,
+    measureit_arch_views.M_ARCH_UL_Views_list,
+    measureit_arch_views.SCENE_MT_Views_menu,
+    measureit_arch_styles.SCENE_PT_UIStyles,
+    measureit_arch_styles.M_ARCH_UL_styles_list,
+    measureit_arch_styles.SCENE_MT_styles_menu,
+    measureit_arch_hatches.SCENE_PT_Hatches,
+    measureit_arch_hatches.M_ARCH_UL_Hatches_list,
+    measureit_arch_schedules.SCENE_PT_Schedules,
+    measureit_arch_schedules.M_ARCH_UL_Schedules_list,
+    measureit_arch_schedules.SCENE_MT_Schedules_menu,
+    measureit_arch_main.SCENE_PT_MARCH_Settings,
+
+    # Base Classes
     measureit_arch_baseclass.TextField,
     measureit_arch_baseclass.MeasureItARCHSceneProps,
     measureit_arch_baseclass.DeletePropButton,
@@ -92,6 +106,7 @@ classes = (
     measureit_arch_baseclass.MoveItem,
     measureit_arch_baseclass.DeleteAllItemsButton,
 
+    # Annotations
     measureit_arch_annotations.OBJECT_PT_UIAnnotations,
     measureit_arch_annotations.CustomProperties,
     measureit_arch_annotations.AnnotationProperties,
@@ -102,6 +117,7 @@ classes = (
     measureit_arch_annotations.M_ARCH_UL_annotations_list,
     measureit_arch_annotations.OBJECT_MT_annotation_menu,
 
+    # Dimensions
     measureit_arch_dimensions.OBJECT_PT_UIDimensions,
     measureit_arch_dimensions.AreaDimensionProperties,
     measureit_arch_dimensions.AlignedDimensionProperties,
@@ -123,15 +139,16 @@ classes = (
     measureit_arch_dimensions.M_ARCH_UL_dimension_list,
     measureit_arch_dimensions.OBJECT_MT_dimension_menu,
 
+    # Gizmos
     measureit_arch_gizmos.mArchGizmoGroup,
 
-    measureit_arch_hatches.SCENE_PT_Hatches,
+    # Hatches
     measureit_arch_hatches.HatchProperties,
     measureit_arch_hatches.HatchContainer,
     measureit_arch_hatches.DeleteHatchButton,
     measureit_arch_hatches.AddHatchButton,
-    measureit_arch_hatches.M_ARCH_UL_Hatches_list,
 
+    # Lines
     measureit_arch_lines.OBJECT_PT_UILines,
     measureit_arch_lines.LineProperties,
     measureit_arch_lines.LineContainer,
@@ -141,13 +158,15 @@ classes = (
     measureit_arch_lines.AddLineByProperty,
     measureit_arch_lines.RemoveFromLineGroup,
     measureit_arch_lines.OBJECT_MT_lines_menu,
+    measureit_arch_lines.M_ARCH_UL_lines_list,
 
+    # Render
     measureit_arch_render.RENDER_PT_MeasureitArch_Panel,
     measureit_arch_render.RenderImageButton,
     measureit_arch_render.RenderAnimationButton,
     measureit_arch_render.RenderVectorButton,
 
-    measureit_arch_schedules.SCENE_PT_Schedules,
+    #Schedules
     measureit_arch_schedules.ColumnProps,
     measureit_arch_schedules.ScheduleProperties,
     measureit_arch_schedules.ScheduleContainer,
@@ -156,9 +175,8 @@ classes = (
     measureit_arch_schedules.GenerateSchedule,
     measureit_arch_schedules.DuplicateScheduleButton,
     measureit_arch_schedules.AddScheduleButton,
-    measureit_arch_schedules.M_ARCH_UL_Schedules_list,
-    measureit_arch_schedules.SCENE_MT_Schedules_menu,
 
+    # Sheets
     measureit_arch_sheets.SCENE_PT_Sheet,
     measureit_arch_sheets.SheetViewProperties,
     measureit_arch_sheets.SheetViewContainer,
@@ -166,23 +184,20 @@ classes = (
     measureit_arch_sheets.DeleteSheetViewButton,
     measureit_arch_sheets.M_ARCH_UL_Sheets_list,
 
-    measureit_arch_styles.SCENE_PT_UIStyles,
+    # Styles
     measureit_arch_styles.StyleWrapper,
     measureit_arch_styles.StyleContainer,
     measureit_arch_styles.ListDeletePropButton,
     measureit_arch_styles.AddStyleButton,
-    measureit_arch_styles.M_ARCH_UL_styles_list,
-    measureit_arch_styles.SCENE_MT_styles_menu,
 
-    measureit_arch_views.SCENE_PT_Views,
+    # Views
     measureit_arch_views.ViewProperties,
     measureit_arch_views.ViewContainer,
     measureit_arch_views.DeleteViewButton,
     measureit_arch_views.DuplicateViewButton,
     measureit_arch_views.AddViewButton,
     measureit_arch_views.M_ARCH_OP_Render_Preview,
-    measureit_arch_views.M_ARCH_UL_Views_list,
-    measureit_arch_views.SCENE_MT_Views_menu,
+
 )
 
 
@@ -212,11 +227,11 @@ def register():
         type=measureit_arch_sheets.SheetViewContainer)
 
     # Register collection properties
-    Object.DimensionGenerator = bpy.props.CollectionProperty(
+    Object.DimensionGenerator = bpy.props.PointerProperty(
         type=measureit_arch_dimensions.DimensionContainer)
-    Object.LineGenerator = bpy.props.CollectionProperty(
+    Object.LineGenerator = bpy.props.PointerProperty(
         type=measureit_arch_lines.LineContainer)
-    Object.AnnotationGenerator = bpy.props.CollectionProperty(
+    Object.AnnotationGenerator = bpy.props.PointerProperty(
         type=measureit_arch_annotations.AnnotationContainer)
 
     # Property on the WM that indicates if we want to draw the measurements in the viewport

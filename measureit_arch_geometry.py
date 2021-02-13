@@ -23,6 +23,8 @@
 #
 # ----------------------------------------------------------
 
+import bpy
+import gpu
 import bgl
 import blf
 import bmesh
@@ -2855,8 +2857,8 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
     size = textProps.fontSize / 803
     size *= scale
 
-    # Get font size in pt more stupid fudge factors :(
-    size = (textProps.fontSize / 803) * scale
+    sx = (width/resolution)*size
+    sy = (height/resolution)*size
 
     cardX = xDir.normalized() * sx
     cardY = yDir.normalized() * sy

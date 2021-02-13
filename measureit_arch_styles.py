@@ -41,12 +41,9 @@ from bpy.props import (
     EnumProperty
 )
 
-from .measureit_arch_baseclass import DeletePropButton
-from .measureit_arch_dimensions import (
-    AlignedDimensionProperties,
-    recalc_dimWrapper_index,
-    draw_aligned_dimension_settings
-)
+from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index
+from .measureit_arch_dimensions import AlignedDimensionProperties, draw_alignedDimensions_settings
+
 from .measureit_arch_annotations import AnnotationProperties
 from .measureit_arch_lines import LineProperties
 

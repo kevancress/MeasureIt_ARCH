@@ -26,6 +26,7 @@
 import bpy
 import bgl
 
+from bmesh import from_edit_mesh
 from bpy.types import Panel, Operator, SpaceView3D
 from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
@@ -405,6 +406,8 @@ def draw_main(context):
 
 
 def text_update_loop(context, objlist):
+    scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
     for myobj in objlist:
         if not myobj.hide_get():
             if 'DimensionGenerator' in myobj:
@@ -490,7 +493,7 @@ def text_update_loop(context, objlist):
 
                 # Draw Instanced Objects
 
-    if draw_instanced:
+    if sceneProps.instance_dims:
         deps = bpy.context.view_layer.depsgraph
         for obj_int in deps.object_instances:
             if obj_int.is_instance:

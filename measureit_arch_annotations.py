@@ -341,7 +341,7 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                 # Draw The UI List
                 row.template_list("M_ARCH_UL_annotations_list", "", annoGen, "annotations",
-                                  annoGen, "active_annotation_index", rows=2, type='DEFAULT')
+                                  annoGen, "active_index", rows=2, type='DEFAULT')
 
                 # Operators Next to List
                 col = row.column(align=True)

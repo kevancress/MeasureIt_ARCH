@@ -27,6 +27,9 @@ import bpy
 import bmesh
 import random
 
+from .measureit_arch_baseclass import BaseDim, recalc_dimWrapper_index
+from .measureit_arch_main import get_smart_selected, get_selected_vertex_history, get_selected_faces
+
 from bpy.types import PropertyGroup, Panel, Object, Operator, UIList, Collection
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, \
@@ -169,7 +172,6 @@ class ArcDimensionProperties(BaseDim, PropertyGroup):
         name="C end",
         description="Add arrows to Radius Leader")
 
-bpy.utils.register_class(ArcDimensionProperties)
 
 
 class AngleDimensionProperties(BaseDim, PropertyGroup):
@@ -1121,7 +1123,7 @@ def draw_alignedDimensions_settings(dim, layout):
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
 
 
-def draw_bounds_dimension_settings(dim, layout):
+def draw_boundsDimensions_settings(dim, layout):
     col = layout.column()
     col.prop_search(dim, 'dimCollection', bpy.data,
                     'collections', text="Collection", icon='GROUP')
@@ -1176,7 +1178,7 @@ def draw_bounds_dimension_settings(dim, layout):
     col.prop(dim, 'calcAxisAligned', text='Always Use Axis Aligned Bounds')
 
 
-def draw_axis_dimension_settings(dim, layout):
+def draw_axisDimensions_settings(dim, layout):
     col = layout.column()
 
     if not dim.uses_style:
@@ -1235,7 +1237,7 @@ def draw_axis_dimension_settings(dim, layout):
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
 
 
-def draw_angle_dimension_settings(dim, layout):
+def draw_angleDimensions_settings(dim, layout):
     col = layout.column()
     if not dim.uses_style:
         split = layout.split(factor=0.485)
@@ -1273,7 +1275,7 @@ def draw_angle_dimension_settings(dim, layout):
     col = layout.column(align=True)
 
 
-def draw_arc_dimension_settings(dim, layout):
+def draw_arcDimensions_settings(dim, layout):
     col = layout.column()
 
     if not dim.uses_style:
@@ -1313,7 +1315,7 @@ def draw_arc_dimension_settings(dim, layout):
     col = layout.column(align=True)
 
 
-def draw_area_dimension_settings(dim, layout):
+def draw_areaDimensions_settings(dim, layout):
     col = layout.column(align=True)
 
     col.prop(dim, "fillColor", text='Fill Color')
