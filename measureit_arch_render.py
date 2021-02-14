@@ -100,19 +100,15 @@ class RenderImageButton(Operator):
             self.report({'ERROR'}, "Unable to render: no camera found!")
             return {'FINISHED'}
 
-        print("MeasureIt_ARCH: Rendering image")
-        # bpy.ops.render.render()
-        render_result = render_main(self, context)
-        #render_result = [True, 0]
-        if render_result[0] is True:
-            self.report({'INFO'}, "Render Completed, Check Image Editor for Result")
-        del render_result
+        outpath = render_main(self, context)
+        if outpath:
+            self.report({'INFO'}, "Image exported to: {}".format(outpath))
 
         return {'FINISHED'}
 
 
 class RenderAnimationButton(Operator):
-    """ Operator which runs its self from a timer """
+    """ Operator which runs itself from a timer """
 
     bl_idname = "measureit_arch.renderanimbutton"
     bl_label = "Render animation"
@@ -125,7 +121,6 @@ class RenderAnimationButton(Operator):
 
     def modal(self, context, event):
         scene = context.scene
-        wm = context.window_manager
 
         if event.type in {'RIGHTMOUSE', 'ESC'}:
             self.cancel(context)
@@ -137,7 +132,7 @@ class RenderAnimationButton(Operator):
                 scene.frame_set(scene.frame_current)
                 self.view3d.tag_redraw()
                 print("MeasureIt_ARCH: Rendering frame: " + str(scene.frame_current))
-                render_main(self, context, True)
+                render_main(self, context)
                 self._updating = False
                 scene.frame_current += 1
             else:
@@ -186,25 +181,17 @@ class RenderVectorButton(Operator):
         if not context.scene.camera:
             self.report({'ERROR'}, "Unable to render: no camera found!")
             return {'FINISHED'}
-        # -----------------------------
-        # Use default render
-        # -----------------------------
 
-        print("MeasureIt_ARCH: Rendering image")
-        # bpy.ops.render.render()
-        if render_main_svg(self, context) is True:
-            outpath = render_main_svg(self, context)
-            self.report({'INFO'}, "SVG exported to: {}".format(outpath))
-
+        outpath = render_main_svg(self, context)
+        self.report({'INFO'}, "SVG exported to: {}".format(outpath))
         return {'FINISHED'}
 
 
-def render_main(self, context, animation=False):
+def render_main(self, context):
     """ Render image main entry point """
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     sceneProps.is_render_draw = True
-
 
     clipdepth = context.scene.camera.data.clip_end
     objlist = context.view_layer.objects
@@ -271,29 +258,22 @@ def render_main(self, context, animation=False):
     # Restore default value
     set_OpenGL_Settings(False)
     sceneProps.is_render_draw = False
-    return True, buffer
+    return outpath
 
 
-def save_image(self, filepath, myimage):
-
+def save_image(self, filepath, image):
+    """ Save image to file """
     try:
-        # Save old info
         settings = bpy.context.scene.render.image_settings
-        myformat = settings.file_format
-        mode = settings.color_mode
-        depth = settings.color_depth
-
-        # Apply new info and save
-        settings.file_format = 'PNG'
-        settings.color_mode = "RGBA"
-        settings.color_depth = '16'
-        myimage.save_render(filepath)
-        print("MeasureIt_ARCH: Image " + filepath + " saved")
-
-        # Restore old info
-        settings.file_format = myformat
-        settings.color_mode = mode
-        settings.color_depth = depth
+        with local_attrs(settings, [
+                'file_format',
+                'color_mode',
+                'color_depth']):
+            settings.file_format = 'PNG'
+            settings.color_mode = 'RGBA'
+            settings.color_depth = '16'
+            image.save_render(filepath)
+            self.report({'INFO'}, "Image exported to: {}".format(filepath))
     except:
         print("Unexpected error:" + str(exc_info()))
         self.report({'ERROR'}, "MeasureIt_ARCH: Unable to save render image")
@@ -355,8 +335,7 @@ def draw_scene(self, context, projection_matrix):
     set_OpenGL_Settings(False)
 
 
-def render_main_svg(self, context, animation=False):
-
+def render_main_svg(self, context):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     sceneProps.is_render_draw = True
@@ -406,12 +385,11 @@ def render_main_svg(self, context, animation=False):
         offscreen.free()
         set_OpenGL_Settings(False)
 
-        if False:
-            imageName = 'depthBufferTest'
-            if not imageName in bpy.data.images:
-                bpy.data.images.new(imageName, width, height,
-                                    alpha=False, float_buffer=True, is_data=True)
-            image = bpy.data.images[imageName]
+        # imageName = 'depthBufferTest'
+        # if imageName not in bpy.data.images:
+        #     bpy.data.images.new(imageName, width, height,
+        #                         alpha=False, float_buffer=True, is_data=True)
+        # image = bpy.data.images[imageName]
 
         # image.scale(width, height)
         # image.pixels = [v for v in texture_buffer]
@@ -475,31 +453,22 @@ def render_main_svg(self, context, animation=False):
             scene.render.use_freestyle = True
             scene.svg_export.use_svg_export = True
             scene.svg_export.mode = 'FRAME'
+            scene.render.filepath += '_freestyle_'
+            scene.render.image_settings.file_format = 'PNG'
+            scene.render.use_file_extension = True
+            bpy.ops.render.render(write_still=False)
 
-        base_path = bpy.context.scene.render.filepath
-        bpy.context.scene.render.filepath += '_freestyle_'
-        scene.render.image_settings.file_format = 'PNG'
-        scene.render.use_file_extension = True
-        bpy.ops.render.render(write_still=False)
-
-        image_path = bpy.context.scene.render.filepath
-
-        if freestyle_svg_export:
+            image_path = scene.render.filepath
             frame = scene.frame_current
             svg_image_path = bpy.path.abspath(
                 "{}{:04d}.svg".format(image_path, frame))
             svg_root = ET.parse(svg_image_path).getroot()
             for elem in svg_root:
                 svg.add(SVGWriteElement(elem))
-            # TODO: should we delete file `svg_image_path`?
-            if os.path.exists(svg_image_path) and not sceneProps.keep_freestyle_svg:
-                os.remove(svg_image_path)
 
-        scene.render.image_settings.file_format = lastformat[0]
-        scene.render.use_freestyle = lastformat[1]
-        scene.svg_export.use_svg_export = lastformat[2]
-        scene.svg_export.mode = lastformat[3]
-        bpy.context.scene.render.filepath = base_path
+            if (os.path.exists(svg_image_path) and
+                not sceneProps.keep_freestyle_svg):
+                os.remove(svg_image_path)
 
     svg.save(pretty=True)
 

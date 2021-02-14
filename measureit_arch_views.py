@@ -18,23 +18,26 @@ from .measureit_arch_baseclass import TextField
 
 
 PAPER_SIZES = (
-    ('Custom',  (None,     None)),
-    ('A0',      ('84.1cm', '118.9cm')),
-    ('A1',      ('59.4cm', '84.1cm')),
-    ('A2',      ('42cm',   '59.4cm')),
-    ('A3',      ('29.7cm', '42cm')),
-    ('A4',      ('21cm',   '29.7cm')),
-    ('Letter',  ('8.5in',  '11in')),
-    ('Legal',   ('8.5in',  '14in')),
-    ('Tabloid', ('11in',   '17in')),
-    ('Arch A',  ('9in',    '12in')),
-    ('Arch B',  ('12in',   '18in')),
-    ('Arch C',  ('18in',   '24in')),
-    ('Arch D',  ('24in',   '36in')),
-    ('Arch E',  ('36in',   '48in')),
-    ('Arch E1', ('30in',   '42in')),
-    ('Arch E2', ('26in',   '38in')),
-    ('Arch E3', ('27in',   '39in')),
+    ('CUSTOM',  'Custom',  (None,     None)),
+    ('A0',      'A0',      ('84.1cm', '118.9cm')),
+    ('A1',      'A1',      ('59.4cm', '84.1cm')),
+    ('A2',      'A2',      ('42cm',   '59.4cm')),
+    ('A3',      'A3',      ('29.7cm', '42cm')),
+    ('A4',      'A4',      ('21cm',   '29.7cm')),
+    ('LEGAL',   'US Legal',            ('8.5in',  '14in')),
+    ('ANSI_A',  'ANSI A (US Letter)',  ('8.5in',  '11in')),
+    ('ANSI_B',  'ANSI B (US Tabloid)', ('11in',   '17in')),
+    ('ANSI_C',  'ANSI C',  ('17in',   '22in')),
+    ('ANSI_D',  'ANSI D',  ('22in',   '34in')),
+    ('ANSI_E',  'ANSI E',  ('34in',   '44in')),
+    ('ARCH_A',  'Arch A',  ('9in',    '12in')),
+    ('ARCH_B',  'Arch B',  ('12in',   '18in')),
+    ('ARCH_C',  'Arch C',  ('18in',   '24in')),
+    ('ARCH_D',  'Arch D',  ('24in',   '36in')),
+    ('ARCH_E',  'Arch E',  ('36in',   '48in')),
+    ('ARCH_E1', 'Arch E1', ('30in',   '42in')),
+    ('ARCH_E2', 'Arch E2', ('26in',   '38in')),
+    ('ARCH_E3', 'Arch E3', ('27in',   '39in')),
 )
 
 
@@ -83,11 +86,11 @@ def update(self, context):
 
 
 def update_paper_size(self, context):
-    if self.paper_size == 'Custom':
+    if self.paper_size == 'CUSTOM':
         return
 
-    for name, (width, height) in PAPER_SIZES:
-        if name == self.paper_size:
+    for code, _, (width, height) in PAPER_SIZES:
+        if code == self.paper_size:
             break
 
     if self.paper_orientation == 'LANDSCAPE':
@@ -273,10 +276,10 @@ class ViewProperties(PropertyGroup):
         update=update)
 
     paper_size: EnumProperty(
-        items=map(lambda o: (o[0], o[0], ''), PAPER_SIZES),
+        items=map(lambda o: (o[0], o[1], ''), PAPER_SIZES),
         name="Paper size",
         description="Paper size used for rendering",
-        default='Custom',
+        default='CUSTOM',
         update=update_paper_size)
 
     paper_orientation: EnumProperty(
@@ -483,27 +486,20 @@ class SCENE_PT_Views(Panel):
                         col.alignment = 'RIGHT'
                         row = split.row(align=True)
 
+                        custom_paper_size = view.paper_size == 'CUSTOM'
                         col = box.column(align=True)
                         col.enabled = True
                         col.prop(view, 'paper_size', text='Paper size:')
 
-                        if view.paper_size == 'Custom':
-                            col = box.column(align=True)
-                            col.enabled = False
-                            col.row().prop(view, 'paper_orientation', expand=True)
-                            col = box.column(align=True)
-                            col.enabled = True
-                        else:
-                            col = box.column(align=True)
-                            col.enabled = True
-                            col.row().prop(view, 'paper_orientation', expand=True)
-                            col = box.column(align=True)
-                            col.enabled = False
+                        col = box.column(align=True)
+                        col.enabled = not custom_paper_size
+                        col.row().prop(view, 'paper_orientation', expand=True)
 
-
+                        col = box.column(align=True)
+                        col.enabled = custom_paper_size
                         col.prop(view, 'width', text='Width:')
                         col.prop(view, 'height', text='Height:')
-                        #col.prop(view, 'paper_orientation', text='Paper orientation:')
+
                         col = box.column(align=True)
                         col.enabled = True
                         col.prop(view, 'res', text='Resolution (PPI):')
