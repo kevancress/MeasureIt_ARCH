@@ -88,7 +88,10 @@ class BaseProp:
                           description='Draw this element In front of other objects',
                           default=False)
 
-    visibleInView: PointerProperty(type=bpy.types.Camera)
+    visibleInView: StringProperty(
+        name="View Layer",
+        description="View Layer that this dimension is visible in",
+        default="",)
 
     is_style: BoolProperty(name="is Style",
                            description="This property Group is a Style",

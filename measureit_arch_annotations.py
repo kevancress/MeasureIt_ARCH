@@ -452,7 +452,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                         if not annotation.uses_style:
                             col = box.column(align=True)
                             col.prop_search(
-                                annotation, 'visibleInView', bpy.data, 'cameras', text='Visible In View')
+                                annotation, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
 
                             col = box.column(align=True)
                             split = box.split(factor=0.485)

@@ -312,7 +312,7 @@ class AddAlignedDimensionButton(Operator):
 
                 newDimension.lineWeight = 1
                 if 'camera' in scene:
-                    newDimension.visibleInView = scene.camera.data
+                    newDimension.visibleInView = context.window.view_layer
                 newDimension.dimViewPlane = sceneProps.viewPlane
 
                 # text
@@ -477,7 +477,7 @@ class AddAxisDimensionButton(Operator):
                     newDimension.uses_style = False
 
                 if 'camera' in scene:
-                    newDimension.visibleInView = scene.camera.data
+                    newDimension.visibleInView = context.window.view_layer
                 newDimension.dimViewPlane = sceneProps.viewPlane
 
                 newDimension.dimAxis = sceneProps.measureit_arch_dim_axis
@@ -618,7 +618,7 @@ class AddAngleButton(Operator):
                 newWrapper.itemType = 'angleDimensions'
                 recalc_dimWrapper_index(self, context)
 
-                newDimension.visibleInView = scene.camera.data
+                newDimension.visibleInView = context.window.view_layer
 
                 newDimension.style = sceneProps.default_dimension_style
                 if sceneProps.default_dimension_style != '':
@@ -1093,8 +1093,7 @@ def draw_alignedDimensions_settings(dim, layout):
 
         # View Settings
         col = layout.column(align=True)
-        col.prop_search(dim, 'visibleInView', bpy.data,
-                        'cameras', text='Visible In View')
+        col.prop_search(dim, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
         col.prop(dim, 'dimViewPlane', text='View Plane')
 
         # Position Settings
@@ -1143,8 +1142,7 @@ def draw_boundsDimensions_settings(dim, layout):
         col.prop(dim, 'dimViewPlane', text='View Plane Overide')
 
     if not dim.uses_style:
-        col.prop_search(dim, 'visibleInView', bpy.data,
-                        'cameras', text='Visible In View')
+        col.prop_search(dim, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
         col.prop(dim, 'lineWeight', text='Line Weight')
 
     split = layout.split(factor=0.49)
@@ -1196,8 +1194,7 @@ def draw_axisDimensions_settings(dim, layout):
 
         # View Settings
         col = layout.column(align=True)
-        col.prop_search(dim, 'visibleInView', bpy.data,
-                        'cameras', text='Visible In View')
+        col.prop_search(dim, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
         col.prop(dim, 'dimViewPlane', text='View Plane')
 
         # Axis Settings
@@ -1250,8 +1247,8 @@ def draw_angleDimensions_settings(dim, layout):
 
         col = layout.column()
 
-    col.prop_search(dim, 'visibleInView', bpy.data,
-                    'cameras', text='Visible In View')
+    col.prop_search(dim, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
+
     if not dim.uses_style:
         col = layout.column(align=True)
         col.prop(dim, 'lineWeight', text='Line Weight')
@@ -1289,8 +1286,8 @@ def draw_arcDimensions_settings(dim, layout):
 
         col = layout.column()
 
-    col.prop_search(dim, 'visibleInView', bpy.data,
-                    'cameras', text='Visible In View')
+    col.prop_search(dim, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
+
     if not dim.uses_style:
         col = layout.column(align=True)
         col.prop(dim, 'lineWeight', text='Line Weight')
@@ -1336,8 +1333,7 @@ def draw_areaDimensions_settings(dim, layout):
         col.prop(dim, 'dimViewPlane', text='View Plane Overide')
 
     if not dim.uses_style:
-        col.prop_search(dim, 'visibleInView', bpy.data,
-                        'cameras', text='Visible In View')
+        col.prop_search(dim, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
         col.prop(dim, 'lineWeight', text='Line Weight')
 
     col = layout.column(align=True)

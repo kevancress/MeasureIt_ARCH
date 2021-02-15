@@ -410,8 +410,7 @@ class OBJECT_PT_UILines(Panel):
                                      text="Influence")
 
                             col = box.column(align=True)
-                            col.prop_search(
-                                line, 'visibleInView', bpy.data, 'cameras', text='Visible In View')
+                            col.prop_search(line, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
 
                             col = box.column(align=True)
                             col.prop(line, 'lineDepthOffset', text="Z Offset")

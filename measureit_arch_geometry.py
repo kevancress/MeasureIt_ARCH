@@ -3330,7 +3330,7 @@ def printTime(start, end, post):
 def check_vis(item, props):
     context = bpy.context
     inView = False
-    if props.visibleInView is None or props.visibleInView.name == context.scene.camera.data.name:
+    if props.visibleInView is "" or props.visibleInView == context.window.view_layer.name:
         inView = True
 
     if item.visible and props.visible and inView:
