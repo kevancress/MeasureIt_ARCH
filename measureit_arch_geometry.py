@@ -2451,7 +2451,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 xDir = fullRotMat @ Vector((1, 0, 0))
                 yDir = fullRotMat @ Vector((0, 1, 0))
 
-                draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
+                #draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
 
                 textcard = generate_text_card(
                     context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
