@@ -493,10 +493,16 @@ class OBJECT_PT_UIAnnotations(Panel):
                                      text='Draw Leader')
 
                         col = box.column()
-                        col.prop(annotation, 'annotationOffset', text='Offset')
                         col.prop(annotation, 'leader_length')
-                        col.prop(annotation, 'annotationRotation',
-                                 text='Rotation')
+
+                        col = box.column()
+                        col.prop(annotation, 'annotationOffset', text='Offset')
+
+                        col = box.column()
+                        col.enabled = not annotation.align_to_camera
+                        col.prop(annotation, 'annotationRotation', text='Rotation')
+
+                        col = box.column()
                         col.prop(annotation, 'inFront', text='Draw in Front')
                         col.prop(annotation, 'align_to_camera')
 

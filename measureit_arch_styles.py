@@ -440,6 +440,7 @@ def draw_annotation_style_settings(annotation, layout):
     col.prop(annotation, 'inFront', text="Draw In Front")
     col.prop(annotation, 'evalMods')
     col.prop(annotation, 'draw_leader', text='Draw Leader')
+    col.prop(annotation, 'align_to_camera')
 
 
 def draw_dimension_style_row(dim, layout):

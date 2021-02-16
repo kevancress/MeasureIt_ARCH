@@ -2355,7 +2355,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             # Draw Custom Shape
 
             offsetMat = Matrix.Translation(p1Scaled)
-            rotMat = Matrix.Identity(3)
+            rotMat = Matrix.Identity(3).copy()
             rotEuler = Euler(annotation.annotationRotation, 'XYZ')
             rotMat.rotate(rotEuler)
             rotMat = rotMat.to_4x4()
@@ -2367,11 +2367,37 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
             extMat = noScaleMat @ offsetMat @ rotMat @ customScale
 
-            fullRotMat = rotMatrix @ rotMat
+            leaderDist = annotationProps.leader_length
+            mult = 1
+            if annotationProps.align_to_camera:
+                # Only use the z rot of the annotation rotation
+                annoMat = Matrix.Identity(3).copy()
+                annoEuler = Euler((0,0,0), 'XYZ')
+                annoMat.rotate(annoEuler)
+                annoMat = rotMat.to_4x4()
+
+                #use Camera rot for the rest
+                camera = context.scene.camera
+                cameraMat = camera.matrix_world
+                cameraRot = cameraMat.decompose()[1]
+                cameraRotMat = Matrix.Identity(3)
+                cameraRotMat.rotate(cameraRot)
+                cameraRotMat = cameraRotMat.to_4x4()
+
+                fullRotMat = cameraRotMat
+
+                cameraX = cameraRotMat @ Vector((1,0,0))
+                leader1 = p1 - p2
+                proj = leader1.dot(cameraX)
+                if proj > 0:
+                    mult = -1
+
+            else:
+                fullRotMat = rotMatrix @ rotMat
 
             p3dir = fullRotMat @ Vector((1, 0, 0))
 
-            p3 = p2 + p3dir * annotationProps.leader_length
+            p3 = p2 + p3dir * leaderDist * mult
 
             if annotation.customShape is not None:
                 col = annotation.customShape
@@ -2448,7 +2474,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             for textField in fields:
                 set_text(textField, myobj)
                 origin = p3
-                xDir = fullRotMat @ Vector((1, 0, 0))
+                xDir = fullRotMat @ Vector((1*mult, 0, 0))
                 yDir = fullRotMat @ Vector((0, 1, 0))
 
                 #draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
