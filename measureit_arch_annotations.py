@@ -140,6 +140,11 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
         default=(1.0, 1.0, 1.0),
         subtype='TRANSLATION')
 
+    leader_length: FloatProperty(
+        name='Leader Offset',
+        description='Leader Length',
+        default=1.0,)
+
     annotationTextSource: StringProperty(
         name='annotationTextSource',
         description="Text Source",
@@ -162,6 +167,11 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
                ('T', "Triangle", "Triangle")),
         name="A end",
         description="Add arrows to point A")
+
+    align_to_camera: BoolProperty(
+        name='Align Text to Camera',
+        description='Keeps Anotation Text Aligned to the Active Camera',
+        default=False)
 
 
 
@@ -484,9 +494,11 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                         col = box.column()
                         col.prop(annotation, 'annotationOffset', text='Offset')
+                        col.prop(annotation, 'leader_length')
                         col.prop(annotation, 'annotationRotation',
                                  text='Rotation')
                         col.prop(annotation, 'inFront', text='Draw in Front')
+                        col.prop(annotation, 'align_to_camera')
 
                 # Delete Operator (Move to drop down menu next to list)
                 col = layout.column()

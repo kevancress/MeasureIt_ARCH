@@ -2367,6 +2367,12 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
             extMat = noScaleMat @ offsetMat @ rotMat @ customScale
 
+            fullRotMat = rotMatrix @ rotMat
+
+            p3dir = fullRotMat @ Vector((1, 0, 0))
+
+            p3 = p2 + p3dir * annotation.leader_length
+
             if annotation.customShape is not None:
                 col = annotation.customShape
                 objs = col.objects
@@ -2441,11 +2447,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
             for textField in fields:
                 set_text(textField, myobj)
-                origin = p2
-                xDir = rotMatrix @ rotMat @ Vector((1, 0, 0))
-                yDir = rotMatrix @ rotMat @ Vector((0, 1, 0))
+                origin = p3
+                xDir = fullRotMat @ Vector((1, 0, 0))
+                yDir = fullRotMat @ Vector((0, 1, 0))
 
-                # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
+                draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
 
                 textcard = generate_text_card(
                     context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
@@ -2469,13 +2475,10 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 coords.append(lineEnd)
                 coords.append(p2)
                 coords.append(p2)
+                coords.append(p3)
 
                 textcard = fields[0]['textcard']
 
-                if annotationProps.textPosition == 'T':
-                    coords.append(textcard[3])
-                elif annotationProps.textPosition == 'B':
-                    coords.append(textcard[2])
 
                 if not annotationProps.draw_leader:
                     coords = []
