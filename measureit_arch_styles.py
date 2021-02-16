@@ -435,6 +435,7 @@ def draw_annotation_style_settings(annotation, layout):
     col.prop(annotation, 'endcapArrowAngle', text='Arrow Angle')
 
     col = layout.column(align=True)
+    col.prop(annotation, 'leader_length')
     col.prop(annotation, 'lineWeight', text="Line Weight")
     col.prop(annotation, 'inFront', text="Draw In Front")
     col.prop(annotation, 'evalMods')

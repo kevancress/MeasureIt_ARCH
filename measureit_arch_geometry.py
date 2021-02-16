@@ -2371,7 +2371,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
             p3dir = fullRotMat @ Vector((1, 0, 0))
 
-            p3 = p2 + p3dir * annotation.leader_length
+            p3 = p2 + p3dir * annotationProps.leader_length
 
             if annotation.customShape is not None:
                 col = annotation.customShape
