@@ -15,6 +15,7 @@ from datetime import datetime
 
 from .measureit_arch_render import render_main
 from .measureit_arch_baseclass import TextField
+from .measureit_arch_units import BU_TO_INCHES
 
 
 PAPER_SIZES = (
@@ -73,7 +74,7 @@ def update(self, context):
         context.window.view_layer = vl
 
     render = scene.render
-    if view.output_path is not "":
+    if view.output_path != "":
         filenameStr = view.name
         render.filepath = os.path.join(view.output_path, filenameStr)
         if view.date_folder:
@@ -113,15 +114,15 @@ def update_camera(scene, camera):
     ppi = view.res
 
     render.resolution_percentage = 100
-    render.resolution_x = width * ppi * 39.3701
-    render.resolution_y = height * ppi * 39.3701
+    render.resolution_x = width * ppi * BU_TO_INCHES
+    render.resolution_y = height * ppi * BU_TO_INCHES
 
     if width > height:
         camera.ortho_scale = (
-            render.resolution_x / ppi / 39.3701) * (modelScale / paperScale)
+            render.resolution_x / ppi / BU_TO_INCHES) * (modelScale / paperScale)
     else:
         camera.ortho_scale = (
-            render.resolution_y / ppi / 39.3701) * (modelScale / paperScale)
+            render.resolution_y / ppi / BU_TO_INCHES) * (modelScale / paperScale)
 
 
 def update_camera_px(scene, camera):
@@ -150,7 +151,7 @@ def change_scene_camera(self, context):
     view = ViewGen.views[ViewGen.active_index]
     camera = view.camera
     update(self, context)
-    if camera != None:
+    if camera is not None:
         scene.camera = camera
         scene.frame_current = view.start_frame
         scene_text_update_flag(self, context)
@@ -250,8 +251,7 @@ class ViewProperties(PropertyGroup):
         name="paper_scale",
         description="Length on Paper",
         default=1, min=1,
-        update=update
-    )
+        update=update)
 
     # Pixel Length
     pixel_scale: IntProperty(
@@ -259,8 +259,7 @@ class ViewProperties(PropertyGroup):
         subtype='PIXEL',
         default=10000,
         min=1,
-        update=update
-    )
+        update=update)
 
     # Resolution Type
     res_type: EnumProperty(

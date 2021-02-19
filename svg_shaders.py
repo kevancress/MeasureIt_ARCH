@@ -32,7 +32,7 @@ import svgwrite
 from math import fabs, sqrt
 from mathutils import Vector, Matrix
 
-from .measureit_arch_utils import get_view
+from .measureit_arch_utils import get_view, interpolate3d
 
 
 def svg_line_shader(item, coords, thickness, color, svg, parent=None,
@@ -81,7 +81,7 @@ def svg_fill_shader(item, coords, color, svg, parent=None):
 
     for x in range(0, len(coords_2d) - 1, 3):
         tri = svg.polygon(
-            points=[coords_2d[x], coords_2d[x+1], coords_2d[x+2]])
+            points=[coords_2d[x], coords_2d[x + 1], coords_2d[x + 2]])
         fills.add(tri)
 
 
@@ -89,11 +89,11 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     coords_2d = []
     idName = item.name + "_fills"
 
-    fill = svgwrite.rgb(color[0]*100, color[1]*100, color[2]*100, '%')
+    fill = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
 
     fillOpacity = color[3]
     lineColor = svgwrite.rgb(
-        line_color[0]*100, line_color[1]*100, line_color[2]*100, '%')
+        line_color[0] * 100, line_color[1] * 100, line_color[2] * 100, '%')
     solidfill = svg.g(id=idName, fill=fill, opacity=fillOpacity,
                       stroke=lineColor, stroke_width=lineWeight)
     parent.add(solidfill)
@@ -371,67 +371,3 @@ def check_visible(p1, p2, mat, item, numIterations=0):
             p3 = interpolate3d(p1, p2, fabs(dist - (dist / maxIter) * numIterations))
             vis, p1, p2 = check_visible(p1, p3, mat, item, numIterations=numIterations)
         return vis, p1, p2
-
-
-# --------------------------------------------------------------------
-# Interpolate 2 points in 3D space
-# v1: first point
-# v2: second point
-# d1: distance
-# return: interpolate point
-# --------------------------------------------------------------------
-def interpolate3d(v1, v2, d1):
-    # calculate vector
-    v = (v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2])
-    # calculate distance between points
-    d0, dloc = distance(v1, v2)
-
-    # calculate interpolate factor (distance from origin / distance total)
-    # if d1 > d0, the point is projected in 3D space
-    if d0 > 0:
-        x = d1 / d0
-    else:
-        x = d1
-
-    final = (v1[0] + (v[0] * x), v1[1] + (v[1] * x), v1[2] + (v[2] * x))
-    return final
-
-
-# --------------------------------------------------------------------
-# Distance between 2 points in 3D space
-# v1: first point
-# v2: second point
-# locx/y/z: Use this axis
-# return: distance
-# --------------------------------------------------------------------
-def distance(v1, v2, locx=True, locy=True, locz=True):
-    x = sqrt((v2[0] - v1[0]) ** 2 + (v2[1] - v1[1])
-             ** 2 + (v2[2] - v1[2]) ** 2)
-
-    # If axis is not used, make equal both (no distance)
-    v1b = [v1[0], v1[1], v1[2]]
-    v2b = [v2[0], v2[1], v2[2]]
-    if not locx:
-        v2b[0] = v1b[0]
-    if not locy:
-        v2b[1] = v1b[1]
-    if not locz:
-        v2b[2] = v1b[2]
-
-    xloc = sqrt((v2b[0] - v1b[0]) ** 2 + (v2b[1] - v1b[1])
-                ** 2 + (v2b[2] - v1b[2]) ** 2)
-
-    return x, xloc
-
-
-def get_view():
-    scene = bpy.context.scene
-    ViewGen = scene.ViewGenerator
-    view = None
-
-    try:
-        view = ViewGen.views[ViewGen.active_index]
-    except:
-        view = None
-
-    return view

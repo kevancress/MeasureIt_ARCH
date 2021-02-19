@@ -29,7 +29,8 @@ from mathutils import Vector, Matrix
 from math import fabs
 
 from .measureit_arch_geometry import get_mesh_vertex, get_point, sortPoints, \
-    select_normal, interpolate3d
+    select_normal
+from .measureit_arch_utils import interpolate3d
 
 
 def blenderBIM_get_coords(context, offset_pos=True):
@@ -118,8 +119,8 @@ def get_dim_coords(context, myobj, DimGen, dim, mat, offset_pos=True):
     except IndexError:
         print('p2 excepted for ' + dim.name + ' on ' + myobj.name)
 
-    p1 = get_point(p1Local, dim.dimObjectA, aMatrix)
-    p2 = get_point(p2Local, dim.dimObjectB, bMatrix)
+    p1 = get_point(p1Local, aMatrix)
+    p2 = get_point(p2Local, bMatrix)
 
     # check dominant Axis
     sortedPoints = sortPoints(p1, p2)

@@ -37,7 +37,6 @@ from .measureit_arch_baseclass import BaseProp
 from .measureit_arch_utils import get_smart_selected, get_selected_vertex
 
 
-
 class LineProperties(BaseProp, PropertyGroup):
     pointPass: BoolProperty(
         name="Draw Round Caps",

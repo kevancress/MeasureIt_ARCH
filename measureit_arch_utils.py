@@ -1,8 +1,12 @@
 import bpy
 import bmesh
 
+from mathutils import Vector
+
 __all__ = (
     'get_view',
+    'get_rv3d',
+    'interpolate3d',
     'get_selected_faces',
     'get_selected_vertex',
     'get_selected_vertex_history',
@@ -24,6 +28,49 @@ def get_view():
         view = None
 
     return view
+
+
+def get_rv3d():
+    spaces = bpy.context.area.spaces
+    rv3d = None
+    for space in spaces:
+        if space.type == 'VIEW_3D':
+            rv3d = space.region_3d
+    return rv3d
+
+
+def interpolate3d(v1, v2, d1):
+    """
+    Interpolate 2 points in 3D space
+
+    :param v1: first point
+    :type v1: Vector
+    :param v2: second point
+    :type v2: Vector
+    :param d1: distance
+    :type d1: Float
+    :return: interpolate point
+    :return type: Vector
+    """
+
+    assert isinstance(v1, Vector)
+    assert isinstance(v2, Vector)
+    assert isinstance(d1, float)
+
+    # calculate vector
+    v = v2 - v1
+
+    # calculate distance between points
+    d0 = v.length
+
+    # calculate interpolate factor (distance from origin / distance total)
+    # if d1 > d0, the point is projected in 3D space
+    if d0 > 0:
+        x = d1 / d0
+    else:
+        x = d1
+
+    return Vector((v1[0] + (v[0] * x), v1[1] + (v[1] * x), v1[2] + (v[2] * x)))
 
 
 def get_selected_faces(myobject):
@@ -236,7 +283,6 @@ def get_smart_selected(filterObj=None, forceEdges=False, usePairs=True):
         print('In Edit Mode')
 
     return (pointList, warningStr)
-
 
 
 class local_attrs(object):

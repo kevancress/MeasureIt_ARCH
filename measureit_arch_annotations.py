@@ -24,12 +24,10 @@
 #
 # ----------------------------------------------------------
 import bpy
-import blf
-import bgl
-import gpu
-from .measureit_arch_main import OBJECT_PT_Panel
+import math
+
 from bpy_extras import view3d_utils
-from bpy.types import PropertyGroup, Panel, Object, Operator, SpaceView3D, Scene, UIList, GizmoGroup, Collection
+from bpy.types import PropertyGroup, Panel, Object, Operator, UIList, Collection
 from bpy.props import (
     CollectionProperty,
     FloatVectorProperty,
@@ -41,10 +39,10 @@ from bpy.props import (
     PointerProperty,
     BoolVectorProperty
 )
-from .measureit_arch_baseclass import BaseProp, BaseWithText
-from .measureit_arch_main import get_smart_selected, get_selected_vertex
-from mathutils import Vector, Matrix
-import math
+from mathutils import Vector
+
+from .measureit_arch_baseclass import BaseWithText
+from .measureit_arch_utils import get_smart_selected
 
 
 def update_active_annotation(self, context):
@@ -79,7 +77,6 @@ def update_custom_props(self, context):
 
 class CustomProperties(PropertyGroup):
     name: StringProperty(name='Custom Properties')
-
 
 
 def custom_shape_poll(self, collection):
@@ -174,7 +171,6 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
         default=False)
 
 
-
 class AnnotationContainer(PropertyGroup):
     num_annotations: IntProperty(
         name='Number of Annotations', min=0, max=1000, default=0,
@@ -195,9 +191,6 @@ class AddAnnotationButton(Operator):
     bl_description = "Add a new Annotation (For Mesh Objects Select 1 Vertex in Edit Mode)"
     bl_category = 'MeasureitArch'
 
-    # ------------------------------
-    # Poll
-    # ------------------------------
     @classmethod
     def poll(cls, context):
         obj = context.object
@@ -210,9 +203,6 @@ class AddAnnotationButton(Operator):
         else:
             return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
     def execute(self, context):
         emptyAnnoFlag = False
         if context.area.type == 'VIEW_3D':
@@ -221,7 +211,8 @@ class AddAnnotationButton(Operator):
             mainobject = context.object
 
             # If no obj selected, created an empty
-            if bpy.context.mode == 'OBJECT' and len(context.selected_objects) == 0:
+            if (bpy.context.mode == 'OBJECT' and
+                len(context.selected_objects) == 0):
                 cursorLoc = bpy.context.scene.cursor.location
                 newEmpty = bpy.ops.object.empty_add(
                     type='SPHERE', radius=0.01, location=cursorLoc)
@@ -248,7 +239,7 @@ class AddAnnotationButton(Operator):
                 newAnnotation.itemType = 'A'
                 newAnnotation.annotationAnchorObject = mainobject
 
-                if sceneProps.default_annotation_style is not '':
+                if sceneProps.default_annotation_style != '':
                     newAnnotation.uses_style = True
                     newAnnotation.style = sceneProps.default_annotation_style
                 else:
@@ -262,8 +253,7 @@ class AddAnnotationButton(Operator):
                 newAnnotation.name = (
                     "Annotation " + str(annotationGen.num_annotations))
                 field = newAnnotation.textFields.add()
-                field.text = ("Annotation " +
-                              str(annotationGen.num_annotations))
+                field.text = ("Annotation " + str(annotationGen.num_annotations))
                 field2 = newAnnotation.textFields.add()
                 field2.text = ("")
 
@@ -342,10 +332,8 @@ class OBJECT_PT_UIAnnotations(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        obj = context.object
         if context.object is not None:
             if 'AnnotationGenerator' in context.object:
-                scene = context.scene
                 annoGen = context.object.AnnotationGenerator
 
                 row = layout.row()
@@ -368,8 +356,9 @@ class OBJECT_PT_UIAnnotations(Panel):
                          icon='DOWNARROW_HLT', text="")
 
                 # Settings Below List
+                if (len(annoGen.annotations) > 0 and
+                    annoGen.active_index < len(annoGen.annotations)):
 
-                if len(annoGen.annotations) > 0 and annoGen.active_index < len(annoGen.annotations):
                     annotation = annoGen.annotations[annoGen.active_index]
 
                     if annoGen.show_annotation_fields:
@@ -521,14 +510,13 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
             "measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
         delOp.is_style = False
         delOp.genPath = 'bpy.context.object.AnnotationGenerator'
-        if 'AnnotationGenerator' in context.object:
-            scene = context.scene
-            annoGen = context.object.AnnotationGenerator
-
+        # if 'AnnotationGenerator' in context.object:
+        #     scene = context.scene
+        #     annoGen = context.object.AnnotationGenerator
 
 
 class TranslateAnnotationOp(bpy.types.Operator):
-    """Move Annotation"""
+    """ Move Annotation """
     bl_idname = "measureit_arch.translate_annotation"
     bl_label = "Translate Annotation"
     bl_options = {'GRAB_CURSOR', 'INTERNAL', 'BLOCKING', 'UNDO'}
@@ -671,21 +659,21 @@ class RotateAnnotationOp(bpy.types.Operator):
             tweak_snap = True
         else:
             tweak_snap = False
-        if event.shift:
-            tweak_precise = True
-        else:
-            tweak_precise = False
+        # if event.shift:
+        #     tweak_precise = True
+        # else:
+        #     tweak_precise = False
 
         if event.type == 'MOUSEMOVE':
             sensitivity = 1
 
             vecDelta = Vector((event.mouse_x, event.mouse_y))
             vecDelta -= center
-            delta += vecDelta.angle_signed(vecLast)*sensitivity
+            delta += vecDelta.angle_signed(vecLast) * sensitivity
 
             delta = math.degrees(delta)
             if tweak_snap:
-                delta = 5*round(delta/5)
+                delta = 5 * round(delta / 5)
 
             if self.constrainAxis[0]:
                 annotation.annotationRotation[0] = self.init_x - \

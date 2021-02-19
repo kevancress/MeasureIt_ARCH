@@ -27,14 +27,17 @@ import bpy
 import bmesh
 import random
 
-from .measureit_arch_baseclass import BaseDim, recalc_dimWrapper_index
-from .measureit_arch_main import get_smart_selected, get_selected_vertex_history, get_selected_faces
-
 from bpy.types import PropertyGroup, Panel, Object, Operator, UIList, Collection
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, \
     PointerProperty, BoolVectorProperty
 from mathutils import Vector
+
+from .measureit_arch_baseclass import BaseDim, recalc_dimWrapper_index
+from .measureit_arch_utils import get_smart_selected, \
+    get_selected_vertex_history, get_selected_faces
+from .measureit_arch_units import BU_TO_FEET
+
 
 def update_active_dim(self, context):
     Generator = context.object.DimensionGenerator
@@ -54,17 +57,20 @@ def update_active_dim(self, context):
 
 class AreaDimensionProperties(BaseDim, PropertyGroup):
 
-    gen_group: StringProperty(name="Generator Group",
-                              description="group in the generator - api property",
-                              default="areaDimensions",)
+    gen_group: StringProperty(
+        name="Generator Group",
+        description="group in the generator - api property",
+        default="areaDimensions")
 
-    dimTextPos: FloatVectorProperty(name='Text Position',
-                                    description='Offset for Area Dimension Text',
-                                    default=(0, 0, 0),
-                                    subtype='TRANSLATION')
+    dimTextPos: FloatVectorProperty(
+        name='Text Position',
+        description='Offset for Area Dimension Text',
+        default=(0, 0, 0),
+        subtype='TRANSLATION')
 
-    originFaceIdx: IntProperty(name='Origin Face',
-                               description='The face whos normal and center are used for text placement',)
+    originFaceIdx: IntProperty(
+        name='Origin Face',
+        description='The face whos normal and center are used for text placement')
 
     showFill: BoolProperty(name='Show Fill')
 
@@ -86,7 +92,6 @@ class AreaDimensionProperties(BaseDim, PropertyGroup):
         max=1,
         subtype='COLOR',
         size=4)
-
 
 
 class AlignedDimensionProperties(BaseDim, PropertyGroup):
@@ -173,7 +178,6 @@ class ArcDimensionProperties(BaseDim, PropertyGroup):
         description="Add arrows to Radius Leader")
 
 
-
 class AngleDimensionProperties(BaseDim, PropertyGroup):
     gen_group: StringProperty(
         name="Generator Group",
@@ -194,7 +198,6 @@ class AngleDimensionProperties(BaseDim, PropertyGroup):
         name='Show Reflex Angle',
         description='Displays the Reflex Angle (Greater then 180 Degrees)',
         default=False)
-
 
 
 class DimensionWrapper(PropertyGroup):
@@ -234,7 +237,6 @@ class DimensionContainer(PropertyGroup):
 
     # Collection of Wrapped dimensions for list UI display
     wrapper: CollectionProperty(type=DimensionWrapper)
-
 
 
 class AddAlignedDimensionButton(Operator):
@@ -278,7 +280,6 @@ class AddAlignedDimensionButton(Operator):
                 except IndexError:
                     break
 
-
                 DimGen = mainObj.DimensionGenerator
 
                 alignedDims = DimGen.alignedDimensions
@@ -318,7 +319,7 @@ class AddAlignedDimensionButton(Operator):
                 newDimension.textAlignment = 'C'
 
                 DimGen.measureit_arch_num += 1
-            return{'FINISHED'}
+            return {'FINISHED'}
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
 
@@ -347,8 +348,6 @@ class AddBoundingDimensionButton(Operator):
             # get selected
             scene = context.scene
             sceneProps = scene.MeasureItArchProps
-
-            newDimensions = []
 
             # Object Context
             if bpy.context.mode == 'OBJECT':
@@ -390,10 +389,9 @@ class AddBoundingDimensionButton(Operator):
                 recalc_dimWrapper_index(self, context)
                 context.area.tag_redraw()
 
-            return{'FINISHED'}
+            return {'FINISHED'}
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
-
             return {'CANCELLED'}
 
 
@@ -482,11 +480,9 @@ class AddAxisDimensionButton(Operator):
 
                 # Sum group
                 DimGen.measureit_arch_num += 1
-            return{'FINISHED'}
+            return {'FINISHED'}
         else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
-
+            self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
 
 
@@ -548,7 +544,7 @@ class AddAreaButton(Operator):
 
                 # Add perimeter edges to buffer
                 newDim['perimeterEdgeBuffer'] = perimiterEdges
-                newDim.name = 'Area ' + str(len(dimGen.areaDimensions))
+                newDim.name = 'Area {}'.format(len(dimGen.areaDimensions))
                 newDim.fillColor = (
                     random.random(), random.random(), random.random(), 1)
 
@@ -571,8 +567,7 @@ class AddAreaButton(Operator):
                             "MeasureIt_ARCH: Select at least one face for creating area measure. ")
                 return {'FINISHED'}
         else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
+            self.report({'WARNING'}, "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
 
@@ -692,8 +687,7 @@ class AddArcButton(Operator):
                             "MeasureIt_ARCH: Select three vertices for creating arc measure")
                 return {'FINISHED'}
         else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
+            self.report({'WARNING'}, "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
 
@@ -711,7 +705,6 @@ class CursorToArcOrigin(Operator):
             return False
         else:
             dimGen = myobj.DimensionGenerator
-            activeIndex = dimGen.active_index
             activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
             if activeWrapperItem.itemType == 'arcDimensions':
@@ -719,14 +712,9 @@ class CursorToArcOrigin(Operator):
             else:
                 return False
 
-    # ------------------------------
-    # Execute button action
-    # ------------------------------
-
     def execute(self, context):
         myobj = context.active_object
         dimGen = myobj.DimensionGenerator
-        activeIndex = dimGen.active_index
         activeWrapperItem = dimGen.wrapper[dimGen.active_index]
         cursor = context.scene.cursor
 
@@ -736,8 +724,7 @@ class CursorToArcOrigin(Operator):
             cursor.location = center
             return {'FINISHED'}
         else:
-            self.report({'ERROR'},
-                        "Please Select an Arc Dimension")
+            self.report({'ERROR'}, "Please select an Arc Dimension")
         return {'CANCELLED'}
 
 
@@ -757,7 +744,6 @@ class AddFaceToArea(Operator):
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator
-                    activeIndex = dimGen.active_index
                     activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
                     if activeWrapperItem.itemType == 'areaDimensions':
@@ -780,13 +766,12 @@ class AddFaceToArea(Operator):
                     myobj = context.object
                     mylist = get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator
-                    activeIndex = dimGen.active_index
                     activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
                     if activeWrapperItem.itemType == 'areaDimensions':
                         dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
                     else:
-                        return{'CANCLED'}
+                        return {'CANCELLED'}
 
                     # add faces to buffer
                     templist = dim['facebuffer'].to_list()
@@ -814,8 +799,8 @@ class AddFaceToArea(Operator):
 
                     # Add perimeter edges to buffer
                     dim['perimeterEdgeBuffer'] = perimiterEdges
-                    return{'FINISHED'}
-            return{'CANCLED'}
+                    return {'FINISHED'}
+            return {'CANCELLED'}
 
 
 class RemoveFaceFromArea(Operator):
@@ -833,7 +818,6 @@ class RemoveFaceFromArea(Operator):
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator
-                    activeIndex = dimGen.active_index
                     activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
                     if activeWrapperItem.itemType == 'areaDimensions':
@@ -856,13 +840,12 @@ class RemoveFaceFromArea(Operator):
                     myobj = context.object
                     mylist = get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator
-                    activeIndex = dimGen.active_index
                     activeWrapperItem = dimGen.wrapper[dimGen.active_index]
 
                     if activeWrapperItem.itemType == 'areaDimensions':
                         dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
                     else:
-                        return{'CANCLED'}
+                        return {'CANCELLED'}
 
                     # remove faces from buffer
                     templist = dim['facebuffer'].to_list()
@@ -893,8 +876,8 @@ class RemoveFaceFromArea(Operator):
 
                     # Add perimeter edges to buffer
                     dim['perimeterEdgeBuffer'] = perimiterEdges
-                    return{'FINISHED'}
-            return{'CANCLED'}
+                    return {'FINISHED'}
+            return {'CANCELLED'}
 
 
 class M_ARCH_UL_dimension_list(UIList):
@@ -1000,7 +983,6 @@ class OBJECT_PT_UIDimensions(Panel):
 
         obj = context.object
         if 'DimensionGenerator' in context.object:
-            scene = context.scene
             dimGen = obj.DimensionGenerator
 
             row = layout.row()
@@ -1041,7 +1023,7 @@ class OBJECT_PT_UIDimensions(Panel):
                 row.label(text=item.name + ' Settings:')
                 if dimGen.show_dimension_settings:
                     eval('draw_' + activeWrapperItem.itemType +
-                         '_settings(item,box)')
+                         '_settings(item, box)')
 
 
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
@@ -1361,9 +1343,6 @@ class TranslateDimensionOp(bpy.types.Operator):
         myobj = context.selected_objects[self.objIndex]
         dimension = eval('myobj.' + self.dimType)
         unit_system = bpy.context.scene.unit_settings.system
-        unit_length = bpy.context.scene.unit_settings.length_unit
-
-        toFeet = 3.28084
 
         # Set Tweak Flags
         tweak_snap = event.ctrl
@@ -1394,8 +1373,8 @@ class TranslateDimensionOp(bpy.types.Operator):
             precise_factor = 10
 
             if unit_system == 'IMPERIAL':
-                resultInit *= toFeet
-                delta *= toFeet
+                resultInit *= BU_TO_FEET
+                delta *= BU_TO_FEET
                 precise_factor = 12
 
             if tweak_snap:
@@ -1407,8 +1386,8 @@ class TranslateDimensionOp(bpy.types.Operator):
                 resultInit = round(self.init, 1)
 
             if unit_system == 'IMPERIAL':
-                resultInit /= toFeet
-                delta /= toFeet
+                resultInit /= BU_TO_FEET
+                delta /= BU_TO_FEET
 
             value = resultInit + delta
 
@@ -1423,7 +1402,7 @@ class TranslateDimensionOp(bpy.types.Operator):
                 dimension.dimOffset = value
 
             context.area.header_text_set(
-                "Dimension Offset = " + "%.4f" % (resultInit + delta))
+                "Dimension Offset = {:.4f}".format(resultInit + delta))
 
         elif event.type == 'LEFTMOUSE':
             # Setting hide_viewport is a stupid hack to force Gizmos to update

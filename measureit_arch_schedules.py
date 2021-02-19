@@ -21,7 +21,7 @@ from bpy.types import (
 )
 from datetime import datetime
 
-from .measureit_arch_geometry import format_distance
+from .measureit_arch_units import format_distance
 
 class ColumnProps(PropertyGroup):
 
@@ -171,9 +171,6 @@ class GenerateSchedule(Operator):
         return data
 
     def get_column_data(self, column, obj):
-        pr = bpy.context.scene.MeasureItArchProps.metric_precision
-        textFormat = "%1." + str(pr) + "f"
-
         try:
             if column.data == '--':
                 # TODO: `eval` considered harmful
@@ -186,9 +183,8 @@ class GenerateSchedule(Operator):
 
                 # Format distances
                 if '.dim' in column.data:
-                    data = str(format_distance(textFormat, data))
+                    data = format_distance(data)
             return data
-
         except:
             return '--'
 

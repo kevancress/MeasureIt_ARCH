@@ -31,7 +31,6 @@ from mathutils import Vector, Matrix, Quaternion
 from math import radians
 
 
-
 class mArchGizmoGroup(GizmoGroup):
     bl_idname = "OBJECT_GG_mArch"
     bl_label = "MeasureIt_ARCH Gizmo Group"
