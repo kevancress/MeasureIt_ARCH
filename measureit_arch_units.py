@@ -39,7 +39,7 @@ __all__ = (
 )
 
 # Note: one Blender Unit (BU) is 1m
-INCH_TO_CM = 2.56
+INCH_TO_CM = 2.54
 INCHES_PER_FEET = 12
 INCHES_PER_MILE = 5280 * INCHES_PER_FEET
 THOU_PER_INCH = 1000
@@ -63,7 +63,6 @@ def format_distance(distance: float) -> str:
     unit_length = scene.unit_settings.length_unit
     separate_units = scene.unit_settings.use_separate
     hide_units = scene.MeasureItArchProps.hide_units
-
     if unit_system == 'METRIC':
         precision = scene.MeasureItArchProps.metric_precision
         if not separate_units and not unit_length == 'ADAPTIVE':
