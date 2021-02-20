@@ -219,7 +219,8 @@ class DimensionContainer(PropertyGroup):
     measureit_arch_num: IntProperty(
         name='Number of measures', min=0, max=1000, default=0,
         description='Total number of MeasureIt_Arch elements')
-    active_index: IntProperty(name="Active Dimension Index")
+    active_index: IntProperty(name="Active Dimension Index",
+                update = update_active_dim)
     show_dimension_settings: BoolProperty(
         name='Show Dimension Settings', default=False)
 
