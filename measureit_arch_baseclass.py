@@ -170,6 +170,8 @@ class TextField(PropertyGroup):
         items=(('VIEW', "View", "", 'DOCUMENTS', 1),
                ('DATE', "Date", "", 'TIME', 2),
                ('NOTES', "Notes", "", 'LONGDISPLAY', 3),
+               ('SCALE', "Scale", "", 'SNAP_INCREMENT', 4),
+               ('VIEWNUM', "Drawing Number", "", 'SORTALPHA', 5),
                ('RNAPROP', "Custom Property", "", 'RNA', 99)),
         name="Text Source",
         default='RNAPROP',

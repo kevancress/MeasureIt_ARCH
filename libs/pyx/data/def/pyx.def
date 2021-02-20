@@ -1,0 +1,182 @@
+%%
+%% This is file 'pyx.def',
+%%
+%% Copyright (C) 2003,2006 Michael Schindler <m-schindler@users.sourceforge.net>
+%%
+%% this file is based on `dvips.def' from the Standard LaTeX `Graphics Bundle',
+%% available via ftp from CTAN
+%%
+%% `pyx.def' may be distributed under the terms of the LaTeX Project Public
+%% License, as described in lppl.txt in the base LaTeX distribution.
+%% Either version 1.0 or, at your option, any later version.
+%%
+%%
+% TODO: - documentation
+%
+\ProvidesFile{pyx.def}
+        [2006/05/17 driver-dependant file]
+
+% %%%%%%  auxiliary macros  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% <<<
+% used in DEF file only:
+% check if #1 is in [0,1]
+%
+\def\c@lor@arg#1{%
+  \dimen@#1\p@
+  \ifdim\dimen@<\z@\dimen@\maxdimen\fi
+  \ifdim\dimen@>\p@
+    \PackageError{color}{Argument `#1' not in range [0,1]}\@ehd
+  \fi}
+%
+% >>>
+
+% %%%%%%  (1a) gray, cmyk, rgb and RGB colors  %%%%%%%%%%%%%%%%%%%%%%%%%%% <<<
+% used in color.sty:  \color@gray, cmyk, rgb, RGB, hsb
+% these commands are created with \csname as a
+% combination of 'color@' and 'gray'/'cmyk'/'rgb'/'RGB'/'hsb'
+% in color.sty by \@undeclaredcolor
+% gray, cmyk, rgb, hsb all take numbers in [0,1] as first argument(s)
+% RGB takes numbers in [0,255] as first arguments
+%
+\def\color@gray#1#2{%
+  \c@lor@arg{#2}%       % check the argument
+  \edef#1{gray #2}%     % prepare for command
+  }
+%
+\def\color@cmyk#1#2{\c@lor@@cmyk#2\@@#1} % \@@ is only a separator for the arguments!
+\def\c@lor@@cmyk#1,#2,#3,#4\@@#5{%
+  \c@lor@arg{#4}%
+  \c@lor@arg{#1}%
+  \c@lor@arg{#2}%
+  \c@lor@arg{#3}%
+  \edef#5{cmyk #1 #2 #3 #4}%    #5 is always \current@color (only once a \tempa)
+  }
+%
+\def\color@rgb#1#2{\c@lor@@rgb#2\@@#1}
+\def\c@lor@@rgb#1,#2,#3\@@#4{%
+  \c@lor@arg{#1}%
+  \c@lor@arg{#2}%
+  \c@lor@arg{#3}%
+  \edef#4{rgb #1 #2 #3}%
+  }
+%
+\def\color@RGB#1#2{\c@lor@@RGB#2\@@#1}
+\def\c@lor@@RGB#1,#2,#3\@@#4{%
+ \c@lor@RGB@rgb{#1}\@tempa                % renormalise
+ \c@lor@RGB@rgb{#2}\@tempb
+ \c@lor@RGB@rgb{#3}\@tempc
+ \c@lor@@rgb\@tempa,\@tempb,\@tempc\@@#4%  % call with normalised values
+}
+\def\c@lor@RGB@rgb#1#2{%
+  \dimen@#1\p@
+  \divide\dimen@\@cclv         % divide by 255
+  \edef#2{\strip@pt\dimen@}}   % strip the number
+%
+\def\color@hsb#1#2{\c@lor@@hsb#2\@@#1}
+\def\c@lor@@hsb#1,#2,#3\@@#4{%
+  \c@lor@arg{#1}%
+  \c@lor@arg{#2}%
+  \c@lor@arg{#3}%
+  \edef#4{hsb #1 #2 #3}% this is the string defining the color in the special.
+%                      % it is stored in the variable \current@color
+  }
+%% >>>
+% %%%%%%  (1b) "texnamed" colors  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% <<<
+% used in color.sty: \color@named \col@...
+% like above with the use of \csname
+%
+\def\color@named#1#2{\c@lor@@named#2,,\@@#1}
+\def\c@lor@@named#1,#2,#3\@@#4{%
+  \@ifundefined{col@#1}%
+    {\PackageError{color}{Undefined color `#1'}\@ehd}%
+  {\edef#4{texnamed #1}}%   % arguments 2,3 are thrown away? Maybe an error detection mechanism
+  } % \col@#1 is defined by \define@color@named
+\def\current@color{texnamed Black}
+\def\define@color@named#1#2{% for \DefineNamedColor only
+  \expandafter\let\csname col@#1\endcsname\@nnil}
+% >>>
+% %%%%%%  (1c) "pyxcolor" colors  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% <<<
+%
+% use with \textcolor[pyxcolor]{Name}
+% where Name has to be defined in PyX as 'color.cmyk.Name', 'color.rgb.red', ...
+% Attention! PyX has to do the error detection if the color is not defined!
+%
+\def\color@pyx#1#2{\c@olor@@pyx#2\@@#1}
+\def\c@olor@@pyx#1\@@#2{%
+  \edef#2{pyxcolor #1}}
+% >>>
+% %%%%%%  (1) colors general  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% <<<
+%
+% \set@color is called by \@(un)declaredcolor in color.sty
+% This is the starting string of the special
+%
+\def\set@color{%
+ \special{PyX:color_begin \current@color
+ }\aftergroup\reset@color} % the 'group' is the one in \@textcolor: arguments 1 and 3
+\def\reset@color{\special{PyX:color_end}}
+%
+% BACKGROUND COLOR is disabled
+\def\set@page@color{\PackageError{color}{Please adjust the pagecolor in PyX, not in LaTeX!}}
+% >>>
+
+% %%%%%%  (2) eps-file inclusion %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% <<<
+%
+\def\Ginclude@eps#1{%
+ \message{<#1>}%
+  \bgroup
+  \def\@tempa{!}%
+  \dimen@=0.996264009963\Gin@req@width
+  \@tempdima=0.996264009963\Gin@req@height
+  \special{PyX:epsinclude\space
+    file=\Gin@base\Gin@ext\space
+    llx=\Gin@llx\space
+    lly=\Gin@lly\space
+    urx=\Gin@urx\space
+    ury=\Gin@ury\space
+    \ifx\Gin@scalex\@tempa\else width=\strip@pt\dimen@\space\fi
+    \ifx\Gin@scaley\@tempa\else height=\strip@pt\@tempdima\space\fi
+    \ifGin@clip clip=1\fi}%
+  \egroup}
+%
+% bmp, oztex, pntg, pict file inclusions:
+% not available anymore
+% \Ginclude@bmp eventually used in graphics(x).sty
+% \Ginclude@pntg eventually used in graphics(x).sty
+% \Ginclude@pict eventually used in graphics(x).sty
+%
+\def\Ginclude@bmp#1{%
+  \PackageError{color}{bmp file inclusion is not supported in PyX. Please use eps files.}}
+\def\Ginclude@pntg#1{
+  \PackageError{color}{pntg file inclusion is not supported in PyX. Please use eps files.}}
+\def\Ginclude@pict#1{
+  \PackageError{color}{pict file inclusion is not supported in PyX. Please use eps files.}}
+%
+% general stuff
+%
+%\def\Gin@PS@raw#1{\special{ps: #1}}
+%\def\Gin@PS@restored#1{\special{" #1}}
+%\def\Gin@PS@literal@header#1{\AtBeginDvi{\special{! #1}}}
+%\def\Gin@PS@file@header#1{\AtBeginDvi{\special{header=#1}}}
+%
+\def\Gin@extensions{.eps,.ps}
+\@namedef{Gin@rule@.ps}#1{{eps}{.ps}{#1}}
+\@namedef{Gin@rule@.eps}#1{{eps}{.eps}{#1}}
+\@namedef{Gin@rule@*}#1{{eps}{\Gin@ext}{#1}}
+%
+% >>>
+
+% %%%%%%  (3) rotations  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% <<<
+\def\Grot@start{\special{PyX:rotate_begin \Grot@angle}}
+\def\Grot@end{\special{PyX:rotate_end}}
+% >>>
+
+% %%%%%%  (4) scalings  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% <<<
+%
+\def\Gscale@start{\special{PyX:scale_begin \Gscale@x\space \Gscale@y}}
+\def\Gscale@end{\special{PyX:scale_end}}
+% >>>
+\endinput
+
+% vim:foldmethod=marker:foldmarker=<<<,>>>
+% vim:syntax=tex
+
+%% End of file `pyx.def'.

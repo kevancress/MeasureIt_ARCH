@@ -1,0 +1,33 @@
+Metadata-Version: 2.1
+Name: PyX
+Version: 0.15
+Summary: Python package for the generation of PostScript, PDF, and SVG files
+Home-page: https://pyx-project.org/
+Author: Jörg Lehmann, André Wobst
+Author-email: pyx-devel@lists.sourceforge.net
+License: GPL
+Platform: OS independent
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Multimedia :: Graphics
+Classifier: Topic :: Scientific/Engineering :: Visualization
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3
+Provides-Extra: dev
+Requires-Dist: zope.pagetemplate ; extra == 'dev'
+Requires-Dist: sphinx ; extra == 'dev'
+Requires-Dist: sphinx-selective-exclude ; extra == 'dev'
+Requires-Dist: pillow ; extra == 'dev'
+Requires-Dist: IPython ; extra == 'dev'
+Requires-Dist: nbformat ; extra == 'dev'
+Requires-Dist: testfixtures ; extra == 'dev'
+
+PyX is a Python package for the creation of PostScript, PDF, and SVG files. It
+combines an abstraction of the PostScript drawing model with a TeX/LaTeX
+interface. Complex tasks like 2d and 3d plots in publication-ready quality are
+built out of these primitives.
+

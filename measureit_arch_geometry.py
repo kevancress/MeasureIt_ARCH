@@ -2573,9 +2573,18 @@ def set_text(textField, obj):
             if view is not None:
                 textField.text = view.name
 
+        #NOTES, (actually we set this in the draw annotation code since it needs to spawn new texfields)
         elif textField.textSource == 'NOTES':
             textField.text = ''
 
+        elif textField.textSource == 'SCALE':
+            view = get_view()
+            scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
+            textField.text = scaleStr
+
+        elif textField.textSource == 'VIEWNUM':
+            view = get_view()
+            textField.text = view.view_num
         # CUSTOM PROP
         elif textField.textSource == 'RNAPROP':
             if textField.rnaProp != '':

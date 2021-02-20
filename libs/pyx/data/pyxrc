@@ -1,0 +1,78 @@
+# This file is an example containing the runtime configuration options
+# of PyX and its default values. You may copy it to ~/.pyxrc for personal
+# configuration.
+
+[general]
+# general options
+
+# Some options can contain several values and the space character is
+# used by default to separate several values. In case the space
+# character is needed itself as part of the values, you can set an
+# unused replacement string to encode the space character being
+# part of the value. By default 'SPACE' is this magic string:
+space = SPACE
+
+[text]
+# runtime configuration of the text module
+
+# 'tex' specifies the TeX executable and defaults to 'tex'.
+tex = tex
+
+# 'latex' specifies the LaTeX executable and defaults to 'latex'.
+latex = latex
+
+# 'psfontmaps' is a whitespace separated list of options listing font
+# mapping files. Those files contain information about the available
+# type1 fonts. Depending on your TeX-installation you may need to add
+# further font mapping files like psfonts.cmz (if your TeX installation
+# is not configured to use type1 fonts by default). For further
+# information browse the FAQ for the term 'font mapping file'.
+psfontmaps = psfonts.map
+
+# 'pdffontmaps' is similar to psfontmaps, but used when pdf output
+# is generated. (Note that pdf has a different set of builtin fonts.)
+pdffontmaps = pdftex.map
+
+# 'wait' is an positive integer. It is the number of seconds
+# to be waited for an appropriate response from TeX/LaTeX.
+wait = 60
+
+# 'showwait' is an non-negative integer. It is the number of
+# seconds to be waited until (and between) emitting messages
+# indicating the waiting for an appropriate response from TeX/LaTeX.
+# This feature can be turned off by setting showwaitfortex to 0.
+showwait = 5
+
+# 'texipc' is a boolean controlling the usage of the --ipc option of
+# TeX/LaTeX. You should turn on this option when the ipc-extension is
+# available in your TeX installation (check the output of tex --help).
+# You will gain immediate access to the dvi-output of TeX by that,
+# which will substantially improve the performance of certain
+# operations (e.g. the usage of PyX markers).
+texipc = 0
+
+[filelocator]
+# runtime configuration of file search mechanism
+
+# 'methods' defines a list of methods to be tried one after each other
+# to find files like, e.g., fonts and corresponding metrics information.
+#
+# Available methods are:
+# - 'local': locates files in the current directory.
+# - 'internal': locates files within the PyX data tree (works inside
+#               of zipped Python eggs too)
+# - 'recursivedir': locates files by searching recursively in a
+#                   space-separated list of directories, which can
+#                   be specified by the option 'recursivedir'.
+# - 'ls-R': locates files by searching a list of ls-R files,
+#           which can be specified by the option 'ls-R'.
+# - 'pykpathsea': locate files using the pykpathsea extension if available.
+#                 Building of this module can be enabled in the setup.cfg
+#                 file distributed with PyX.
+# - 'kpsewhich': locate files using the kpsewhich executable if available.
+#                The name of the executable can be set by the 'kpsewhich'
+#                option and defaults to 'kpsewhich'.
+# - 'locate': locate files using a locate executable if available.
+#             The name of the executable can be set by the 'locate'
+#             option and defaults to 'locate'.
+methods = local internal pykpathsea kpsewhich

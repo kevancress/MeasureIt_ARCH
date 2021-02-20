@@ -316,6 +316,12 @@ class ViewProperties(PropertyGroup):
         default="",
         update=update)
 
+    view_num: StringProperty(
+        name="Drawing Number",
+        description="Drawing Number (A01, E02 etc.)",
+        default="",
+        update=update)
+
     start_frame: IntProperty(
         name="Start Frame",
         default=1,
@@ -402,8 +408,9 @@ class M_ARCH_UL_Views_list(UIList):
             view = item
             layout.use_property_decorate = False
             row = layout.row(align=True)
-            subrow = row.row()
-            subrow.prop(view, "name", text="", emboss=False)
+            split = row.split(factor = 0.3)
+            split.prop(view, "view_num", text="", emboss=False, icon='DOCUMENTS')
+            split.prop(view, "name", text="", emboss=False)
             row.prop(view, 'camera', text="", icon='CAMERA_DATA')
 
         elif self.layout_type in {'GRID'}:
@@ -468,19 +475,24 @@ class SCENE_PT_Views(Panel):
             if ViewGen.show_settings:
                 col = box.column()
                 if view.camera is not None:
+                    col = box.column(align=True)
+                    col.prop(view, "view_num")
+                    col.prop(view, "name")
+                    col.prop_search(view, 'titleBlock', bpy.data,
+                                    'scenes', text='Title Block')
+
+                    col = box.column(align=True)
                     col.prop(view, "cameraType", text="Camera Type")
                     col.prop_search(view, 'view_layer', context.scene,
                                     'view_layers', text='View Layer')
-                    col.prop_search(view, 'titleBlock', bpy.data,
-                                    'scenes', text='Title Block')
+
+                    col = box.column(align=True)
                     col.prop(view, "output_path")
                     col.prop(view, "date_folder", text="Date Folder")
 
+                    col = box.column(align=True)
                     col.row().prop(view, 'res_type', expand=True)
-
                     if view.res_type == 'res_type_paper':
-
-                        col = box.column(align=True)
                         split = box.split(factor=0.4)
                         col = split.column()
                         col.alignment = 'RIGHT'
@@ -505,7 +517,6 @@ class SCENE_PT_Views(Panel):
                         col.prop(view, 'res', text='Resolution (PPI):')
 
                     else:
-                        col = box.column(align=True)
                         split = box.split(factor=0.4)
                         col = split.column()
                         col.alignment = 'RIGHT'
