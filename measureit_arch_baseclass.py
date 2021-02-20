@@ -678,7 +678,7 @@ class DeletePropButton(Operator):
     def execute(self, context):
         # Add properties
 
-        # Generator = eval(self.genPath)
+        Generator = eval(self.genPath)
         itemGroup = eval('Generator.' + self.item_type)
 
         # Delete element
