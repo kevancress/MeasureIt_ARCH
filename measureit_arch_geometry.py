@@ -2843,20 +2843,20 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
     elif capType == 'D':
         rotangle = radians(-90)
         line = userOffsetVector.copy()
-        line *= 1 / 20
+        line *= 0.0070
         line.rotate(Quaternion(norm, rotangle))
         p1 = (pos - line)
         p2 = (pos + line)
 
         # Define Overextension
         capCoords.append(pos)
-        capCoords.append(line + pos)
+        capCoords.append(line* capSize + pos)
 
         # Define Square
         x = distVector.normalized() * capSize
         y = userOffsetVector.normalized() * capSize
-        a = 0.055
-        b = 0.085
+        a = 0.0035
+        b = 0.0045
 
         s1 = (a * x) + (b * y)
         s2 = (b * x) + (a * y)
