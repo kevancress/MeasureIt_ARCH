@@ -5,6 +5,7 @@ from bpy.types import PropertyGroup, Operator
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
+
 def update_flag(self, context):
     self.text_updated = True
 
@@ -24,7 +25,6 @@ def freestyle_update_flag(self, context):
 
 
 def update_active_dim(self, context):
-
     dimGen = context.object.DimensionGenerator
     itemType = self.itemType
     idx = 0
@@ -68,103 +68,124 @@ def recalc_dimWrapper_index(self, context):
 
 
 class BaseProp:
-    is_active: BoolProperty(name='Is Active',
-                            description='This item is actively selected',
-                            default=False)
+    is_active: BoolProperty(
+        name='Is Active',
+        description='This item is actively selected',
+        default=False)
 
-    icon: StringProperty(name="Icon",
-                         description="item icon",
-                         default="",)
+    icon: StringProperty(
+        name="Icon",
+        description="item icon",
+        default="",)
 
-    generator: StringProperty(name="Generator",
-                              description="item generator - api property",
-                              default="",)
+    generator: StringProperty(
+        name="Generator",
+        description="item generator - api property",
+        default="",)
 
-    gen_group: StringProperty(name="Generator Group",
-                              description="group in the generator - api property",
-                              default="",)
+    gen_group: StringProperty(
+        name="Generator Group",
+        description="group in the generator - api property",
+        default="",)
 
-    inFront: BoolProperty(name='inFront',
-                          description='Draw this element In front of other objects',
-                          default=False)
+    inFront: BoolProperty(
+        name='inFront',
+        description='Draw this element In front of other objects',
+        default=False)
 
     visibleInView: StringProperty(
         name="View Layer",
         description="View Layer that this dimension is visible in",
         default="",)
 
-    is_style: BoolProperty(name="is Style",
-                           description="This property Group is a Style",
-                           default=False)
+    is_style: BoolProperty(
+        name="is Style",
+        description="This property Group is a Style",
+        default=False)
 
-    uses_style: BoolProperty(name="uses Style",
-                             description="This property Group Uses a Style",
-                             default=False,
-                             update=update_flag)
+    uses_style: BoolProperty(
+        name="uses Style",
+        description="This property Group Uses a Style",
+        default=False,
+        update=update_flag)
 
-    style: StringProperty(name="Style Name",
-                          description="Item Name",
-                          default="",
-                          update=update_flag)
+    style: StringProperty(
+        name="Style Name",
+        description="Item Name",
+        default="",
+        update=update_flag)
 
-    itemType: StringProperty(name="Item Type",
-                             description='flag for common operators',
-                             default='')
+    itemType: StringProperty(
+        name="Item Type",
+        description='flag for common operators',
+        default='')
 
-    color: FloatVectorProperty(name="Color",
-                               description="Color for the Item",
-                               default=(0.0, 0.0, 0.0, 1.0),
-                               min=0,
-                               max=1,
-                               subtype='COLOR',
-                               size=4,
-                               update=update_flag)
+    color: FloatVectorProperty(
+        name="Color",
+        description="Color for the Item",
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4,
+        update=update_flag)
 
-    lineWeight: FloatProperty(name="Line Weight",
-                              description="Lineweight",
-                              default=1,
-                              soft_min=1.0,
-                              step=25,
-                              min=0)
+    lineWeight: FloatProperty(
+        name="Line Weight",
+        description="Lineweight",
+        default=1,
+        soft_min=1.0,
+        step=25,
+        min=0)
 
-    free: BoolProperty(name="Free",
-                       description="This Item is free and can be deleted",
-                       default=False)
+    free: BoolProperty(
+        name="Free",
+        description="This Item is free and can be deleted",
+        default=False)
 
-    evalMods: BoolProperty(name="Evaluate Depsgraph",
-                           description="This Element will evaluate the Dependency Graph (Modifiers, Shape Keys etc.) before drawing",
-                           default=False)
+    evalMods: BoolProperty(
+        name="Evaluate Depsgraph",
+        description="This Element will evaluate the Dependency Graph "
+                    "(Modifiers, Shape Keys etc.) before drawing",
+        default=False)
 
-    settings: BoolProperty(name="Settings",
-                           description="Show Settings",
-                           default=False)
+    settings: BoolProperty(
+        name="Settings",
+        description="Show Settings",
+        default=False)
 
-    visible: BoolProperty(name="Visibility",
-                          description="how/hide",
-                          default=True)
+    visible: BoolProperty(
+        name="Visibility",
+        description="how/hide",
+        default=True)
 
-    gizLoc: FloatVectorProperty(name="Gizmo Location",
-                                description="Default Location for item Gizmo",
-                                subtype='TRANSLATION')
+    gizLoc: FloatVectorProperty(
+        name="Gizmo Location",
+        description="Default Location for item Gizmo",
+        subtype='TRANSLATION')
 
-    gizRotDir: FloatVectorProperty(name="Gizmo Rotation Direction",
-                                   description="Default Rot Direction for item Gizmo",
-                                   subtype='TRANSLATION')
+    gizRotDir: FloatVectorProperty(
+        name="Gizmo Rotation Direction",
+        description="Default Rot Direction for item Gizmo",
+        subtype='TRANSLATION')
 
 
 class TextField(PropertyGroup):
-    text_updated: BoolProperty(name='text_updated',
-                               description='flag when text needs to be redrawn',
-                               default=False)
+    text_updated: BoolProperty(
+        name='text_updated',
+        description='flag when text needs to be redrawn',
+        default=False)
 
-    text: StringProperty(name="Text",
-                         description="Text Associated With Item",
-                         default="",
-                         update=update_flag)
+    text: StringProperty(
+        name="Text",
+        description="Text Associated With Item",
+        default="",
+        update=update_flag)
 
-    autoFillText: BoolProperty(name='Auto Fill Text',
-                               description='Fill This Text Field Automatically from a property',
-                               default=False)
+    autoFillText: BoolProperty(
+        name='Auto Fill Text',
+        description='Fill This Text Field Automatically from a property',
+        default=False)
 
     textSource: EnumProperty(
         items=(('VIEW', "View", "", 'DOCUMENTS', 1),
@@ -210,7 +231,6 @@ class TextField(PropertyGroup):
         name='texture_updated',
         description='flag when text texture need to be redrawn',
         default=False)
-
 
 
 class BaseWithText(BaseProp):
@@ -406,100 +426,128 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="Axis",
         description="Axis")
 
-    measureit_arch_debug_text: BoolProperty(name="Debug Text",
-                                            description="(DEBUG) Draw Debug Info For Text",
-                                            default=False)
+    measureit_arch_debug_text: BoolProperty(
+        name="Debug Text",
+        description="(DEBUG) Draw Debug Info For Text",
+        default=False)
 
-    highlight_selected: BoolProperty(name='Highlight Active',
-                                     description='Highlight Selected MeasureIt_ARCH Elements',
-                                     default=True)
+    highlight_selected: BoolProperty(
+        name='Highlight Active',
+        description='Highlight Selected MeasureIt_ARCH Elements',
+        default=True)
 
-    text_updated: BoolProperty(name='text_updated',
-                               description='flag when text needs to be redrawn',
-                               default=False)
+    text_updated: BoolProperty(
+        name='text_updated',
+        description='flag when text needs to be redrawn',
+        default=False)
 
-    debug_flip_text: BoolProperty(name="Debug Text Flip Vectors",
-                                  description="Displys Text Card and View Vectors used to Flip Text",
-                                  default=False)
+    debug_flip_text: BoolProperty(
+        name="Debug Text Flip Vectors",
+        description="Displys Text Card and View Vectors used to Flip Text",
+        default=False)
 
-    default_color: FloatVectorProperty(name="Default Color",
-                                       description="Default Color for new Items",
-                                       default=(0.0, 0.0, 0.0, 1.0),
-                                       min=0,
-                                       max=1,
-                                       subtype='COLOR',
-                                       size=4,
-                                       update=update_flag)
+    default_color: FloatVectorProperty(
+        name="Default Color",
+        description="Default Color for new Items",
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4,
+        update=update_flag)
 
-    instance_dims: BoolProperty(name="Instance Dimensions",
-                                description="WARNING: Only the most recent Instance's Dimension text will adapt to local changes in scale or rotation",
-                                default=False)
+    instance_dims: BoolProperty(
+        name="Instance Dimensions",
+        description="WARNING: Only the most recent Instance's Dimension text "
+                    "will adapt to local changes in scale or rotation",
+        default=False)
 
-    eval_mods: BoolProperty(name="Evaluate Depsgraph",
-                            description="All MeasureIt_ARCH elements will attempt to evaluate the dependency graph (Modifiers, Shape Keys, etc.) before drawing, May make dimensions and linework unstable",
-                            default=False)
+    eval_mods: BoolProperty(
+        name="Evaluate Depsgraph",
+        description="All MeasureIt_ARCH elements will attempt to evaluate the "
+                    "dependency graph (Modifiers, Shape Keys, etc.) before drawing, "
+                    "may make dimensions and linework unstable",
+        default=False)
 
-    is_render_draw: BoolProperty(name="Is Render",
-                                 description="Flag to use render size for draw aspect ratio",
-                                 default=False)
+    is_render_draw: BoolProperty(
+        name="Is Render",
+        description="Flag to use render size for draw aspect ratio",
+        default=False)
 
-    is_vector_draw: BoolProperty(name="Is Vector Render",
-                                 description="Flag to use svg draw code",
-                                 default=False)
+    is_vector_draw: BoolProperty(
+        name="Is Vector Render",
+        description="Flag to use svg draw code",
+        default=False)
 
-    vector_z_order: BoolProperty(name="Vector Z Order",
-                                 description="Order Vector Layers by Object Z Height",
-                                 default=False)
+    vector_z_order: BoolProperty(
+        name="Vector Z Order",
+        description="Order Vector Layers by Object Z Height",
+        default=False)
 
-    vector_depthtest: BoolProperty(name="Use Vector Depth Test",
-                                   description="Check for Occlusion when rending to SVG \n WARNING: SLOW, open system console before rendering to view progress",
-                                   default=False)
+    vector_depthtest: BoolProperty(
+        name="Use Vector Depth Test",
+        description="Check for Occlusion when rending to SVG\n"
+                    "WARNING: SLOW, open system console before rendering to view progress",
+        default=False)
 
-    show_gizmos: BoolProperty(name="Show Gizmos",
-                              description="Display MeasureIt_ARCH Gizmos",
-                              default=False)
+    show_gizmos: BoolProperty(
+        name="Show Gizmos",
+        description="Display MeasureIt_ARCH Gizmos",
+        default=False)
 
-    show_text_cards: BoolProperty(name="Debug Text Cards",
-                                  description="Display MeasureIt_ARCH Text Cards",
-                                  default=False)
+    show_text_cards: BoolProperty(
+        name="Debug Text Cards",
+        description="Display MeasureIt_ARCH Text Cards",
+        default=False)
 
-    enable_experimental: BoolProperty(name="Enable Experimental",
-                                      description="Enable Experimental Features like SVG Rendering",
-                                      default=False)
+    enable_experimental: BoolProperty(
+        name="Enable Experimental",
+        description="Enable Experimental Features like SVG Rendering",
+        default=False)
 
-    use_text_autoplacement: BoolProperty(name="Use Text Autoplacement",
-                                         description="Adjust Dimension Text Placement Automatically",
-                                         default=True)
+    use_text_autoplacement: BoolProperty(
+        name="Use Text Autoplacement",
+        description="Adjust Dimension Text Placement Automatically",
+        default=True)
 
-    embed_scene_render: BoolProperty(name="Embed Scene Render",
-                                     description="Render the scene and automatically combine the rendered image with the Measureit-ARCH render pass",
-                                     default=False)
+    embed_scene_render: BoolProperty(
+        name="Embed Scene Render",
+        description="Render the scene and automatically combine the rendered "
+                    "image with the Measureit-ARCH render pass",
+        default=False)
 
-    embed_freestyle_svg: BoolProperty(name="Embed Freestyle SVG",
-                                      description="Render a Freestyle SVG and automatically combine the rendered image with the Measureit-ARCH render pass \n Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
-                                      default=False,
-                                      update=freestyle_update_flag)
+    embed_freestyle_svg: BoolProperty(
+        name="Embed Freestyle SVG",
+        description="Render a Freestyle SVG and automatically combine the "
+                    "rendered image with the Measureit-ARCH render pass\n"
+                    "Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
+        default=False,
+        update=freestyle_update_flag)
 
-    keep_freestyle_svg: BoolProperty(name="Keep Freestyle SVG",
-                                     description="When Embeding a Freestyle SVG, keep the generated Freestyle SVG as a seperate file as well",
-                                     default=False,
-                                     update=freestyle_update_flag)
+    keep_freestyle_svg: BoolProperty(
+        name="Keep Freestyle SVG",
+        description="When Embeding a Freestyle SVG, keep the generated "
+                    "Freestyle SVG as a seperate file as well",
+        default=False,
+        update=freestyle_update_flag)
 
-    default_scale: IntProperty(name='Default Paper Scale', min=1, default=25,
-                               description="Default Paper Scale (used for font sizing)")
+    default_scale: IntProperty(
+        name='Default Paper Scale', min=1, default=25,
+        description="Default Paper Scale (used for font sizing)")
 
-    default_resolution:  IntProperty(name='Default Resolution ', min=1,
-                                     default=150,
-                                     soft_min=50,
-                                     soft_max=1200,
-                                     description="Default Resolution (used for font sizing)",
-                                     update=update_flag)
+    default_resolution: IntProperty(
+        name='Default Resolution ', min=1, default=150,
+        soft_min=50, soft_max=1200,
+        description="Default Resolution (used for font sizing)",
+        update=update_flag)
 
-    metric_precision: IntProperty(name='Precision', min=0, max=5, default=2,
-                                  description="Metric decimal precision")
+    metric_precision: IntProperty(
+        name='Precision', min=0, max=5, default=2,
+        description="Metric decimal precision")
 
-    angle_precision: IntProperty(name='Angle Precision', min=0, max=5, default=0,
-                                 description="Angle decimal precision")
+    angle_precision: IntProperty(
+        name='Angle Precision', min=0, max=5, default=0,
+        description="Angle decimal precision")
 
     imperial_precision: EnumProperty(
         items=(('1', "1\"", "1 Inch"),
@@ -616,8 +664,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="Angle decimal precision")
 
 
-
-
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"
     bl_label = "Delete property"
@@ -631,7 +677,6 @@ class DeletePropButton(Operator):
 
     def execute(self, context):
         # Add properties
-        mainObj = context.object
 
         Generator = eval(self.genPath)
         itemGroup = eval('Generator.' + self.item_type)
@@ -639,7 +684,8 @@ class DeletePropButton(Operator):
         # Delete element
         itemGroup[self.tag].free = True
         itemGroup.remove(self.tag)
-        # redraw
+
+        # Redraw
         context.area.tag_redraw()
 
         for window in bpy.context.window_manager.windows:

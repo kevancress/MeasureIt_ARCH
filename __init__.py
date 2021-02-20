@@ -34,7 +34,7 @@ from bpy.types import WindowManager, Scene, Object
 bl_info = {
     "name": "MeasureIt_ARCH",
     "author": "Kevan Cress, Antonio Vazquez (antonioya)",
-    "location": "View3D > Tools Panel /Properties panel",
+    "location": "View3D > Tools Panel / Properties panel",
     "version": (0, 5, 0),
     "blender": (2, 83, 0),
     "description": "Tools for adding Dimensions, Annotations and Linework to Objects",
@@ -136,6 +136,7 @@ classes = (
     measureit_arch_dimensions.CursorToArcOrigin,
     measureit_arch_dimensions.AddFaceToArea,
     measureit_arch_dimensions.RemoveFaceFromArea,
+    measureit_arch_dimensions.TranslateDimensionOp,
     measureit_arch_dimensions.M_ARCH_UL_dimension_list,
     measureit_arch_dimensions.OBJECT_MT_dimension_menu,
 
@@ -166,7 +167,7 @@ classes = (
     measureit_arch_render.RenderAnimationButton,
     measureit_arch_render.RenderVectorButton,
 
-    #Schedules
+    # Schedules
     measureit_arch_schedules.ColumnProps,
     measureit_arch_schedules.ScheduleProperties,
     measureit_arch_schedules.ScheduleContainer,

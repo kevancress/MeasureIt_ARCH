@@ -37,6 +37,7 @@ from sys import exc_info
 from .measureit_arch_geometry import set_OpenGL_Settings, draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_titleblock
 from .measureit_arch_utils import get_view, local_attrs
+from .measureit_arch_units import BU_TO_INCHES
 from .shaders import Base_Shader_3D, DepthOnlyFrag
 
 
@@ -399,8 +400,8 @@ def render_main_svg(self, context):
 
     view = get_view()
     if view and view.res_type == 'res_type_paper':
-        paperWidth = round(view.width * 39.370078740196853, 3)
-        paperHeight = round(view.height * 39.370078740196853, 3)
+        paperWidth = round(view.width * BU_TO_INCHES, 3)
+        paperHeight = round(view.height * BU_TO_INCHES, 3)
     else:
         print('No View Present, using default resolution')
         paperWidth = width / sceneProps.default_resolution

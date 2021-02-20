@@ -162,7 +162,7 @@ class SCENE_PT_Sheet(Panel):
         op.tag = SheetGen.active_index  # saves internal data
 
         # col.separator()
-        #col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+        # col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 
         # Settings Below List
         if len(SheetGen.sheet_views) > 0 and SheetGen.active_index < len(SheetGen.sheet_views):

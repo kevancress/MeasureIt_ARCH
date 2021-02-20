@@ -28,25 +28,25 @@ import gpu
 import bgl
 import blf
 import bmesh
-from bpy_extras import view3d_utils, mesh_utils
-import bpy_extras.object_utils as object_utils
-from sys import exc_info, getrecursionlimit, setrecursionlimit
-from .shaders import *
 import math
 import numpy as np
 import svgwrite
 import time
 
-from bpy_extras import mesh_utils
+from bpy_extras import view3d_utils, mesh_utils
 from datetime import datetime
 from gpu_extras.batch import batch_for_shader
-from math import fabs, degrees, radians, sqrt, sin, pi, floor
+from math import fabs, degrees, radians, sqrt, sin, pi
 from mathutils import Vector, Matrix, Euler, Quaternion
+from mathutils.geometry import area_tri
+from sys import getrecursionlimit, setrecursionlimit
 
 from . import svg_shaders
 from .shaders import *
 from .measureit_arch_baseclass import recalc_dimWrapper_index
-from .measureit_arch_utils import get_view
+from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
+    format_area
+from .measureit_arch_utils import get_view, interpolate3d
 
 lastMode = {}
 lineBatch3D = {}
@@ -117,8 +117,7 @@ def clear_batches():
     hiddenBatch3D.clear()
 
 
-def update_text(textobj, props, context, fields = []):
-    update_flag = False
+def update_text(textobj, props, context, fields=[]):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
@@ -126,19 +125,13 @@ def update_text(textobj, props, context, fields = []):
     if len(fields) != 0:
         textFields = fields
 
-
     for textField in textFields:
         if textobj.text_updated or props.text_updated:
             textField.text_updated = True
 
         if textField.text_updated or sceneProps.text_updated:
             # Get textitem Properties
-            rawRGB = props.color
-            rgb = (
-                pow(rawRGB[0], (1 / 2.2)),
-                pow(rawRGB[1], (1 / 2.2)),
-                pow(rawRGB[2], (1 / 2.2)),
-                rawRGB[3])
+            rgb = rgb_gamma_correct(props.color)
             size = 20
             resolution = get_resolution()
 
@@ -271,8 +264,8 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
         paperHeight = refView.height
         ppi = refView.res
 
-        width = int(paperWidth * ppi * 39.3701)
-        height = int(paperHeight * ppi * 39.3701)
+        width = int(paperWidth * ppi * BU_TO_INCHES)
+        height = int(paperHeight * ppi * BU_TO_INCHES)
     else:
         percentScale = refView.percent_scale / 100
         width = int(refView.width_px * percentScale)
@@ -318,14 +311,13 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
 
 
 def draw_hatches(context, myobj, hatchGen, mat, svg=None):
-    sceneProps = context.scene.MeasureItArchProps
     svg_obj = svg.add(svg.g(id=myobj.name))
 
     if myobj.visible_get() and not myobj.hide_render:
         mat = myobj.matrix_world
         mesh = myobj.data
 
-        polys = mesh.polygons
+        # polys = mesh.polygons
 
         bm = bmesh.new()
         if myobj.mode == 'OBJECT':
@@ -336,10 +328,9 @@ def draw_hatches(context, myobj, hatchGen, mat, svg=None):
         bm.edges.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
         faces = bm.faces
-        verts = bm.verts
+        # verts = bm.verts
 
-        if True:
-            faces = z_order_faces(faces, myobj)
+        faces = z_order_faces(faces, myobj)
 
         matSlots = myobj.material_slots
         objMaterials = []
@@ -389,7 +380,7 @@ def draw_hatches(context, myobj, hatchGen, mat, svg=None):
                 hatchDict[hatch.name]["weight"] = weight
                 hatchDict[hatch.name]["hatch"] = hatch
                 fillURL = ''
-                if hatch.pattern != None:
+                if hatch.pattern is not None:
                     fillURL = 'url(#' + hatch.name + '_' + \
                         hatch.pattern.name + ')'
                     hatchDict[hatch.name]["pattern"] = fillURL
@@ -400,32 +391,31 @@ def draw_hatches(context, myobj, hatchGen, mat, svg=None):
                 coords = []
                 svg_hatch = svg_obj.add(svg.g(id=hatch.name))
                 for vert in face.verts:
-                    #vert = loop.vert
-                    coords.append(mat@vert.co)
+                    coords.append(mat @ vert.co)
                 svg_shaders.svg_poly_fill_shader(
-                    hatch, coords, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
-        if False:
-            for key in hatchDict:
-                hatch = hatchDict[key]["hatch"]
-                svg_hatch = svg_obj.add(svg.g(id=hatch.name))
-                polys = hatchDict[key]["faces"]
-                if True:
-                    polys = z_order_faces(polys, myobj)
-                fillRGB = hatchDict[key]["fill_color"]
-                lineRGB = hatchDict[key]["line_color"]
-                weight = hatchDict[key]["weight"]
-                if hatchDict[key]["pattern"] != "":
-                    fillURL = hatchDict[key]["pattern"]
-                else:
-                    fillURL = ''
-                if hatch.visible:
-                    for poly in polys:
-                        coords = []
-                        for vert in poly.verts:
-                            #vert = loop.vert
-                            coords.append(mat@vert.co)
-                        svg_shaders.svg_poly_fill_shader(
-                            hatch, coords, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
+                    hatch, coords, fillRGB, svg, parent=svg_hatch,
+                    line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
+        # for key in hatchDict:
+        #     hatch = hatchDict[key]["hatch"]
+        #     svg_hatch = svg_obj.add(svg.g(id=hatch.name))
+        #     polys = hatchDict[key]["faces"]
+        #     if True:
+        #         polys = z_order_faces(polys, myobj)
+        #     fillRGB = hatchDict[key]["fill_color"]
+        #     lineRGB = hatchDict[key]["line_color"]
+        #     weight = hatchDict[key]["weight"]
+        #     if hatchDict[key]["pattern"] != "":
+        #         fillURL = hatchDict[key]["pattern"]
+        #     else:
+        #         fillURL = ''
+        #     if hatch.visible:
+        #         for poly in polys:
+        #             coords = []
+        #             for vert in poly.verts:
+        #                 #vert = loop.vert
+        #                 coords.append(mat @ vert.co)
+        #             svg_shaders.svg_poly_fill_shader(
+        #                 hatch, coords, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
 
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
@@ -449,10 +439,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
 
         # Obj Properties
         scene = context.scene
-        pr = sceneProps.metric_precision
-        textFormat = "%1." + str(pr) + "f"
-        rawRGB = dimProps.color
-        rgb = get_color(rawRGB, myobj, is_active=dim.is_active)
+        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
 
         # Define Caps as a tuple of capA and capB to reduce code duplications
         caps = (dimProps.endcapA, dimProps.endcapB)
@@ -501,8 +488,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
             recalc_dimWrapper_index(None, context)
             return
 
-        p1 = get_point(p1Local, dim.dimObjectA, aMatrix)
-        p2 = get_point(p2Local, dim.dimObjectB, bMatrix)
+        p1 = get_point(p1Local, aMatrix)
+        p2 = get_point(p2Local, bMatrix)
 
         # check dominant Axis
         sortedPoints = sortPoints(p1, p2)
@@ -546,9 +533,9 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
         # i,j,k as card axis
-        i = Vector((1, 0, 0))
-        j = Vector((0, 1, 0))
-        k = Vector((0, 0, 1))
+        # i = Vector((1, 0, 0))
+        # j = Vector((0, 1, 0))
+        # k = Vector((0, 0, 1))
 
         # Check for text field
         if len(dim.textFields) == 0:
@@ -557,7 +544,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         dimText = dim.textFields[0]
 
         # format text and update if necessary
-        distanceText = str(format_distance(textFormat, dist))
+        distanceText = format_distance(dist)
         if dimText.text != str(distanceText):
             dimText.text = str(distanceText)
             dimText.text_updated = True
@@ -587,11 +574,9 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
                   leadEndB, dimLineStartCoord, dimLineEndCoord]
         filledCoords = []
         pos = (dimLineStart, dimLineEnd)
-        i = 0
-        for cap in caps:
+        for i, cap in enumerate(caps):
             capCoords = generate_end_caps(
                 context, dimProps, cap, capSize, pos[i], userOffsetVector, textLoc, i, flipCaps)
-            i += 1
             for coord in capCoords[0]:
                 coords.append(coord)
             for filledCoord in capCoords[1]:
@@ -668,7 +653,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                     try:
                         if (myobj.matrix_world.to_quaternion() != Quaternion(dim[rotStr]) or
                             myobj.location != Vector(dim[locStr]) or
-                            myobj.scale != Vector(dim[scaleStr])):
+                                myobj.scale != Vector(dim[scaleStr])):
 
                             obverts = get_mesh_vertices(myobj)
                             worldObverts = [myobj.matrix_world @
@@ -698,9 +683,9 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
             # Get the axis aligned bounding coords for that set of coords
             maxX, minX, maxY, minY, maxZ, minZ = get_axis_aligned_bounds(coords)
 
-            distX = maxX - minX
-            distY = maxY - minY
-            distZ = maxZ - minZ
+            # distX = maxX - minX
+            # distY = maxY - minY
+            # distZ = maxZ - minZ
 
             p0 = Vector((minX, minY, minZ))
             p1 = Vector((minX, minY, maxZ))
@@ -744,9 +729,9 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                     dim['bounds'] = [maxX, minX, maxY, minY, maxZ, minZ]
                     dim['lastRot'] = myobj.matrix_world.to_quaternion()
 
-                distX = maxX - minX
-                distY = maxY - minY
-                distZ = maxZ - minZ
+                # distX = maxX - minX
+                # distY = maxY - minY
+                # distZ = maxZ - minZ
 
                 p0 = Vector((minX, minY, minZ))
                 p1 = Vector((minX, minY, maxZ))
@@ -787,12 +772,9 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                   [4, 7],
                   [5, 6]]
 
-        measureAxis = []
-        scene = context.scene
-        pr = sceneProps.metric_precision
-        textFormat = "%1." + str(pr) + "f"
-        rawRGB = dimProps.color
-        rgb = get_color(rawRGB, myobj, is_active=dim.is_active)
+        # measureAxis = []
+        # scene = context.scene
+        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
 
         # Define Caps as a tuple of capA and capB to reduce code duplications
         caps = (dimProps.endcapA, dimProps.endcapB)
@@ -803,13 +785,6 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
             offset += dim.tweakOffset
 
         geoOffset = dim.dimLeaderOffset
-
-        # Select Best Pairs
-        diagonalPair = [2, 4]
-        dp1 = Vector(bounds[2])
-        dp2 = Vector(bounds[4])
-        dplength = Vector(dp1 - dp2).length
-        centerpoint = interpolate3d(dp1, dp2, dplength/2)
 
         # get view vector
         i = Vector((1, 0, 0))  # X Unit Vector
@@ -824,12 +799,10 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
             viewVec.rotate(viewRot)
 
         bestPairs = [xpairs[2], ypairs[1], zpairs[0]]
-        pairs = [xpairs, ypairs, zpairs]
 
         # establish measure loop
         # this runs through the X, Y and Z axis
         idx = 0
-        selectionVectors = [k, i, j]
         placementVec = [j, -i, -i]
         for axis in dim.drawAxis:
             if axis:
@@ -843,12 +816,10 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 p2 = sortedPoints[1]
 
                 # calculate distance & MidpointGY
-                distVector = Vector(p1)-Vector(p2)
+                distVector = Vector(p1) - Vector(p2)
                 dist = distVector.length
                 midpoint = interpolate3d(p1, p2, fabs(dist / 2))
                 normDistVector = distVector.normalized()
-                absNormDistVector = Vector((abs(normDistVector[0]), abs(
-                    normDistVector[1]), abs(normDistVector[2])))
 
                 # Compute offset vector from face normal and user input
                 axisViewVec = viewVec.copy()
@@ -898,9 +869,9 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 dimText = dim.textFields[idx]
 
                 # format text and update if necessary
-                distanceText = str(format_distance(textFormat, dist))
-                if dimText.text != str(distanceText):
-                    dimText.text = str(distanceText)
+                distanceText = format_distance(dist)
+                if dimText.text != distanceText:
+                    dimText.text = distanceText
                     dimText.text_updated = True
 
                 placementResults = dim_text_placement(
@@ -981,10 +952,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             viewRot = context.area.spaces[0].region_3d.view_rotation
 
         # Obj Properties
-        pr = sceneProps.metric_precision
-        textFormat = "%1." + str(pr) + "f"
-        rawRGB = dimProps.color
-        rgb = get_color(rawRGB, myobj, is_active=dim.is_active)
+        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
 
         axis = dim.dimAxis
 
@@ -1030,8 +998,8 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             recalc_dimWrapper_index(context, dimGen)
             return
 
-        p1 = get_point(p1Local, dim.dimObjectA, aMatrix)
-        p2 = get_point(p2Local, dim.dimObjectB, bMatrix)
+        p1 = get_point(p1Local, aMatrix)
+        p2 = get_point(p2Local, bMatrix)
 
         # Sort Points
         sortedPoints = sortPoints(p1, p2)
@@ -1108,10 +1076,8 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         distVector = alignedDistVector.project(axisVec)
 
         dist = distVector.length
-        midpoint = interpolate3d(p1, p2, fabs(dist / 2))
+        midpoint = interpolate3d(Vector(p1), Vector(p2), fabs(dist / 2))
         normDistVector = distVector.normalized()
-        absNormDistVector = Vector((abs(normDistVector[0]), abs(
-            normDistVector[1]), abs(normDistVector[2])))
 
         # Compute offset vector from face normal and user input
         rotationMatrix = Matrix.Rotation(dim.dimRotation, 4, normDistVector)
@@ -1194,9 +1160,9 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         dimText = dim.textFields[0]
 
         # format text and update if necessary
-        distanceText = str(format_distance(textFormat, dist))
-        if dimText.text != str(distanceText):
-            dimText.text = str(distanceText)
+        distanceText = format_distance(dist)
+        if dimText.text != distanceText:
+            dimText.text = distanceText
             dimText.text_updated = True
 
         placementResults = dim_text_placement(
@@ -1261,16 +1227,15 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
 
         lineWeight = dimProps.lineWeight
 
-        rawRGB = dimProps.color
-        rgb = get_color(rawRGB, myobj, is_active=dim.is_active)
+        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
         radius = dim.dimRadius
 
         p1 = Vector(get_point(get_mesh_vertex(
-            myobj, dim.dimPointA, dimProps.evalMods), myobj, mat))
+            myobj, dim.dimPointA, dimProps.evalMods), mat))
         p2 = Vector(get_point(get_mesh_vertex(
-            myobj, dim.dimPointB, dimProps.evalMods), myobj, mat))
+            myobj, dim.dimPointB, dimProps.evalMods), mat))
         p3 = Vector(get_point(get_mesh_vertex(
-            myobj, dim.dimPointC, dimProps.evalMods), myobj, mat))
+            myobj, dim.dimPointC, dimProps.evalMods), mat))
 
         # calc normal to plane defined by points
         vecA = (p1 - p2)
@@ -1315,8 +1280,8 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
         if len(dim.textFields) == 0:
             dim.textFields.add()
 
-        if dim.textFields[0].text != str(angleText):
-            dim.textFields[0].text = str(angleText)
+        if dim.textFields[0].text != angleText:
+            dim.textFields[0].text = angleText
             dim.textFields[0].text_updated = True
 
         dimText = dim.textFields[0]
@@ -1395,25 +1360,18 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
     set_OpenGL_Settings(True, dimProps)
 
     if check_vis(dim, dimProps):
-
         lineWeight = dimProps.lineWeight
-
-        scene = context.scene
-        pr = sceneProps.metric_precision
-        arc_code = ""
-        rawRGB = dimProps.color
-        rgb = get_color(rawRGB, myobj, is_active=dim.is_active)
-        offset = 0.001
+        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
         radius = dim.dimOffset
 
         deleteFlag = False
         try:
             p1 = Vector(get_point(get_mesh_vertex(
-                myobj, dim.dimPointA, dimProps.evalMods), myobj, mat))
+                myobj, dim.dimPointA, dimProps.evalMods), mat))
             p2 = Vector(get_point(get_mesh_vertex(
-                myobj, dim.dimPointB, dimProps.evalMods), myobj, mat))
+                myobj, dim.dimPointB, dimProps.evalMods), mat))
             p3 = Vector(get_point(get_mesh_vertex(
-                myobj, dim.dimPointC, dimProps.evalMods), myobj, mat))
+                myobj, dim.dimPointC, dimProps.evalMods), mat))
         except IndexError:
             print('Get Point Error for ' + dim.name + ' on ' + myobj.name)
             deleteFlag = True
@@ -1565,34 +1523,28 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
             coords.append(zeroVec)
             coords.append(radiusLeader)
 
-        # TEXT
-        scene = context.scene
-        pr = sceneProps.metric_precision
-        textFormat = "%1." + str(pr) + "f"
-
         # Check for text field
         if len(dim.textFields) != 2:
             dim.textFields.add()
             dim.textFields.add()
 
         radiusText = dim.textFields[0]
-
         lengthText = dim.textFields[1]
 
         # format text and update if necessary
-        lengthStr = arc_code + str(format_distance(textFormat, arc_length))
+        lengthStr = format_distance(arc_length)
 
         if dim.displayAsAngle:
             lengthStr = format_angle(arc_angle)
 
-        if lengthText.text != str(lengthStr):
-            lengthText.text = str(lengthStr)
+        if lengthText.text != lengthStr:
+            lengthText.text = lengthStr
             lengthText.text_updated = True
 
         if dim.showRadius:
-            radStr = 'r ' + str(format_distance(textFormat, radius))
-            if radiusText.text != str(lengthStr):
-                radiusText.text = str(radStr)
+            radStr = 'r ' + format_distance(radius)
+            if radiusText.text != radStr:
+                radiusText.text = radStr
                 radiusText.text_updated = True
 
             # make Radius text card
@@ -1690,8 +1642,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
 
         lineWeight = dimProps.lineWeight
 
-        rawRGB = dim.fillColor
-        rgb = get_color(rawRGB, myobj, is_active=dim.is_active)
+        rgb = get_color(dim.fillColor, myobj, is_active=dim.is_active)
         fillRGB = (rgb[0], rgb[1], rgb[2], dim.fillAlpha)
 
         rawTextRGB = dimProps.color
@@ -1735,7 +1686,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
                 filledCoords.append(p1)
                 filledCoords.append(p2)
                 filledCoords.append(p3)
-                area = get_triangle_area(p1, p2, p3)
+                area = area_tri(p1, p2, p3)
                 sumArea += area
 
         # Get the Perimeter Coords
@@ -1751,11 +1702,10 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             dim.textFields.add()
 
         dimText = dim.textFields[0]
-        pr = sceneProps.metric_precision
-        textFormat = "%1." + str(pr) + "f"
-        areaText = format_distance(textFormat, sumArea, isArea=True)
-        if dimText.text != str(areaText):
-            dimText.text = str(areaText)
+
+        areaText = format_area(sumArea)
+        if dimText.text != areaText:
+            dimText.text = areaText
             dimText.text_updated = True
 
         # get text location
@@ -1859,7 +1809,6 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     i = Vector((1, 0, 0))  # X Unit Vector
     j = Vector((0, 1, 0))  # Y Unit Vector
     k = Vector((0, 0, 1))  # Z Unit Vector
-    loc = Vector(get_location(myobj))
     centerRay = Vector((-1, 1, 1))
     badNormals = False
 
@@ -1909,12 +1858,6 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 
     # Mesh Dimension Behaviour
     if myobj.type == 'MESH':
-        try:
-            vertA = myobj.data.vertices[dim.dimPointA]
-            directionRay = vertA.normal + loc
-        except:
-            directionRay = Vector((0, 0, 0))
-
         # get Adjacent Face normals if possible
         possibleNormals = []
 
@@ -1986,7 +1929,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-    viewport = get_viewport(renderScale=True)
+    viewport = get_viewport()
 
     for lineGroup in lineGen.line_groups:
         lineProps = lineGroup
@@ -1998,10 +1941,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
         set_OpenGL_Settings(True, lineProps)
 
         if check_vis(lineGroup, lineProps):
-
-            rawRGB = lineProps.color
-
-            rgb = get_color(rawRGB, myobj, only_active=False)
+            rgb = get_color(lineProps.color, myobj, only_active=False)
 
             # set other line properties
             isOrtho = False
@@ -2067,7 +2007,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
                 if 'lineBuffer' in lineGroup:
                     tempCoords = [get_line_vertex(
-                        idx, verts, mat) for idx in lineGroup['lineBuffer']]
+                        idx, verts) for idx in lineGroup['lineBuffer']]
                     lineGroup['coordBuffer'] = tempCoords
 
                     # Calculate dynamic lines
@@ -2125,14 +2065,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 # Invert The Depth test for hidden lines
                 bgl.glDepthFunc(bgl.GL_GREATER)
                 hiddenLineWeight = lineProps.lineHiddenWeight
-
-                rawRGB = lineProps.lineHiddenColor
-                # undo blenders Default Gamma Correction
-                dashRGB = (
-                    pow(rawRGB[0], (1 / 2.2)),
-                    pow(rawRGB[1], (1 / 2.2)),
-                    pow(rawRGB[2], (1 / 2.2)),
-                    rawRGB[3])
+                dashRGB = rgb_gamma_correct(lineProps.lineHiddenColor)
 
                 dashedLineShader.bind()
                 dashedLineShader.uniform_float(
@@ -2302,16 +2235,15 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
         if check_vis(annotation, annotationProps):
             lineWeight = annotationProps.lineWeight
-            rawRGB = annotationProps.color
             # undo blenders Default Gamma Correction
-            rgb = get_color(rawRGB, myobj, is_active=annotation.is_active)
+            rgb = get_color(annotationProps.color, myobj, is_active=annotation.is_active)
 
             # Get Points
             deleteFlag = False
             try:
                 p1local = get_mesh_vertex(
                     myobj, annotation.annotationAnchor, annotationProps.evalMods)
-                p1 = get_point(p1local, myobj, mat)
+                p1 = get_point(p1local, mat)
             except IndexError:
                 deleteFlag = True
 
@@ -2344,7 +2276,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             scaleMatrix[2][2] *= scale[2]
             scaleMatrix.to_4x4()
             noScaleMat = locMatrix @ rotMatrix
-            #locMatrix = Matrix.Translation(loc)
+            # locMatrix = Matrix.Translation(loc)
 
             p1Scaled = scaleMatrix @ Vector(p1local)
             p1 = locMatrix @ rotMatrix @ p1Scaled
@@ -2414,41 +2346,41 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 draw3d_loop(context, objs, svg=svg, extMat=extMat,
                             multMat=annotationProps.custom_local_transforms)
 
-                for obj in objs:
-                    if obj.type == 'MESH' and False:
-                        tempCoords = []
-                        bm = bmesh.new()
-                        bm.from_object(
-                            obj, bpy.context.view_layer.depsgraph, deform=True)
-                        bm.edges.ensure_lookup_table()
-                        bm.verts.ensure_lookup_table()
-                        for e in bm.edges:
-                            tempCoords.extend([e.verts[0].co])
-                            tempCoords.extend([e.verts[1].co])
+                # for obj in objs:
+                #     if obj.type == 'MESH':
+                #         tempCoords = []
+                #         bm = bmesh.new()
+                #         bm.from_object(
+                #             obj, bpy.context.view_layer.depsgraph, deform=True)
+                #         bm.edges.ensure_lookup_table()
+                #         bm.verts.ensure_lookup_table()
+                #         for e in bm.edges:
+                #             tempCoords.extend([e.verts[0].co])
+                #             tempCoords.extend([e.verts[1].co])
 
-                        mesh = obj.data
-                        mesh.calc_loop_triangles()
-                        tris = mesh.loop_triangles
-                        tempVertices = []
-                        indices = []
+                #         mesh = obj.data
+                #         mesh.calc_loop_triangles()
+                #         tris = mesh.loop_triangles
+                #         tempVertices = []
+                #         indices = []
 
-                        for tri in tris:
-                            for vert in tri.vertices:
-                                indices.append(bm.verts[vert].co)
+                #         for tri in tris:
+                #             for vert in tri.vertices:
+                #                 indices.append(bm.verts[vert].co)
 
-                        for coord in tempCoords:
-                            newCoord = (mat @ offsetMat @ rotMat @ coord)
-                            customCoords.append(newCoord)
+                #         for coord in tempCoords:
+                #             newCoord = (mat @ offsetMat @ rotMat @ coord)
+                #             customCoords.append(newCoord)
 
-                        customFilledCoords = []
-                        for vert in indices:
-                            newVert = (mat @ offsetMat @ rotMat @ vert)
-                            customFilledCoords.append(newVert)
+                #         customFilledCoords = []
+                #         for vert in indices:
+                #             newVert = (mat @ offsetMat @ rotMat @ vert)
+                #             customFilledCoords.append(newVert)
 
-                        draw_lines(lineWeight, rgb, customCoords,
-                                   twoPass=True, pointPass=True)
-                        draw_filled_coords(
-                            customFilledCoords, rgb, polySmooth=False)
+                #         draw_lines(lineWeight, rgb, customCoords,
+                #                    twoPass=True, pointPass=True)
+                #         draw_filled_coords(
+                #             customFilledCoords, rgb, polySmooth=False)
 
             fieldIdx = 0
             if 'textFields' not in annotation:
@@ -2645,7 +2577,6 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
     i = Vector((1, 0, 0))
     j = Vector((0, 1, 0))
     k = Vector((0, 0, 1))
-    basisVec = (i, j, k)
 
     # Get View rotation
     debug_camera = False
@@ -2666,7 +2597,7 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
     ])
 
     # Check Text Cards Direction Relative to view Vector
-    # Card Indicies:
+    # Card Indices:
     #
     #     1----------------2
     #     |                |
@@ -2880,9 +2811,21 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
     return capCoords, filledCoords
 
 
-def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), basePoint=Vector((0, 0, 0)), xDir=Vector((1, 0, 0)), yDir=Vector((0, 1, 0)), cardIdx=0):
-    scene = context.scene
-    sceneProps = scene.MeasureItArchProps
+def generate_text_card(
+        context, textobj, textProps, rotation=None, basePoint=None, xDir=None,
+        yDir=None, cardIdx=0):
+    """
+    Returns a list of 4 Vectors
+    """
+
+    if not rotation:
+        rotation = Vector((0, 0, 0))
+    if not basePoint:
+        basePoint = Vector((0, 0, 0))
+    if not xDir:
+        xDir = Vector((1, 0, 0))
+    if not yDir:
+        yDir = Vector((0, 1, 0))
 
     width = textobj.textWidth
     height = textobj.textHeight
@@ -2891,18 +2834,22 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
 
     # Define annotation Card Geometry
     resolution = get_resolution()
-    # get font size in pt more stupid fudge factors :(
-    size = textProps.fontSize / 803
-    size *= scale
 
-    sx = (width/resolution)*size
-    sy = (height/resolution)*size
+    # Get font size in pt more stupid fudge factors :(
+    size = (textProps.fontSize / 803) * scale
+
+    sx = (width / resolution) * size
+    sy = (height / resolution) * size
 
     cardX = xDir.normalized() * sx
     cardY = yDir.normalized() * sy
 
-    square = [(basePoint-(cardX/2)), (basePoint-(cardX/2)+cardY),
-              (basePoint+(cardX/2)+cardY), (basePoint+(cardX/2))]
+    square = [
+        basePoint - (cardX / 2),
+        basePoint - (cardX / 2) + cardY,
+        basePoint + (cardX / 2) + cardY,
+        basePoint + (cardX / 2),
+    ]
 
     # pick approprate card based on alignment
     if textProps.textAlignment == 'R':
@@ -2930,11 +2877,7 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
     coords = []
     for coord in square:
         coord = Vector(coord) - aOff - pOff - cardOffset
-        coord -= basePoint
-
-        coord = rotMat @ coord
-
-        coord += basePoint
+        coord = (rotMat @ (coord - basePoint)) + basePoint
         coords.append(coord)
 
     return coords
@@ -2971,109 +2914,21 @@ def get_dom_axis(vector):
     return domAxis
 
 
-def get_triangle_area(p1, p2, p3):
-    """ Get area using Heron formula """
-    d1, dn = distance(p1, p2)
-    d2, dn = distance(p2, p3)
-    d3, dn = distance(p1, p3)
-    per = (d1 + d2 + d3) / 2.0
-    area = sqrt(per * (per - d1) * (per - d2) * (per - d3))
-    return area
-
-
-# ------------------------------------------
-# Get point in 2d space
-# ------------------------------------------
-def get_2d_point(region, rv3d, point3d):
-    if rv3d is not None and region is not None:
-        return view3d_utils.location_3d_to_region_2d(region, rv3d, point3d)
-    else:
-        return get_render_location(point3d)
-
-
-# -------------------------------------------------------------
-# format a point as (x, y, z) for display
-# -------------------------------------------------------------
-def format_point(mypoint, pr):
-    pf = "%1." + str(pr) + "f"
-    fmt = " ("
-    fmt += pf % mypoint[0]
-    fmt += ", "
-    fmt += pf % mypoint[1]
-    fmt += ", "
-    fmt += pf % mypoint[2]
-    fmt += ")"
-
-    return fmt
-
-
-# --------------------------------------------------------------------
-# Distance between 2 points in 3D space
-# v1: first point
-# v2: second point
-# locx/y/z: Use this axis
-# return: distance
-# --------------------------------------------------------------------
-def distance(v1, v2, locx=True, locy=True, locz=True):
-    x = sqrt((v2[0] - v1[0]) ** 2 + (v2[1] - v1[1])
-             ** 2 + (v2[2] - v1[2]) ** 2)
-
-    # If axis is not used, make equal both (no distance)
-    v1b = [v1[0], v1[1], v1[2]]
-    v2b = [v2[0], v2[1], v2[2]]
-    if not locx:
-        v2b[0] = v1b[0]
-    if not locy:
-        v2b[1] = v1b[1]
-    if not locz:
-        v2b[2] = v1b[2]
-
-    xloc = sqrt((v2b[0] - v1b[0]) ** 2 + (v2b[1] - v1b[1])
-                ** 2 + (v2b[2] - v1b[2]) ** 2)
-
-    return x, xloc
-
-
-def interpolate3d(v1, v2, d1):
-    """
-    Interpolate 2 points in 3D space
-    v1: first point
-    v2: second point
-    d1: distance
-    return: interpolate point
-    """
-
-    # calculate vector
-    v = (v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2])
-    # calculate distance between points
-    d0, dloc = distance(v1, v2)
-
-    # calculate interpolate factor (distance from origin / distance total)
-    # if d1 > d0, the point is projected in 3D space
-    if d0 > 0:
-        x = d1 / d0
-    else:
-        x = d1
-
-    final = (v1[0] + (v[0] * x), v1[1] + (v[1] * x), v1[2] + (v[2] * x))
-    return final
-
-
-def get_point(v1, mainobject, mat):
+def get_point(v1, mat):
     """
     Get point rotated and relative to parent
 
-    v1: point
-    mainobject
-    mat
+    :param v1: point
+    :type v1: Vector
+    :param mat: matrix to apply
+    :type mat: Matrix
+    :returns: Vector
     """
-    # Using World Matrix
-    vt = Vector((v1[0], v1[1], v1[2], 1))
-    m4 = mat
-    vt2 = m4 @ vt
-    v2 = [vt2[0], vt2[1], vt2[2]]
+    assert isinstance(v1, Vector)
 
-    return v2
+    vt = Vector((v1[0], v1[1], v1[2], 1))
+    vt2 = mat @ vt
+    return Vector((vt2[0], vt2[1], vt2[2]))
 
 
 def get_location(mainobject):
@@ -3085,155 +2940,25 @@ def get_location(mainobject):
     return [m4[0][3], m4[1][3], m4[2][3]]
 
 
-
 def get_arc_data(pointa, pointb, pointc, pointd):
-    v1 = Vector((pointa[0] - pointb[0], pointa[1] -
-                 pointb[1], pointa[2] - pointb[2]))
-    v2 = Vector((pointc[0] - pointb[0], pointc[1] -
-                 pointb[1], pointc[2] - pointb[2]))
-    v3 = Vector((pointd[0] - pointb[0], pointd[1] -
-                 pointb[1], pointd[2] - pointb[2]))
+    v1 = Vector((
+        pointa[0] - pointb[0],
+        pointa[1] - pointb[1],
+        pointa[2] - pointb[2]))
+    v2 = Vector((
+        pointc[0] - pointb[0],
+        pointc[1] - pointb[1],
+        pointc[2] - pointb[2]))
+    v3 = Vector((
+        pointd[0] - pointb[0],
+        pointd[1] - pointb[1],
+        pointd[2] - pointb[2]))
 
     angle = v1.angle(v2) + v2.angle(v3)
 
     rclength = pi * 2 * v2.length * (angle / (pi * 2))
 
     return angle, rclength
-
-
-# -------------------------------------------------------------
-# Format a number to the right unit
-#
-# -------------------------------------------------------------
-def format_distance(fmt, value, factor=1, isArea=False):
-    # Superscript two THIS IS LEGACY (but being kept for when Area Measurements are re-implimented)
-    s_code = "\u00b2"
-
-    # Get Scene Unit Settings
-    scaleFactor = bpy.context.scene.unit_settings.scale_length
-    unit_system = bpy.context.scene.unit_settings.system
-    unit_length = bpy.context.scene.unit_settings.length_unit
-    seperate_units = bpy.context.scene.unit_settings.use_separate
-    sceneProps = bpy.context.scene.MeasureItArchProps
-
-    # Also Legacy, Could be re-implimented... Requested now, should re-impliment
-    hide_units = sceneProps.hide_units
-
-    toInches = 39.3700787401574887
-    inPerFoot = 11.999
-
-    if isArea:
-        toInches = 1550
-        inPerFoot = 143.999
-
-    value *= scaleFactor
-
-    # Imperial Formating
-    if unit_system == "IMPERIAL":
-        base = int(sceneProps.imperial_precision)
-        decInches = value * toInches
-
-        # Seperate ft and inches
-        # Unless Inches are the specified Length Unit
-        if unit_length != 'INCHES':
-            feet = floor(decInches / inPerFoot)
-            decInches -= feet * inPerFoot
-        else:
-            feet = 0
-
-        # Seperate Fractional Inches
-        inches = floor(decInches)
-        if inches != 0:
-            frac = round(base * (decInches - inches))
-        else:
-            frac = round(base * (decInches))
-
-        # Set proper numerator and denominator
-        if frac != base:
-            numcycles = int(math.log2(base))
-            for i in range(numcycles):
-                if frac % 2 == 0:
-                    frac = int(frac / 2)
-                    base = int(base / 2)
-                else:
-                    break
-        else:
-            frac = 0
-            inches += 1
-
-        # Check values and compose string
-        if inches == 12:
-            feet += 1
-            inches = 0
-
-        if inches != 0:
-            inchesString = str(inches)
-            if frac != 0:
-                inchesString += "-"
-            else:
-                inchesString += "\""
-        else:
-            inchesString = ""
-
-        if feet != 0:
-            feetString = str(feet) + "' "
-        else:
-            feetString = ""
-
-        if frac != 0:
-            fracString = str(frac) + "/" + str(base) + "\""
-        else:
-            fracString = ""
-
-        if not isArea:
-            tx_dist = feetString + inchesString + fracString
-        else:
-            tx_dist = str(fmt % (value * toInches / inPerFoot)) + " sq. ft."
-
-    # METRIC FORMATING
-    elif unit_system == "METRIC":
-
-        # Meters
-        if unit_length == 'METERS':
-            if not hide_units:
-                fmt += " m"
-            tx_dist = fmt % value
-        # Centimeters
-        elif unit_length == 'CENTIMETERS':
-            if not hide_units:
-                fmt += " cm"
-            d_cm = value * (100)
-            tx_dist = fmt % d_cm
-        # Millimeters
-        elif unit_length == 'MILLIMETERS':
-            if not hide_units:
-                fmt += " mm"
-            d_mm = value * (1000)
-            tx_dist = fmt % d_mm
-
-        # Otherwise Use Adaptive Units
-        else:
-            if round(value, 2) >= 1.0:
-                if not hide_units:
-                    fmt += " m"
-                tx_dist = fmt % value
-            else:
-                if round(value, 2) >= 0.01:
-                    if not hide_units:
-                        fmt += " cm"
-                    d_cm = value * (100)
-                    tx_dist = fmt % d_cm
-                else:
-                    if not hide_units:
-                        fmt += " mm"
-                    d_mm = value * (1000)
-                    tx_dist = fmt % d_mm
-        if isArea:
-            tx_dist += s_code
-    else:
-        tx_dist = fmt % value
-
-    return tx_dist
 
 
 # --------------------------------------------------------------------
@@ -3273,14 +2998,14 @@ def get_mesh_vertices(myobj):
     except AttributeError:
         return None
 
-# A streamlined version of get mesh vertex for line drawing
 
-
-def get_line_vertex(idx, verts, mat):
+def get_line_vertex(idx, verts):
+    """
+    A streamlined version of get mesh vertex for line drawing
+    """
     try:
         vert = verts[idx].co
     except:
-        #print("Broken Vertex!!!")
         vert = Vector((0, 0, 0))
     return vert
 
@@ -3292,8 +3017,7 @@ def archipack_datablock(o):
     try:
         return o.data.archipack_dimension_auto[0]
     except:
-        pass
-    return None
+        return None
 
 
 def get_archipack_loc(context, myobj, idx):
@@ -3340,16 +3064,16 @@ def get_mesh_vertex(myobj, idx, evalMods):
 
 
 def check_mods(myobj):
-    goodMods = ["DATA_TRANSFER ", "NORMAL_EDIT", "WEIGHTED_NORMAL",
-                'UV_PROJECT', 'UV_WARP', 'ARRAY',
-                'EDGE_SPLIT', 'MASK', 'MIRROR', 'MULTIRES', 'SCREW',
-                'SOLIDIFY', 'SUBSURF', 'TRIANGULATE', 'ARMATURE',
-                'CAST', 'CURVE', 'DISPLACE', 'HOOK', 'LAPLACIANDEFORM',
-                'LATTICE', 'MESH_DEFORM', 'SHRINKWRAP', 'SIMPLE_DEFORM',
-                'SMOOTH', 'CORRECTIVE_SMOOTH', 'LAPLACIANSMOOTH',
-                'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH', 'COLLISION',
-                'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
-                'SMOKE', 'SOFT_BODY', 'SURFACE', 'SOLIDIFY']
+    goodMods = [
+        'DATA_TRANSFER', 'NORMAL_EDIT', 'WEIGHTED_NORMAL', 'UV_PROJECT',
+        'UV_WARP', 'ARRAY', 'EDGE_SPLIT', 'MASK', 'MIRROR', 'MULTIRES', 'SCREW',
+        'SOLIDIFY', 'SUBSURF', 'TRIANGULATE', 'ARMATURE', 'CAST', 'CURVE',
+        'DISPLACE', 'HOOK', 'LAPLACIANDEFORM', 'LATTICE', 'MESH_DEFORM',
+        'SHRINKWRAP', 'SIMPLE_DEFORM', 'SMOOTH', 'CORRECTIVE_SMOOTH',
+        'LAPLACIANSMOOTH', 'SURFACE_DEFORM', 'WARP', 'WAVE', 'CLOTH',
+        'COLLISION', 'DYNAMIC_PAINT', 'PARTICLE_INSTANCE', 'PARTICLE_SYSTEM',
+        'SMOKE', 'SOFT_BODY', 'SURFACE', 'SOLIDIFY'
+    ]
     if myobj.modifiers is None:
         return False
     for mod in myobj.modifiers:
@@ -3358,17 +3082,11 @@ def check_mods(myobj):
     return True
 
 
-def printTime(start, end, post):
-    totalTime = (end-start)*1000
-    mystring = '{:.2f}'.format(totalTime) + ' ms'
-    mystring += post
-    print(mystring)
-
-
 def check_vis(item, props):
     context = bpy.context
     inView = False
-    if props.visibleInView is "" or props.visibleInView == context.window.view_layer.name:
+    if (props.visibleInView == "" or
+        props.visibleInView == context.window.view_layer.name):
         inView = True
 
     if item.visible and props.visible and inView:
@@ -3378,9 +3096,11 @@ def check_vis(item, props):
 
 
 def rgb_gamma_correct(rawRGB):
-    rgb = (pow(rawRGB[0], (1 / 2.2)), pow(rawRGB[1], (1 / 2.2)),
-           pow(rawRGB[2], (1 / 2.2)), rawRGB[3])
-    return Vector(rgb)
+    return Vector((
+        pow(rawRGB[0], (1 / 2.2)),
+        pow(rawRGB[1], (1 / 2.2)),
+        pow(rawRGB[2], (1 / 2.2)),
+        rawRGB[3]))
 
 
 def set_OpenGL_Settings(toggleBool, props=None):
@@ -3454,7 +3174,8 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
     bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
 
-def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False, pointPass=False, pointCoords=None):
+def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
+               pointPass=False, pointCoords=None):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -3544,72 +3265,20 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     return (square, flipCaps, dimLineExtension, origin)
 
 
-def get_viewport(renderScale=True):
+def get_viewport():
     context = bpy.context
-    scene = context.scene
-    sceneProps = scene.MeasureItArchProps
+    sceneProps = context.scene.MeasureItArchProps
 
     if sceneProps.is_render_draw:
-        viewport = [context.scene.render.resolution_x,
-                    context.scene.render.resolution_y]
-
+        return [
+            context.scene.render.resolution_x,
+            context.scene.render.resolution_y,
+        ]
     else:
-        rv3d = context.area.spaces[0].region_3d
-        zoom = (rv3d.view_camera_zoom+30)/63
-        #viewport = [context.scene.render.resolution_x, context.scene.render.resolution_y]
-        viewport = [context.area.width, context.area.height]
-        #viewAspect = viewport[0]/viewport[1]
-        #viewport = [context.scene.render.resolution_x, (context.scene.render.resolution_y)/viewAspect]
-
-        #render = [context.scene.render.resolution_x,context.scene.render.resolution_y]
-        #renderAspect = render[0]/render[1]
-        #apsectDiff = (viewAspect/renderAspect)/2
-        #render = [render[0]*apsectDiff,render[1]/apsectDiff]
-        #viewport = render
-
-    return viewport
-
-
-def format_angle(angle):
-    a_code = "\u00b0"  # degree
-    # arc_code = "\u25e0" #arc
-    scene = bpy.context.scene
-    sceneProps = scene.MeasureItArchProps
-    pr = sceneProps.angle_precision
-    textFormat = "%1." + str(pr) + "f"
-
-    if bpy.context.scene.unit_settings.system_rotation == "DEGREES":
-        arc_angle = degrees(angle)
-    else:
-        a_code = " rad"
-
-    angleString = "" + textFormat % arc_angle
-    angleString += a_code
-
-    return angleString
-
-
-def get_view():
-    scene = bpy.context.scene
-    ViewGen = scene.ViewGenerator
-    view = None
-
-    try:
-        view = ViewGen.views[ViewGen.active_index]
-    except:
-        view = None
-
-    return view
-
-
-def get_rv3d():
-    spaces = bpy.context.area.spaces
-    rv3d = None
-    for space in spaces:
-        if space.type == 'VIEW_3D':
-            rv3d = space.region_3d
-
-    return rv3d
+        return [
+            context.area.width,
+            context.area.height,
+        ]
 
 
 def get_scale():
@@ -3631,21 +3300,14 @@ def get_scale():
 def get_resolution():
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps
-
     view = get_view()
-    resolution = sceneProps.default_resolution
 
-    if view is None or view.camera is None:
-        return resolution
+    if (view is not None and
+        view.camera is not None and
+        view.res_type == 'res_type_paper'):
+        return view.res
 
-    if view is not None and view.res_type == 'res_type_paper':
-        resolution = view.res
-
-    return resolution
-
-
-def get_lineWeight():
-    pass
+    return sceneProps.default_resolution
 
 
 def z_order_objs(obj_list):
@@ -3674,7 +3336,7 @@ def sort_camera_z(obj, ordered_list, idx=0):
 def z_order_faces(face_list, obj):
     ordered_face_list = []
 
-    with recursionlimit(getrecursionlimit() + len(face_list)*len(face_list)):
+    with recursionlimit(getrecursionlimit() + len(face_list) * len(face_list)):
         for face in face_list:
             idx = sort_camera_z_faces(face, ordered_face_list, obj)
             ordered_face_list.insert(idx, face)
@@ -3697,8 +3359,7 @@ def sort_camera_z_faces(face, ordered_list, obj, idx=0):
 
 
 def get_camera_z_dist(location):
-    scene = bpy.context.scene
-    camera = scene.camera
+    camera = bpy.context.scene.camera
     mat = camera.matrix_world
     camera_z = mat @ Vector((0, 0, -1))
     camera_z.normalize()
@@ -3714,14 +3375,12 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-    idx = 1
     totalobjs = len(objlist)
 
     if sceneProps.vector_z_order and sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist)
 
-    for myobj in objlist:
-
+    for idx, myobj in enumerate(objlist, start=1):
         if sceneProps.is_render_draw:
             print("Rendering Object: " + str(idx) + " of: " +
                   str(totalobjs) + " Name: " + myobj.name)
@@ -3781,41 +3440,38 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
         if sceneProps.is_render_draw:
             endTime = time.time()
             print("Time: " + str(endTime - startTime))
-        idx += 1
 
     # Draw Instanced Objects
-    if True:
-        deps = bpy.context.view_layer.depsgraph
-        for obj_int in deps.object_instances:
-            if obj_int.is_instance:
-                myobj = obj_int.object
+    deps = bpy.context.view_layer.depsgraph
+    for obj_int in deps.object_instances:
+        if obj_int.is_instance:
+            myobj = obj_int.object
 
-                if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
+            if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
+                mat = obj_int.matrix_world
+
+            if 'LineGenerator' in myobj and myobj.LineGenerator.line_num != 0:
+                lineGen = myobj.LineGenerator
+                draw_line_group(context, myobj, lineGen, mat, svg=svg)
+
+            if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
+                annotationGen = myobj.AnnotationGenerator
+                draw_annotation(
+                    context, myobj, annotationGen, mat, svg=svg)
+
+            if sceneProps.instance_dims:
+                if 'DimensionGenerator' in myobj and myobj.DimensionGenerator.measureit_arch_num != 0:
+                    DimGen = myobj.DimensionGenerator
                     mat = obj_int.matrix_world
-
-                if 'LineGenerator' in myobj and myobj.LineGenerator.line_num != 0:
-                    lineGen = myobj.LineGenerator
-                    draw_line_group(context, myobj, lineGen, mat, svg=svg)
-
-                if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
-                    annotationGen = myobj.AnnotationGenerator
-                    draw_annotation(
-                        context, myobj, annotationGen, mat, svg=svg)
-
-                if sceneProps.instance_dims:
-                    if 'DimensionGenerator' in myobj and myobj.DimensionGenerator.measureit_arch_num != 0:
-                        DimGen = myobj.DimensionGenerator
-                        mat = obj_int.matrix_world
-                        for alignedDim in DimGen.alignedDimensions:
-                            draw_alignedDimension(
-                                context, myobj, DimGen, alignedDim, mat=mat, svg=svg)
-                        for angleDim in DimGen.angleDimensions:
-                            draw_angleDimension(
-                                context, myobj, DimGen, angleDim, mat, svg=svg)
-                        for axisDim in DimGen.axisDimensions:
-                            draw_axisDimension(
-                                context, myobj, DimGen, axisDim, mat, svg=svg)
-
+                    for alignedDim in DimGen.alignedDimensions:
+                        draw_alignedDimension(
+                            context, myobj, DimGen, alignedDim, mat=mat, svg=svg)
+                    for angleDim in DimGen.angleDimensions:
+                        draw_angleDimension(
+                            context, myobj, DimGen, angleDim, mat, svg=svg)
+                    for axisDim in DimGen.axisDimensions:
+                        draw_axisDimension(
+                            context, myobj, DimGen, axisDim, mat, svg=svg)
 
 
 class recursionlimit:

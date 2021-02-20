@@ -30,7 +30,6 @@ from bpy.types import (
     PropertyGroup,
     Panel,
     Operator,
-    Scene,
     UIList
 )
 from bpy.props import (
@@ -42,8 +41,8 @@ from bpy.props import (
 )
 
 from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index
-from .measureit_arch_dimensions import AlignedDimensionProperties, draw_alignedDimensions_settings
-
+from .measureit_arch_dimensions import AlignedDimensionProperties, \
+    draw_alignedDimensions_settings
 from .measureit_arch_annotations import AnnotationProperties
 from .measureit_arch_lines import LineProperties
 
@@ -67,23 +66,22 @@ def recalc_index(self, context):
             id_a += 1
 
 
-
-
 class StyleWrapper(PropertyGroup):
     itemType: EnumProperty(
-        items=(('line_groups', "Line", ""),
-               ('annotations', "Annotation", ""),
-               ('alignedDimensions', "Dimension", "")),
+        items=(
+            ('line_groups', "Line", ""),
+            ('annotations', "Annotation", ""),
+            ('alignedDimensions', "Dimension", "")),
         name="Style Item Type",
         update=recalc_index)
 
     itemIndex: IntProperty(name='Item Index')
 
 
-
 class StyleContainer(PropertyGroup):
-    active_style_index: IntProperty(name='Active Style Index', min=0, max=1000, default=0,
-                                    description='Index of the current Style')
+    active_style_index: IntProperty(
+        name='Active Style Index', min=0, max=1000, default=0,
+        description='Index of the current Style')
 
     show_style_settings: BoolProperty(
         name='Show Style Settings', default=False)
@@ -94,8 +92,6 @@ class StyleContainer(PropertyGroup):
     line_groups: CollectionProperty(type=LineProperties)
 
     wrapper: CollectionProperty(type=StyleWrapper)
-
-
 
 
 class M_ARCH_UL_styles_list(UIList):
@@ -145,16 +141,15 @@ class SCENE_PT_UIStyles(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        obj = context.object
-
         scene = context.scene
         StyleGen = scene.StyleGenerator
 
         row = layout.row()
 
         # Draw The UI List
-        row.template_list("M_ARCH_UL_styles_list", "", StyleGen, "wrapper",
-                          StyleGen, "active_style_index", rows=2, type='DEFAULT')
+        row.template_list(
+            "M_ARCH_UL_styles_list", "", StyleGen, "wrapper",
+            StyleGen, "active_style_index", rows=2, type='DEFAULT')
 
         # Operators Next to List
         col = row.column(align=True)
@@ -169,7 +164,9 @@ class SCENE_PT_UIStyles(Panel):
         col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 
         # Settings Below List
-        if len(StyleGen.wrapper) > 0 and StyleGen.active_style_index < len(StyleGen.wrapper):
+        if (len(StyleGen.wrapper) > 0 and
+            StyleGen.active_style_index < len(StyleGen.wrapper)):
+
             activeWrapperItem = StyleGen.wrapper[StyleGen.active_style_index]
 
             if activeWrapperItem.itemType == 'line_groups':
@@ -187,12 +184,12 @@ class SCENE_PT_UIStyles(Panel):
             box = layout.box()
             col = box.column()
             row = col.row()
-            row.prop(StyleGen, 'show_style_settings',
-                     text="", icon=settingsIcon, emboss=False)
+            row.prop(
+                StyleGen, 'show_style_settings', text="", icon=settingsIcon,
+                emboss=False)
 
-            row.label(text=item.name + ' Settings:')
+            row.label(text='{} Settings:'.format(item.name))
             if StyleGen.show_style_settings:
-
                 # Show Line Settings
                 if activeWrapperItem.itemType == 'line_groups':
                     draw_line_style_settings(item, box)
@@ -211,7 +208,8 @@ class SCENE_MT_styles_menu(bpy.types.Menu):
         layout = self.layout
 
         delOp = layout.operator(
-            "measureit_arch.deleteallitemsbutton", text="Delete All Styles", icon="X")
+            "measureit_arch.deleteallitemsbutton", text="Delete All Styles",
+            icon="X")
         delOp.genPath = 'bpy.context.scene.StyleGenerator'
         delOp.is_style = True
 
@@ -224,6 +222,7 @@ class ListDeletePropButton(Operator):
     bl_description = "Delete a property"
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'}
+
     tag: IntProperty()
     genPath: StringProperty()
     item_type: StringProperty()
@@ -242,7 +241,6 @@ class ListDeletePropButton(Operator):
 
         if self.is_style:
             recalc_index(self, context)
-
         else:
             recalc_dimWrapper_index(self, context)
 
@@ -261,20 +259,18 @@ class AddStyleButton(Operator):
     bl_category = 'MeasureitArch'
 
     styleType: EnumProperty(
-        items=(('annotations', "Annotation", "Create a new Annotation Style", 'FONT_DATA', 1),
-               ('line_groups', "Line", "Create a new Line Style", 'MESH_CUBE', 2),
-               ('alignedDimensions', "Dimension", "Create a new Dimension Style", 'DRIVER_DISTANCE', 3)),
+        items=(
+            ('annotations', "Annotation", "Create a new Annotation Style", 'FONT_DATA', 1),
+            ('line_groups', "Line", "Create a new Line Style", 'MESH_CUBE', 2),
+            ('alignedDimensions', "Dimension", "Create a new Dimension Style", 'DRIVER_DISTANCE', 3)),
         name="Type of Style to Add",
         description="Type of Style to Add")
 
     def execute(self, context):
         for window in bpy.context.window_manager.windows:
-            screen = window.screen
-
-            for area in screen.areas:
+            for area in window.screen.areas:
                 if area.type == 'VIEW_3D':
                     # Add properties
-
                     scene = context.scene
                     StyleGen = scene.StyleGenerator
                     annotationStyles = StyleGen.annotations
@@ -290,8 +286,8 @@ class AddStyleButton(Operator):
                         newStyle.fontSize = 18
                         newStyle.lineWeight = 1
                         newStyle.textAlignment = 'L'
-                        newStyle.name = 'Annotation Style ' + \
-                            str(len(annotationStyles))
+                        newStyle.name = 'Annotation Style {}'.format(
+                            len(annotationStyles))
                         newWrapper.itemType = 'annotations'
 
                     elif styleType == 'line_groups':
@@ -299,7 +295,8 @@ class AddStyleButton(Operator):
                         newStyle.itemType = 'line_groups'
                         newStyle.lineWeight = 1
                         newStyle.lineDepthOffset = 1
-                        newStyle.name = 'Line Style ' + str(len(lineStyles))
+                        newStyle.name = 'Line Style {}'.format(
+                            len(lineStyles))
                         newWrapper.itemType = 'line_groups'
 
                     else:
@@ -308,8 +305,8 @@ class AddStyleButton(Operator):
                         newStyle.fontSize = 18
                         newStyle.textAlignment = 'C'
                         newStyle.lineWeight = 1
-                        newStyle.name = 'Dimension Style ' + \
-                            str(len(alignedDimStyles))
+                        newStyle.name = 'Dimension Style {}'.format(
+                            len(alignedDimStyles))
                         newWrapper.itemType = 'alignedDimensions'
 
                     recalc_index(self, context)
@@ -334,10 +331,10 @@ def draw_line_style_row(line, layout):
     else:
         visIcon = 'HIDE_ON'
 
-    if line.isOutline:
-        outIcon = 'SEQ_CHROMA_SCOPE'
-    else:
-        outIcon = 'FILE_3D'
+    # if line.isOutline:
+    #     outIcon = 'SEQ_CHROMA_SCOPE'
+    # else:
+    #     outIcon = 'FILE_3D'
 
     if line.lineDrawHidden:
         hiddenIcon = 'MOD_WIREFRAME'
@@ -350,14 +347,15 @@ def draw_line_style_row(line, layout):
     subrow.separator()
     subrow = row.row(align=True)
     # subrow.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
-    subrow.prop(line, 'lineDrawHidden', text="",
-                toggle=True, icon=hiddenIcon, emboss=False)
+    subrow.prop(
+        line, 'lineDrawHidden', text="", toggle=True, icon=hiddenIcon, emboss=False)
     subrow.prop(line, "visible", text="", icon=visIcon)
 
 
 def draw_line_style_settings(line, layout):
     col = layout.column()
-    col.prop_search(line, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
+    col.prop_search(
+        line, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
 
     col.prop(line, 'color', text="Color")
     col.prop(line, 'lineWeight', text="Lineweight")
@@ -365,7 +363,7 @@ def draw_line_style_settings(line, layout):
 
     col = layout.column(align=True)
     col.prop(line, 'lineOverExtension', text="Extension")
-    #col.prop(line, 'randomSeed', text="Seed" )
+    # col.prop(line, 'randomSeed', text="Seed" )
 
     col = layout.column(align=True)
     if line.lineDrawHidden is True:
@@ -395,7 +393,7 @@ def draw_annotation_style_row(annotation, layout):
     row = layout.row(align=True)
     subrow = row.row()
 
-    subrow.prop(annotation, "name", text="", emboss=False, icon='FONT_DATA')
+    subrow.prop(annotation, 'name', text="", emboss=False, icon='FONT_DATA')
 
     if annotation.visible:
         visIcon = 'HIDE_OFF'
@@ -407,7 +405,7 @@ def draw_annotation_style_row(annotation, layout):
     subrow.prop(annotation, 'color', text="")
 
     subrow = row.row(align=True)
-    subrow.prop(annotation, "visible", text="", icon=visIcon, emboss=False)
+    subrow.prop(annotation, 'visible', text="", icon=visIcon, emboss=False)
 
 
 def draw_annotation_style_settings(annotation, layout):
@@ -417,10 +415,12 @@ def draw_annotation_style_settings(annotation, layout):
     col.alignment = 'RIGHT'
     col.label(text='Font')
     col = split.column(align=True)
-    col.template_ID(annotation, "font", open="font.open", unlink="font.unlink")
+    col.template_ID(annotation, 'font', open="font.open", unlink="font.unlink")
 
     col = layout.column(align=True)
-    col.prop_search(annotation, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
+    col.prop_search(
+        annotation, 'visibleInView', bpy.context.scene, 'view_layers',
+        text='Visible In View')
 
     col = layout.column(align=True)
     col.prop(annotation, 'fontSize', text="Size")
