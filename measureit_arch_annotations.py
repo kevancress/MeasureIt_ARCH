@@ -179,7 +179,8 @@ class AnnotationContainer(PropertyGroup):
     num_annotations: IntProperty(
         name='Number of Annotations', min=0, max=1000, default=0,
         description='Number total of Annotations')
-    active_index: IntProperty(name='Active Annotation Index')
+    active_index: IntProperty(name='Active Annotation Index',
+        update = update_active_annotation)
     show_annotation_settings: BoolProperty(
         name='Show Annotation Settings', default=False)
     show_annotation_fields: BoolProperty(
@@ -220,7 +221,7 @@ class AddAnnotationButton(Operator):
             mainobject = context.object
 
             # If no obj selected, created an empty
-            if len(context.selected_objects) == 0:
+            if bpy.context.mode == 'OBJECT' and len(context.selected_objects) == 0:
                 cursorLoc = bpy.context.scene.cursor.location
                 newEmpty = bpy.ops.object.empty_add(
                     type='SPHERE', radius=0.01, location=cursorLoc)
