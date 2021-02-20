@@ -137,7 +137,6 @@ class LineProperties(BaseProp, PropertyGroup):
         subtype='ANGLE')
 
 
-
 class LineContainer(PropertyGroup):
     line_num: IntProperty(
         name='Number of Line Groups', min=0, max=1000, default=0,
@@ -287,10 +286,10 @@ class M_ARCH_UL_lines_list(UIList):
             else:
                 visIcon = 'HIDE_ON'
 
-            if line.isOutline:
-                outIcon = 'SEQ_CHROMA_SCOPE'
-            else:
-                outIcon = 'FILE_3D'
+            # if line.isOutline:
+            #     outIcon = 'SEQ_CHROMA_SCOPE'
+            # else:
+            #     outIcon = 'FILE_3D'
 
             if line.lineDrawHidden:
                 hiddenIcon = 'MOD_WIREFRAME'
@@ -307,12 +306,13 @@ class M_ARCH_UL_lines_list(UIList):
                 subrow.scale_x = 0.5
                 subrow.prop(line, 'color', emboss=True, text="")
                 subrow.separator()
-                #row.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
-                row.prop(line, 'lineDrawHidden', text="",
-                         toggle=True, icon=hiddenIcon, emboss=False)
+                # row.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
+                row.prop(
+                    line, 'lineDrawHidden', text="", toggle=True,
+                    icon=hiddenIcon, emboss=False)
             else:
-                row.prop_search(line, 'style', StyleGen,
-                                'line_groups', text="", icon='COLOR')
+                row.prop_search(
+                    line, 'style', StyleGen, 'line_groups', text="", icon='COLOR')
                 row.separator()
 
             if hasGen:
@@ -345,10 +345,8 @@ class OBJECT_PT_UILines(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        obj = context.object
         if context.object is not None:
             if 'LineGenerator' in context.object:
-                scene = context.scene
                 lineGen = context.object.LineGenerator
 
                 row = layout.row()
@@ -370,7 +368,8 @@ class OBJECT_PT_UILines(Panel):
                 col.menu("OBJECT_MT_lines_menu", icon='DOWNARROW_HLT', text="")
 
                 # Settings Below List
-                if len(lineGen.line_groups) > 0 and lineGen.active_index < len(lineGen.line_groups):
+                if (len(lineGen.line_groups) > 0 and
+                    lineGen.active_index < len(lineGen.line_groups)):
 
                     line = lineGen.line_groups[lineGen.active_index]
                     if lineGen.show_line_settings:
@@ -405,11 +404,12 @@ class OBJECT_PT_UILines(Panel):
                             col.prop_search(
                                 line, "lineWeightGroup", context.active_object, "vertex_groups",
                                 text="Line Weight Group")
-                            col.prop(line, 'weightGroupInfluence',
-                                     text="Influence")
+                            col.prop(line, 'weightGroupInfluence', text="Influence")
 
                             col = box.column(align=True)
-                            col.prop_search(line, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
+                            col.prop_search(
+                                line, 'visibleInView', bpy.context.scene,
+                                'view_layers', text='Visible In View')
 
                             col = box.column(align=True)
                             col.prop(line, 'lineDepthOffset', text="Z Offset")
@@ -420,10 +420,7 @@ class OBJECT_PT_UILines(Panel):
                             # col.prop(line, 'randomSeed', text="Seed" )
 
                             col = box.column(align=True)
-                            if line.lineDrawHidden:
-                                col.enabled = True
-                            else:
-                                col.enabled = False
+                            col.enabled = line.lineDrawHidden
                             col.prop(line, 'lineHiddenColor',
                                      text="Hidden Line Color")
                             col.prop(line, 'lineHiddenWeight',
@@ -453,20 +450,22 @@ class OBJECT_MT_lines_menu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
         lineGen = context.object.LineGenerator
 
-        op = layout.operator('measureit_arch.addtolinegroup',
-                             text="Add To Line Group", icon='ADD')
+        op = layout.operator(
+            'measureit_arch.addtolinegroup',
+            text="Add To Line Group", icon='ADD')
         op.tag = lineGen.active_index  # saves internal data
-        op = layout.operator('measureit_arch.removefromlinegroup',
-                             text="Remove From Line Group", icon='REMOVE')
+        op = layout.operator(
+            'measureit_arch.removefromlinegroup',
+            text="Remove From Line Group", icon='REMOVE')
         op.tag = lineGen.active_index  # saves internal data
 
         layout.separator()
 
         delOp = layout.operator(
-            "measureit_arch.deleteallitemsbutton", text="Delete All Lines", icon="X")
+            "measureit_arch.deleteallitemsbutton",
+            text="Delete All Lines", icon="X")
         delOp.is_style = False
         delOp.genPath = 'bpy.context.object.LineGenerator'
 
@@ -504,9 +503,7 @@ class AddToLineGroup(Operator):
                     mylist = get_smart_selected(mainobject)
                     if len(mylist) < 2:  # if not selected linked vertex
                         mylist = get_selected_vertex(mainobject)
-
-                    if len(mylist) >= 2:
-
+                    else:
                         lineGen = mainobject.LineGenerator
                         lGroup = lineGen.line_groups[self.tag]
 

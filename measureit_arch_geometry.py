@@ -2941,12 +2941,18 @@ def get_location(mainobject):
 
 
 def get_arc_data(pointa, pointb, pointc, pointd):
-    v1 = Vector((pointa[0] - pointb[0], pointa[1] -
-                 pointb[1], pointa[2] - pointb[2]))
-    v2 = Vector((pointc[0] - pointb[0], pointc[1] -
-                 pointb[1], pointc[2] - pointb[2]))
-    v3 = Vector((pointd[0] - pointb[0], pointd[1] -
-                 pointb[1], pointd[2] - pointb[2]))
+    v1 = Vector((
+        pointa[0] - pointb[0],
+        pointa[1] - pointb[1],
+        pointa[2] - pointb[2]))
+    v2 = Vector((
+        pointc[0] - pointb[0],
+        pointc[1] - pointb[1],
+        pointc[2] - pointb[2]))
+    v3 = Vector((
+        pointd[0] - pointb[0],
+        pointd[1] - pointb[1],
+        pointd[2] - pointb[2]))
 
     angle = v1.angle(v2) + v2.angle(v3)
 
