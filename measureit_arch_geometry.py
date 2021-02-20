@@ -1929,7 +1929,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-    viewport = get_viewport(renderScale=True)
+    viewport = get_viewport()
 
     for lineGroup in lineGen.line_groups:
         lineProps = lineGroup
@@ -2007,7 +2007,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
                 if 'lineBuffer' in lineGroup:
                     tempCoords = [get_line_vertex(
-                        idx, verts, mat) for idx in lineGroup['lineBuffer']]
+                        idx, verts) for idx in lineGroup['lineBuffer']]
                     lineGroup['coordBuffer'] = tempCoords
 
                     # Calculate dynamic lines
