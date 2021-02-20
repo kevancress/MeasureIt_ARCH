@@ -312,8 +312,6 @@ class AddAlignedDimensionButton(Operator):
                     newDimension.uses_style = False
 
                 newDimension.lineWeight = 1
-                if 'camera' in scene:
-                    newDimension.visibleInView = context.window.view_layer
                 newDimension.dimViewPlane = sceneProps.viewPlane
 
                 # text
@@ -477,8 +475,6 @@ class AddAxisDimensionButton(Operator):
                 else:
                     newDimension.uses_style = False
 
-                if 'camera' in scene:
-                    newDimension.visibleInView = context.window.view_layer
                 newDimension.dimViewPlane = sceneProps.viewPlane
 
                 newDimension.dimAxis = sceneProps.measureit_arch_dim_axis
@@ -618,8 +614,6 @@ class AddAngleButton(Operator):
                 newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'angleDimensions'
                 recalc_dimWrapper_index(self, context)
-
-                newDimension.visibleInView = context.window.view_layer
 
                 newDimension.style = sceneProps.default_dimension_style
                 if sceneProps.default_dimension_style != '':
