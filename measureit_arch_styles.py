@@ -26,6 +26,7 @@
 
 import bpy
 
+from bpy.app.handlers import persistent
 from bpy.types import (
     PropertyGroup,
     Panel,
@@ -45,6 +46,30 @@ from .measureit_arch_dimensions import AlignedDimensionProperties, \
     draw_alignedDimensions_settings
 from .measureit_arch_annotations import AnnotationProperties
 from .measureit_arch_lines import LineProperties
+
+
+@persistent
+def create_preset_styles(dummy):
+    """ Handler called when a Blend file is loaded to create default styles. """
+    context = bpy.context
+
+    has_dimension_styles = any(
+        style.itemType == 'alignedDimensions'
+        for style in context.scene.StyleGenerator.wrapper)
+    if not has_dimension_styles:
+        add_aligned_dimension_style(context)
+
+    has_annotation_styles = any(
+        style.itemType == 'annotations'
+        for style in context.scene.StyleGenerator.wrapper)
+    if not has_annotation_styles:
+        add_annotation_style(context)
+
+    has_line_group_styles = any(
+        style.itemType == 'line_groups'
+        for style in context.scene.StyleGenerator.wrapper)
+    if not has_line_group_styles:
+        add_line_group_style(context)
 
 
 def recalc_index(self, context):
@@ -271,46 +296,12 @@ class AddStyleButton(Operator):
             for area in window.screen.areas:
                 if area.type == 'VIEW_3D':
                     # Add properties
-                    scene = context.scene
-                    StyleGen = scene.StyleGenerator
-                    annotationStyles = StyleGen.annotations
-                    lineStyles = StyleGen.line_groups
-                    alignedDimStyles = StyleGen.alignedDimensions
-                    styleWrappers = StyleGen.wrapper
-
-                    newWrapper = styleWrappers.add()
-                    styleType = self.styleType
-                    if styleType == 'annotations':
-                        newStyle = annotationStyles.add()
-                        newStyle.itemType = 'annotations'
-                        newStyle.fontSize = 18
-                        newStyle.lineWeight = 1
-                        newStyle.textAlignment = 'L'
-                        newStyle.name = 'Annotation Style {}'.format(
-                            len(annotationStyles))
-                        newWrapper.itemType = 'annotations'
-
-                    elif styleType == 'line_groups':
-                        newStyle = lineStyles.add()
-                        newStyle.itemType = 'line_groups'
-                        newStyle.lineWeight = 1
-                        newStyle.lineDepthOffset = 1
-                        newStyle.name = 'Line Style {}'.format(
-                            len(lineStyles))
-                        newWrapper.itemType = 'line_groups'
-
-                    else:
-                        newStyle = alignedDimStyles.add()
-                        newStyle.itemType = 'alignedDimensions'
-                        newStyle.fontSize = 18
-                        newStyle.textAlignment = 'C'
-                        newStyle.lineWeight = 1
-                        newStyle.name = 'Dimension Style {}'.format(
-                            len(alignedDimStyles))
-                        newWrapper.itemType = 'alignedDimensions'
-
-                    recalc_index(self, context)
-                    newStyle.is_style = True
+                    if self.styleType == 'annotations':
+                        add_annotation_style(context)
+                    elif self.styleType == 'line_groups':
+                        add_line_group_style(context)
+                    elif self.styleType == 'alignedDimensions':
+                        add_aligned_dimension_style(context)
                     context.area.tag_redraw()
                     return {'FINISHED'}
         return {'FINISHED'}
@@ -318,6 +309,84 @@ class AddStyleButton(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
+
+
+def add_annotation_style(
+        context, name='', font_size=18, line_weight=1, text_alignment='L'):
+    annotation_styles = context.scene.StyleGenerator.annotations
+    wrapper = context.scene.StyleGenerator.wrapper
+    scene_props = context.scene.MeasureItArchProps
+
+    if not name:
+        name = 'Annotation Style {}'.format(len(annotation_styles) + 1)
+
+    new_style = annotation_styles.add()
+    new_style.itemType = 'annotations'
+    new_style.name = name
+    new_style.fontSize = font_size
+    new_style.lineWeight = line_weight
+    new_style.textAlignment = text_alignment
+
+    new_wrapper = wrapper.add()
+    new_wrapper.itemType = 'annotations'
+
+    if not scene_props.default_annotation_style:
+        scene_props.default_annotation_style = new_style.name
+
+    recalc_index(None, context)
+    return new_style
+
+
+def add_line_group_style(context, name='', line_weight=1, line_depth_offset=1):
+    line_styles = context.scene.StyleGenerator.line_groups
+    wrapper = context.scene.StyleGenerator.wrapper
+    scene_props = context.scene.MeasureItArchProps
+
+    if not name:
+        name = 'Line Style {}'.format(len(line_styles) + 1)
+
+    new_style = line_styles.add()
+    new_style.itemType = 'line_groups'
+    new_style.name = name
+    new_style.lineWeight = line_weight
+    new_style.lineDepthOffset = line_depth_offset
+    new_style.is_style = True
+
+    new_wrapper = wrapper.add()
+    new_wrapper.itemType = 'line_groups'
+
+    if not scene_props.default_line_style:
+        scene_props.default_line_style = new_style.name
+
+    recalc_index(None, context)
+    return new_style
+
+
+def add_aligned_dimension_style(
+        context, name='', font_size=18, text_alignment='C', line_weight=1):
+    dimension_styles = context.scene.StyleGenerator.alignedDimensions
+    wrapper = context.scene.StyleGenerator.wrapper
+    scene_props = context.scene.MeasureItArchProps
+
+    if not name:
+        name = 'Dimension Style {}'.format(len(dimension_styles) + 1)
+
+    new_style = dimension_styles.add()
+    new_style.itemType = 'alignedDimensions'
+    new_style.name = name
+    new_style.fontSize = font_size
+    new_style.textAlignment = text_alignment
+    new_style.lineWeight = line_weight
+    new_style.is_style = True
+
+    new_wrapper = wrapper.add()
+    new_wrapper.itemType = 'alignedDimensions'
+
+    if not scene_props.default_dimension_style:
+        scene_props.default_dimension_style = new_style.name
+
+    recalc_index(None, context)
+    return new_style
 
 
 def draw_line_style_row(line, layout):
