@@ -15,7 +15,6 @@ from bpy.types import (
     PropertyGroup,
     Panel,
     Operator,
-    Scene,
     UIList,
     Collection
 )
@@ -23,8 +22,8 @@ from datetime import datetime
 
 from .measureit_arch_units import format_distance
 
-class ColumnProps(PropertyGroup):
 
+class ColumnProps(PropertyGroup):
     name: StringProperty()
 
     data_path: StringProperty(
@@ -71,7 +70,6 @@ class ScheduleProperties(PropertyGroup):
     collection: PointerProperty(type=Collection)
 
     columns: CollectionProperty(type=ColumnProps)
-
 
 
 class ScheduleContainer(PropertyGroup):
@@ -317,8 +315,6 @@ class DuplicateScheduleButton(Operator):
 
 class M_ARCH_UL_Schedules_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        scene = bpy.context.scene
-
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             schedule = item
             layout.use_property_decorate = False
@@ -441,10 +437,9 @@ class SCENE_MT_Schedules_menu(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
-
-        op = layout.operator('measureit_arch.duplicateschedulebutton',
-                             text="Duplicate Selected Schedule", icon='DUPLICATE')
+        layout.operator(
+            'measureit_arch.duplicateschedulebutton',
+            text="Duplicate Selected Schedule", icon='DUPLICATE')
 
 
 class AddScheduleButton(Operator):

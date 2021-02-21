@@ -26,7 +26,6 @@
 import bpy
 import bgl
 
-from bmesh import from_edit_mesh
 from bpy.types import Panel, Operator, SpaceView3D
 from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
@@ -224,7 +223,6 @@ class MEASUREIT_PT_main_panel(Panel):
                             StyleGen, 'annotations', text="", icon='COLOR')
 
 
-
 class OBJECT_PT_Panel(Panel):
     """ Panel in the object properties window """
     bl_idname = 'OBJECT_PT_Panel'
@@ -235,6 +233,7 @@ class OBJECT_PT_Panel(Panel):
 
     def draw(self, context):
         pass
+
 
 class SCENE_PT_Panel(bpy.types.Panel):
     """ Main (scene) properties panel """
@@ -291,6 +290,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         if sceneProps.enable_experimental:
             col.prop(sceneProps, "instance_dims")
         # col.prop(sceneProps, "debug_flip_text")
+
 
 class ShowHideViewportButton(Operator):
     """ A button that enables/disables Viewport Display """
@@ -486,8 +486,9 @@ def text_update_loop(context, objlist):
                         for textField in view.textFields:
                             fields.append(textField)
 
-                    update_text(textobj=annotation,
-                                props=annotationProps, context=context, fields = fields)
+                    update_text(
+                        textobj=annotation, props=annotationProps,
+                        context=context, fields=fields)
 
                 # Draw Instanced Objects
 

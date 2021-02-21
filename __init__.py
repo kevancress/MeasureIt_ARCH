@@ -211,6 +211,7 @@ def register():
         bpy.utils.register_class(cls)
 
     bpy.app.handlers.load_post.append(measureit_arch_main.load_handler)
+    bpy.app.handlers.load_post.append(measureit_arch_styles.create_preset_styles)
     bpy.app.handlers.save_pre.append(measureit_arch_main.save_handler)
 
     # Register pointer properties
