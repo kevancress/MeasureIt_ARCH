@@ -424,7 +424,8 @@ def draw_line_style_row(line, layout):
 def draw_line_style_settings(line, layout):
     col = layout.column()
     col.prop_search(
-        line, 'visibleInView', bpy.context.scene, 'view_layers', text='Visible In View')
+        line, 'visibleInView', bpy.context.scene, 'view_layers',
+        text='Visible In View')
 
     col.prop(line, 'color', text="Color")
     col.prop(line, 'lineWeight', text="Lineweight")

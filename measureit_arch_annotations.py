@@ -62,8 +62,10 @@ def annotation_update_flag(self, context):
 
 
 def update_custom_props(self, context):
-    ignoredProps = ['AnnotationGenerator', 'DimensionGenerator',
-                    'LineGenerator', '_RNA_UI', 'cycles', 'cycles_visibility', 'obverts']
+    ignoredProps = [
+        'AnnotationGenerator', 'DimensionGenerator', 'LineGenerator',
+        '_RNA_UI', 'cycles', 'cycles_visibility', 'obverts'
+    ]
     idx = 0
     for key in context.object.keys():
         if key not in ignoredProps:
@@ -82,8 +84,7 @@ class CustomProperties(PropertyGroup):
 def custom_shape_poll(self, collection):
     myobj = self.annotationAnchorObject
     try:
-        # TODO: should this be collection.objects ?
-        col.objects[myobj.name]
+        collection.objects[myobj.name]
     except:
         return collection
 
@@ -122,7 +123,8 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
 
     shape_to_text: BoolProperty(
         name='Shape to text',
-        description='Align the custom annotation shape with the annotation text, rather than the anchor point',
+        description='Align the custom annotation shape with the annotation text, '
+                    'rather than the anchor point',
         default=False)
 
     annotationRotation: FloatVectorProperty(
@@ -175,8 +177,9 @@ class AnnotationContainer(PropertyGroup):
     num_annotations: IntProperty(
         name='Number of Annotations', min=0, max=1000, default=0,
         description='Number total of Annotations')
-    active_index: IntProperty(name='Active Annotation Index',
-        update = update_active_annotation)
+    active_index: IntProperty(
+        name='Active Annotation Index',
+        update=update_active_annotation)
     show_annotation_settings: BoolProperty(
         name='Show Annotation Settings', default=False)
     show_annotation_fields: BoolProperty(
@@ -214,7 +217,7 @@ class AddAnnotationButton(Operator):
             if (bpy.context.mode == 'OBJECT' and
                 len(context.selected_objects) == 0):
                 cursorLoc = bpy.context.scene.cursor.location
-                newEmpty = bpy.ops.object.empty_add(
+                bpy.ops.object.empty_add(
                     type='SPHERE', radius=0.01, location=cursorLoc)
                 context.object.name = 'Annotation Empty'
                 emptyAnnoFlag = True
@@ -250,10 +253,9 @@ class AddAnnotationButton(Operator):
                     newAnnotation.textAlignment = 'C'
                     newAnnotation.lineWeight = 0
 
-                newAnnotation.name = (
-                    "Annotation " + str(annotationGen.num_annotations))
+                newAnnotation.name = "Annotation {}".format(annotationGen.num_annotations)
                 field = newAnnotation.textFields.add()
-                field.text = ("Annotation " + str(annotationGen.num_annotations))
+                field.text = ("Annotation {}".format(annotationGen.num_annotations))
                 field2 = newAnnotation.textFields.add()
                 field2.text = ("")
 
@@ -261,8 +263,7 @@ class AddAnnotationButton(Operator):
                 newAnnotation.fontSize = 24
             return {'FINISHED'}
         else:
-            self.report({'WARNING'},
-                        "View3D not found, cannot run operator")
+            self.report({'WARNING'}, "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
 
@@ -279,8 +280,8 @@ class M_ARCH_UL_annotations_list(UIList):
             layout.use_property_decorate = False
             row = layout.row(align=True)
             subrow = row.row()
-            subrow.prop(annotation, "name", text="",
-                        emboss=False, icon='FONT_DATA')
+            subrow.prop(
+                annotation, "name", text="", emboss=False, icon='FONT_DATA')
 
             if annotation.visible:
                 visIcon = 'HIDE_OFF'
@@ -298,8 +299,9 @@ class M_ARCH_UL_annotations_list(UIList):
                 subrow.scale_x = 0.6
                 subrow.prop(annotation, 'color', text="")
             else:
-                row.prop_search(annotation, 'style', StyleGen,
-                                'annotations', text="", icon='COLOR')
+                row.prop_search(
+                    annotation, 'style', StyleGen, 'annotations',
+                    text="", icon='COLOR')
                 row.separator()
 
             if hasGen:
@@ -339,8 +341,9 @@ class OBJECT_PT_UIAnnotations(Panel):
                 row = layout.row()
 
                 # Draw The UI List
-                row.template_list("M_ARCH_UL_annotations_list", "", annoGen, "annotations",
-                                  annoGen, "active_index", rows=2, type='DEFAULT')
+                row.template_list(
+                    "M_ARCH_UL_annotations_list", "", annoGen, "annotations",
+                    annoGen, "active_index", rows=2, type='DEFAULT')
 
                 # Operators Next to List
                 col = row.column(align=True)
@@ -437,16 +440,19 @@ class OBJECT_PT_UIAnnotations(Panel):
                     row.label(text=annotation.name + ' Settings:')
 
                     if annoGen.show_annotation_settings:
-
                         col = box.column(align=True)
-                        col.prop_search(annotation, 'customShape',
-                                        bpy.data, 'collections', text='Custom Shape')
-                        col.prop(annotation, 'custom_shape_location',
-                                 text='Custom Shape Location')
-                        col.prop(annotation, 'custom_scale',
-                                 text='Custom Shape Scale')
-                        col.prop(annotation, 'custom_local_transforms',
-                                 text='Use Local Transforms')
+                        col.prop_search(
+                            annotation, 'customShape', bpy.data, 'collections',
+                            text='Custom Shape')
+                        col.prop(
+                            annotation, 'custom_shape_location',
+                            text='Custom Shape Location')
+                        col.prop(
+                            annotation, 'custom_scale',
+                            text='Custom Shape Scale')
+                        col.prop(
+                            annotation, 'custom_local_transforms',
+                            text='Use Local Transforms')
                         # col.prop(annotation, 'custom_fit_text', text = 'Fit Text')
 
                         if not annotation.uses_style:
@@ -465,22 +471,17 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                             col = box.column(align=True)
                             col.prop(annotation, 'fontSize', text="Font Size")
-                            col.prop(annotation, 'textAlignment',
-                                     text='Justification')
-                            col.prop(annotation, 'textPosition',
-                                     text='Position')
+                            col.prop(annotation, 'textAlignment', text='Justification')
+                            col.prop(annotation, 'textPosition', text='Position')
 
                             col = box.column(align=True)
                             col.prop(annotation, 'endcapA', text='End Cap')
                             col.prop(annotation, 'endcapSize', text='Size')
-                            col.prop(annotation, 'endcapArrowAngle',
-                                     text='Arrow Angle')
+                            col.prop(annotation, 'endcapArrowAngle', text='Arrow Angle')
 
                             col = box.column(align=True)
-                            col.prop(annotation, 'lineWeight',
-                                     text="Line Weight")
-                            col.prop(annotation, 'draw_leader',
-                                     text='Draw Leader')
+                            col.prop(annotation, 'lineWeight', text="Line Weight")
+                            col.prop(annotation, 'draw_leader', text='Draw Leader')
 
                         col = box.column()
                         col.prop(annotation, 'leader_length')
@@ -522,16 +523,8 @@ class TranslateAnnotationOp(bpy.types.Operator):
     bl_options = {'GRAB_CURSOR', 'INTERNAL', 'BLOCKING', 'UNDO'}
 
     idx: IntProperty()
-
-    constrainAxis: BoolVectorProperty(
-        name="Constrain Axis",
-        size=3,
-        subtype='XYZ')
-
-    offset: FloatVectorProperty(
-        name="Offset",
-        size=3)
-
+    constrainAxis: BoolVectorProperty(name="Constrain Axis", size=3, subtype='XYZ')
+    offset: FloatVectorProperty(name="Offset", size=3)
     objIndex: IntProperty()
 
     def modal(self, context, event):
@@ -592,13 +585,15 @@ class TranslateAnnotationOp(bpy.types.Operator):
             context.area.header_text_set("Move " + axisText + "%.4f" % delta)
 
         elif event.type == 'LEFTMOUSE':
-            # Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            # Setting hide_viewport is a stupid hack to force Gizmos to update
+            # after operator completes
             context.object.hide_viewport = False
             context.area.header_text_set(None)
             return {'FINISHED'}
 
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
-            # Setting hide_viewport is a stupid hack to force Gizmos to update after operator completes
+            # Setting hide_viewport is a stupid hack to force Gizmos to update
+            # after operator completes
             context.object.hide_viewport = False
             context.area.header_text_set(None)
             annotation.annotationOffset[0] = self.init_x

@@ -31,7 +31,6 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, PointerProperty
 
 
-
 class SheetViewProperties(PropertyGroup):
 
     rotation: FloatVectorProperty(
@@ -104,8 +103,6 @@ class DeleteSheetViewButton(Operator):
 
 class M_ARCH_UL_Sheets_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        scene = bpy.context.scene
-
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             view = item
             layout.use_property_decorate = False
@@ -144,7 +141,6 @@ class SCENE_PT_Sheet(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        scene = context.scene
         SheetGen = context.object.SheetGenerator
 
         row = layout.row()
