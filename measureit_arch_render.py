@@ -431,11 +431,7 @@ def render_main_svg(self, context):
                 }
             ))
 
-    # -----------------------------
-    # Loop to draw all objects
-    # -----------------------------
-    draw3d_loop(context, objlist, svg=svg)
-    draw_titleblock(context, svg=svg)
+
 
     freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
     if view.embed_freestyle_svg and freestyle_svg_export:
@@ -468,6 +464,13 @@ def render_main_svg(self, context):
             if (os.path.exists(svg_image_path) and
                 not sceneProps.keep_freestyle_svg):
                 os.remove(svg_image_path)
+
+
+    # -----------------------------
+    # Loop to draw all objects
+    # -----------------------------
+    draw3d_loop(context, objlist, svg=svg)
+    draw_titleblock(context, svg=svg)
 
     svg.save(pretty=True)
 
