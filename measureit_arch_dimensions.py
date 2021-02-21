@@ -1027,6 +1027,29 @@ class OBJECT_PT_UIDimensions(Panel):
                     eval('draw_' + activeWrapperItem.itemType +
                          '_settings(item, box)')
 
+                if item.use_custom_text:
+                        col = box.column(align=True)
+                        idx = 0
+                        for textField in item.textFields:
+                            col = box.column(align=True)
+
+                            row = col.row(align=True)
+
+                            split = row.split(factor=0.2)
+                            split.label(text='Text Field ' + str(idx + 1))
+
+                            row = split.row(align=True)
+                            row.prop(textField, 'autoFillText',
+                                     text="", icon="FILE_TEXT")
+
+                            if textField.autoFillText:
+                                row.prop(textField, 'textSource', text="")
+                            else:
+                                row.prop(textField, 'text', text="")
+
+                            if textField.textSource == 'RNAPROP' and textField.autoFillText:
+                                row.prop(textField, 'rnaProp', text="")
+
 
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
@@ -1211,6 +1234,7 @@ def draw_axisDimensions_settings(dim, layout):
 
         col = layout.column(align=True)
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
+        col.prop(dim, 'use_custom_text',)
 
 
 def draw_angleDimensions_settings(dim, layout):

@@ -34,7 +34,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
 from mathutils import Vector
 
 from .measureit_arch_baseclass import BaseProp
-from .measureit_arch_utils import get_smart_selected, get_selected_vertex
+from .measureit_arch_utils import get_smart_selected, get_selected_vertex, get_selected_vertex_history
 
 
 class LineProperties(BaseProp, PropertyGroup):
@@ -500,9 +500,9 @@ class AddToLineGroup(Operator):
                     # get selected
 
                     mainobject = context.object
-                    mylist = get_smart_selected(mainobject)
+                    mylist = get_selected_vertex_history(mainobject)
                     if len(mylist) < 2:  # if not selected linked vertex
-                        mylist = get_selected_vertex(mainobject)
+                        mylist = get_selected_vertex_history(mainobject)
                     else:
                         lineGen = mainobject.LineGenerator
                         lGroup = lineGen.line_groups[self.tag]
@@ -516,7 +516,7 @@ class AddToLineGroup(Operator):
                         # redraw
                         lGroup['lineBuffer'] = bufferList
                         context.area.tag_redraw()
-                        return {'FINISHED'}
+                    return {'FINISHED'}
 
 
 class AddLineByProperty(Operator):

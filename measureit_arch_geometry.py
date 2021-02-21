@@ -1160,10 +1160,11 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         dimText = dim.textFields[0]
 
         # format text and update if necessary
-        distanceText = format_distance(dist)
-        if dimText.text != distanceText:
-            dimText.text = distanceText
-            dimText.text_updated = True
+        if not dim.use_custom_text:
+            distanceText = format_distance(dist)
+            if dimText.text != distanceText:
+                dimText.text = distanceText
+                dimText.text_updated = True
 
         placementResults = dim_text_placement(
             dim, dimProps, origin, dist, distVector, offsetDistance, capSize)

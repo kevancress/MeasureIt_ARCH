@@ -357,6 +357,12 @@ class BaseDim(BaseWithText):
         default=0.0,
         subtype='ANGLE')
 
+    use_custom_text: BoolProperty(
+        name = "Use Custom Text",
+        description = "Use Custom Text",
+        default=False
+    )
+
 
 class MeasureItARCHSceneProps(PropertyGroup):
     bound_x: BoolProperty()
