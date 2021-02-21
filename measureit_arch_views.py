@@ -352,7 +352,6 @@ class ViewProperties(PropertyGroup):
         update=freestyle_update_flag)
 
 
-
 class ViewContainer(PropertyGroup):
     active_index: IntProperty(
         name='Active View Index', min=0, max=1000, default=0,
@@ -364,7 +363,6 @@ class ViewContainer(PropertyGroup):
 
     # Array of views
     views: CollectionProperty(type=ViewProperties)
-
 
 
 class DeleteViewButton(Operator):
@@ -421,13 +419,11 @@ class DuplicateViewButton(Operator):
 
 class M_ARCH_UL_Views_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        scene = bpy.context.scene
-
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             view = item
             layout.use_property_decorate = False
             row = layout.row(align=True)
-            split = row.split(factor = 0.3)
+            split = row.split(factor=0.3)
             split.prop(view, "view_num", text="", emboss=False, icon='DOCUMENTS')
             split.prop(view, "name", text="", emboss=False)
             row.prop(view, 'camera', text="", icon='CAMERA_DATA')
@@ -472,7 +468,6 @@ class SCENE_PT_Views(Panel):
 
         col.separator()
         col.menu("SCENE_MT_Views_menu", icon='DOWNARROW_HLT', text="")
-
 
         if len(ViewGen.views) > 0 and ViewGen.active_index < len(ViewGen.views):
             view = ViewGen.views[ViewGen.active_index]
@@ -605,7 +600,7 @@ class SCENE_PT_Views(Panel):
             col = box.column()
             row = col.row(align=True)
             row.prop(ViewGen, 'show_text_fields',
-                        text="", icon=fieldsIcon, emboss=False)
+                     text="", icon=fieldsIcon, emboss=False)
             row.label(text=view.name + ' Notes:')
 
             row.emboss = 'PULLDOWN_MENU'
@@ -635,7 +630,7 @@ class SCENE_PT_Views(Panel):
 
                     row = split.row(align=True)
                     row.prop(textField, 'autoFillText',
-                                text="", icon="FILE_TEXT")
+                             text="", icon="FILE_TEXT")
 
                     if textField.autoFillText:
                         row.prop(textField, 'textSource', text="")
@@ -660,16 +655,14 @@ class SCENE_PT_Views(Panel):
                     idx += 1
 
 
-
 class SCENE_MT_Views_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
-
-        op = layout.operator('measureit_arch.duplicateviewbutton',
-                             text="Duplicate Selected View", icon='DUPLICATE')
+        layout.operator(
+            'measureit_arch.duplicateviewbutton',
+            text="Duplicate Selected View", icon='DUPLICATE')
 
 
 class AddViewButton(Operator):

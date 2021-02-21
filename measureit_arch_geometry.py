@@ -33,10 +33,10 @@ import numpy as np
 import svgwrite
 import time
 
-from bpy_extras import view3d_utils, mesh_utils
+from bpy_extras import mesh_utils
 from datetime import datetime
 from gpu_extras.batch import batch_for_shader
-from math import fabs, degrees, radians, sqrt, sin, pi
+from math import fabs, degrees, radians, sin, pi
 from mathutils import Vector, Matrix, Euler, Quaternion
 from mathutils.geometry import area_tri
 from sys import getrecursionlimit, setrecursionlimit
@@ -2304,11 +2304,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             if annotationProps.align_to_camera:
                 # Only use the z rot of the annotation rotation
                 annoMat = Matrix.Identity(3).copy()
-                annoEuler = Euler((0,0,0), 'XYZ')
+                annoEuler = Euler((0, 0, 0), 'XYZ')
                 annoMat.rotate(annoEuler)
                 annoMat = rotMat.to_4x4()
 
-                #use Camera rot for the rest
+                # use Camera rot for the rest
                 camera = context.scene.camera
                 cameraMat = camera.matrix_world
                 cameraRot = cameraMat.decompose()[1]
@@ -2318,7 +2318,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
                 fullRotMat = cameraRotMat
 
-                cameraX = cameraRotMat @ Vector((1,0,0))
+                cameraX = cameraRotMat @ Vector((1, 0, 0))
                 leader1 = p1 - p2
                 proj = leader1.dot(cameraX)
                 if proj > 0:
@@ -2406,10 +2406,10 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             for textField in fields:
                 set_text(textField, myobj)
                 origin = p3
-                xDir = fullRotMat @ Vector((1*mult, 0, 0))
+                xDir = fullRotMat @ Vector((1 * mult, 0, 0))
                 yDir = fullRotMat @ Vector((0, 1, 0))
 
-                #draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
+                # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
 
                 textcard = generate_text_card(
                     context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
@@ -2436,7 +2436,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 coords.append(p3)
 
                 textcard = fields[0]['textcard']
-
 
                 if not annotationProps.draw_leader:
                     coords = []
@@ -2505,7 +2504,7 @@ def set_text(textField, obj):
             if view is not None:
                 textField.text = view.name
 
-        #NOTES, (actually we set this in the draw annotation code since it needs to spawn new texfields)
+        # NOTES, (actually we set this in the draw annotation code since it needs to spawn new texfields)
         elif textField.textSource == 'NOTES':
             textField.text = ''
 
@@ -2781,7 +2780,7 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
 
         # Define Overextension
         capCoords.append(pos)
-        capCoords.append(line* capSize + pos)
+        capCoords.append(line * capSize + pos)
 
         # Define Square
         x = distVector.normalized() * capSize
@@ -3086,7 +3085,7 @@ def check_vis(item, props):
     context = bpy.context
     inView = False
     if (props.visibleInView == "" or
-        props.visibleInView == context.window.view_layer.name):
+            props.visibleInView == context.window.view_layer.name):
         inView = True
 
     if item.visible and props.visible and inView:
@@ -3304,7 +3303,7 @@ def get_resolution():
 
     if (view is not None and
         view.camera is not None and
-        view.res_type == 'res_type_paper'):
+            view.res_type == 'res_type_paper'):
         return view.res
 
     return sceneProps.default_resolution

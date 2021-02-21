@@ -222,8 +222,9 @@ class DimensionContainer(PropertyGroup):
     measureit_arch_num: IntProperty(
         name='Number of measures', min=0, max=1000, default=0,
         description='Total number of MeasureIt_Arch elements')
-    active_index: IntProperty(name="Active Dimension Index",
-                update = update_active_dim)
+    active_index: IntProperty(
+        name="Active Dimension Index",
+        update=update_active_dim)
     show_dimension_settings: BoolProperty(
         name='Show Dimension Settings', default=False)
 
@@ -292,8 +293,8 @@ class AddAlignedDimensionButton(Operator):
                 newDimension.dimPointA = p1['vert']
                 newDimension.dimPointB = p2['vert']
 
-                newDimension.name = 'Dimension ' + \
-                    str(len(DimGen.alignedDimensions))
+                newDimension.name = 'Dimension {}'.format(
+                    len(DimGen.alignedDimensions))
                 newDimensions.append(newDimension)
 
                 newWrapper = DimGen.wrapper.add()
@@ -456,8 +457,8 @@ class AddAxisDimensionButton(Operator):
                 newDimension.dimPointA = p1['vert']
                 newDimension.dimPointB = p2['vert']
 
-                newDimension.name = 'Dimension ' + \
-                    str(len(DimGen.axisDimensions))
+                newDimension.name = 'Dimension {}'.format(
+                    len(DimGen.axisDimensions))
                 newDimensions.append(newDimension)
 
                 newWrapper = DimGen.wrapper.add()
@@ -605,7 +606,8 @@ class AddAngleButton(Operator):
 
                 newDimension = DimGen.angleDimensions.add()
                 newDimension.itemType = 'angleDimensions'
-                newDimension.name = 'Angle ' + str(len(DimGen.angleDimensions))
+                newDimension.name = 'Angle {}'.format(
+                    len(DimGen.angleDimensions))
                 newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'angleDimensions'
                 recalc_dimWrapper_index(self, context)
@@ -669,7 +671,7 @@ class AddArcButton(Operator):
                 DimGen = mainobject.DimensionGenerator
                 newDimension = DimGen.arcDimensions.add()
                 newDimension.itemType = 'arcDimensions'
-                newDimension.name = 'Arc ' + str(len(DimGen.arcDimensions))
+                newDimension.name = 'Arc {}'.format(len(DimGen.arcDimensions))
                 newDimension.lineWeight = 2
                 newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'arcDimensions'
