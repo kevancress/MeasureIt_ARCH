@@ -36,7 +36,7 @@ from sys import exc_info
 
 from .measureit_arch_geometry import set_OpenGL_Settings, draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_titleblock
-from .measureit_arch_utils import get_view, local_attrs
+from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons
 from .measureit_arch_units import BU_TO_INCHES
 from .shaders import Base_Shader_3D, DepthOnlyFrag
 
@@ -79,12 +79,9 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
         col = layout.column()
 
         col.prop(sceneProps, "vector_z_order",)
-        col.prop(sceneProps, "embed_scene_render", text="Embed Scene Render")
 
-        col = layout.column()
-        freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
-        col.active = freestyle_svg_export
-        col.prop(sceneProps, "embed_freestyle_svg", text="Embed FreeStyle SVG")
+
+
 
 
 class RenderImageButton(Operator):
@@ -416,7 +413,8 @@ def render_main_svg(self, context):
         id='root',
     )
 
-    if sceneProps.embed_scene_render:
+    view = get_view()
+    if view.embed_scene_render:
         with local_attrs(scene, [
                 'render.image_settings.file_format',
                 'render.use_file_extension']):
@@ -440,7 +438,7 @@ def render_main_svg(self, context):
     draw_titleblock(context, svg=svg)
 
     freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
-    if sceneProps.embed_freestyle_svg and freestyle_svg_export:
+    if view.embed_freestyle_svg and freestyle_svg_export:
         # If "FreeStyle SVG export" addon is loaded, we render the scene to SVG
         # and embed the output in the final SVG.
 
@@ -479,15 +477,7 @@ def render_main_svg(self, context):
     return outpath
 
 
-def get_loaded_addons():
-    paths_list = paths()
-    addon_list = []
-    for path in paths_list:
-        for mod_name, mod_path in bpy.path.module_names(path):
-            is_enabled, is_loaded = check(mod_name)
-            if is_enabled and is_loaded:
-                addon_list.append(mod_name)
-    return addon_list
+
 
 
 class SVGWriteElement(object):

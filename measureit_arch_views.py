@@ -15,6 +15,7 @@ from datetime import datetime
 
 from .measureit_arch_render import render_main
 from .measureit_arch_baseclass import TextField
+from . measureit_arch_utils import get_loaded_addons
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -85,6 +86,12 @@ def update(self, context):
                 os.mkdir(renderpath + today.strftime('%Y%m%d'))
             render.filepath = os.path.join(datepath, filenameStr)
 
+def freestyle_update_flag(self, context):
+    scene = context.scene
+    view = get_view()
+    if view.embed_freestyle_svg:
+        scene.render.use_freestyle = view.embed_freestyle_svg
+        scene.svg_export.use_svg_export = view.embed_freestyle_svg
 
 def update_paper_size(self, context):
     if self.paper_size == 'CUSTOM':
@@ -331,6 +338,19 @@ class ViewProperties(PropertyGroup):
         default=1,
         update=update)
 
+    embed_scene_render: BoolProperty(
+        name="Embed Scene Render",
+        description="Render the scene and automatically combine the rendered image with the Measureit-ARCH render pass",
+        default=False)
+
+    embed_freestyle_svg: BoolProperty(
+        name="Embed Freestyle SVG",
+        description="Render a Freestyle SVG and automatically combine the rendered "
+                    "image with the Measureit-ARCH render pass\n"
+                    "Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
+        default=False,
+        update=freestyle_update_flag)
+
 
 
 class ViewContainer(PropertyGroup):
@@ -566,6 +586,13 @@ class SCENE_PT_Views(Panel):
                     row = col.row(align=True)
                     row.prop(view, 'start_frame', text="Frame Range")
                     row.prop(view, 'end_frame', text="")
+
+                    col.prop(view, "embed_scene_render", text="Embed Scene Render")
+
+                    col = box.column(align=True)
+                    freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
+                    col.active = freestyle_svg_export
+                    col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
 
 
             # Notes below Settings

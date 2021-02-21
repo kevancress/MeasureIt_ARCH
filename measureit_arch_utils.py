@@ -2,6 +2,7 @@ import bpy
 import bmesh
 
 from mathutils import Vector
+from addon_utils import check, paths
 
 __all__ = (
     'get_view',
@@ -28,6 +29,16 @@ def get_view():
         view = None
 
     return view
+
+def get_loaded_addons():
+    paths_list = paths()
+    addon_list = []
+    for path in paths_list:
+        for mod_name, mod_path in bpy.path.module_names(path):
+            is_enabled, is_loaded = check(mod_name)
+            if is_enabled and is_loaded:
+                addon_list.append(mod_name)
+    return addon_list
 
 
 def get_rv3d():

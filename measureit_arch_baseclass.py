@@ -15,15 +15,6 @@ def has_dimension_generator(context):
         hasattr(context.object, "DimensionGenerator") and \
         len(context.object.DimensionGenerator) > 0
 
-
-def freestyle_update_flag(self, context):
-    scene = context.scene
-    sceneProps = scene.MeasureItArchProps
-    if sceneProps.embed_freestyle_svg:
-        scene.render.use_freestyle = sceneProps.embed_freestyle_svg
-        scene.svg_export.use_svg_export = sceneProps.embed_freestyle_svg
-
-
 def update_active_dim(self, context):
     dimGen = context.object.DimensionGenerator
     itemType = self.itemType
@@ -505,41 +496,9 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="Enable Experimental Features like SVG Rendering",
         default=False)
 
-    use_text_autoplacement: BoolProperty(
-        name="Use Text Autoplacement",
-        description="Adjust Dimension Text Placement Automatically",
-        default=True)
-
-    embed_scene_render: BoolProperty(
-        name="Embed Scene Render",
-        description="Render the scene and automatically combine the rendered "
-                    "image with the Measureit-ARCH render pass",
-        default=False)
-
-    embed_freestyle_svg: BoolProperty(
-        name="Embed Freestyle SVG",
-        description="Render a Freestyle SVG and automatically combine the "
-                    "rendered image with the Measureit-ARCH render pass\n"
-                    "Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
-        default=False,
-        update=freestyle_update_flag)
-
-    keep_freestyle_svg: BoolProperty(
-        name="Keep Freestyle SVG",
-        description="When Embeding a Freestyle SVG, keep the generated "
-                    "Freestyle SVG as a seperate file as well",
-        default=False,
-        update=freestyle_update_flag)
-
     default_scale: IntProperty(
         name='Default Paper Scale', min=1, default=25,
         description="Default Paper Scale (used for font sizing)")
-
-    default_resolution: IntProperty(
-        name='Default Resolution ', min=1, default=150,
-        soft_min=50, soft_max=1200,
-        description="Default Resolution (used for font sizing)",
-        update=update_flag)
 
     metric_precision: IntProperty(
         name='Precision', min=0, max=5, default=2,
@@ -624,28 +583,10 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="Adjust Dimension Text Placement Automatically",
         default=True)
 
-    embed_scene_render: BoolProperty(
-        name="Embed Scene Render",
-        description="Render the scene and automatically combine the rendered image with the Measureit-ARCH render pass",
-        default=False)
-
-    embed_freestyle_svg: BoolProperty(
-        name="Embed Freestyle SVG",
-        description="Render a Freestyle SVG and automatically combine the rendered "
-                    "image with the Measureit-ARCH render pass\n"
-                    "Note: Requires 'Render: Freestyle SVG Export' addon to be enabled",
-        default=False,
-        update=freestyle_update_flag)
-
     keep_freestyle_svg: BoolProperty(
         name="Keep Freestyle SVG",
         description="When Embeding a Freestyle SVG, keep the generated Freestyle SVG as a seperate file as well",
-        default=False,
-        update=freestyle_update_flag)
-
-    default_scale: IntProperty(
-        name='Default Paper Scale', min=1, default=25,
-        description="Default Paper Scale (used for font sizing)")
+        default=False,)
 
     default_resolution: IntProperty(
         name='Default Resolution ', min=1,
