@@ -1165,6 +1165,8 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             if dimText.text != distanceText:
                 dimText.text = distanceText
                 dimText.text_updated = True
+        else:
+            set_text(dimText, myobj)
 
         placementResults = dim_text_placement(
             dim, dimProps, origin, dist, distVector, offsetDistance, capSize)
@@ -2329,8 +2331,9 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 fullRotMat = rotMatrix @ rotMat
 
             p3dir = fullRotMat @ Vector((1, 0, 0))
+            p3dir.normalize()
 
-            p3 = p2 + p3dir * leaderDist * mult
+            p3 = p2 + p3dir * (leaderDist*get_scale()) * mult
 
             if annotation.customShape is not None:
                 col = annotation.customShape
@@ -2447,13 +2450,14 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             # Draw Line Endcaps
             if endcap == 'D':
                 pointcoords = [p1]
-                draw_points(endcapSize, rgb, pointcoords, depthpass=True)
+                size = endcapSize * get_scale() / 20
+                draw_points(size, rgb, pointcoords, depthpass=True)
 
             filledCoords = []
             if endcap == 'T':
                 axis = Vector(p1) - Vector(p2)
                 line = interpolate3d(Vector((0, 0, 0)), axis, -0.1)
-                line = Vector(line) * endcapSize / 10
+                line = Vector(line) * endcapSize * get_scale() / 100
                 perp = line.orthogonal()
                 rotangle = annotationProps.endcapArrowAngle - radians(5)
                 line.rotate(Quaternion(perp, rotangle))
@@ -2736,8 +2740,7 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
 
     scale = get_scale()
 
-    size = (capSize / 393.701) / 4
-    size *= scale
+    size = capSize * scale / 1574.804
 
     distVector = Vector(pos - Vector(midpoint)).normalized()
     norm = distVector.cross(userOffsetVector).normalized()

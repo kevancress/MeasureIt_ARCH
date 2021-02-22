@@ -76,7 +76,7 @@ def update(self, context):
 
     render = scene.render
     if view.output_path != "":
-        filenameStr = view.name
+        filenameStr =  "{}_{}".format(view.view_num, view.name)
         render.filepath = os.path.join(view.output_path, filenameStr)
         if view.date_folder:
             today = datetime.now()

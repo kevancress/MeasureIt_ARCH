@@ -30,6 +30,7 @@ def get_view():
 
     return view
 
+
 def get_loaded_addons():
     paths_list = paths()
     addon_list = []
