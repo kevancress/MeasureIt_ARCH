@@ -33,6 +33,7 @@ import xml.etree.ElementTree as ET
 from addon_utils import check, paths
 from bpy.types import Panel, Operator
 from sys import exc_info
+from datetime import datetime
 
 from .measureit_arch_geometry import set_OpenGL_Settings, draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_titleblock
@@ -249,14 +250,31 @@ def render_main(self, context):
     # Save image
     outpath = None
     if image is not None:
-        path = bpy.path.abspath(scene.render.filepath)
-        outpath = "{}_{:04d}.png".format(path, scene.frame_current)
+        view = get_view()
+        outpath = get_view_outpath(
+            scene, view, "{:04d}.png".format(scene.frame_current))
         save_image(self, outpath, image)
 
     # Restore default value
     set_OpenGL_Settings(False)
     sceneProps.is_render_draw = False
     return outpath
+
+
+def get_view_outpath(scene, view, suffix):
+    if view.output_path:
+        outpath = view.output_path
+    else:
+        outpath = scene.render.filepath
+    filepath = "{}_{}".format(bpy.path.abspath(outpath), suffix)
+    if view.date_folder:
+        today = datetime.now()
+        dir, filename = os.path.split(filepath)
+        datedir = os.path.join(dir, today.strftime('%Y%m%d'))
+        if not os.path.exists(datedir):
+            os.mkdir(datedir)
+        return os.path.join(datedir, filename)
+    return filepath
 
 
 def save_image(self, filepath, image):
@@ -340,7 +358,6 @@ def render_main_svg(self, context):
     sceneProps.is_vector_draw = True
 
     clipdepth = context.scene.camera.data.clip_end
-    path = bpy.path.abspath(scene.render.filepath)
     objlist = context.view_layer.objects
 
     # Get resolution
@@ -393,9 +410,10 @@ def render_main_svg(self, context):
         # image.pixels = [v for v in texture_buffer]
 
     # Setup Output Path
-    outpath = "{}_{:04d}.svg".format(path, scene.frame_current)
-
     view = get_view()
+    outpath = get_view_outpath(
+        scene, view, "{:04d}.svg".format(scene.frame_current))
+
     if view and view.res_type == 'res_type_paper':
         paperWidth = round(view.width * BU_TO_INCHES, 3)
         paperHeight = round(view.height * BU_TO_INCHES, 3)
