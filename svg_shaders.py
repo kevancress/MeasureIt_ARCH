@@ -164,15 +164,17 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
         # position_flip = leftVec
         anchor_flip = 'start'
 
-    rotation = math.degrees(dirVec.angle_signed(Vector((1, 0))))
-    if rotation > 90 or rotation < -90:
+    xvec = Vector((999, 1)).normalized() #again we need to make this slightly off axis to make rotation consistent for orthogonal views
+    rotation = math.degrees(dirVec.angle_signed(xvec))
+    print("Rotation: {}".format(rotation))
+    if rotation > 90 and rotation < 180:
         rotation += 180
         # text_position = position_flip
         text_anchor = anchor_flip
         heightOffset = -heightOffset
         print('did flip')
 
-    print(heightOffset)
+    #print(heightOffset)
     text_position += heightOffset
     view = get_view()
     res = bpy.context.scene.MeasureItArchProps.default_resolution
