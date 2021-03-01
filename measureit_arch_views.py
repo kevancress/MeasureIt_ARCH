@@ -11,7 +11,6 @@ from bpy.props import (
     PointerProperty
 )
 from bpy.types import PropertyGroup, Panel, Operator, UIList
-from datetime import datetime
 
 from .measureit_arch_render import render_main
 from .measureit_arch_baseclass import TextField
@@ -73,18 +72,6 @@ def update(self, context):
     if view.view_layer != "":
         vl = context.scene.view_layers[view.view_layer]
         context.window.view_layer = vl
-
-    render = scene.render
-    if view.output_path != "":
-        filenameStr =  "{}_{}".format(view.view_num, view.name)
-        render.filepath = os.path.join(view.output_path, filenameStr)
-        if view.date_folder:
-            today = datetime.now()
-            renderpath = bpy.path.abspath(view.output_path)
-            datepath = os.path.join(renderpath, today.strftime('%Y%m%d'))
-            if not os.path.exists(datepath):
-                os.mkdir(renderpath + today.strftime('%Y%m%d'))
-            render.filepath = os.path.join(datepath, filenameStr)
 
 def freestyle_update_flag(self, context):
     scene = context.scene
