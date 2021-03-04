@@ -353,8 +353,19 @@ class OBJECT_PT_UIAnnotations(Panel):
                 op.tag = annoGen.active_index  # saves internal data
                 op.item_type = 'annotations'
                 op.is_style = False
-                col.separator()
 
+                col.separator()
+                up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+                up.genPath = 'bpy.context.object.AnnotationGenerator'
+                up.item_type = 'annotations'
+                up.upDown = -1
+
+                down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+                down.genPath = 'bpy.context.object.AnnotationGenerator'
+                down.item_type = 'annotations'
+                down.upDown = 1
+
+                col.separator()
                 col.menu("OBJECT_MT_annotation_menu",
                          icon='DOWNARROW_HLT', text="")
 
@@ -417,13 +428,13 @@ class OBJECT_PT_UIAnnotations(Panel):
                             op = row.operator(
                                 'measureit_arch.moveitem', text="", icon='TRIA_DOWN')
                             op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
-                            op.upDown = False
+                            op.upDown = 1
                             op.idx = idx
 
                             op = row.operator(
                                 'measureit_arch.moveitem', text="", icon='TRIA_UP')
                             op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
-                            op.upDown = True
+                            op.upDown = -1
                             op.idx = idx
                             idx += 1
 

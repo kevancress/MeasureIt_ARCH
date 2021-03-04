@@ -363,6 +363,19 @@ class OBJECT_PT_UILines(Panel):
                 op.tag = lineGen.active_index  # saves internal data
                 op.item_type = 'line_groups'
                 op.is_style = False
+
+                col.separator()
+                up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+                up.genPath = 'bpy.context.object.LineGenerator'
+                up.item_type = 'line_groups'
+                up.upDown = -1
+
+                down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+                down.genPath = 'bpy.context.object.LineGenerator'
+                down.item_type = 'line_groups'
+                down.upDown = 1
+
+
                 col.separator()
 
                 col.menu("OBJECT_MT_lines_menu", icon='DOWNARROW_HLT', text="")

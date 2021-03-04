@@ -363,6 +363,17 @@ class SCENE_PT_Schedules(Panel):
         op.tag = ScheduleGen.active_index  # saves internal data
 
         col.separator()
+        up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+        up.genPath = "bpy.context.scene.ScheduleGenerator"
+        up.item_type = "schedules"
+        up.upDown = -1
+
+        down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+        down.genPath = "bpy.context.scene.ScheduleGenerator"
+        down.item_type = "schedules"
+        down.upDown = 1
+
+        col.separator()
         col.menu("SCENE_MT_Schedules_menu", icon='DOWNARROW_HLT', text="")
 
         # Settings Below List
@@ -420,13 +431,13 @@ class SCENE_PT_Schedules(Panel):
                     op = row.operator('measureit_arch.moveitem',
                                       text="", icon='TRIA_DOWN')
                     op.propPath = 'bpy.context.scene.ScheduleGenerator.schedules[bpy.context.scene.ScheduleGenerator.active_index].columns'
-                    op.upDown = False
+                    op.upDown = 1
                     op.idx = idx
 
                     op = row.operator('measureit_arch.moveitem',
                                       text="", icon='TRIA_UP')
                     op.propPath = 'bpy.context.scene.ScheduleGenerator.schedules[bpy.context.scene.ScheduleGenerator.active_index].columns'
-                    op.upDown = True
+                    op.upDown = -1
                     op.idx = idx
 
                     idx += 1

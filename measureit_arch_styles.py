@@ -104,7 +104,7 @@ class StyleWrapper(PropertyGroup):
 
 
 class StyleContainer(PropertyGroup):
-    active_style_index: IntProperty(
+    active_index: IntProperty(
         name='Active Style Index', min=0, max=1000, default=0,
         description='Index of the current Style')
 
@@ -174,7 +174,7 @@ class SCENE_PT_UIStyles(Panel):
         # Draw The UI List
         row.template_list(
             "M_ARCH_UL_styles_list", "", StyleGen, "wrapper",
-            StyleGen, "active_style_index", rows=2, type='DEFAULT')
+            StyleGen, "active_index", rows=2, type='DEFAULT')
 
         # Operators Next to List
         col = row.column(align=True)
@@ -182,17 +182,28 @@ class SCENE_PT_UIStyles(Panel):
         op = col.operator(
             "measureit_arch.listdeletepropbutton", text="", icon="X")
         op.genPath = 'bpy.context.scene.StyleGenerator'
-        op.tag = StyleGen.active_style_index  # saves internal data
+        op.tag = StyleGen.active_index  # saves internal data
         op.is_style = True
+
+        col.separator()
+        up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+        up.genPath = 'bpy.context.scene.StyleGenerator'
+        up.item_type = "wrapper"
+        up.upDown = -1
+
+        down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+        down.genPath = 'bpy.context.scene.StyleGenerator'
+        down.item_type = "wrapper"
+        down.upDown = 1
 
         col.separator()
         col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 
         # Settings Below List
         if (len(StyleGen.wrapper) > 0 and
-            StyleGen.active_style_index < len(StyleGen.wrapper)):
+            StyleGen.active_index < len(StyleGen.wrapper)):
 
-            activeWrapperItem = StyleGen.wrapper[StyleGen.active_style_index]
+            activeWrapperItem = StyleGen.wrapper[StyleGen.active_index]
 
             if activeWrapperItem.itemType == 'line_groups':
                 item = StyleGen.line_groups[activeWrapperItem.itemIndex]

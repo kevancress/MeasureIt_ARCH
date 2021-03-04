@@ -170,6 +170,17 @@ class SCENE_PT_Hatches(Panel):
                           text="", icon="X")
         op.tag = HatchGen.active_index  # saves internal data
 
+        col.separator()
+        up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+        up.genPath = 'bpy.context.scene.HatchGenerator'
+        up.item_type = "hatches"
+        up.upDown = -1
+
+        down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+        down.genPath = 'bpy.context.scene.HatchGenerator'
+        down.item_type = "hatches"
+        down.upDown = 1
+
         # col.separator()
         # col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 

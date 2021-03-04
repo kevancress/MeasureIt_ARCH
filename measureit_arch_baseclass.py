@@ -695,37 +695,14 @@ class MoveItem(Operator):
     bl_category = 'MeasureitArch'
     propPath: StringProperty()
     idx: IntProperty()
-    upDown: BoolProperty()
-
-    def copyKeys(self, source, destination):
-        for key in source.__annotations__.keys():
-            try:
-                destination[key] = source[key]
-            except KeyError:
-                self.report({'WARNING'}, "Key: " + key + " not moved")
+    upDown: IntProperty()
 
     def execute(self, context):
         # TODO: `eval` is evil
         collectionProp = eval(self.propPath)
 
-        source = collectionProp[self.idx]
-
-        try:
-            if self.upDown:
-                destination = collectionProp[self.idx - 1]
-            else:
-                destination = collectionProp[self.idx + 1]
-        except IndexError:
-            self.report({'WARNING'}, "End of stack")
-            return {'FINISHED'}
-
-        temp = collectionProp.add()
-
-        self.copyKeys(destination, temp)
-        self.copyKeys(source, destination)
-        self.copyKeys(temp, source)
-
-        collectionProp.remove(len(collectionProp) - 1)
+        idx = self.idx
+        collectionProp.move(idx, idx + self.upDown)
 
         return {'FINISHED'}
 

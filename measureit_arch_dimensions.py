@@ -1003,6 +1003,17 @@ class OBJECT_PT_UIDimensions(Panel):
             op.item_type = 'D'
 
             col.separator()
+            up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+            up.genPath = 'bpy.context.object.DimensionGenerator'
+            up.item_type = "wrapper"
+            up.upDown = -1
+
+            down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+            down.genPath = 'bpy.context.object.DimensionGenerator'
+            down.item_type = "wrapper"
+            down.upDown = 1
+
+            col.separator()
             col.menu("OBJECT_MT_dimension_menu", icon='DOWNARROW_HLT', text="")
 
             # Settings Below List

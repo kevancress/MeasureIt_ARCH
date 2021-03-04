@@ -644,13 +644,13 @@ class SCENE_PT_Views(Panel):
                     op = row.operator(
                         'measureit_arch.moveitem', text="", icon='TRIA_DOWN')
                     op.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
-                    op.upDown = False
+                    op.upDown = 1
                     op.idx = idx
 
                     op = row.operator(
                         'measureit_arch.moveitem', text="", icon='TRIA_UP')
                     op.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
-                    op.upDown = True
+                    op.upDown = -1
                     op.idx = idx
                     idx += 1
 
