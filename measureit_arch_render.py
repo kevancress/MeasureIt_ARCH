@@ -263,7 +263,8 @@ def render_main(self, context):
 
 def get_view_outpath(scene, view, suffix):
     if view.output_path:
-        outpath = view.output_path
+        filenameStr =  "{}_{}".format(view.view_num, view.name)
+        outpath = os.path.join(view.output_path, filenameStr)
     else:
         outpath = scene.render.filepath
     filepath = "{}_{}".format(bpy.path.abspath(outpath), suffix)
