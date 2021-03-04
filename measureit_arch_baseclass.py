@@ -646,6 +646,27 @@ class DeletePropButton(Operator):
 
         return {'FINISHED'}
 
+class MovePropButton(Operator):
+    bl_idname = "measureit_arch.movepropbutton"
+    bl_label = "Move View"
+    bl_description = "Move a View up or down"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'}
+    genPath: StringProperty()
+    item_type: StringProperty()
+    upDown: IntProperty()  # 1 or -1 for direction
+
+    def execute(self, context):
+        # Add properties
+
+        Generator = eval(self.genPath)
+        itemGroup = eval('Generator.' + self.item_type)
+        idx = Generator.active_index
+        itemGroup.move(idx, idx + self.upDown)
+        Generator.active_index = idx + self.upDown
+
+        return {'FINISHED'}
+
 
 class AddTextField(Operator):
     bl_idname = "measureit_arch.addtextfield"

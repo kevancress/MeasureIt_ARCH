@@ -105,6 +105,7 @@ classes = (
     measureit_arch_baseclass.AddTextField,
     measureit_arch_baseclass.MoveItem,
     measureit_arch_baseclass.DeleteAllItemsButton,
+    measureit_arch_baseclass.MovePropButton,
 
     # Annotations
     measureit_arch_annotations.OBJECT_PT_UIAnnotations,

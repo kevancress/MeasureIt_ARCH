@@ -1,5 +1,6 @@
 import bpy
 import os
+import copy
 
 from bpy.props import (
     CollectionProperty,
@@ -451,6 +452,18 @@ class SCENE_PT_Views(Panel):
         col = row.column(align=True)
         col.operator("measureit_arch.addviewbutton", icon='ADD', text="")
         op = col.operator("measureit_arch.deleteviewbutton", text="", icon="X")
+
+        col.separator()
+        up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+        up.genPath = "bpy.context.scene.ViewGenerator"
+        up.item_type = "views"
+        up.upDown = -1
+
+        down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+        down.genPath = "bpy.context.scene.ViewGenerator"
+        down.item_type = "views"
+        down.upDown = 1
+
         op.tag = ViewGen.active_index  # saves internal data
 
         col.separator()
