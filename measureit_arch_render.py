@@ -369,12 +369,13 @@ def render_main_svg(self, context):
     offscreen = gpu.types.GPUOffScreen(width, height)
 
     view_matrix_3d = scene.camera.matrix_world.inverted()
-    projection_matrix = scene.camera.calc_matrix_camera(
-        context.view_layer.depsgraph, x=width, y=height)
+
 
     # Render Depth Buffer
     print("Rendering Depth Buffer")
     if sceneProps.vector_depthtest:
+        projection_matrix = scene.camera.calc_matrix_camera(
+            context.view_layer.depsgraph, x=width, y=height)
         with offscreen.bind():
             # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
             set_OpenGL_Settings(True)

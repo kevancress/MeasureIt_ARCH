@@ -13,7 +13,7 @@ from bpy.props import (
 )
 from bpy.types import PropertyGroup, Panel, Operator, UIList
 
-from .measureit_arch_render import render_main
+from .measureit_arch_render import render_main, render_main_svg
 from .measureit_arch_baseclass import TextField
 from . measureit_arch_utils import get_loaded_addons
 from .measureit_arch_units import BU_TO_INCHES
@@ -339,6 +339,11 @@ class ViewProperties(PropertyGroup):
         default=False,
         update=freestyle_update_flag)
 
+    include_in_batch: BoolProperty(
+        name="Include In Batch View Render",
+        description="Include In Batch View Render",
+        default=True,)
+
 
 class ViewContainer(PropertyGroup):
     active_index: IntProperty(
@@ -405,6 +410,76 @@ class DuplicateViewButton(Operator):
         return {'FINISHED'}
 
 
+class BatchViewRender(Operator):
+    bl_idname = "measureit_arch.batchviewrender"
+    bl_label = "Render All Views"
+    bl_description = "Render All Views"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'}
+
+    _timer = None
+    _updating = False
+    view3d = None
+    idx = 0
+
+    def modal(self, context, event):
+        scene = context.scene
+
+        if event.type in {'RIGHTMOUSE', 'ESC'}:
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        if event.type == 'TIMER' and not self._updating:
+            self._updating = True
+            numViews = len(context.scene.ViewGenerator.views)
+            if self.idx <= numViews - 1:
+                view = context.scene.ViewGenerator.views[self.idx]
+                if view.include_in_batch:
+                    context.scene.ViewGenerator.active_index = self.idx
+                    self.view3d.tag_redraw()
+                    print("MeasureIt_ARCH: Rendering View: " + view.name)
+                    render_main_svg(self, context)
+
+                self._updating = False
+                self.idx += 1
+
+            else:
+                self.cancel(context)
+                return {'CANCELLED'}
+
+        self.view3d.tag_redraw()
+        return {'PASS_THROUGH'}
+
+    def execute(self, context):
+        # Check camera
+        # Check camera
+        if not context.scene.camera:
+            self.report({'ERROR'}, "Unable to render: no camera found!")
+            return {'FINISHED'}
+
+        for area in context.screen.areas:
+            if area.type == 'VIEW_3D':
+                self.view3d = area
+
+        if self.view3d is None:
+            self.report(
+                {'ERROR'}, 'A 3D Viewport must be open to render MeasureIt_ARCH Animations')
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.1, window=context.window)
+        wm.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
+        return {'CANCELLED'}
+
+
+
+
 class M_ARCH_UL_Views_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -415,6 +490,14 @@ class M_ARCH_UL_Views_list(UIList):
             split.prop(view, "view_num", text="", emboss=False, icon='DOCUMENTS')
             split.prop(view, "name", text="", emboss=False)
             row.prop(view, 'camera', text="", icon='CAMERA_DATA')
+
+            if view.include_in_batch:
+                icon = "RESTRICT_RENDER_OFF"
+            else:
+                icon = "RESTRICT_RENDER_ON"
+
+            row.separator()
+            row.prop(view, 'include_in_batch', text="",emboss=False, icon=icon)
 
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
