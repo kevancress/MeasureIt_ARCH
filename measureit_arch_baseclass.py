@@ -379,15 +379,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="View Plane",
         description="View Plane")
 
-    default_color: FloatVectorProperty(
-        name="Default color",
-        description="Default Color",
-        default=(0.0, 0.0, 0.0, 1.0),
-        min=0.1,
-        max=1,
-        subtype='COLOR',
-        size=4)
-
     default_dimension_style: StringProperty(
         name="Default Style",
         description="Dimension Style to Use")
@@ -506,10 +497,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name='Default Paper Scale', min=1, default=25,
         description="Default Paper Scale (used for font sizing)")
 
-    metric_precision: IntProperty(
-        name='Precision', min=0, max=5, default=2,
-        description="Metric decimal precision")
-
     angle_precision: IntProperty(
         name='Angle Precision', min=0, max=5, default=0,
         description="Angle decimal precision")
@@ -524,65 +511,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
                ('64', "1/64\"", "1/64th Inch")),
         name="Imperial Precision",
         description="Measurement Precision for Imperial Units")
-
-    default_color: FloatVectorProperty(
-        name="Default Color",
-        description="Default Color for new Items",
-        default=(0.0, 0.0, 0.0, 1.0),
-        min=0,
-        max=1,
-        subtype='COLOR',
-        size=4,
-        update=update_flag)
-
-    instance_dims: BoolProperty(
-        name="Instance Dimensions",
-        description="WARNING: Only the most recent Instance's Dimension text "
-                    "will adapt to local changes in scale or rotation",
-        default=False)
-
-    eval_mods: BoolProperty(
-        name="Evaluate Depsgraph",
-        description="All MeasureIt_ARCH elements will attempt to evaluate the "
-                    "dependency graph (Modifiers, Shape Keys, etc.) before "
-                    "drawing, may make dimensions and linework unstable",
-        default=False)
-
-    is_render_draw: BoolProperty(
-        name="Is Render",
-        description="Flag to use render size for draw aspect ratio",
-        default=False)
-
-    is_vector_draw: BoolProperty(
-        name="Is Vector Render",
-        description="Flag to use svg draw code",
-        default=False)
-
-    vector_z_order: BoolProperty(
-        name="Vector Z Order",
-        description="Order Vector Layers by Object Z Height",
-        default=False)
-
-    vector_depthtest: BoolProperty(
-        name="Use Vector Depth Test",
-        description="Check for Occlusion when rending to SVG\n"
-                    "WARNING: SLOW, open system console before rendering to view progress",
-        default=False)
-
-    show_gizmos: BoolProperty(
-        name="Show Gizmos",
-        description="Display MeasureIt_ARCH Gizmos",
-        default=False)
-
-    show_text_cards: BoolProperty(
-        name="Debug Text Cards",
-        description="Display MeasureIt_ARCH Text Cards",
-        default=False)
-
-    enable_experimental: BoolProperty(
-        name="Enable Experimental",
-        description="Enable Experimental Features like SVG Rendering",
-        default=False)
 
     use_text_autoplacement: BoolProperty(
         name="Use Text Autoplacement",
@@ -606,10 +534,10 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name='Precision', min=0, max=5, default=2,
         description="Metric decimal precision")
 
-    angle_precision: IntProperty(
-        name='Angle Precision', min=0, max=5, default=0,
-        description="Angle decimal precision")
-
+    hide_titleblock: BoolProperty(
+        name="Hide Titleblock",
+        description="Hide TitleBlock",
+        default=False,)
 
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"

@@ -275,6 +275,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col = layout.column(align=True, heading='Settings')
         # col.prop(sceneProps, 'show_dim_text',) I Dont Know why this would be usefull
         col.prop(sceneProps, 'hide_units')
+        col.prop(sceneProps, 'hide_titleblock')
         col.prop(sceneProps, "eval_mods")
         col.prop(sceneProps, "use_text_autoplacement")
         col.prop(sceneProps, 'default_resolution', text="Default Resolution")
@@ -385,7 +386,7 @@ def draw_main(context):
     text_update_loop(context, objlist)
 
     view = get_view()
-    if view is not None and view.titleBlock != "":
+    if view is not None and view.titleBlock != "" and not sceneProps.hide_titleblock:
         titleblockScene = bpy.data.scenes[view.titleBlock]
         objlist = titleblockScene.objects
         text_update_loop(context, objlist)
@@ -563,7 +564,8 @@ def draw_main_3d(context):
     # preview_dual(context)
 
     # Draw TitleBlock
-    draw_titleblock(context)
+    if not sceneProps.hide_titleblock:
+        draw_titleblock(context)
 
 
 def draw_titleblock(context, svg=None):
