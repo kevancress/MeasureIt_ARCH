@@ -962,7 +962,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         offset = dimProps.dimOffset
         if dim.uses_style:
             offset += dim.tweakOffset
-        geoOffset = dim.dimLeaderOffset
+        geoOffset = dimProps.dimLeaderOffset
 
         # get points positions from indicies
         aMatrix = mat
