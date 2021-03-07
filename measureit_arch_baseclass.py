@@ -595,6 +595,23 @@ class MovePropButton(Operator):
 
         return {'FINISHED'}
 
+class HideAllButton(Operator):
+    bl_idname = "measureit_arch.hideallbutton"
+    bl_label = "Hide All"
+    bl_description = "Hide All"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'}
+    item_path: StringProperty()
+
+    def execute(self, context):
+        # Add properties
+
+        col_prop = eval(item_path)
+
+        for item in col_prop:
+            item.visible = not item.visible
+
+        return {'FINISHED'}
 
 class AddTextField(Operator):
     bl_idname = "measureit_arch.addtextfield"
