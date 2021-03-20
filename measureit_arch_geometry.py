@@ -3321,6 +3321,11 @@ def z_order_objs(obj_list):
 
     for obj in obj_list:
         obj_dist = get_camera_z_dist(obj.location)
+
+        # If the obj is behind the camera, and we're culling objs Ignore it
+        if obj_dist < 0 and bpy.context.scene.MeasureItArchProps.cull_objs:
+            continue
+
         print("{} is {} away from Camera".format(obj.name, obj_dist))
         idx = sort_camera_z(obj, obj_dist, ordered_obj_list)
         ordered_obj_list.insert(idx, obj)
@@ -3352,6 +3357,11 @@ def z_order_faces(face_list, obj):
     with recursionlimit(getrecursionlimit() + len(face_list) * len(face_list)):
         for face in face_list:
             face_dist = get_camera_z_dist(obj.matrix_world @ face.calc_center_median())
+
+            # If the face is behind the camera, and we're culling faces Ignore it
+            if face_dist < 0 and bpy.context.scene.MeasureItArchProps.cull_faces:
+                continue
+
             idx = sort_camera_z_faces(face, face_dist, ordered_face_list, obj)
             ordered_face_list.insert(idx, face)
 

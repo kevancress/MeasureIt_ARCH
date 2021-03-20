@@ -80,9 +80,8 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
         col = layout.column()
 
         col.prop(sceneProps, "vector_z_order",)
-
-
-
+        col.prop(sceneProps, "cull_faces",)
+        col.prop(sceneProps, "cull_objs",)
 
 
 class RenderImageButton(Operator):

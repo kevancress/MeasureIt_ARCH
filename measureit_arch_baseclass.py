@@ -540,6 +540,16 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="Hide TitleBlock",
         default=False,)
 
+    cull_faces: BoolProperty(
+        name="Cull Faces",
+        description="Cull Faces Behind the Camera in Vector Renders",
+        default=False,)
+
+    cull_objs: BoolProperty(
+        name="Cull Objects",
+        description="Cull Objects Behind the Camera in Vector Renders",
+        default=False,)
+
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"
     bl_label = "Delete property"
