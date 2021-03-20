@@ -12,10 +12,11 @@ from bpy.props import (
     PointerProperty
 )
 from bpy.types import PropertyGroup, Panel, Operator, UIList
+from bpy.app.handlers import persistent
 
 from .measureit_arch_render import render_main, render_main_svg
 from .measureit_arch_baseclass import TextField
-from . measureit_arch_utils import get_loaded_addons
+from . measureit_arch_utils import get_loaded_addons, get_view
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -155,6 +156,15 @@ def change_scene_camera(self, context):
 def camera_poll(self, object):
     return object.type == 'CAMERA'
 
+@persistent
+def create_preset_view(dummy):
+    """ Handler called when a Blend file is loaded to create a default view. """
+    context = bpy.context
+    scene = context.scene
+    ViewGen = scene.ViewGenerator
+
+    if len(ViewGen.views)<1:
+        add_view(context)
 
 class ViewProperties(PropertyGroup):
 
@@ -761,17 +771,16 @@ class AddViewButton(Operator):
             for area in screen.areas:
                 if area.type == 'VIEW_3D':
                     # Add properties
-
-                    scene = context.scene
-                    ViewGen = scene.ViewGenerator
-
-                    newView = ViewGen.views.add()
-                    newView.name = 'View ' + str(len(ViewGen.views))
-
+                    add_view(context)
                     context.area.tag_redraw()
                     return {'FINISHED'}
         return {'FINISHED'}
 
+def add_view(context):
+    scene = context.scene
+    ViewGen = scene.ViewGenerator
+    newView = ViewGen.views.add()
+    newView.name = 'View {}'.format(len(ViewGen.views))
 
 class M_ARCH_OP_Render_Preview(Operator):
     bl_idname = "measureit_arch.renderpreviewbutton"

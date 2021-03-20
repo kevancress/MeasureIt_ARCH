@@ -83,21 +83,6 @@ classes = (
     measureit_arch_main.OBJECT_PT_Panel,
     measureit_arch_main.SCENE_PT_MARCH_units,
 
-    # Scene UI Panels
-    measureit_arch_main.SCENE_PT_Panel,
-    measureit_arch_views.SCENE_PT_Views,
-    measureit_arch_views.M_ARCH_UL_Views_list,
-    measureit_arch_views.SCENE_MT_Views_menu,
-    measureit_arch_styles.SCENE_PT_UIStyles,
-    measureit_arch_styles.M_ARCH_UL_styles_list,
-    measureit_arch_styles.SCENE_MT_styles_menu,
-    measureit_arch_hatches.SCENE_PT_Hatches,
-    measureit_arch_hatches.M_ARCH_UL_Hatches_list,
-    measureit_arch_schedules.SCENE_PT_Schedules,
-    measureit_arch_schedules.M_ARCH_UL_Schedules_list,
-    measureit_arch_schedules.SCENE_MT_Schedules_menu,
-    measureit_arch_main.SCENE_PT_MARCH_Settings,
-
     # Base Classes
     measureit_arch_baseclass.TextField,
     measureit_arch_baseclass.MeasureItARCHSceneProps,
@@ -201,6 +186,22 @@ classes = (
     measureit_arch_views.M_ARCH_OP_Render_Preview,
     measureit_arch_views.BatchViewRender,
 
+
+    # Scene UI Panels
+    measureit_arch_main.SCENE_PT_Panel,
+    measureit_arch_views.SCENE_PT_Views,
+    measureit_arch_views.M_ARCH_UL_Views_list,
+    measureit_arch_views.SCENE_MT_Views_menu,
+    measureit_arch_styles.SCENE_PT_UIStyles,
+    measureit_arch_styles.M_ARCH_UL_styles_list,
+    measureit_arch_styles.SCENE_MT_styles_menu,
+    measureit_arch_hatches.SCENE_PT_Hatches,
+    measureit_arch_hatches.M_ARCH_UL_Hatches_list,
+    measureit_arch_schedules.SCENE_PT_Schedules,
+    measureit_arch_schedules.M_ARCH_UL_Schedules_list,
+    measureit_arch_schedules.SCENE_MT_Schedules_menu,
+    measureit_arch_main.SCENE_PT_MARCH_Settings,
+
 )
 
 
@@ -214,6 +215,7 @@ def register():
 
     bpy.app.handlers.load_post.append(measureit_arch_main.load_handler)
     bpy.app.handlers.load_post.append(measureit_arch_styles.create_preset_styles)
+    bpy.app.handlers.load_post.append(measureit_arch_views.create_preset_view)
     bpy.app.handlers.save_pre.append(measureit_arch_main.save_handler)
 
     # Register pointer properties

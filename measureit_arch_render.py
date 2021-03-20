@@ -268,6 +268,7 @@ def get_view_outpath(scene, view, suffix):
     else:
         outpath = scene.render.filepath
     filepath = "{}_{}".format(bpy.path.abspath(outpath), suffix)
+
     if view.date_folder:
         today = datetime.now()
         dir, filename = os.path.split(filepath)

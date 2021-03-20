@@ -311,6 +311,9 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
 
 
 def draw_hatches(context, myobj, hatchGen, mat, svg=None):
+    if svg == None:
+        return
+
     svg_obj = svg.add(svg.g(id=myobj.name))
 
     if myobj.visible_get() and not myobj.hide_render:
@@ -3368,6 +3371,7 @@ def get_camera_z_dist(location):
     camera_z.normalize()
     dist_vec = location - camera.location
     dist_along_camera_z = camera_z.dot(dist_vec)
+    print("Distance Along Camera Z: {}".format(dist_along_camera_z))
     return dist_along_camera_z
 
 
@@ -3382,6 +3386,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
 
     if sceneProps.vector_z_order and sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist)
+        print(objlist)
 
     for idx, myobj in enumerate(objlist, start=1):
         if sceneProps.is_render_draw:
