@@ -33,29 +33,30 @@ def update_active_dim(self, context):
 
 
 def recalc_dimWrapper_index(self, context):
-    dimGen = context.object.DimensionGenerator
-    wrapper = dimGen.wrapper
-    id_aligned = 0
-    id_angle = 0
-    id_axis = 0
-    id_arc = 0
-    id_area = 0
-    for dim in wrapper:
-        if dim.itemType == 'alignedDimensions':
-            dim.itemIndex = id_aligned
-            id_aligned += 1
-        elif dim.itemType == 'angleDimensions':
-            dim.itemIndex = id_angle
-            id_angle += 1
-        elif dim.itemType == 'axisDimensions':
-            dim.itemIndex = id_axis
-            id_axis += 1
-        elif dim.itemType == 'arcDimensions':
-            dim.itemIndex = id_arc
-            id_arc += 1
-        elif dim.itemType == 'areaDimensions':
-            dim.itemIndex = id_area
-            id_area += 1
+    for obj in context.selected_objects:
+        dimGen = obj.DimensionGenerator
+        wrapper = dimGen.wrapper
+        id_aligned = 0
+        id_angle = 0
+        id_axis = 0
+        id_arc = 0
+        id_area = 0
+        for dim in wrapper:
+            if dim.itemType == 'alignedDimensions':
+                dim.itemIndex = id_aligned
+                id_aligned += 1
+            elif dim.itemType == 'angleDimensions':
+                dim.itemIndex = id_angle
+                id_angle += 1
+            elif dim.itemType == 'axisDimensions':
+                dim.itemIndex = id_axis
+                id_axis += 1
+            elif dim.itemType == 'arcDimensions':
+                dim.itemIndex = id_arc
+                id_arc += 1
+            elif dim.itemType == 'areaDimensions':
+                dim.itemIndex = id_area
+                id_area += 1
 
 
 class BaseProp:
