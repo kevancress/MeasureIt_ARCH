@@ -3320,23 +3320,30 @@ def z_order_objs(obj_list):
     ordered_obj_list = []
 
     for obj in obj_list:
-        idx = sort_camera_z(obj, ordered_obj_list)
+        obj_dist = get_camera_z_dist(obj.location)
+        print("{} is {} away from Camera".format(obj.name, obj_dist))
+        idx = sort_camera_z(obj, obj_dist, ordered_obj_list)
         ordered_obj_list.insert(idx, obj)
 
     return ordered_obj_list
 
 
-def sort_camera_z(obj, ordered_list, idx=0):
+def sort_camera_z(obj, obj_dist, ordered_list, idx=0):
+    #Check if comparison index exists
     try:
         check_z = get_camera_z_dist(ordered_list[idx].location)
     except IndexError:
         return idx
-    if get_camera_z_dist(obj.location) < check_z:
-        pass
-    else:
+
+    # If current Obj z dist is < then the comparitor
+    # check the next Idx
+    if obj_dist < check_z:
         idx += 1
-        idx = sort_camera_z(obj, ordered_list, idx=idx)
+        idx = sort_camera_z(obj, obj_dist, ordered_list, idx=idx)
+
+    # Otherwise return the current idx
     return idx
+
 
 
 def z_order_faces(face_list, obj):
@@ -3344,34 +3351,40 @@ def z_order_faces(face_list, obj):
 
     with recursionlimit(getrecursionlimit() + len(face_list) * len(face_list)):
         for face in face_list:
-            idx = sort_camera_z_faces(face, ordered_face_list, obj)
+            face_dist = get_camera_z_dist(obj.matrix_world @ face.calc_center_median())
+            idx = sort_camera_z_faces(face, face_dist, ordered_face_list, obj)
             ordered_face_list.insert(idx, face)
 
     return ordered_face_list
 
 
-def sort_camera_z_faces(face, ordered_list, obj, idx=0):
+def sort_camera_z_faces(face, face_dist, ordered_list, obj, idx=0):
+    #Check if comparison index exists
     try:
         check_z = get_camera_z_dist(
             obj.matrix_world @ ordered_list[idx].calc_center_median())
     except IndexError:
         return idx
-    if get_camera_z_dist(obj.matrix_world @ face.calc_center_median()) < check_z:
-        pass
-    else:
+
+    # If current face z dist is < then the comparitor
+    # check the next Idx
+    if face_dist < check_z:
         idx += 1
-        idx = sort_camera_z_faces(face, ordered_list, obj, idx=idx)
+        idx = sort_camera_z_faces(face, face_dist, ordered_list, obj, idx=idx)
+
+    # Otherwise return the current idx
     return idx
 
 
 def get_camera_z_dist(location):
     camera = bpy.context.scene.camera
     mat = camera.matrix_world
-    camera_z = mat @ Vector((0, 0, -1))
+    camera_rot = mat.to_quaternion()
+    camera_z = Vector((0, 0, -1))
+    camera_z.rotate(camera_rot)
     camera_z.normalize()
     dist_vec = location - camera.location
     dist_along_camera_z = camera_z.dot(dist_vec)
-    print("Distance Along Camera Z: {}".format(dist_along_camera_z))
     return dist_along_camera_z
 
 
@@ -3386,7 +3399,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
 
     if sceneProps.vector_z_order and sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist)
-        print(objlist)
+        print(objlist )
 
     for idx, myobj in enumerate(objlist, start=1):
         if sceneProps.is_render_draw:
