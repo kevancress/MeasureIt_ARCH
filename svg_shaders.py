@@ -32,7 +32,7 @@ import svgwrite
 from math import fabs, sqrt
 from mathutils import Vector, Matrix
 
-from .measureit_arch_utils import get_view, interpolate3d
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist
 
 
 def svg_line_shader(item, coords, thickness, color, svg, parent=None,
@@ -70,6 +70,8 @@ def svg_line_shader(item, coords, thickness, color, svg, parent=None,
 
 
 def svg_fill_shader(item, coords, color, svg, parent=None):
+    if camera_cull(coords):
+        return
     coords_2d = []
     idName = item.name + "_fills"
     svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
@@ -86,6 +88,9 @@ def svg_fill_shader(item, coords, color, svg, parent=None):
 
 
 def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0), lineWeight=0, fillURL=''):
+    if camera_cull(coords):
+        return
+
     coords_2d = []
     idName = item.name + "_fills"
 
@@ -120,6 +125,9 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
     #     |                |
     #     |                |
     #     0----------------3
+
+    if camera_cull(textCard):
+        return
 
     text_position = get_render_location(mid)
     svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
@@ -245,6 +253,18 @@ def get_clip_space_coord(mypoint):
 
     return co_clip
 
+def camera_cull(points):
+    should_cull = []
+    for point in points:
+        if get_camera_z_dist(point) < 0:
+            should_cull.append(True)
+        else:
+            should_cull.append(False)
+
+    if any(cull is False for cull in should_cull):
+        return False
+    else:
+        return True
 
 def true_z_buffer(context, zValue):
     camera = context.scene.camera.data
@@ -272,6 +292,10 @@ def check_visible(p1, p2, mat, item, numIterations=0):
     context = bpy.context
     scene = bpy.context.scene
     render = scene.render
+
+    if camera_cull([mat @ Vector(p1), mat @Vector(p2)]):
+        return False, p1, p2
+
 
     if not scene.MeasureItArchProps.vector_depthtest:
         return True, p1, p2
@@ -357,7 +381,7 @@ def check_visible(p1, p2, mat, item, numIterations=0):
         return False, p1, p2
     else:
         vis = False
-        maxIter = 3
+        maxIter = 100
 
         if p1Visible and not p2Visible:
             pass
@@ -370,6 +394,8 @@ def check_visible(p1, p2, mat, item, numIterations=0):
             numIterations += 1
             distVector = Vector(p1) - Vector(p2)
             dist = distVector.length
+            p1 = Vector(p1)
+            p2 = Vector(p2)
             p3 = interpolate3d(p1, p2, fabs(dist - (dist / maxIter) * numIterations))
             vis, p1, p2 = check_visible(p1, p3, mat, item, numIterations=numIterations)
         return vis, p1, p2

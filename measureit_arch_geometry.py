@@ -46,7 +46,7 @@ from .shaders import *
 from .measureit_arch_baseclass import recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
-from .measureit_arch_utils import get_view, interpolate3d
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist
 
 lastMode = {}
 lineBatch3D = {}
@@ -3386,16 +3386,7 @@ def sort_camera_z_faces(face, face_dist, ordered_list, obj, idx=0):
     return idx
 
 
-def get_camera_z_dist(location):
-    camera = bpy.context.scene.camera
-    mat = camera.matrix_world
-    camera_rot = mat.to_quaternion()
-    camera_z = Vector((0, 0, -1))
-    camera_z.rotate(camera_rot)
-    camera_z.normalize()
-    dist_vec = location - camera.location
-    dist_along_camera_z = camera_z.dot(dist_vec)
-    return dist_along_camera_z
+
 
 
 def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
