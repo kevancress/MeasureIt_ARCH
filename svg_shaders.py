@@ -54,15 +54,17 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
 
     lines = svg.g(id=idName, stroke=svgColor,
                   stroke_width=thickness, stroke_linecap=cap)
+    if parent:
+        parent.add(lines)
+    else:
+        svg.add(lines)
 
     dashed_lines = svg.g(id=dash_id_name, stroke=svgColor, stroke_width=thickness,
                     stroke_dasharray="5,5", stroke_linecap='butt')
 
     if parent:
-        parent.add(lines)
         parent.add(dashed_lines)
     else:
-        svg.add(lines)
         svg.add(dashed_lines)
 
 
@@ -75,17 +77,21 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         depthbuffer = sceneProps['depthbuffer'].to_list()
 
     for x in range(0, len(coords) - 1, 2):
-        vis, p1, p2 = check_visible(coords[x], coords[x + 1], mat, item, depthbuffer)
-        if vis or draw_hidden:
-            p1ss = get_render_location(mat @ Vector(p1))
-            p2ss = get_render_location(mat @ Vector(p2))
-            line = svg.line(start=tuple(p1ss), end=tuple(p2ss))
-            if vis and not dashed:
-                lines.add(line)
-            elif vis and dashed:
-                dashed_lines.add(line)
-            elif not vis and draw_hidden:
-                dashed_lines.add(line)
+        line_segs = depth_test(coords[x], coords[x + 1], mat, item, depthbuffer)
+        for line in line_segs:
+            vis = line[0]
+            p1 = line[1]
+            p2 = line[2]
+            if vis or draw_hidden:
+                p1ss = get_render_location(mat @ Vector(p1))
+                p2ss = get_render_location(mat @ Vector(p2))
+                line = svg.line(start=tuple(p1ss), end=tuple(p2ss))
+                if vis and not dashed:
+                    lines.add(line)
+                elif vis and dashed:
+                    dashed_lines.add(line)
+                elif not vis and draw_hidden:
+                    dashed_lines.add(line)
 
 
 def svg_fill_shader(item, coords, color, svg, parent=None):
@@ -310,26 +316,80 @@ def true_z_buffer(context, zValue):
         return zValue
 
 
-def check_visible(p1, p2, mat, item, depthbuffer, numIterations=0):
+def depth_test(p1, p2, mat, item, depthbuffer, numIterations=0):
     context = bpy.context
     scene = bpy.context.scene
     render = scene.render
 
     # Don't depth test if behind camera
     if camera_cull([mat @ Vector(p1), mat @ Vector(p2)]):
-        return False, p1, p2
+        return [[False, p1, p2]]
 
     # Don't Depth test if not enabled
     if not scene.MeasureItArchProps.vector_depthtest:
-        return True, p1, p2
+        return [[True, p1, p2]]
 
-    #Set Z-offset
-    z_offset = 0.1
-    if 'lineDepthOffset' in item:
-        z_offset += item.lineDepthOffset / 10
+    #Get Render info
+    render_scale = scene.render.resolution_percentage / 100
+    width = int(render.resolution_x * render_scale)
+    height = int(render.resolution_y * render_scale)
 
-    p1Visible = True
-    p2Visible = True
+    p1Local = mat @ Vector(p1)
+    p2Local = mat @ Vector(p2)
+
+    # Get Screen Space Points
+    p1ss = get_ss_point(p1Local)
+    p2ss = get_ss_point(p2Local)
+
+    # Length in ss is ~number of pixels. use for num of visibility samples
+    ss_length_vec = p1ss-p2ss
+    ss_samples = clamp(1, math.ceil(ss_length_vec.length), width)
+
+    p1vis = check_visible(item, p1Local)
+    p2vis = check_visible(item, p2Local)
+
+    #Sanity check
+    #if p1vis and p2vis:
+    #    line_segs = [[True,p1,p2]]
+    #    return line_segs
+
+    #elif not p1vis and not p2vis:
+    #    line_segs = [[False,p1,p2]]
+    #    return line_segs
+
+
+    last_vis_state = check_visible(item, p1Local)
+    line_segs = []
+    last_p_check = p1
+    seg_start = p1
+    for i in range(1,ss_samples):
+        distVector = Vector(p1) - Vector(p2)
+        dist = distVector.length
+        p_check = interpolate3d(Vector(p1), Vector(p2), fabs((dist / ss_samples) * i))
+        p_check_vis = check_visible(item, mat @ Vector(p_check))
+
+        line = [last_vis_state,seg_start,p_check]
+
+        if last_vis_state is not p_check_vis:
+            line_segs.append(line)
+            seg_start = p_check
+            last_vis_state = p_check_vis
+
+        last_p_check = p_check
+
+    line_segs.append([last_vis_state, seg_start ,p2])
+
+    return line_segs
+
+
+def clamp(minimum, x, maximum):
+    return max(minimum, min(x, maximum))
+
+# For getting the depthbuffer ss point
+def get_ss_point(point):
+    context = bpy.context
+    scene = bpy.context.scene
+    render = scene.render
 
     #Get Render info
     render_scale = scene.render.resolution_percentage / 100
@@ -337,84 +397,71 @@ def check_visible(p1, p2, mat, item, depthbuffer, numIterations=0):
     height = int(render.resolution_y * render_scale)
 
     # Get Screen Space Points
-    p1ss = get_render_location(mat @ Vector(p1))
+    p1ss = get_render_location(point)
     p1ss = Vector((p1ss[0], height - p1ss[1]))
-    p2ss = get_render_location(mat @ Vector(p2))
-    p2ss = Vector((p2ss[0], height - p2ss[1]))
 
-    # Get Clip Space Points
-    p1clip = get_clip_space_coord(mat @ Vector(p1))
-    p2clip = get_clip_space_coord(mat @ Vector(p2))
+    return p1ss
+
+def check_visible(item, point):
+    context = bpy.context
+    scene = bpy.context.scene
+    render = scene.render
+    #Set Z-offset
+    z_offset = 0.1
+    if 'lineDepthOffset' in item:
+        z_offset += item.lineDepthOffset / 10
+
+    #Get Render info
+    render_scale = scene.render.resolution_percentage / 100
+    width = int(render.resolution_x * render_scale)
+    height = int(render.resolution_y * render_scale)
+
+    pointVisible = True
+
+    point_ss = get_ss_point(point)
+    point_clip = get_clip_space_coord(point)
 
     # Get Depth buffer Pixel Index based on SS Point
-    p1pxIdx = int(((width * round(p1ss[1])) + round(p1ss[0]) - 1) * 1)
-    p2pxIdx = int(((width * round(p2ss[1])) + round(p2ss[0]) - 1) * 1)
+    pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)
+    pxIdx2 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1)
 
-    # Get Depth Buffer Value buffer value
-    try:
-        p1depth = depthbuffer[p1pxIdx]
-    except IndexError:
-        print('Index not in Depth Buffer: ' + str(p1pxIdx) + ', ' + str(p2pxIdx))
-        p1Visible = True
-        p1depth = 0
+    pxIdx3 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width
+    pxIdx4 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width
 
-    try:
-        p2depth = depthbuffer[p2pxIdx]
-    except IndexError:
-        print('Index not in Depth Buffer: ' + str(p1pxIdx) + ', ' + str(p2pxIdx))
-        p2Visible = True
-        p2depth = 0
+    pxIdx5 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width
+    pxIdx6 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width
 
-    p1depth = true_z_buffer(context, p1depth)
-    p2depth = true_z_buffer(context, p2depth)
+    pxIdx7 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + 1
+    pxIdx8 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + 1
+
+    pxIdx9 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - 1
+    pxIdx10 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - 1
+
+    samples = [pxIdx1,pxIdx2,pxIdx3,pxIdx4,pxIdx5,pxIdx6,pxIdx7,pxIdx8,pxIdx9,pxIdx10]
+    #samples = [pxIdx1,pxIdx2]
+
+    point_depth = 0
+    for sample in samples:
+        val = get_bufffer_at_idx(pxIdx1)
+        val = true_z_buffer(context, val)
+        point_depth += val
+
+    point_depth /= len(samples)
 
     # Get Depth From Clip Space point
-    p1vecdepth = (p1clip[2]) - z_offset
-    p2vecdepth = (p2clip[2]) - z_offset
+    point_vecdepth = (point_clip[2]) - z_offset
 
     # Check Clip space point against depth buffer value
-    p1Visible = p1depth > p1vecdepth
-    p2Visible =  p2depth > p2vecdepth
+    pointVisible = point_depth > point_vecdepth
 
-    # Length in ss is ~number of pixels. use for num of visibility samples
-    ss_length_vec = p1ss-p2ss
-    ss_samples = clamp(1, math.ceil(ss_length_vec.length_squared), width*4)
+    return pointVisible
 
-    #Both Visible
-    if p1Visible and p2Visible:
-        # print('vis test passed')
-        return True, p1, p2
+def get_bufffer_at_idx(idx):
+    # Get Depth Buffer Value buffer value
+    try:
+        point_depth = depthbuffer[idx]
+    except IndexError:
+        print('Index not in Depth Buffer:{}'.format(idx))
+        point_depth = 0
+    return point_depth
 
-    #Both Hidden
-    elif not p1Visible and not p2Visible:
-        # print('vis test failed')
-        return False, p1, p2
-
-    # One Visible
-    else:
-        vis = False
-        maxIter = ss_samples
-
-        # Consistent Order
-        if not p1Visible and p2Visible:
-            temp = p1
-            p1 = p2
-            p2 = temp
-
-        with recursionlimit(getrecursionlimit() + maxIter):
-            if numIterations < maxIter:
-                numIterations += 1
-                distVector = Vector(p1) - Vector(p2)
-                dist = distVector.length
-                p1 = Vector(p1)
-                p2 = Vector(p2)
-                p3 = interpolate3d(p1, p2, fabs(dist - (dist / maxIter) * numIterations))
-                vis, p1, p2 = check_visible(p1, p3, mat, item, depthbuffer, numIterations=numIterations)
-                if vis:
-                    return vis, p1, p2
-            return vis, p1, p2
-
-
-
-def clamp(minimum, x, maximum):
-    return max(minimum, min(x, maximum))
