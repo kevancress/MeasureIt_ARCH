@@ -35,6 +35,8 @@ from sys import getrecursionlimit, setrecursionlimit
 
 from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit
 
+depthbuffer = None
+
 def svg_line_shader(item, coords, thickness, color, svg, parent=None,
                     dashed=False, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
@@ -68,7 +70,8 @@ def svg_line_shader(item, coords, thickness, color, svg, parent=None,
 
     # Get Depth Buffer as list
     sceneProps = bpy.context.scene.MeasureItArchProps
-    if 'depthbuffer' in sceneProps:
+    global depthbuffer
+    if 'depthbuffer' in sceneProps and depthbuffer is None:
         depthbuffer = sceneProps['depthbuffer'].to_list()
 
     for x in range(0, len(coords) - 1, 2):
@@ -238,6 +241,9 @@ def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
                 pair[1]), stroke_width=weight, stroke=svgColor))
 
 
+def clear_db():
+    global depthbuffer
+    depthbuffer = None
 # --------------------------------------------------------------------
 # Get position in final render image
 # (Z < 0 out of camera)
@@ -256,6 +262,7 @@ def get_render_location(mypoint):
     # Get pixel coords
 
     return [(co_2d.x * width), height - (co_2d.y * height)]
+
 
 def get_clip_space_coord(mypoint):
     scene = bpy.context.scene
@@ -301,6 +308,7 @@ def true_z_buffer(context, zValue):
 
     else:
         return zValue
+
 
 def check_visible(p1, p2, mat, item, depthbuffer, numIterations=0):
     context = bpy.context

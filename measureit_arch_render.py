@@ -35,6 +35,7 @@ from bpy.types import Panel, Operator
 from sys import exc_info
 from datetime import datetime
 
+from . import svg_shaders
 from .measureit_arch_geometry import set_OpenGL_Settings, draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_titleblock
 from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons
@@ -357,6 +358,8 @@ def render_main_svg(self, context):
     sceneProps = scene.MeasureItArchProps
     sceneProps.is_render_draw = True
     sceneProps.is_vector_draw = True
+
+    svg_shaders.clear_db()
 
     clipdepth = context.scene.camera.data.clip_end
     objlist = context.view_layer.objects

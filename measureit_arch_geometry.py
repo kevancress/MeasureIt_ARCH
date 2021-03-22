@@ -3401,7 +3401,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
 
     if sceneProps.vector_z_order and sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist)
-        print(objlist )
+        print(objlist)
 
     for idx, myobj in enumerate(objlist, start=1):
         if sceneProps.is_render_draw:
