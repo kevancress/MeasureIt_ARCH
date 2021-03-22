@@ -37,7 +37,7 @@ from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, re
 
 depthbuffer = None
 
-def svg_line_shader(item, coords, thickness, color, svg, parent=None,
+def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
                     dashed=False, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
     dash_id_name = idName = item.name + "_dashed_lines"
@@ -66,7 +66,7 @@ def svg_line_shader(item, coords, thickness, color, svg, parent=None,
         svg.add(dashed_lines)
 
 
-    draw_hidden = 'lineDrawHidden' in item and item.lineDrawHidden
+    draw_hidden = 'lineDrawHidden' in itemProps and itemProps.lineDrawHidden
 
     # Get Depth Buffer as list
     sceneProps = bpy.context.scene.MeasureItArchProps

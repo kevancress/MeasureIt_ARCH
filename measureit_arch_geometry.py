@@ -596,7 +596,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(
-                dim, coords, lineWeight, rgb, svg, parent=svg_dim)
+                dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
@@ -920,7 +920,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 if sceneProps.is_vector_draw:
                     svg_dim = svg.add(svg.g(id=dim.name))
                     svg_shaders.svg_line_shader(
-                        dim, coords, lineWeight, rgb, svg, parent=svg_dim)
+                        dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
                     svg_shaders.svg_fill_shader(
                         dim, filledCoords, rgb, svg, parent=svg_dim)
                     svg_shaders.svg_text_shader(
@@ -1209,7 +1209,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(
-                dim, coords, lineWeight, rgb, svg, parent=svg_dim)
+                dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
@@ -1344,7 +1344,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(
-                dim, coords, lineWeight, rgb, svg, parent=svg_dim)
+                dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
@@ -1617,9 +1617,9 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(
-                dim, coords, lineWeight, rgb, svg, parent=svg_dim)
+                dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_line_shader(
-                dim, measure_coords, lineWeight * 2, rgb, svg, parent=svg_dim)
+                dim, dimProps, measure_coords, lineWeight * 2, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
@@ -1763,7 +1763,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(
-                dim, perimeterCoords, lineWeight, rgb, svg, parent=svg_dim)
+                dim, dimProps, perimeterCoords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, fillRGB, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
@@ -2187,7 +2187,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 if lineProps.lineDrawDashed:
                     dashed = True
                 svg_shaders.svg_line_shader(
-                    lineGroup, coords, lineWeight, rgb, svg, mat=mat, dashed=dashed)
+                    lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat, dashed=dashed)
 
         set_OpenGL_Settings(False)
 
@@ -2483,10 +2483,10 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
             if sceneProps.is_vector_draw:
                 svg_anno = svg.add(svg.g(id=annotation.name))
                 svg_shaders.svg_line_shader(
-                    annotation, coords, lineWeight, rgb, svg, parent=svg_anno)
+                    annotation, annotationProps, coords, lineWeight, rgb, svg, parent=svg_anno)
                 if annotation.customShape is not None:
                     svg_shaders.svg_line_shader(
-                        annotation, customCoords, lineWeight, rgb, svg, parent=svg_anno)
+                        annotation, annotationProps, customCoords, lineWeight, rgb, svg, parent=svg_anno)
                     svg_shaders.svg_fill_shader(
                         annotation, customFilledCoords, rgb, svg, parent=svg_anno)
                 svg_shaders.svg_fill_shader(
