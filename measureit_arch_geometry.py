@@ -46,7 +46,7 @@ from .shaders import *
 from .measureit_arch_baseclass import recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit
 
 lastMode = {}
 lineBatch3D = {}
@@ -3396,6 +3396,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
+
     totalobjs = len(objlist)
 
     if sceneProps.vector_z_order and sceneProps.is_vector_draw:
@@ -3496,13 +3497,4 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
                             context, myobj, DimGen, axisDim, mat, svg=svg)
 
 
-class recursionlimit:
-    def __init__(self, limit):
-        self.limit = limit
-        self.old_limit = getrecursionlimit()
 
-    def __enter__(self):
-        setrecursionlimit(self.limit)
-
-    def __exit__(self, type, value, tb):
-        setrecursionlimit(self.old_limit)

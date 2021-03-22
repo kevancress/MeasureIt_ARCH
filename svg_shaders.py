@@ -31,13 +31,14 @@ import svgwrite
 
 from math import fabs, sqrt
 from mathutils import Vector, Matrix
+from sys import getrecursionlimit, setrecursionlimit
 
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist
-
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit
 
 def svg_line_shader(item, coords, thickness, color, svg, parent=None,
                     dashed=False, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
+    dash_id_name = idName = item.name + "_dashed_lines"
     svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
 
     cap = 'round'
@@ -51,22 +52,37 @@ def svg_line_shader(item, coords, thickness, color, svg, parent=None,
 
     lines = svg.g(id=idName, stroke=svgColor,
                   stroke_width=thickness, stroke_linecap=cap)
-    if dashed:
-        lines = svg.g(id=idName, stroke=svgColor, stroke_width=thickness,
-                      stroke_dasharray="5,5", stroke_linecap='butt')
+
+    dashed_lines = svg.g(id=dash_id_name, stroke=svgColor, stroke_width=thickness,
+                    stroke_dasharray="5,5", stroke_linecap='butt')
 
     if parent:
         parent.add(lines)
+        parent.add(dashed_lines)
     else:
         svg.add(lines)
+        svg.add(dashed_lines)
+
+
+    draw_hidden = 'lineDrawHidden' in item and item.lineDrawHidden
+
+    # Get Depth Buffer as list
+    sceneProps = bpy.context.scene.MeasureItArchProps
+    if 'depthbuffer' in sceneProps:
+        depthbuffer = sceneProps['depthbuffer'].to_list()
 
     for x in range(0, len(coords) - 1, 2):
-        vis, p1, p2 = check_visible(coords[x], coords[x + 1], mat, item)
-        if vis:
+        vis, p1, p2 = check_visible(coords[x], coords[x + 1], mat, item, depthbuffer)
+        if vis or draw_hidden:
             p1ss = get_render_location(mat @ Vector(p1))
             p2ss = get_render_location(mat @ Vector(p2))
             line = svg.line(start=tuple(p1ss), end=tuple(p2ss))
-            lines.add(line)
+            if vis and not dashed:
+                lines.add(line)
+            elif vis and dashed:
+                dashed_lines.add(line)
+            elif not vis and draw_hidden:
+                dashed_lines.add(line)
 
 
 def svg_fill_shader(item, coords, color, svg, parent=None):
@@ -241,7 +257,6 @@ def get_render_location(mypoint):
 
     return [(co_2d.x * width), height - (co_2d.y * height)]
 
-
 def get_clip_space_coord(mypoint):
     scene = bpy.context.scene
 
@@ -287,20 +302,20 @@ def true_z_buffer(context, zValue):
     else:
         return zValue
 
-
-def check_visible(p1, p2, mat, item, numIterations=0):
+def check_visible(p1, p2, mat, item, depthbuffer, numIterations=0):
     context = bpy.context
     scene = bpy.context.scene
     render = scene.render
 
-    if camera_cull([mat @ Vector(p1), mat @Vector(p2)]):
+    # Don't depth test if behind camera
+    if camera_cull([mat @ Vector(p1), mat @ Vector(p2)]):
         return False, p1, p2
 
-
+    # Don't Depth test if not enabled
     if not scene.MeasureItArchProps.vector_depthtest:
         return True, p1, p2
 
-    # print('Drawing: ' + item.name)
+    #Set Z-offset
     z_offset = 0.1
     if 'lineDepthOffset' in item:
         z_offset += item.lineDepthOffset / 10
@@ -308,10 +323,7 @@ def check_visible(p1, p2, mat, item, numIterations=0):
     p1Visible = True
     p2Visible = True
 
-    sceneProps = bpy.context.scene.MeasureItArchProps
-    if 'depthbuffer' in sceneProps:
-        depthbuffer = sceneProps['depthbuffer'].to_list()
-
+    #Get Render info
     render_scale = scene.render.resolution_percentage / 100
     width = int(render.resolution_x * render_scale)
     height = int(render.resolution_y * render_scale)
@@ -326,10 +338,11 @@ def check_visible(p1, p2, mat, item, numIterations=0):
     p1clip = get_clip_space_coord(mat @ Vector(p1))
     p2clip = get_clip_space_coord(mat @ Vector(p2))
 
-    # Get Buffer Index and depthbuffer value based on SS Point
+    # Get Depth buffer Pixel Index based on SS Point
     p1pxIdx = int(((width * round(p1ss[1])) + round(p1ss[0]) - 1) * 1)
     p2pxIdx = int(((width * round(p2ss[1])) + round(p2ss[0]) - 1) * 1)
 
+    # Get Depth Buffer Value buffer value
     try:
         p1depth = depthbuffer[p1pxIdx]
     except IndexError:
@@ -352,50 +365,39 @@ def check_visible(p1, p2, mat, item, numIterations=0):
     p2vecdepth = (p2clip[2]) - z_offset
 
     # Check Clip space point against depth buffer value
-    # print('')
-    # print('p1')
-    # print(p1clip)
-    # print(str(p1depth) + ' vs ' + str(p1vecdepth) + ' at Coords: ' + str(p1ss[0]) + "," + str(p1ss[1]) + 'Index: ' + str(p1pxIdx))
-    if p1depth > p1vecdepth:
-        p1Visible = True
-    else:
-        p1Visible = False
-        # print('p1 not visible')
+    p1Visible = p1depth > p1vecdepth
+    p2Visible =  p2depth > p2vecdepth
 
-    # print('')
-
-    # print('p2')
-    # print(p2clip)
-    # print(str(p2depth) + ' vs ' + str(p2vecdepth) + ' at Coords: ' + str(p2ss[0]) + "," + str(p2ss[1]) + 'Index: ' + str(p2pxIdx))
-    if p2depth > p2vecdepth:
-        p2Visible = True
-    else:
-        p2Visible = False
-        # print('p2 not visible')
-
+    #Both Visible
     if p1Visible and p2Visible:
         # print('vis test passed')
         return True, p1, p2
+
+    #Both Hidden
     elif not p1Visible and not p2Visible:
         # print('vis test failed')
         return False, p1, p2
+
+    # One Visible
     else:
         vis = False
-        maxIter = 100
+        maxIter = width*2
 
-        if p1Visible and not p2Visible:
-            pass
-        else:
+        # Consistent Order
+        if not p1Visible and p2Visible:
             temp = p1
             p1 = p2
             p2 = temp
 
-        if numIterations <= maxIter:
-            numIterations += 1
-            distVector = Vector(p1) - Vector(p2)
-            dist = distVector.length
-            p1 = Vector(p1)
-            p2 = Vector(p2)
-            p3 = interpolate3d(p1, p2, fabs(dist - (dist / maxIter) * numIterations))
-            vis, p1, p2 = check_visible(p1, p3, mat, item, numIterations=numIterations)
-        return vis, p1, p2
+        with recursionlimit(getrecursionlimit() + maxIter):
+            if numIterations < maxIter:
+                numIterations += 1
+                distVector = Vector(p1) - Vector(p2)
+                dist = distVector.length
+                p1 = Vector(p1)
+                p2 = Vector(p2)
+                p3 = interpolate3d(p1, p2, fabs(dist - (dist / maxIter) * numIterations))
+                vis, p1, p2 = check_visible(p1, p3, mat, item, depthbuffer, numIterations=numIterations)
+                if vis:
+                    return vis, p1, p2
+            return vis, p1, p2

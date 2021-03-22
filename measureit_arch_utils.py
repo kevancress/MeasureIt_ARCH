@@ -3,6 +3,7 @@ import bmesh
 
 from mathutils import Vector
 from addon_utils import check, paths
+from sys import getrecursionlimit, setrecursionlimit
 
 __all__ = (
     'get_view',
@@ -18,6 +19,18 @@ __all__ = (
 )
 
 
+class recursionlimit:
+    def __init__(self, limit):
+        self.limit = limit
+        self.old_limit = getrecursionlimit()
+
+    def __enter__(self):
+        setrecursionlimit(self.limit)
+
+    def __exit__(self, type, value, tb):
+        setrecursionlimit(self.old_limit)
+
+
 def get_view():
     scene = bpy.context.scene
     ViewGen = scene.ViewGenerator
@@ -31,6 +44,7 @@ def get_view():
     return view
 
 def get_camera_z_dist(location):
+    location = Vector(location)
     camera = bpy.context.scene.camera
     mat = camera.matrix_world
     camera_rot = mat.to_quaternion()
