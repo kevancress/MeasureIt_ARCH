@@ -376,6 +376,10 @@ def check_visible(p1, p2, mat, item, depthbuffer, numIterations=0):
     p1Visible = p1depth > p1vecdepth
     p2Visible =  p2depth > p2vecdepth
 
+    # Length in ss is ~number of pixels. use for num of visibility samples
+    ss_length_vec = p1ss-p2ss
+    ss_samples = clamp(1, math.ceil(ss_length_vec.length_squared), width*4)
+
     #Both Visible
     if p1Visible and p2Visible:
         # print('vis test passed')
@@ -389,7 +393,7 @@ def check_visible(p1, p2, mat, item, depthbuffer, numIterations=0):
     # One Visible
     else:
         vis = False
-        maxIter = width*2
+        maxIter = ss_samples
 
         # Consistent Order
         if not p1Visible and p2Visible:
@@ -409,3 +413,8 @@ def check_visible(p1, p2, mat, item, depthbuffer, numIterations=0):
                 if vis:
                     return vis, p1, p2
             return vis, p1, p2
+
+
+
+def clamp(minimum, x, maximum):
+    return max(minimum, min(x, maximum))
