@@ -443,12 +443,16 @@ def render_main_svg(self, context):
     if view.embed_scene_render:
         with local_attrs(scene, [
                 'render.image_settings.file_format',
-                'render.use_file_extension']):
+                'render.use_file_extension',
+                'render.filepath']):
+
+            image_path = get_view_outpath(
+                scene, view, "{:04d}.svg".format(scene.frame_current))
+            scene.render.filepath =  image_path
             scene.render.image_settings.file_format = 'PNG'
             scene.render.use_file_extension = True
             bpy.ops.render.render(write_still=True)
 
-            image_path = scene.render.filepath
             png_image_path = os.path.basename("{}.png".format(image_path))
             svg.add(svg.image(
                 png_image_path, **{

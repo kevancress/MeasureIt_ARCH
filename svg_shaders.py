@@ -221,6 +221,7 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
         font_family = shortName(tt)[0]
     except:
         font_family = "Open Sans"
+
     parent.add(svg.text(text, insert=tuple(text_position), fill=svgColor, **{
         'transform': 'rotate({} {} {})'.format(
             rotation,
