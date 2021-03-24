@@ -215,9 +215,12 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
     if view is not None:
         res = view.res
 
-    font_file = item.font.filepath
-    tt = ttLib.TTFont(font_file)
-    font_family = shortName(tt)[0]
+    try:
+        font_file = item.font.filepath
+        tt = ttLib.TTFont(font_file)
+        font_family = shortName(tt)[0]
+    except:
+        font_family = "Open Sans"
     parent.add(svg.text(text, insert=tuple(text_position), fill=svgColor, **{
         'transform': 'rotate({} {} {})'.format(
             rotation,
