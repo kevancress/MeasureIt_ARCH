@@ -28,6 +28,7 @@ import bpy
 import bpy_extras.object_utils as object_utils
 import math
 import svgwrite
+from fontTools import ttLib
 
 from math import fabs, sqrt
 from mathutils import Vector, Matrix
@@ -214,7 +215,9 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
     if view is not None:
         res = view.res
 
-    font_family = item.font.name
+    font_file = item.font.filepath
+    tt = ttLib.TTFont(font_file)
+    font_family = shortName(tt)[0]
     parent.add(svg.text(text, insert=tuple(text_position), fill=svgColor, **{
         'transform': 'rotate({} {} {})'.format(
             rotation,
@@ -226,7 +229,7 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
         # spec-ing svg units in inches and using this factor for text size is the only way to get
         # sensible imports in both inkscape and illustrator
         'font-size': round(item.fontSize * 4.166666667 / (300 / res), 2),
-        'font-family':  "Open Sans",
+        'font-family':  font_family,
         'text-anchor': text_anchor,
         'text-align': text_anchor
     }))
@@ -466,3 +469,22 @@ def get_bufffer_at_idx(idx):
         point_depth = 0
     return point_depth
 
+
+# From https://gist.github.com/pklaus/dce37521579513c574d0
+FONT_SPECIFIER_NAME_ID = 4
+FONT_SPECIFIER_FAMILY_ID = 1
+def shortName(font):
+    """Get the short name from the font's names table"""
+    name = ""
+    family = ""
+    for record in font['name'].names:
+        if b'\x00' in record.string:
+            name_str = record.string.decode('utf-16-be')
+        else:
+            name_str = record.string.decode('utf-8')
+        if record.nameID == FONT_SPECIFIER_NAME_ID and not name:
+            name = name_str
+        elif record.nameID == FONT_SPECIFIER_FAMILY_ID and not family:
+            family = name_str
+        if name and family: break
+    return name, family
