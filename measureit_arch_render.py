@@ -74,12 +74,15 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
                      icon='RENDER_ANIMATION', text="MeasureIt_ARCH Animation")
         col.operator("measureit_arch.rendervectorbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH Vector")
-        if sceneProps.enable_experimental:
-            col = layout.column()
-            col.prop(sceneProps, "vector_depthtest",
-                     text="Use Vector DepthTest")
-        col = layout.column()
 
+
+
+        if sceneProps.enable_experimental:
+            pass
+
+        col = layout.column()
+        col.prop(sceneProps, "vector_depthtest",
+                     text="Use Vector DepthTest")
         col.prop(sceneProps, "vector_z_order",)
         col.prop(sceneProps, "cull_faces",)
         col.prop(sceneProps, "cull_objs",)

@@ -214,6 +214,7 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
     if view is not None:
         res = view.res
 
+    font_family = item.font.name
     parent.add(svg.text(text, insert=tuple(text_position), fill=svgColor, **{
         'transform': 'rotate({} {} {})'.format(
             rotation,
@@ -225,7 +226,7 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
         # spec-ing svg units in inches and using this factor for text size is the only way to get
         # sensible imports in both inkscape and illustrator
         'font-size': round(item.fontSize * 4.166666667 / (300 / res), 2),
-        'font-family': 'Helvetica',
+        'font-family':  "Open Sans",
         'text-anchor': text_anchor,
         'text-align': text_anchor
     }))
