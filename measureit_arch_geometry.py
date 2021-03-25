@@ -600,7 +600,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
-                dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+                dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
 
     set_OpenGL_Settings(False)
 
@@ -924,7 +924,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                     svg_shaders.svg_fill_shader(
                         dim, filledCoords, rgb, svg, parent=svg_dim)
                     svg_shaders.svg_text_shader(
-                        dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+                        dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
 
             idx += 1
 
@@ -1213,7 +1213,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
-                dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+                dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
 
     # Reset openGL Settings
     set_OpenGL_Settings(False)
@@ -1348,7 +1348,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
-                dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+                dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
 
     # Reset openGL Settings
     set_OpenGL_Settings(False)
@@ -1626,7 +1626,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
                 dimProps, lengthText.text, len_origin, len_square, rgb, svg, parent=svg_dim)
             if dim.showRadius:
                 svg_shaders.svg_text_shader(
-                    dimProps, radiusText.text, rad_origin, rad_square, rgb, svg, parent=svg_dim)
+                    dim, dimProps, radiusText.text, rad_origin, rad_square, rgb, svg, parent=svg_dim)
 
     # Reset openGL Settings
     set_OpenGL_Settings(False)
@@ -1767,7 +1767,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, fillRGB, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
-                dimProps, dimText.text, origin, square, textRGB, svg, parent=svg_dim)
+                dim, dimProps, dimText.text, origin, square, textRGB, svg, parent=svg_dim)
 
     set_OpenGL_Settings(False)
 
@@ -2494,7 +2494,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                 for textField in fields:
                     textcard = textField['textcard']
                     svg_shaders.svg_text_shader(
-                        annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
+                        annotation, annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
 
         set_OpenGL_Settings(False)
 

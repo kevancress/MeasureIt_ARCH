@@ -143,7 +143,7 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
         patternfill.add(poly)
 
 
-def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
+def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
     # Card Indicies:
     #
@@ -180,19 +180,19 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
 
     text_position = (0, 0)
     text_anchor = 'start'
-    if item.textAlignment == 'L':
+    if style.textAlignment == 'L':
         text_position = leftVec
         text_anchor = 'start'
         # position_flip = rightVec
         anchor_flip = 'end'
 
-    if item.textAlignment == 'C':
+    if style.textAlignment == 'C':
         text_position = midVec
         text_anchor = 'middle'
         # position_flip = midVec
         anchor_flip = 'middle'
 
-    if item.textAlignment == 'R':
+    if style.textAlignment == 'R':
         text_position = rightVec
         text_anchor = 'end'
         # position_flip = leftVec
@@ -200,13 +200,15 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
 
     xvec = Vector((999, 1)).normalized() #again we need to make this slightly off axis to make rotation consistent for orthogonal views
     rotation = math.degrees(dirVec.angle_signed(xvec))
-    print("Rotation: {}".format(rotation))
-    if rotation > 90 and rotation < 180:
+    print("{} Rotation: {}".format(item.name, rotation))
+    badrot_1 = rotation < -90 and rotation > -180
+    badrot_2 = rotation > 90 and rotation < 180
+    if badrot_1 or badrot_2:
         rotation += 180
         # text_position = position_flip
         text_anchor = anchor_flip
         heightOffset = -heightOffset
-        print('did flip')
+        print('{} did flip'.format(item.name))
 
     #print(heightOffset)
     text_position += heightOffset
@@ -216,7 +218,7 @@ def svg_text_shader(item, text, mid, textCard, color, svg, parent=None):
         res = view.res
 
     try:
-        font_file = item.font.filepath
+        font_file = style.font.filepath
         tt = ttLib.TTFont(font_file)
         font_family = shortName(tt)[0]
     except:
