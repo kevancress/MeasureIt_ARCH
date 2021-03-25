@@ -42,16 +42,11 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
                     dashed=False, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
     dash_id_name = idName = item.name + "_dashed_lines"
-    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
-
-    cap = 'round'
-    try:
-        if item.pointPass:
-            cap = 'round'
-        else:
-            cap = 'butt'
-    except:
-        pass
+    svgColor = get_svg_color(color)
+    if "pointPass" in item and item.pointPass:
+        cap = 'round'
+    else:
+        cap = 'butt'
 
     lines = svg.g(id=idName, stroke=svgColor,
                   stroke_width=thickness, stroke_linecap=cap)
@@ -60,8 +55,22 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     else:
         svg.add(lines)
 
-    dashed_lines = svg.g(id=dash_id_name, stroke=svgColor, stroke_width=thickness,
-                    stroke_dasharray="5,5", stroke_linecap='butt')
+    draw_hidden = 'lineDrawHidden' in itemProps and itemProps.lineDrawHidden
+    dash_col = svgColor
+    dash_weight = thickness
+    if draw_hidden:
+        dash_col = get_svg_color(itemProps.lineHiddenColor)
+        dash_weight = itemProps.lineHiddenWeight
+
+    if "lineHiddenDashScale" in itemProps:
+        dash_size = itemProps.lineHiddenDashScale
+        dash_space = (itemProps.lineDashSpace *4) - 1
+        dash_val = "{},{}".format(dash_size, dash_size*dash_space)
+    else:
+        dash_val = "5,5"
+
+    dashed_lines = svg.g(id=dash_id_name, stroke=dash_col, stroke_width=dash_weight,
+                    stroke_dasharray=dash_val, stroke_linecap='butt')
 
     if parent:
         parent.add(dashed_lines)
@@ -69,7 +78,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         svg.add(dashed_lines)
 
 
-    draw_hidden = 'lineDrawHidden' in itemProps and itemProps.lineDrawHidden
+
 
     # Get Depth Buffer as list
     sceneProps = bpy.context.scene.MeasureItArchProps
@@ -234,7 +243,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
         # I wish i could tell you why this fudge factor is necessary, but for some reason
         # spec-ing svg units in inches and using this factor for text size is the only way to get
         # sensible imports in both inkscape and illustrator
-        'font-size': round(item.fontSize * 4.166666667 / (300 / res), 2),
+        'font-size': round(style.fontSize * 4.166666667 / (300 / res), 2),
         'font-family':  font_family,
         'text-anchor': text_anchor,
         'text-align': text_anchor
@@ -358,16 +367,6 @@ def depth_test(p1, p2, mat, item, depthbuffer, numIterations=0):
     p1vis = check_visible(item, p1Local)
     p2vis = check_visible(item, p2Local)
 
-    #Sanity check
-    #if p1vis and p2vis:
-    #    line_segs = [[True,p1,p2]]
-    #    return line_segs
-
-    #elif not p1vis and not p2vis:
-    #    line_segs = [[False,p1,p2]]
-    #    return line_segs
-
-
     last_vis_state = check_visible(item, p1Local)
     line_segs = []
     last_p_check = p1
@@ -471,7 +470,7 @@ def get_bufffer_at_idx(idx):
     try:
         point_depth = depthbuffer[idx]
     except IndexError:
-        print('Index not in Depth Buffer:{}'.format(idx))
+        #print('Index not in Depth Buffer:{}'.format(idx))
         point_depth = 0
     return point_depth
 
@@ -494,3 +493,7 @@ def shortName(font):
             family = name_str
         if name and family: break
     return name, family
+
+
+def get_svg_color(color):
+    return svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
