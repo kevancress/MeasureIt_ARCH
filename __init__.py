@@ -26,7 +26,7 @@ import os
 import site
 import bpy
 
-from bpy.types import WindowManager, Scene, Object
+from bpy.types import WindowManager, Scene, Object, Material
 
 # ----------------------------------------------
 # Define Addon info
@@ -55,6 +55,7 @@ if "measureit_arch_main" in locals():
     importlib.reload(measureit_arch_dimensions)
     importlib.reload(measureit_arch_gizmos)
     importlib.reload(measureit_arch_hatches)
+    importlib.reload(measureit_arch_material_hatches)
     importlib.reload(measureit_arch_lines)
     importlib.reload(measureit_arch_main)
     importlib.reload(measureit_arch_render)
@@ -69,6 +70,7 @@ else:
     from . import measureit_arch_dimensions
     from . import measureit_arch_gizmos
     from . import measureit_arch_hatches
+    from . import measureit_arch_material_hatches
     from . import measureit_arch_lines
     from . import measureit_arch_main
     from . import measureit_arch_render
@@ -134,6 +136,9 @@ classes = (
     measureit_arch_hatches.HatchContainer,
     measureit_arch_hatches.DeleteHatchButton,
     measureit_arch_hatches.AddHatchButton,
+    measureit_arch_material_hatches.MATERIAL_PT_UIHatch,
+    measureit_arch_material_hatches.AddMaterialHatchButton,
+    measureit_arch_material_hatches.DeleteMaterialHatchButton,
 
     # Lines
     measureit_arch_lines.OBJECT_PT_UILines,
@@ -239,6 +244,8 @@ def register():
         type=measureit_arch_lines.LineContainer)
     Object.AnnotationGenerator = bpy.props.PointerProperty(
         type=measureit_arch_annotations.AnnotationContainer)
+    Material.HatchGenerator = bpy.props.PointerProperty(
+        type=measureit_arch_hatches.HatchContainer)
 
     # Property on the WM that indicates if we want to draw the measurements in the viewport
     WindowManager.measureit_arch_run_opengl = bpy.props.BoolProperty(default=False)
