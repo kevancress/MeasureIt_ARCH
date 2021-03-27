@@ -54,7 +54,6 @@ if "measureit_arch_main" in locals():
     importlib.reload(measureit_arch_annotations)
     importlib.reload(measureit_arch_dimensions)
     importlib.reload(measureit_arch_gizmos)
-    importlib.reload(measureit_arch_hatches)
     importlib.reload(measureit_arch_material_hatches)
     importlib.reload(measureit_arch_lines)
     importlib.reload(measureit_arch_main)
@@ -69,7 +68,6 @@ else:
     from . import measureit_arch_annotations
     from . import measureit_arch_dimensions
     from . import measureit_arch_gizmos
-    from . import measureit_arch_hatches
     from . import measureit_arch_material_hatches
     from . import measureit_arch_lines
     from . import measureit_arch_main
@@ -132,11 +130,8 @@ classes = (
     measureit_arch_gizmos.mArchGizmoGroup,
 
     # Hatches
-    measureit_arch_hatches.HatchProperties,
-    measureit_arch_hatches.HatchContainer,
-    measureit_arch_hatches.DeleteHatchButton,
-    measureit_arch_hatches.AddHatchButton,
     measureit_arch_material_hatches.MATERIAL_PT_UIHatch,
+    measureit_arch_material_hatches.HatchProperties,
 
     # Lines
     measureit_arch_lines.OBJECT_PT_UILines,
@@ -198,8 +193,6 @@ classes = (
     measureit_arch_styles.SCENE_PT_UIStyles,
     measureit_arch_styles.M_ARCH_UL_styles_list,
     measureit_arch_styles.SCENE_MT_styles_menu,
-    measureit_arch_hatches.SCENE_PT_Hatches,
-    measureit_arch_hatches.M_ARCH_UL_Hatches_list,
     measureit_arch_schedules.SCENE_PT_Schedules,
     measureit_arch_schedules.M_ARCH_UL_Schedules_list,
     measureit_arch_schedules.SCENE_MT_Schedules_menu,
@@ -224,8 +217,6 @@ def register():
     # Register pointer properties
     Scene.MeasureItArchProps = bpy.props.PointerProperty(
         type=measureit_arch_baseclass.MeasureItARCHSceneProps)
-    Scene.HatchGenerator = bpy.props.PointerProperty(
-        type=measureit_arch_hatches.HatchContainer)
     Scene.ScheduleGenerator = bpy.props.PointerProperty(
         type=measureit_arch_schedules.ScheduleContainer)
     Scene.StyleGenerator = bpy.props.PointerProperty(
@@ -243,7 +234,7 @@ def register():
     Object.AnnotationGenerator = bpy.props.PointerProperty(
         type=measureit_arch_annotations.AnnotationContainer)
     Material.Hatch = bpy.props.PointerProperty(
-        type=measureit_arch_hatches.HatchProperties)
+        type=measureit_arch_material_hatches.HatchProperties)
 
     # Property on the WM that indicates if we want to draw the measurements in the viewport
     WindowManager.measureit_arch_run_opengl = bpy.props.BoolProperty(default=False)

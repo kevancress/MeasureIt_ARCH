@@ -310,116 +310,6 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
     gpu.shader.unbind()
 
 
-def draw_hatches(context, myobj, hatchGen, mat, svg=None):
-    if svg == None:
-        return
-
-    svg_obj = svg.add(svg.g(id=myobj.name))
-
-    if myobj.visible_get() and not myobj.hide_render:
-        mat = myobj.matrix_world
-        mesh = myobj.data
-
-        # polys = mesh.polygons
-
-        bm = bmesh.new()
-        if myobj.mode == 'OBJECT':
-            bm.from_object(myobj, bpy.context.view_layer.depsgraph, deform=True)
-        else:
-            bm = bmesh.from_edit_mesh(mesh)
-
-        bm.edges.ensure_lookup_table()
-        bm.faces.ensure_lookup_table()
-        faces = bm.faces
-        # verts = bm.verts
-
-        faces = z_order_faces(faces, myobj)
-
-        matSlots = myobj.material_slots
-        objMaterials = []
-        hatchMaterials = []
-        hatchDict = {}
-
-        for hatch in hatchGen.hatches:
-            hatchMaterials.append(hatch.material)
-            if hatch.pattern is not None:
-                name = hatch.name + '_' + hatch.pattern.name
-                objs = hatch.pattern.objects
-                weight = hatch.patternWeight
-                size = hatch.patternSize
-                color = hatch.line_color
-                rotation = math.degrees(hatch.patternRot)
-                pattern = svgwrite.pattern.Pattern(width=size, height=size, id=name, patternUnits="userSpaceOnUse", **{
-                    'patternTransform': 'rotate({} {} {})'.format(
-                        rotation, 0, 0
-                    )})
-                svg_shaders.svg_line_pattern_shader(
-                    pattern, svg, objs, weight, color, size)
-                svg.defs.add(pattern)
-
-        for slot in matSlots:
-            objMaterials.append(slot.material)
-
-        for face in faces:
-            matIdx = face.material_index
-            try:
-                faceMat = objMaterials[matIdx]
-            except:
-                faceMat = None
-
-            if faceMat in hatchMaterials:
-                idx = hatchMaterials.index(faceMat)
-                hatch = hatchGen.hatches[idx]
-
-                fillRGB = rgb_gamma_correct(hatch.fill_color)
-                lineRGB = rgb_gamma_correct(hatch.line_color)
-                weight = hatch.lineWeight
-                if hatch.name not in hatchDict:
-                    hatchDict[hatch.name] = {}
-                if "faces" not in hatchDict[hatch.name]:
-                    hatchDict[hatch.name]["faces"] = []
-                hatchDict[hatch.name]["fill_color"] = fillRGB
-                hatchDict[hatch.name]["line_color"] = lineRGB
-                hatchDict[hatch.name]["weight"] = weight
-                hatchDict[hatch.name]["hatch"] = hatch
-                fillURL = ''
-                if hatch.pattern is not None:
-                    fillURL = 'url(#' + hatch.name + '_' + \
-                        hatch.pattern.name + ')'
-                    hatchDict[hatch.name]["pattern"] = fillURL
-                else:
-                    hatchDict[hatch.name]["pattern"] = ''
-
-                hatchDict[hatch.name]["faces"].append(face)
-                coords = []
-                svg_hatch = svg_obj.add(svg.g(id=hatch.name))
-                for vert in face.verts:
-                    coords.append(mat @ vert.co)
-                svg_shaders.svg_poly_fill_shader(
-                    hatch, coords, fillRGB, svg, parent=svg_hatch,
-                    line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
-        # for key in hatchDict:
-        #     hatch = hatchDict[key]["hatch"]
-        #     svg_hatch = svg_obj.add(svg.g(id=hatch.name))
-        #     polys = hatchDict[key]["faces"]
-        #     if True:
-        #         polys = z_order_faces(polys, myobj)
-        #     fillRGB = hatchDict[key]["fill_color"]
-        #     lineRGB = hatchDict[key]["line_color"]
-        #     weight = hatchDict[key]["weight"]
-        #     if hatchDict[key]["pattern"] != "":
-        #         fillURL = hatchDict[key]["pattern"]
-        #     else:
-        #         fillURL = ''
-        #     if hatch.visible:
-        #         for poly in polys:
-        #             coords = []
-        #             for vert in poly.verts:
-        #                 #vert = loop.vert
-        #                 coords.append(mat @ vert.co)
-        #             svg_shaders.svg_poly_fill_shader(
-        #                 hatch, coords, fillRGB, svg, parent=svg_hatch, line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
-
 def draw_material_hatches(context, myobj, mat, svg=None):
     if svg == None:
         return
@@ -3505,7 +3395,6 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
                     mat = extMat
 
             if sceneProps.is_vector_draw and myobj.type == 'MESH':
-                #draw_hatches(context, myobj, scene.HatchGenerator, mat, svg=svg)
                 draw_material_hatches(context, myobj, mat, svg=svg)
 
             sheetGen = myobj.SheetGenerator

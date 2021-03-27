@@ -9,8 +9,74 @@ from bpy.props import (
     PointerProperty)
 
 from bpy.types import PropertyGroup, Panel, Operator, UIList, Collection
-from .measureit_arch_hatches import HatchProperties
 
+
+class HatchProperties(PropertyGroup):
+
+    visible: BoolProperty(
+        name="Visibility",
+        description="how/hide",
+        default=False)
+
+    pattern: PointerProperty(name='Hatch Pattern', type=Collection)
+
+    patternWeight: FloatProperty(
+        name="Pattern Weight",
+        description="Lineweight",
+        default=1,
+        soft_min=1.0,
+        step=25,
+        min=0)
+
+    patternSize: FloatProperty(
+        name="Pattern Size",
+        description="Lineweight",
+        default=1,
+        soft_min=1.0,
+        step=25,
+        min=0)
+
+    patternRot: FloatProperty(
+        name="Pattern Rotation",
+        description="Rotation",
+        default=0,
+        soft_min=0,
+        step=25,
+        subtype='ANGLE')
+
+    patternOpacity: FloatProperty(
+        name="Pattern Opacity",
+        description="Pattern Opacity",
+        default=1.0,
+        min=0.0,
+        max=1.0,
+        step=1,)
+
+    fill_color: FloatVectorProperty(
+        name="Color",
+        description="Color for the Item",
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4,)
+
+    line_color: FloatVectorProperty(
+        name="Color",
+        description="Color for the Item",
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4,)
+
+    lineWeight: FloatProperty(
+        name="Line Weight",
+        description="Lineweight",
+        default=1,
+        soft_min=1.0,
+        step=25,
+        min=0)
 
 class MATERIAL_PT_UIHatch(Panel):
     """ A Panel in the Material properties window """
@@ -35,8 +101,6 @@ class MATERIAL_PT_UIHatch(Panel):
         hatch = context.material.Hatch
         main_col = layout.column()
         col = main_col.column()
-
-
 
         main_col.enabled = hatch.visible
         col = main_col.column()
