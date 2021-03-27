@@ -364,7 +364,7 @@ def draw_material_hatches(context, myobj, mat, svg=None):
             try:
                 faceMat = objMaterials[matIdx]
             except:
-                faceMat = None
+                continue
 
             if faceMat.Hatch.visible :
                 hatch = faceMat.Hatch
@@ -3295,6 +3295,7 @@ def get_resolution():
 
 def z_order_objs(obj_list):
     ordered_obj_list = []
+    to_sort = []
 
     for obj in obj_list:
         obj_dist = get_camera_z_dist(obj.location)
@@ -3303,67 +3304,42 @@ def z_order_objs(obj_list):
         if obj_dist < 0 and bpy.context.scene.MeasureItArchProps.cull_objs:
             continue
 
-        print("{} is {} away from Camera".format(obj.name, obj_dist))
-        idx = sort_camera_z(obj, obj_dist, ordered_obj_list)
-        ordered_obj_list.insert(idx, obj)
+        to_sort.append(Dist_Sort(obj, obj_dist))
 
+    to_sort.sort()
+    ordered_obj_list = [item.item for item in to_sort]
     return ordered_obj_list
-
-
-def sort_camera_z(obj, obj_dist, ordered_list, idx=0):
-    #Check if comparison index exists
-    try:
-        check_z = get_camera_z_dist(ordered_list[idx].location)
-    except IndexError:
-        return idx
-
-    # If current Obj z dist is < then the comparitor
-    # check the next Idx
-    if obj_dist < check_z:
-        idx += 1
-        idx = sort_camera_z(obj, obj_dist, ordered_list, idx=idx)
-
-    # Otherwise return the current idx
-    return idx
 
 
 
 def z_order_faces(face_list, obj):
     ordered_face_list = []
+    to_sort = []
 
-    with recursionlimit(getrecursionlimit() + len(face_list) * len(face_list)):
-        for face in face_list:
-            face_dist = get_camera_z_dist(obj.matrix_world @ face.calc_center_median())
+    for face in face_list:
+        face_dist = get_camera_z_dist(obj.matrix_world @ face.calc_center_median())
 
-            # If the face is behind the camera, and we're culling faces Ignore it
-            if face_dist < 0 and bpy.context.scene.MeasureItArchProps.cull_faces:
-                continue
+        # If the face is behind the camera, and we're culling faces Ignore it
+        if face_dist < 0 and bpy.context.scene.MeasureItArchProps.cull_faces:
+            continue
 
-            idx = sort_camera_z_faces(face, face_dist, ordered_face_list, obj)
-            ordered_face_list.insert(idx, face)
+        to_sort.append(Dist_Sort(face, face_dist))
+
+    to_sort.sort()
+    ordered_face_list = [item.item for item in to_sort]
 
     return ordered_face_list
 
+class Dist_Sort(object):
+    item = None
+    dist = 0
 
-def sort_camera_z_faces(face, face_dist, ordered_list, obj, idx=0):
-    #Check if comparison index exists
-    try:
-        check_z = get_camera_z_dist(
-            obj.matrix_world @ ordered_list[idx].calc_center_median())
-    except IndexError:
-        return idx
+    def __init__(self, item, dist):
+        self.item = item
+        self.dist = dist
 
-    # If current face z dist is < then the comparitor
-    # check the next Idx
-    if face_dist < check_z:
-        idx += 1
-        idx = sort_camera_z_faces(face, face_dist, ordered_list, obj, idx=idx)
-
-    # Otherwise return the current idx
-    return idx
-
-
-
+    def __lt__(self, other):
+        return self.dist > other.dist
 
 
 def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
