@@ -15,7 +15,7 @@ class HatchProperties(PropertyGroup):
     visible: BoolProperty(
         name="Visibility",
         description="how/hide",
-        default=True)
+        default=False)
 
     material: PointerProperty(type=bpy.types.Material)
 

@@ -137,8 +137,6 @@ classes = (
     measureit_arch_hatches.DeleteHatchButton,
     measureit_arch_hatches.AddHatchButton,
     measureit_arch_material_hatches.MATERIAL_PT_UIHatch,
-    measureit_arch_material_hatches.AddMaterialHatchButton,
-    measureit_arch_material_hatches.DeleteMaterialHatchButton,
 
     # Lines
     measureit_arch_lines.OBJECT_PT_UILines,
@@ -244,8 +242,8 @@ def register():
         type=measureit_arch_lines.LineContainer)
     Object.AnnotationGenerator = bpy.props.PointerProperty(
         type=measureit_arch_annotations.AnnotationContainer)
-    Material.HatchGenerator = bpy.props.PointerProperty(
-        type=measureit_arch_hatches.HatchContainer)
+    Material.Hatch = bpy.props.PointerProperty(
+        type=measureit_arch_hatches.HatchProperties)
 
     # Property on the WM that indicates if we want to draw the measurements in the viewport
     WindowManager.measureit_arch_run_opengl = bpy.props.BoolProperty(default=False)
