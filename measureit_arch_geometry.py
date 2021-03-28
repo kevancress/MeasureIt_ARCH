@@ -371,23 +371,11 @@ def draw_material_hatches(context, myobj, mat, svg=None):
                 fillRGB = rgb_gamma_correct(hatch.fill_color)
                 lineRGB = rgb_gamma_correct(hatch.line_color)
                 weight = hatch.lineWeight
-                if hatch.name not in hatchDict:
-                    hatchDict[hatch.name] = {}
-                if "faces" not in hatchDict[hatch.name]:
-                    hatchDict[hatch.name]["faces"] = []
-                hatchDict[hatch.name]["fill_color"] = fillRGB
-                hatchDict[hatch.name]["line_color"] = lineRGB
-                hatchDict[hatch.name]["weight"] = weight
-                hatchDict[hatch.name]["hatch"] = hatch
                 fillURL = ''
                 if hatch.pattern is not None:
                     fillURL = 'url(#' + hatch.name + '_' + \
                         hatch.pattern.name + ')'
-                    hatchDict[hatch.name]["pattern"] = fillURL
-                else:
-                    hatchDict[hatch.name]["pattern"] = ''
 
-                hatchDict[hatch.name]["faces"].append(face)
                 coords = []
                 svg_hatch = svg_obj.add(svg.g(id=hatch.name))
                 for vert in face.verts:
@@ -3329,6 +3317,7 @@ def z_order_faces(face_list, obj):
     ordered_face_list = [item.item for item in to_sort]
 
     return ordered_face_list
+
 
 class Dist_Sort(object):
     item = None

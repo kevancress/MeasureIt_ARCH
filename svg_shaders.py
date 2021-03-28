@@ -87,7 +87,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         depthbuffer = sceneProps['depthbuffer'].to_list()
 
     for x in range(0, len(coords) - 1, 2):
-        line_segs = depth_test(coords[x], coords[x + 1], mat, item, depthbuffer)
+        line_segs = depth_test(coords[x], coords[x + 1], mat, itemProps, depthbuffer)
         for line in line_segs:
             vis = line[0]
             p1 = line[1]
@@ -134,8 +134,9 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     fillOpacity = color[3]
     lineColor = svgwrite.rgb(
         line_color[0] * 100, line_color[1] * 100, line_color[2] * 100, '%')
-    solidfill = svg.g(id=idName, fill=fill, opacity=fillOpacity,
-                      stroke=lineColor, stroke_width=lineWeight)
+    lineOpacity = lineColor[3]
+    solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
+                      stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round")
     parent.add(solidfill)
 
     for coord in coords:
@@ -146,8 +147,8 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
 
     if fillURL != '':
         fill = fillURL
-        patternfill = svg.g(id=idName, fill=fill, opacity=item.patternOpacity,
-                            stroke=lineColor, stroke_width=lineWeight)
+        patternfill = svg.g(id=idName, fill=fill, fill_opacity=item.patternOpacity,
+                            stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round")
         parent.add(patternfill)
         patternfill.add(poly)
 
@@ -228,7 +229,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
     try:
         font_file = style.font.filepath
-        tt = ttLib.TTFont(font_file)
+        tt = ttLib.TTFont(font_file, verbose=1)
         font_family = shortName(tt)[0]
     except:
         font_family = "Open Sans"
