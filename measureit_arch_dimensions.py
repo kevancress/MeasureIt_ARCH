@@ -1133,6 +1133,7 @@ def draw_alignedDimensions_settings(dim, layout):
 
         col = layout.column(align=True)
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
+        col.prop(dim, 'textAlignment', text='Alignment')
 
 
 def draw_boundsDimensions_settings(dim, layout):
@@ -1199,7 +1200,7 @@ def draw_axisDimensions_settings(dim, layout):
                         unlink="font.unlink", text='Font')
         col = layout.column(align=True)
         col.prop(dim, 'fontSize', text='Font Size')
-        col.prop(dim, 'textAlignment', text='Alignment')
+
 
         # Line Weight
         col = layout.column(align=True)
@@ -1246,6 +1247,7 @@ def draw_axisDimensions_settings(dim, layout):
         col = layout.column(align=True)
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
         col.prop(dim, 'use_custom_text',)
+        col.prop(dim, 'textAlignment', text='Alignment')
 
 
 def draw_angleDimensions_settings(dim, layout):

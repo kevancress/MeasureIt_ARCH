@@ -3205,33 +3205,34 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     dimLineExtension = 0  # add some extension to the line if the dimension is ext
     normDistVector = distVec.normalized()
     dimText = dim.textFields[0]
+    dim.fontSize = dimProps.fontSize
 
-    if dimProps.textAlignment == 'L':
-        dimProps.textPosition = 'M'
+    if dim.textAlignment == 'L':
+        dim.textPosition = 'M'
         flipCaps = True
         dimLineExtension = dim_line_extension(capSize)
         origin += Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
-    elif dimProps.textAlignment == 'R':
+    elif dim.textAlignment == 'R':
         flipCaps = True
-        dimProps.textPosition = 'M'
+        dim.textPosition = 'M'
         dimLineExtension = dim_line_extension(capSize)
         origin -= Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     square = generate_text_card(
-        context, dimText, dimProps, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
+        context, dimText, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
 
     cardX = square[3] - square[0]
     cardY = square[1] - square[0]
 
     # Flip if smaller than distance
     if (cardX.length) > dist and sceneProps.use_text_autoplacement:
-        if dimProps.textAlignment == 'C':
+        if dim.textAlignment == 'C':
             flipCaps = True
             dimLineExtension = dim_line_extension(capSize)
             origin += distVec * -0.5 - (dimLineExtension * normDistVector) - cardX / 2 - cardY / 2
             square = generate_text_card(
-                context, dimText, dimProps, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
+                context, dimText, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
 
     return (square, flipCaps, dimLineExtension, origin)
 

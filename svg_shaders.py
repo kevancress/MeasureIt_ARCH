@@ -122,7 +122,7 @@ def svg_fill_shader(item, coords, color, svg, parent=None):
         fills.add(tri)
 
 
-def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0), lineWeight=0, fillURL=''):
+def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL=''):
     if camera_cull(coords):
         return
 
@@ -302,9 +302,11 @@ def get_clip_space_coord(mypoint):
     return co_clip
 
 def camera_cull(points):
+    camera = bpy.context.scene.camera.data
     should_cull = []
     for point in points:
-        if get_camera_z_dist(point) < 0:
+        dist = get_camera_z_dist(point)
+        if dist < camera.clip_start or dist > camera.clip_end:
             should_cull.append(True)
         else:
             should_cull.append(False)
