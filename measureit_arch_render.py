@@ -29,6 +29,7 @@ import gpu
 import os
 import svgwrite
 import xml.etree.ElementTree as ET
+import time
 
 from addon_utils import check, paths
 from bpy.types import Panel, Operator
@@ -357,6 +358,7 @@ def draw_scene(self, context, projection_matrix):
 
 
 def render_main_svg(self, context):
+    startTime = time.time()
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     sceneProps.is_render_draw = True
@@ -507,6 +509,10 @@ def render_main_svg(self, context):
     # restore default value
     sceneProps.is_render_draw = False
     sceneProps.is_vector_draw = False
+
+    endTime = time.time()
+    print("Time: " + str(endTime - startTime))
+
     return outpath
 
 

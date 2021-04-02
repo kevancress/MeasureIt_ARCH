@@ -240,26 +240,26 @@ class AddDynamicLineButton(Operator):
             # Add properties
             scene = context.scene
             sceneProps = scene.MeasureItArchProps
-            mainobject = context.object
 
-            lineGen = mainobject.LineGenerator
-            lGroup = lineGen.line_groups.add()
+            for obj in context.selected_objects:
+                lineGen = obj.LineGenerator
+                lGroup = lineGen.line_groups.add()
 
-            # Set values
-            lGroup.itemType = 'L'
-            lGroup.style = sceneProps.default_line_style
-            if sceneProps.default_line_style != '':
-                lGroup.uses_style = True
-            else:
-                lGroup.uses_style = False
-            lGroup.lineWeight = 1
-            lGroup.lineColor = sceneProps.default_color
-            lGroup.name = 'Line ' + str(len(lineGen.line_groups))
+                # Set values
+                lGroup.itemType = 'L'
+                lGroup.style = sceneProps.default_line_style
+                if sceneProps.default_line_style != '':
+                    lGroup.uses_style = True
+                else:
+                    lGroup.uses_style = False
+                lGroup.lineWeight = 1
+                lGroup.lineColor = sceneProps.default_color
+                lGroup.name = 'Line ' + str(len(lineGen.line_groups))
 
-            lGroup.useDynamicCrease = True
+                lGroup.useDynamicCrease = True
 
-            # redraw
-            context.area.tag_redraw()
+                # redraw
+                context.area.tag_redraw()
             return {'FINISHED'}
         else:
             self.report({'WARNING'},

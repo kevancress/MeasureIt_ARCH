@@ -360,7 +360,6 @@ def add_line_group_style(context, name='', line_weight=1, line_depth_offset=1):
     new_style.itemType = 'line_groups'
     new_style.name = name
     new_style.lineWeight = line_weight
-    new_style.lineDepthOffset = line_depth_offset
     new_style.is_style = True
 
     new_wrapper = wrapper.add()

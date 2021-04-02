@@ -338,12 +338,12 @@ def true_z_buffer(context, zValue):
         return zValue
 
 
-def depth_test(p1, p2, mat, item, depthbuffer, numIterations=0):
+def depth_test(p1, p2, mat, item, depthbuffer):
     context = bpy.context
     scene = bpy.context.scene
     render = scene.render
 
-    # Don't depth test if behind camera
+    # Don't depth test if out of culling
     if camera_cull([mat @ Vector(p1), mat @ Vector(p2)]):
         return [[False, p1, p2]]
 
@@ -365,7 +365,7 @@ def depth_test(p1, p2, mat, item, depthbuffer, numIterations=0):
 
     # Length in ss is ~number of pixels. use for num of visibility samples
     ss_length_vec = p1ss-p2ss
-    ss_samples = clamp(1, math.ceil(ss_length_vec.length), width)
+    ss_samples = clamp(1, math.ceil(ss_length_vec.length/2), width)
 
     p1vis = check_visible(item, p1Local)
     p2vis = check_visible(item, p2Local)
@@ -376,9 +376,10 @@ def depth_test(p1, p2, mat, item, depthbuffer, numIterations=0):
     seg_start = p1
     distVector = Vector(p1) - Vector(p2)
     dist = distVector.length
+    iter_dist = fabs((dist / ss_samples))
 
     for i in range(1,ss_samples):
-        p_check = interpolate3d(Vector(p1), Vector(p2), fabs((dist / ss_samples) * i))
+        p_check = interpolate3d(Vector(p1), Vector(p2), iter_dist * i)
         p_check_vis = check_visible(item, mat @ Vector(p_check))
 
         line = [last_vis_state, seg_start, p_check]
