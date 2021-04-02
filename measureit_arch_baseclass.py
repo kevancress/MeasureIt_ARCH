@@ -540,6 +540,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="Hide TitleBlock",
         default=False,)
 
+    hide_linework: BoolProperty(
+        name="Hide Linework",
+        description="Hide Linework",
+        default=False,)
+
     cull_faces: BoolProperty(
         name="Cull Faces",
         description="Cull Faces Behind the Camera in Vector Renders",

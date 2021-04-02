@@ -2537,6 +2537,10 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
     # get props
 
     sceneProps = context.scene.MeasureItArchProps
+
+    if sceneProps.is_vector_draw:
+        return
+
     card[0] = Vector(card[0])
     card[1] = Vector(card[1])
     card[2] = Vector(card[2])
@@ -3370,7 +3374,8 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
 
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator
-                draw_line_group(context, myobj, lineGen, mat, svg=svg)
+                if not sceneProps.hide_linework or sceneProps.is_render_draw:
+                    draw_line_group(context, myobj, lineGen, mat, svg=svg)
 
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator
