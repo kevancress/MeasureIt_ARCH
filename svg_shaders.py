@@ -374,13 +374,14 @@ def depth_test(p1, p2, mat, item, depthbuffer, numIterations=0):
     line_segs = []
     last_p_check = p1
     seg_start = p1
+    distVector = Vector(p1) - Vector(p2)
+    dist = distVector.length
+
     for i in range(1,ss_samples):
-        distVector = Vector(p1) - Vector(p2)
-        dist = distVector.length
         p_check = interpolate3d(Vector(p1), Vector(p2), fabs((dist / ss_samples) * i))
         p_check_vis = check_visible(item, mat @ Vector(p_check))
 
-        line = [last_vis_state,seg_start,p_check]
+        line = [last_vis_state, seg_start, p_check]
 
         if last_vis_state is not p_check_vis:
             line_segs.append(line)
@@ -389,7 +390,7 @@ def depth_test(p1, p2, mat, item, depthbuffer, numIterations=0):
 
         last_p_check = p_check
 
-    line_segs.append([last_vis_state, seg_start ,p2])
+    line_segs.append([last_vis_state, seg_start , p2])
 
     return line_segs
 
