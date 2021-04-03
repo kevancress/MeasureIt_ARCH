@@ -377,18 +377,16 @@ def render_main_svg(self, context):
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
 
-    offscreen = gpu.types.GPUOffScreen(width, height)
 
     view_matrix_3d = scene.camera.matrix_world.inverted()
-
-
     # Render Depth Buffer
     print("Rendering Depth Buffer")
     if sceneProps.vector_depthtest:
-        projection_matrix = scene.camera.calc_matrix_camera(
-            context.view_layer.depsgraph, x=width, y=height)
+        offscreen = gpu.types.GPUOffScreen(width, height)
         with offscreen.bind():
             # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
+            deps = context.evaluated_depsgraph_get()
+            projection_matrix = scene.camera.calc_matrix_camera(deps, x=width, y=height)
             set_OpenGL_Settings(True)
             bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
             bgl.glClearDepth(clipdepth)
@@ -410,7 +408,6 @@ def render_main_svg(self, context):
             if 'depthbuffer' in sceneProps:
                 del sceneProps['depthbuffer']
             sceneProps['depthbuffer'] = texture_buffer
-        offscreen.free()
         set_OpenGL_Settings(False)
 
         # imageName = 'depthBufferTest'

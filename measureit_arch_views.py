@@ -450,8 +450,9 @@ class BatchViewRender(Operator):
                     print("MeasureIt_ARCH: Rendering View: " + view.name)
                     render_main_svg(self, context)
 
-                self._updating = False
                 self.idx += 1
+                self._updating = False
+
 
             else:
                 self.cancel(context)

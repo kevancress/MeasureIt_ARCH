@@ -707,7 +707,10 @@ class CursorToArcOrigin(Operator):
             return False
         else:
             dimGen = myobj.DimensionGenerator
-            activeWrapperItem = dimGen.wrapper[dimGen.active_index]
+            try:
+                activeWrapperItem = dimGen.wrapper[dimGen.active_index]
+            except:
+                return False
 
             if activeWrapperItem.itemType == 'arcDimensions':
                 return True
