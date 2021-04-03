@@ -46,7 +46,7 @@ from .shaders import *
 from .measureit_arch_baseclass import recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit
 
 lastMode = {}
 lineBatch3D = {}
@@ -2005,11 +2005,25 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                                     linked_faces[1].normal).normalized()
                                 dotProd = (normalA.dot(normalB))
 
+                                #Check angle of adjacent faces
                                 if dotProd >= -1 and dotProd <= 1:
                                     creaseAngle = math.acos(dotProd)
                                     if creaseAngle > lineGroup.creaseAngle:
                                         tempCoords.append(pointA)
                                         tempCoords.append(pointB)
+
+                                #Check dynamic silhouette
+                                if lineGroup.dynamic_sil:
+                                    camera_z = get_camera_z()
+                                    a_dot = camera_z.dot(normalA)
+                                    b_dot = camera_z.dot(normalB)
+                                    sign_a = np.sign(a_dot)
+                                    sign_b = np.sign(b_dot)
+                                    if sign_a != sign_b:
+                                        tempCoords.append(pointA)
+                                        tempCoords.append(pointB)
+
+
 
                             # Any edge with greater or less
                             # than 2 linked faces is non manifold

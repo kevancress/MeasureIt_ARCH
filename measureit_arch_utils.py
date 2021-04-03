@@ -43,14 +43,19 @@ def get_view():
 
     return view
 
-def get_camera_z_dist(location):
-    location = Vector(location)
+def get_camera_z():
     camera = bpy.context.scene.camera
     mat = camera.matrix_world
     camera_rot = mat.to_quaternion()
     camera_z = Vector((0, 0, -1))
     camera_z.rotate(camera_rot)
     camera_z.normalize()
+    return camera_z
+
+def get_camera_z_dist(location):
+    camera = bpy.context.scene.camera
+    location = Vector(location)
+    camera_z = get_camera_z()
     dist_vec = location - camera.location
     dist_along_camera_z = camera_z.dot(dist_vec)
     return dist_along_camera_z

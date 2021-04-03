@@ -136,6 +136,12 @@ class LineProperties(BaseProp, PropertyGroup):
         default=math.radians(30),
         subtype='ANGLE')
 
+    dynamic_sil: BoolProperty(
+        name="Dynamic silhouette",
+        description='Dynamically add lines to silhoutte edges on vector render \n'
+                    'WARNING: This can be quite slow for large meshes \n or complex modifier stacks',
+        default=False)
+
 
 class LineContainer(PropertyGroup):
     line_num: IntProperty(
@@ -406,6 +412,7 @@ class OBJECT_PT_UILines(Panel):
                         col = box.column(align=True)
                         col.prop(line, 'useDynamicCrease',
                                  text="Dynamic Crease")
+                        col.prop(line, 'dynamic_sil', text = "Dynamic Silhouette")
                         if line.useDynamicCrease:
                             col.prop(line, 'creaseAngle',
                                      text="Crease Threshold")
