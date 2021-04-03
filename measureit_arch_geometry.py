@@ -2015,8 +2015,11 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                                 #Check dynamic silhouette
                                 if lineGroup.dynamic_sil:
                                     camera_z = get_camera_z()
-                                    a_dot = camera_z.dot(mat@normalA)
-                                    b_dot = camera_z.dot(mat@normalB)
+                                    rot = mat.to_quaternion()
+                                    normalA.rotate(rot)
+                                    normalB.rotate(rot)
+                                    a_dot = camera_z.dot(normalA)
+                                    b_dot = camera_z.dot(normalB)
                                     sign_a = np.sign(a_dot)
                                     sign_b = np.sign(b_dot)
                                     if sign_a != sign_b:
