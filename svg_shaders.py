@@ -77,9 +77,6 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     else:
         svg.add(dashed_lines)
 
-
-
-
     # Get Depth Buffer as list
     sceneProps = bpy.context.scene.MeasureItArchProps
     global depthbuffer
@@ -95,13 +92,13 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
             if vis or draw_hidden:
                 p1ss = get_render_location(mat @ Vector(p1))
                 p2ss = get_render_location(mat @ Vector(p2))
-                line = svg.line(start=tuple(p1ss), end=tuple(p2ss))
+                line_draw = svg.line(start=tuple(p1ss), end=tuple(p2ss))
                 if vis and not dashed:
-                    lines.add(line)
+                    lines.add(line_draw)
                 elif vis and dashed:
-                    dashed_lines.add(line)
+                    dashed_lines.add(line_draw)
                 elif not vis and draw_hidden:
-                    dashed_lines.add(line)
+                    dashed_lines.add(line_draw)
 
 
 def svg_fill_shader(item, coords, color, svg, parent=None):
@@ -339,9 +336,7 @@ def true_z_buffer(context, zValue):
 
 
 def depth_test(p1, p2, mat, item, depthbuffer):
-    context = bpy.context
     scene = bpy.context.scene
-    render = scene.render
 
     # Don't depth test if out of culling
     if camera_cull([mat @ Vector(p1), mat @ Vector(p2)]):
@@ -350,11 +345,6 @@ def depth_test(p1, p2, mat, item, depthbuffer):
     # Don't Depth test if not enabled
     if not scene.MeasureItArchProps.vector_depthtest or item.inFront:
         return [[True, p1, p2]]
-
-    #Get Render info
-    render_scale = scene.render.resolution_percentage / 100
-    width = int(render.resolution_x * render_scale)
-    height = int(render.resolution_y * render_scale)
 
     p1Local = mat @ Vector(p1)
     p2Local = mat @ Vector(p2)
@@ -365,14 +355,10 @@ def depth_test(p1, p2, mat, item, depthbuffer):
 
     # Length in ss is ~number of pixels. use for num of visibility samples
     ss_length_vec = p1ss-p2ss
-    ss_samples = clamp(1, math.ceil(ss_length_vec.length/2), width)
-
-    p1vis = check_visible(item, p1Local)
-    p2vis = check_visible(item, p2Local)
+    ss_samples = math.ceil(ss_length_vec.length/2)
 
     last_vis_state = check_visible(item, p1Local)
     line_segs = []
-    last_p_check = p1
     seg_start = p1
     distVector = Vector(p1) - Vector(p2)
     dist = distVector.length
@@ -389,9 +375,7 @@ def depth_test(p1, p2, mat, item, depthbuffer):
             seg_start = p_check
             last_vis_state = p_check_vis
 
-        last_p_check = p_check
-
-    line_segs.append([last_vis_state, seg_start , p2])
+    line_segs.append([last_vis_state, seg_start, p2])
 
     return line_segs
 
@@ -418,7 +402,7 @@ def get_ss_point(point):
 
 def check_visible(item, point):
     context = bpy.context
-    scene = bpy.context.scene
+    scene = context.scene
     render = scene.render
     #Set Z-offset
     z_offset = 0.1
@@ -428,9 +412,6 @@ def check_visible(item, point):
     #Get Render info
     render_scale = scene.render.resolution_percentage / 100
     width = int(render.resolution_x * render_scale)
-    height = int(render.resolution_y * render_scale)
-
-    pointVisible = True
 
     point_ss = get_ss_point(point)
     point_clip = get_clip_space_coord(point)
@@ -452,6 +433,7 @@ def check_visible(item, point):
     #pxIdx10 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - 1
 
     #samples = [pxIdx1,pxIdx2,pxIdx3,pxIdx4,pxIdx5,pxIdx6,pxIdx7,pxIdx8,pxIdx9,pxIdx10]
+
     samples = [pxIdx1,pxIdx2]
 
     point_depth = 0
