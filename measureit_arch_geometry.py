@@ -1991,7 +1991,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     if myobj.mode == 'OBJECT':
                         bm.from_object(
                             myobj, bpy.context.view_layer.depsgraph, deform=True)
-
+                        if len(bm.edges) == 0:
+                            lineGroup['coordBuffer'] = [Vector((0,0,0))]
                         # For each edge get its linked faces and vertex indicies
                         for edge in bm.edges:
                             linked_faces = edge.link_faces

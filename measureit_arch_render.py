@@ -233,7 +233,10 @@ def render_main(self, context):
         # Loop to draw all objects
         # -----------------------------
         draw3d_loop(context, objlist)
+        dt = scene.MeasureItArchProps.vector_depthtest
+        scene.MeasureItArchProps.vector_depthtest = False
         draw_titleblock(context)
+        scene.MeasureItArchProps.vector_depthtest = dt
 
         buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
         bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)

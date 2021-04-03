@@ -348,7 +348,7 @@ def depth_test(p1, p2, mat, item, depthbuffer):
         return [[False, p1, p2]]
 
     # Don't Depth test if not enabled
-    if not scene.MeasureItArchProps.vector_depthtest:
+    if not scene.MeasureItArchProps.vector_depthtest or item.inFront:
         return [[True, p1, p2]]
 
     #Get Render info
