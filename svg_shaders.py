@@ -89,6 +89,9 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
             vis = line[0]
             p1 = line[1]
             p2 = line[2]
+            if vis == -1:
+                continue
+
             if vis or draw_hidden:
                 p1ss = get_render_location(mat @ Vector(p1))
                 p2ss = get_render_location(mat @ Vector(p2))
@@ -340,7 +343,7 @@ def depth_test(p1, p2, mat, item, depthbuffer):
 
     # Don't depth test if out of culling
     if camera_cull([mat @ Vector(p1), mat @ Vector(p2)]):
-        return [[False, p1, p2]]
+        return [[-1, p1, p2]]
 
     # Don't Depth test if not enabled
     if not scene.MeasureItArchProps.vector_depthtest or item.inFront:
@@ -356,6 +359,7 @@ def depth_test(p1, p2, mat, item, depthbuffer):
     # Length in ss is ~number of pixels. use for num of visibility samples
     ss_length_vec = p1ss-p2ss
     ss_samples = math.ceil(ss_length_vec.length/2)
+    if ss_samples < 1: ss_samples = 1
 
     last_vis_state = check_visible(item, p1Local)
     line_segs = []
@@ -403,11 +407,19 @@ def get_ss_point(point):
 def check_visible(item, point):
     context = bpy.context
     scene = context.scene
+    camera = scene.camera.data
     render = scene.render
     #Set Z-offset
     z_offset = 0.1
     if 'lineDepthOffset' in item:
         z_offset += item.lineDepthOffset / 10
+
+    dist = get_camera_z_dist(point)
+    if dist < 0:
+        return -1
+
+    if dist < camera.clip_start or dist > camera.clip_end:
+        return -1
 
     #Get Render info
     render_scale = scene.render.resolution_percentage / 100
