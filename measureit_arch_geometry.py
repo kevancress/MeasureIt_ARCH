@@ -2033,10 +2033,11 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                                 tempCoords.append(pointA)
                                 tempCoords.append(pointB)
 
-                            if len(tempCoords) == 0:
-                                lineGroup['coordBuffer'] = [Vector((0,0,0)),Vector((0,0,0))]
-                            else:
-                                lineGroup['coordBuffer'] = tempCoords
+
+                            lineGroup['coordBuffer'] = tempCoords
+
+                        if len(tempCoords) == 0:
+                            lineGroup['coordBuffer'] = [Vector((0,0,0)),Vector((0,0,0))]
 
             coords = []
             coords = lineGroup['coordBuffer']
