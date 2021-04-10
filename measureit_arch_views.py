@@ -283,7 +283,6 @@ class ViewProperties(PropertyGroup):
         items=map(lambda o: (o[0], o[1], ''), PAPER_SIZES),
         name="Paper size",
         description="Paper size used for rendering",
-        default='CUSTOM',
         update=update_paper_size)
 
     paper_orientation: EnumProperty(
