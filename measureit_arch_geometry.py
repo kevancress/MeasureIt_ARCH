@@ -3054,7 +3054,7 @@ def get_mesh_vertex(myobj, idx, evalMods):
         else:
             if idx != 9999999:
                 raise IndexError
-            coord = myobj.location
+            coord = Vector((0,0,0))
 
     # free Bmesh and return
     return coord
