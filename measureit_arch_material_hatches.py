@@ -86,6 +86,15 @@ class MATERIAL_PT_UIHatch(Panel):
     bl_region_type = 'WINDOW'
     bl_context = "material"
 
+    @classmethod
+    def poll(cls, context):
+        idx = context.object.active_material_index
+        mat = context.object.material_slots[idx]
+        if mat.name == '':
+            return False
+        else:
+            return True
+
 
     def draw_header(self, context):
         layout = self.layout

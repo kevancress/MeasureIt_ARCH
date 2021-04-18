@@ -341,6 +341,8 @@ def draw_material_hatches(context, myobj, mat, svg=None):
 
         #Write Patterns for all hatches on the object
         for slot in matSlots:
+            if slot.material is None:
+                continue
             hatch = slot.material.Hatch
             objMaterials.append(slot.material)
             if hatch.pattern is not None:
