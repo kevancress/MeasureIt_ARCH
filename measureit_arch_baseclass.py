@@ -425,6 +425,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description='Highlight Selected MeasureIt_ARCH Elements',
         default=True)
 
+    use_unit_scale: BoolProperty(
+        name='Use Unit Scale',
+        description='',
+        default=False)
+
     text_updated: BoolProperty(
         name='text_updated',
         description='flag when text needs to be redrawn',

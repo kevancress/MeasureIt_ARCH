@@ -464,11 +464,14 @@ def render_main_svg(self, context):
             ))
 
 
-
+    ## Freestyle Embed
     freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
     if view.embed_freestyle_svg and freestyle_svg_export:
         # If "FreeStyle SVG export" addon is loaded, we render the scene to SVG
         # and embed the output in the final SVG.
+
+        svg_image_path = get_view_outpath(
+            scene, view, "{}".format("_freestyle"))
 
         with local_attrs(scene, [
                 'render.filepath',
@@ -480,15 +483,14 @@ def render_main_svg(self, context):
             scene.render.use_freestyle = True
             scene.svg_export.use_svg_export = True
             scene.svg_export.mode = 'FRAME'
-            scene.render.filepath += '_freestyle_'
+            scene.render.filepath = svg_image_path
             scene.render.image_settings.file_format = 'PNG'
             scene.render.use_file_extension = True
             bpy.ops.render.render(write_still=False)
 
-            image_path = scene.render.filepath
+
             frame = scene.frame_current
-            svg_image_path = bpy.path.abspath(
-                "{}{:04d}.svg".format(image_path, frame))
+            svg_image_path += "{:04d}.svg".format(frame)
             svg_root = ET.parse(svg_image_path).getroot()
             for elem in svg_root:
                 svg.add(SVGWriteElement(elem))
@@ -497,6 +499,32 @@ def render_main_svg(self, context):
                 not sceneProps.keep_freestyle_svg):
                 os.remove(svg_image_path)
 
+    ## Greasepencil Embed
+    if view.embed_greasepencil_svg:
+
+        image_path = get_view_outpath(
+            scene, view, "{:04d}.svg".format(scene.frame_current))
+        frame = scene.frame_current
+        gp_image_path = image_path + "_Grease_Pencil"
+
+        bpy.ops.wm.gpencil_export_svg(filepath= gp_image_path,
+                    check_existing=True,
+                    filemode=8,
+                    display_type='DEFAULT',
+                    sort_method='FILE_SORT_ALPHA',
+                    use_fill=True,
+                    selected_object_type='VISIBLE',
+                    stroke_sample=0,
+                    use_normalized_thickness=False,
+                    use_clip_camera=True)
+
+
+        svg_root = ET.parse(gp_image_path).getroot()
+        for elem in svg_root:
+            svg.add(SVGWriteElement(elem))
+
+        if os.path.exists(gp_image_path):
+            os.remove(gp_image_path)
 
     # -----------------------------
     # Loop to draw all objects

@@ -63,6 +63,9 @@ def format_distance(distance: float) -> str:
     unit_length = scene.unit_settings.length_unit
     separate_units = scene.unit_settings.use_separate
     hide_units = scene.MeasureItArchProps.hide_units
+    unit_scale = scene.unit_settings.scale_length
+    if scene.MeasureItArchProps.use_unit_scale:
+        distance *= unit_scale
     if unit_system == 'METRIC':
         precision = scene.MeasureItArchProps.metric_precision
         if not separate_units and not unit_length == 'ADAPTIVE':

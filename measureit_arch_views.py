@@ -348,6 +348,12 @@ class ViewProperties(PropertyGroup):
         default=False,
         update=freestyle_update_flag)
 
+    embed_greasepencil_svg: BoolProperty(
+        name="Embed Grease Pencil SVG",
+        description="Export a Grease Pencil SVG and automatically combine the rendered "
+                    "image with the Measureit-ARCH render pass",
+        default=False,)
+
     include_in_batch: BoolProperty(
         name="Include In Batch View Render",
         description="Include In Batch View Render",
@@ -676,11 +682,13 @@ class SCENE_PT_Views(Panel):
                     row.prop(view, 'end_frame', text="")
 
                     col.prop(view, "embed_scene_render", text="Embed Scene Render")
+                    col.prop(view, "embed_greasepencil_svg", text="Embed Grease Pencil SVG")
 
                     col = box.column(align=True)
                     freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
                     col.active = freestyle_svg_export
                     col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
+
 
 
             # Notes below Settings

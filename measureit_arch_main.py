@@ -646,6 +646,7 @@ class SCENE_PT_MARCH_units(Panel):
         col.prop(sceneProps, 'metric_precision', text="Metric Precision")
         col.prop(sceneProps, 'angle_precision', text="Angle Precision")
         col.prop(sceneProps, 'imperial_precision', text="Imperial Precision")
+        col.prop(sceneProps, 'use_unit_scale')
 
         col = layout.column(align=True)
         col.prop(sceneProps, 'default_scale', text="Default Scale 1:")

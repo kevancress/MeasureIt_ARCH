@@ -1203,12 +1203,22 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
         rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
         radius = dim.dimRadius
 
-        p1 = Vector(get_point(get_mesh_vertex(
-            myobj, dim.dimPointA, dimProps.evalMods), mat))
-        p2 = Vector(get_point(get_mesh_vertex(
-            myobj, dim.dimPointB, dimProps.evalMods), mat))
-        p3 = Vector(get_point(get_mesh_vertex(
-            myobj, dim.dimPointC, dimProps.evalMods), mat))
+        try:
+            p1 = Vector(get_point(get_mesh_vertex(
+                myobj, dim.dimPointA, dimProps.evalMods), mat))
+            p2 = Vector(get_point(get_mesh_vertex(
+                myobj, dim.dimPointB, dimProps.evalMods), mat))
+            p3 = Vector(get_point(get_mesh_vertex(
+                myobj, dim.dimPointC, dimProps.evalMods), mat))
+        except IndexError:
+            dimGen = myobj.DimensionGenerator
+            wrapTag = get_dim_tag(dim, myobj)
+            wrapper = dimGen.wrapper[wrapTag]
+            tag = wrapper.itemIndex
+            dimGen.angleDimensions.remove(tag)
+            dimGen.wrapper.remove(wrapTag)
+            recalc_dimWrapper_index(context, dimGen)
+            return
 
         # calc normal to plane defined by points
         vecA = (p1 - p2)
@@ -3445,7 +3455,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
             if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
                 mat = obj_int.matrix_world
 
-            if 'LineGenerator' in myobj and myobj.LineGenerator.line_num != 0:
+            if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator
                 draw_line_group(context, myobj, lineGen, mat, svg=svg)
 
