@@ -227,6 +227,8 @@ class DimensionContainer(PropertyGroup):
         update=update_active_dim)
     show_dimension_settings: BoolProperty(
         name='Show Dimension Settings', default=False)
+    show_dimension_fields: BoolProperty(
+        name='Show Dimension Text Fields', default=False)
 
     # Collections of each dimension property
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
@@ -1024,7 +1026,68 @@ class OBJECT_PT_UIDimensions(Panel):
                 activeWrapperItem = dimGen.wrapper[dimGen.active_index]
                 item = eval('dimGen.' + activeWrapperItem.itemType +
                             '[activeWrapperItem.itemIndex]')
+                idxString = "bpy.context.active_object.DimensionGenerator.wrapper[bpy.context.active_object.DimensionGenerator.active_index].itemIndex"
 
+                ### TEXT FIELDS
+                if dimGen.show_dimension_fields:
+                    fieldsIcon = 'DISCLOSURE_TRI_DOWN'
+                else:
+                    fieldsIcon = 'DISCLOSURE_TRI_RIGHT'
+
+                box = layout.box()
+                col = box.column()
+                row = col.row()
+                row.prop(dimGen, 'show_dimension_fields',
+                         text="", icon= fieldsIcon, emboss=False)
+
+                row.label(text=item.name + ' Text Fields:')
+
+                row.emboss = 'PULLDOWN_MENU'
+                txtAddOp = row.operator(
+                    "measureit_arch.addtextfield", text="", icon="ADD")
+                txtAddOp.propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType,idxString)
+                txtAddOp.idx = dimGen.active_index
+                txtAddOp.add = True
+
+                txtRemoveOp = row.operator(
+                    "measureit_arch.addtextfield", text="", icon="REMOVE")
+                txtAddOp.propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType,idxString)
+                txtRemoveOp.idx = dimGen.active_index
+                txtRemoveOp.add = False
+
+                if dimGen.show_dimension_fields:
+                    col = box.column(align=True)
+                    idx = 0
+
+                    col.prop(item,"use_custom_text",text="Use Custom Dimension Text")
+                    for textField in item.textFields:
+                        if idx == 0 and not item.use_custom_text:
+                            idx += 1
+                            continue
+
+                        col = box.column(align=True)
+
+                        row = col.row(align=True)
+
+                        split = row.split(factor=0.2)
+                        split.label(text='Text Field ' + str(idx + 1))
+
+                        row = split.row(align=True)
+                        row.prop(textField, 'autoFillText',
+                                    text="", icon="FILE_TEXT")
+
+                        if textField.autoFillText:
+                            row.prop(textField, 'textSource', text="")
+                        else:
+                            row.prop(textField, 'text', text="")
+
+                        if textField.textSource == 'RNAPROP' and textField.autoFillText:
+                            row.prop(textField, 'rnaProp', text="")
+                        idx += 1
+
+
+
+                ### SETTINGS
                 if dimGen.show_dimension_settings:
                     settingsIcon = 'DISCLOSURE_TRI_DOWN'
                 else:
@@ -1041,28 +1104,6 @@ class OBJECT_PT_UIDimensions(Panel):
                     eval('draw_' + activeWrapperItem.itemType +
                          '_settings(item, box)')
 
-                if item.use_custom_text:
-                        col = box.column(align=True)
-                        idx = 0
-                        for textField in item.textFields:
-                            col = box.column(align=True)
-
-                            row = col.row(align=True)
-
-                            split = row.split(factor=0.2)
-                            split.label(text='Text Field ' + str(idx + 1))
-
-                            row = split.row(align=True)
-                            row.prop(textField, 'autoFillText',
-                                     text="", icon="FILE_TEXT")
-
-                            if textField.autoFillText:
-                                row.prop(textField, 'textSource', text="")
-                            else:
-                                row.prop(textField, 'text', text="")
-
-                            if textField.textSource == 'RNAPROP' and textField.autoFillText:
-                                row.prop(textField, 'rnaProp', text="")
 
 
 class OBJECT_MT_dimension_menu(bpy.types.Menu):
@@ -1249,7 +1290,6 @@ def draw_axisDimensions_settings(dim, layout):
 
         col = layout.column(align=True)
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
-        col.prop(dim, 'use_custom_text',)
         col.prop(dim, 'textAlignment', text='Alignment')
 
 

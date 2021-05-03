@@ -1135,22 +1135,28 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             if dimText.text != distanceText:
                 dimText.text = distanceText
                 dimText.text_updated = True
-        else:
-            set_text(dimText, myobj)
 
-        placementResults = dim_text_placement(
-            dim, dimProps, origin, dist, distVector, offsetDistance, capSize)
-        square = placementResults[0]
-        flipCaps = placementResults[1]
-        dimLineExtension = placementResults[2]
-        origin = placementResults[3]
+        idx = 0
+        flipCaps = None
+        dimLineExtension = None
+        for textField in dim.textFields:
+            set_text(textField, myobj)
+            placementResults = dim_text_placement(
+                dim, dimProps, origin, dist, distVector, offsetDistance, capSize, cardIdx=idx, textField=textField)
+            square = placementResults[0]
+            if idx == 0:
+                flipCaps = placementResults[1]
+                dimLineExtension = placementResults[2]
+                origin = placementResults[3]
+            if sceneProps.show_dim_text:
+                draw_text_3D(context, textField, dimProps, myobj, square)
+            idx += 1
 
         # Add the Extension to the dimension line
         dimLineEndCoord = dimLineEnd - dimLineExtension * secondPointAxis.normalized()
         dimLineStartCoord = dimLineStart + dimLineExtension * secondPointAxis.normalized()
 
-        if sceneProps.show_dim_text:
-            draw_text_3D(context, dimText, dimProps, myobj, square)
+
 
         # Collect coords and endcaps
         coords = [leadStartA, leadEndA, leadStartB, leadEndB,
@@ -3234,7 +3240,7 @@ def dim_line_extension(capSize):
     return (capSize / 750) * scale
 
 
-def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize=0):
+def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize=0, cardIdx = 0, textField=None):
     # Set Text Alignment
     context = bpy.context
     sceneProps = context.scene.MeasureItArchProps
@@ -3243,6 +3249,8 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     dimLineExtension = 0  # add some extension to the line if the dimension is ext
     normDistVector = distVec.normalized()
     dimText = dim.textFields[0]
+    if textField is not None:
+        dimText = textField
     dim.fontSize = dimProps.fontSize
 
     if dim.textAlignment == 'L':
@@ -3258,7 +3266,7 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
         origin -= Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     square = generate_text_card(
-        context, dimText, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
+        context, dimText, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance,cardIdx=cardIdx)
 
     cardX = square[3] - square[0]
     cardY = square[1] - square[0]
