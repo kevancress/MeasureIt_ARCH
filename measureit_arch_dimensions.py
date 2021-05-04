@@ -1052,7 +1052,7 @@ class OBJECT_PT_UIDimensions(Panel):
                 txtRemoveOp = row.operator(
                     "measureit_arch.addtextfield", text="", icon="REMOVE")
                 txtAddOp.propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType,idxString)
-                txtRemoveOp.idx = dimGen.active_index
+                txtRemoveOp.idx = activeWrapperItem.itemIndex
                 txtRemoveOp.add = False
 
                 if dimGen.show_dimension_fields:

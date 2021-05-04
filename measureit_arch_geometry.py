@@ -1144,6 +1144,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             placementResults = dim_text_placement(
                 dim, dimProps, origin, dist, distVector, offsetDistance, capSize, cardIdx=idx, textField=textField)
             square = placementResults[0]
+            textField['textcard'] = square
             if idx == 0:
                 flipCaps = placementResults[1]
                 dimLineExtension = placementResults[2]
@@ -1185,8 +1186,10 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
                 dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(
-                dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+            for textField in dim.textFields:
+                textcard = textField['textcard']
+                svg_shaders.svg_text_shader(
+                    dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
 
     # Reset openGL Settings
     set_OpenGL_Settings(False)
