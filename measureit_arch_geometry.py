@@ -433,22 +433,13 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         p1Local = None
         p2Local = None
 
-        deleteFlag = False
         try:
             p1Local = get_mesh_vertex(
                 dim.dimObjectA, dim.dimPointA, dimProps.evalMods)
-        except IndexError:
-            print('p1 excepted for ' + dim.name + ' on ' + myobj.name)
-            deleteFlag = True
-
-        try:
             p2Local = get_mesh_vertex(
                 dim.dimObjectB, dim.dimPointB, dimProps.evalMods)
         except IndexError:
-            print('p2 excepted for ' + dim.name + ' on ' + myobj.name)
-            deleteFlag = True
-
-        if deleteFlag:
+            print('point excepted for ' + dim.name + ' on ' + myobj.name)
             dimGen = myobj.DimensionGenerator
             wrapTag = get_dim_tag(dim, myobj)
             wrapper = dimGen.wrapper[wrapTag]
@@ -466,7 +457,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         p1 = sortedPoints[0]
         p2 = sortedPoints[1]
 
-        # calculate distance & MidpointGY
+        # calculate distance & Midpoint
         distVector = Vector(p1) - Vector(p2)
         dist = distVector.length
         midpoint = interpolate3d(p1, p2, fabs(dist / 2))
@@ -507,7 +498,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         # j = Vector((0, 1, 0))
         # k = Vector((0, 0, 1))
 
-        # Check for text field
 
         origin = Vector(textLoc)
 
@@ -922,25 +912,16 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         if dim.dimObjectB != dim.dimObjectA:
             bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat
 
-        p1Local = Vector((0, 0, 0))
-        p2Local = Vector((0, 0, 0))
+        p1Local = None
+        p2Local = None
 
-        deleteFlag = False
         try:
             p1Local = get_mesh_vertex(
                 dim.dimObjectA, dim.dimPointA, dimProps.evalMods)
-        except IndexError:
-            print('p1 excepted for ' + dim.name + ' on ' + myobj.name)
-            deleteFlag = True
-
-        try:
             p2Local = get_mesh_vertex(
                 dim.dimObjectB, dim.dimPointB, dimProps.evalMods)
         except IndexError:
-            print('p2 excepted for ' + dim.name + ' on ' + myobj.name)
-            deleteFlag = True
-
-        if deleteFlag:
+            print('point excepted for ' + dim.name + ' on ' + myobj.name)
             dimGen = myobj.DimensionGenerator
             wrapTag = get_dim_tag(dim, myobj)
             wrapper = dimGen.wrapper[wrapTag]
@@ -2173,7 +2154,7 @@ def get_color(rawRGB, myobj, is_active=True, only_active=True):
     return rgb
 
 
-def draw_annotation(context, myobj, annotationGen, mat, svg=None):
+def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     customCoords = []
@@ -2275,6 +2256,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
 
                 fullRotMat = cameraRotMat
 
+                extMat = locMatrix @ fullRotMat @ customScale
+
                 cameraX = cameraRotMat @ Vector((1, 0, 0))
                 leader1 = p1 - p2
                 proj = leader1.dot(cameraX)
@@ -2302,43 +2285,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                     pass
 
                 draw3d_loop(context, objs, svg=svg, extMat=extMat,
-                            multMat=annotationProps.custom_local_transforms)
+                            multMat=annotationProps.custom_local_transforms,custom_call=True)
 
-                # for obj in objs:
-                #     if obj.type == 'MESH':
-                #         tempCoords = []
-                #         bm = bmesh.new()
-                #         bm.from_object(
-                #             obj, bpy.context.view_layer.depsgraph, deform=True)
-                #         bm.edges.ensure_lookup_table()
-                #         bm.verts.ensure_lookup_table()
-                #         for e in bm.edges:
-                #             tempCoords.extend([e.verts[0].co])
-                #             tempCoords.extend([e.verts[1].co])
-
-                #         mesh = obj.data
-                #         mesh.calc_loop_triangles()
-                #         tris = mesh.loop_triangles
-                #         tempVertices = []
-                #         indices = []
-
-                #         for tri in tris:
-                #             for vert in tri.vertices:
-                #                 indices.append(bm.verts[vert].co)
-
-                #         for coord in tempCoords:
-                #             newCoord = (mat @ offsetMat @ rotMat @ coord)
-                #             customCoords.append(newCoord)
-
-                #         customFilledCoords = []
-                #         for vert in indices:
-                #             newVert = (mat @ offsetMat @ rotMat @ vert)
-                #             customFilledCoords.append(newVert)
-
-                #         draw_lines(lineWeight, rgb, customCoords,
-                #                    twoPass=True, pointPass=True)
-                #         draw_filled_coords(
-                #             customFilledCoords, rgb, polySmooth=False)
 
             fieldIdx = 0
             if 'textFields' not in annotation:
@@ -2362,7 +2310,10 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None):
                     fields.append(textField)
 
             for textField in fields:
-                set_text(textField, myobj)
+                if instance is None:
+                    set_text(textField, myobj)
+                else:
+                    set_text(textField,instance.parent)
                 origin = p3
                 xDir = fullRotMat @ Vector((1 * mult, 0, 0))
                 yDir = fullRotMat @ Vector((0, 1, 0))
@@ -2482,7 +2433,11 @@ def set_text(textField, obj):
                     # TODO: `eval` is evil
                     data = eval(
                         'bpy.data.objects[\'' + obj.name + '\']' + textField.rnaProp)
-                    textField.text = str(data)
+                    text = str(data)
+                    if "location" in textField.rnaProp:
+                        text = format_distance(data)
+
+                    textField.text = text
                 except:
                     textField.text = 'Bad Data Path'
 
@@ -3321,7 +3276,7 @@ class Dist_Sort(object):
         return self.dist > other.dist
 
 
-def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
+def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_call=False):
     """
     Generate all OpenGL calls
     """
@@ -3398,36 +3353,37 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False):
             print("Time: " + str(endTime - startTime))
 
     # Draw Instanced Objects
-    deps = bpy.context.view_layer.depsgraph
-    for obj_int in deps.object_instances:
-        if obj_int.is_instance:
-            myobj = obj_int.object
+    if not custom_call:
+        deps = bpy.context.view_layer.depsgraph
+        for obj_int in deps.object_instances:
+            if obj_int.is_instance:
+                myobj = obj_int.object
 
-            if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
-                mat = obj_int.matrix_world
-
-            if 'LineGenerator' in myobj:
-                lineGen = myobj.LineGenerator
-                draw_line_group(context, myobj, lineGen, mat, svg=svg)
-
-            if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
-                annotationGen = myobj.AnnotationGenerator
-                draw_annotation(
-                    context, myobj, annotationGen, mat, svg=svg)
-
-            if sceneProps.instance_dims:
-                if 'DimensionGenerator' in myobj and myobj.DimensionGenerator.measureit_arch_num != 0:
-                    DimGen = myobj.DimensionGenerator
+                if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
                     mat = obj_int.matrix_world
-                    for alignedDim in DimGen.alignedDimensions:
-                        draw_alignedDimension(
-                            context, myobj, DimGen, alignedDim, mat=mat, svg=svg)
-                    for angleDim in DimGen.angleDimensions:
-                        draw_angleDimension(
-                            context, myobj, DimGen, angleDim, mat, svg=svg)
-                    for axisDim in DimGen.axisDimensions:
-                        draw_axisDimension(
-                            context, myobj, DimGen, axisDim, mat, svg=svg)
+
+                if 'LineGenerator' in myobj:
+                    lineGen = myobj.LineGenerator
+                    draw_line_group(context, myobj, lineGen, mat, svg=svg)
+
+                if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
+                    annotationGen = myobj.AnnotationGenerator
+                    draw_annotation(
+                        context, myobj, annotationGen, mat, svg=svg, instance=obj_int)
+
+                if sceneProps.instance_dims:
+                    if 'DimensionGenerator' in myobj and myobj.DimensionGenerator.measureit_arch_num != 0:
+                        DimGen = myobj.DimensionGenerator
+                        mat = obj_int.matrix_world
+                        for alignedDim in DimGen.alignedDimensions:
+                            draw_alignedDimension(
+                                context, myobj, DimGen, alignedDim, mat=mat, svg=svg)
+                        for angleDim in DimGen.angleDimensions:
+                            draw_angleDimension(
+                                context, myobj, DimGen, angleDim, mat, svg=svg)
+                        for axisDim in DimGen.axisDimensions:
+                            draw_axisDimension(
+                                context, myobj, DimGen, axisDim, mat, svg=svg)
 
 
 def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance):

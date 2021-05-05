@@ -494,60 +494,86 @@ def text_update_loop(context, objlist):
 
                 # Draw Instanced Objects
 
-    if sceneProps.instance_dims:
-        deps = bpy.context.view_layer.depsgraph
-        for obj_int in deps.object_instances:
-            if obj_int.is_instance:
-                myobj = obj_int.object
 
-                if 'DimensionGenerator' in myobj:
-                    DimGen = myobj.DimensionGenerator
-                    for alignedDim in DimGen.alignedDimensions:
+    deps = bpy.context.view_layer.depsgraph
+    for obj_int in deps.object_instances:
+        if obj_int.is_instance:
+            myobj = obj_int.object
 
-                        alignedDimProps = alignedDim
-                        if alignedDim.uses_style:
-                            for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if alignedDimStyle.name == alignedDim.style:
-                                    alignedDimProps = alignedDimStyle
+            annotationGen = myobj.AnnotationGenerator
+            for annotation in annotationGen.annotations:
+                annotationProps = annotation
+                if annotation.uses_style:
+                    for annotationStyle in context.scene.StyleGenerator.annotations:
+                        if annotationStyle.name == annotation.style:
+                            annotationProps = annotationStyle
 
-                        update_text(textobj=alignedDim,
-                                    props=alignedDimProps, context=context)
+                fields = []
+                notesFlag = False
+                for textField in annotation.textFields:
+                    fields.append(textField)
+                    if textField.autoFillText and textField.textSource == 'NOTES':
+                        notesFlag = True
 
-                    for angleDim in DimGen.angleDimensions:
-                        dimProps = angleDim
-                        if angleDim.uses_style:
-                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if dimStyle.name == angleDim.style:
-                                    dimProps = dimStyle
-                        update_text(textobj=angleDim,
-                                    props=dimProps, context=context)
+                if notesFlag:
+                    view = get_view()
+                    for textField in view.textFields:
+                        fields.append(textField)
 
-                    for axisDim in DimGen.axisDimensions:
-                        dimProps = axisDim
-                        if axisDim.uses_style:
-                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if dimStyle.name == axisDim.style:
-                                    dimProps = dimStyle
-                        update_text(textobj=axisDim,
-                                    props=dimProps, context=context)
+                update_text(
+                    textobj=annotation, props=annotationProps,
+                    context=context, fields=fields)
 
-                    for boundsDim in DimGen.boundsDimensions:
-                        dimProps = boundsDim
-                        if boundsDim.uses_style:
-                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if dimStyle.name == boundsDim.style:
-                                    dimProps = dimStyle
-                        update_text(textobj=boundsDim,
-                                    props=dimProps, context=context)
 
-                    for arcDim in DimGen.arcDimensions:
-                        dimProps = arcDim
-                        if arcDim.uses_style:
-                            for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                                if dimStyle.name == arcDim.style:
-                                    dimProps = dimStyle
-                        update_text(textobj=arcDim, props=dimProps,
-                                    context=context)
+            if sceneProps.instance_dims:
+
+                DimGen = myobj.DimensionGenerator
+                for alignedDim in DimGen.alignedDimensions:
+
+                    alignedDimProps = alignedDim
+                    if alignedDim.uses_style:
+                        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if alignedDimStyle.name == alignedDim.style:
+                                alignedDimProps = alignedDimStyle
+
+                    update_text(textobj=alignedDim,
+                                props=alignedDimProps, context=context)
+
+                for angleDim in DimGen.angleDimensions:
+                    dimProps = angleDim
+                    if angleDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == angleDim.style:
+                                dimProps = dimStyle
+                    update_text(textobj=angleDim,
+                                props=dimProps, context=context)
+
+                for axisDim in DimGen.axisDimensions:
+                    dimProps = axisDim
+                    if axisDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == axisDim.style:
+                                dimProps = dimStyle
+                    update_text(textobj=axisDim,
+                                props=dimProps, context=context)
+
+                for boundsDim in DimGen.boundsDimensions:
+                    dimProps = boundsDim
+                    if boundsDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == boundsDim.style:
+                                dimProps = dimStyle
+                    update_text(textobj=boundsDim,
+                                props=dimProps, context=context)
+
+                for arcDim in DimGen.arcDimensions:
+                    dimProps = arcDim
+                    if arcDim.uses_style:
+                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
+                            if dimStyle.name == arcDim.style:
+                                dimProps = dimStyle
+                    update_text(textobj=arcDim, props=dimProps,
+                                context=context)
 
 
 def draw_main_3d(context):
