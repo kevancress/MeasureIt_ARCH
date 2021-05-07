@@ -104,7 +104,7 @@ def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
 
     # Offset Gizmo
     dimOffsetGiz = group.gizmos.new("GIZMO_GT_arrow_3d")
-    op = dimOffsetGiz.target_set_operator("measureit_arch.dimesnion_offset")
+    op = dimOffsetGiz.target_set_operator("measureit_arch.dimension_offset")
     op.objIndex = objIndex
     op.idx = idx
     op.dimType = dimStr
