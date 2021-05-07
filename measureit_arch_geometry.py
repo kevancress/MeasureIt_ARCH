@@ -539,8 +539,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
                 dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(
-                dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+            for textField in dim.textFields:
+                textcard = textField['textcard']
+                svg_shaders.svg_text_shader(
+                    dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
 
     set_OpenGL_Settings(False)
 
@@ -1073,7 +1075,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         # Lines
         leadStartA = Vector(basePoint) + geoOffsetDistance
         leadEndA = Vector(basePoint) + offsetDistance + \
-            cap_extension(offsetDistance, dim.endcapSize, dimProps.endcapArrowAngle)
+            cap_extension(offsetDistance, dimProps.endcapSize, dimProps.endcapArrowAngle)
 
         leadEndB = leadEndA - Vector(secondPointAxis)
         leadStartB = Vector(secondPoint) - viewAxisDiff + geoOffsetDistance
