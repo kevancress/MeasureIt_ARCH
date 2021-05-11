@@ -37,9 +37,9 @@ from sys import exc_info
 from datetime import datetime
 
 from . import svg_shaders
-from .measureit_arch_geometry import set_OpenGL_Settings, draw3d_loop, batch_for_shader
+from .measureit_arch_geometry import draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_titleblock
-from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons
+from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons, OpenGL_Settings
 from .measureit_arch_units import BU_TO_INCHES
 from .shaders import Base_Shader_3D, DepthOnlyFrag
 
@@ -211,59 +211,58 @@ def render_main(self, context):
     projection_matrix = scene.camera.calc_matrix_camera(
         context.view_layer.depsgraph, x=width, y=height)
 
-    set_OpenGL_Settings(True)
-    with renderoffscreen.bind():
+    with OpenGL_Settings(None):
+        with renderoffscreen.bind():
 
-        # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
-        bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-        bgl.glClearDepth(clipdepth)
+            # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
+            bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+            bgl.glClearDepth(clipdepth)
 
-        gpu.matrix.reset()
-        gpu.matrix.load_matrix(view_matrix_3d)
-        gpu.matrix.load_projection_matrix(projection_matrix)
+            gpu.matrix.reset()
+            gpu.matrix.load_matrix(view_matrix_3d)
+            gpu.matrix.load_projection_matrix(projection_matrix)
 
-        # Draw Scene for the depth buffer
-        draw_scene(self, context, projection_matrix)
+            # Draw Scene for the depth buffer
+            draw_scene(self, context, projection_matrix)
 
-        # Clear Color Buffer, we only need the depth info
-        bgl.glClearColor(0, 0, 0, 0)
-        bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+            # Clear Color Buffer, we only need the depth info
+            bgl.glClearColor(0, 0, 0, 0)
+            bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
-        # -----------------------------
-        # Loop to draw all objects
-        # -----------------------------
-        draw3d_loop(context, objlist)
-        dt = scene.MeasureItArchProps.vector_depthtest
-        scene.MeasureItArchProps.vector_depthtest = False
-        draw_titleblock(context)
-        scene.MeasureItArchProps.vector_depthtest = dt
+            # -----------------------------
+            # Loop to draw all objects
+            # -----------------------------
+            draw3d_loop(context, objlist)
+            dt = scene.MeasureItArchProps.vector_depthtest
+            scene.MeasureItArchProps.vector_depthtest = False
+            draw_titleblock(context)
+            scene.MeasureItArchProps.vector_depthtest = dt
 
-        buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-        bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
-        bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
-                         bgl.GL_UNSIGNED_BYTE, buffer)
+            buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+            bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
+            bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
+                            bgl.GL_UNSIGNED_BYTE, buffer)
 
-    # Create image
-    image_name = "measureit_arch_output"
-    if image_name not in bpy.data.images:
-        image = bpy.data.images.new(image_name, width, height)
+        # Create image
+        image_name = "measureit_arch_output"
+        if image_name not in bpy.data.images:
+            image = bpy.data.images.new(image_name, width, height)
 
-    image = bpy.data.images[image_name]
-    image.scale(width, height)
-    image.pixels = [v / 255 for v in buffer]
+        image = bpy.data.images[image_name]
+        image.scale(width, height)
+        image.pixels = [v / 255 for v in buffer]
 
-    renderoffscreen.free()
+        renderoffscreen.free()
 
-    # Save image
-    outpath = None
-    if image is not None:
-        view = get_view()
-        outpath = get_view_outpath(
-            scene, view, "{:04d}.png".format(scene.frame_current))
-        save_image(self, outpath, image)
+        # Save image
+        outpath = None
+        if image is not None:
+            view = get_view()
+            outpath = get_view_outpath(
+                scene, view, "{:04d}.png".format(scene.frame_current))
+            save_image(self, outpath, image)
 
     # Restore default value
-    set_OpenGL_Settings(False)
     sceneProps.is_render_draw = False
     return outpath
 
@@ -307,57 +306,55 @@ def save_image(self, filepath, image):
 def draw_scene(self, context, projection_matrix):
     """ Draw Scene Geometry for Depth Buffer """
 
-    set_OpenGL_Settings(True)
-    # Get List of Mesh Objects
-    deps = bpy.context.view_layer.depsgraph
-    for obj_int in deps.object_instances:
-        obj = obj_int.object
-        if obj.type == 'MESH' and not obj.hide_render:
-            mat = obj_int.matrix_world
-            obj_eval = obj.evaluated_get(deps)
-            mesh = obj_eval.to_mesh(
-                preserve_all_data_layers=True, depsgraph=bpy.context.view_layer.depsgraph)
-            mesh.calc_loop_triangles()
-            tris = mesh.loop_triangles
-            vertices = []
-            indices = []
+    with OpenGL_Settings(None):
+        # Get List of Mesh Objects
+        deps = bpy.context.view_layer.depsgraph
+        for obj_int in deps.object_instances:
+            obj = obj_int.object
+            if obj.type == 'MESH' and not obj.hide_render:
+                mat = obj_int.matrix_world
+                obj_eval = obj.evaluated_get(deps)
+                mesh = obj_eval.to_mesh(
+                    preserve_all_data_layers=True, depsgraph=bpy.context.view_layer.depsgraph)
+                mesh.calc_loop_triangles()
+                tris = mesh.loop_triangles
+                vertices = []
+                indices = []
 
-            for vert in mesh.vertices:
-                # Multipy vertex Position by Object Transform Matrix
-                vertices.append(mat @ vert.co)
+                for vert in mesh.vertices:
+                    # Multipy vertex Position by Object Transform Matrix
+                    vertices.append(mat @ vert.co)
 
-            for tri in tris:
-                indices.append(tri.vertices)
+                for tri in tris:
+                    indices.append(tri.vertices)
 
-            batch = batch_for_shader(depthOnlyshader, 'TRIS', {
-                                     "pos": vertices}, indices=indices)
-            batch.program_set(depthOnlyshader)
-            batch.draw()
-            obj_eval.to_mesh_clear()
-            gpu.shader.unbind()
+                batch = batch_for_shader(depthOnlyshader, 'TRIS', {
+                                        "pos": vertices}, indices=indices)
+                batch.program_set(depthOnlyshader)
+                batch.draw()
+                obj_eval.to_mesh_clear()
+                gpu.shader.unbind()
 
-    # Write to Image for Debug
-    debug = False
-    if debug:
-        scene = context.scene
-        render_scale = scene.render.resolution_percentage / 100
-        width = int(scene.render.resolution_x * render_scale)
-        height = int(scene.render.resolution_y * render_scale)
+        # Write to Image for Debug
+        debug = False
+        if debug:
+            scene = context.scene
+            render_scale = scene.render.resolution_percentage / 100
+            width = int(scene.render.resolution_x * render_scale)
+            height = int(scene.render.resolution_y * render_scale)
 
-        buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-        bgl.glReadBuffer(bgl.COLOR_ATTACHMENT0)
-        bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
-                         bgl.GL_UNSIGNED_BYTE, buffer)
+            buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+            bgl.glReadBuffer(bgl.COLOR_ATTACHMENT0)
+            bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
+                            bgl.GL_UNSIGNED_BYTE, buffer)
 
-        image_name = "measureit_arch_depth"
-        if image_name not in bpy.data.images:
-            bpy.data.images.new(image_name, width, height)
+            image_name = "measureit_arch_depth"
+            if image_name not in bpy.data.images:
+                bpy.data.images.new(image_name, width, height)
 
-        image = bpy.data.images[image_name]
-        image.scale(width, height)
-        image.pixels = [v / 255 for v in buffer]
-
-    set_OpenGL_Settings(False)
+            image = bpy.data.images[image_name]
+            image.scale(width, height)
+            image.pixels = [v / 255 for v in buffer]
 
 
 def render_main_svg(self, context):
@@ -387,28 +384,27 @@ def render_main_svg(self, context):
             # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
             deps = context.evaluated_depsgraph_get()
             projection_matrix = scene.camera.calc_matrix_camera(deps, x=width, y=height)
-            set_OpenGL_Settings(True)
-            bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-            bgl.glClearDepth(clipdepth)
-            bgl.glEnable(bgl.GL_DEPTH_TEST)
-            bgl.glDepthFunc(bgl.GL_LEQUAL)
+            with OpenGL_Settings(None):
+                bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+                bgl.glClearDepth(clipdepth)
+                bgl.glEnable(bgl.GL_DEPTH_TEST)
+                bgl.glDepthFunc(bgl.GL_LEQUAL)
 
-            gpu.matrix.reset()
-            gpu.matrix.load_matrix(view_matrix_3d)
-            gpu.matrix.load_projection_matrix(projection_matrix)
+                gpu.matrix.reset()
+                gpu.matrix.load_matrix(view_matrix_3d)
+                gpu.matrix.load_projection_matrix(projection_matrix)
 
-            texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
+                texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
 
-            draw_scene(self, context, projection_matrix)
+                draw_scene(self, context, projection_matrix)
 
-            bgl.glReadBuffer(bgl.GL_BACK)
-            bgl.glReadPixels(
-                0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
+                bgl.glReadBuffer(bgl.GL_BACK)
+                bgl.glReadPixels(
+                    0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
 
-            if 'depthbuffer' in sceneProps:
-                del sceneProps['depthbuffer']
-            sceneProps['depthbuffer'] = texture_buffer
-        set_OpenGL_Settings(False)
+                if 'depthbuffer' in sceneProps:
+                    del sceneProps['depthbuffer']
+                sceneProps['depthbuffer'] = texture_buffer
 
         # imageName = 'depthBufferTest'
         # if imageName not in bpy.data.images:

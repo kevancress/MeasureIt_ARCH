@@ -1,5 +1,6 @@
 import bpy
 import bmesh
+import bgl
 
 from mathutils import Vector
 from addon_utils import check, paths
@@ -30,7 +31,55 @@ class recursionlimit:
     def __exit__(self, type, value, tb):
         setrecursionlimit(self.old_limit)
 
+class recursionlimit:
+    def __init__(self, limit):
+        self.limit = limit
+        self.old_limit = getrecursionlimit()
 
+    def __enter__(self):
+        setrecursionlimit(self.limit)
+
+    def __exit__(self, type, value, tb):
+        setrecursionlimit(self.old_limit)
+
+
+class OpenGL_Settings:
+    def __init__(self,props):
+        self.props = props
+
+    def __enter__(self):
+        self.set_OpenGL_Settings(True)
+
+    def __exit__(self, type, value, tb):
+        self.set_OpenGL_Settings(False)
+
+    def set_OpenGL_Settings(self, toggleBool, props=None):
+
+        if toggleBool:
+            bgl.glEnable(bgl.GL_MULTISAMPLE)
+            bgl.glEnable(bgl.GL_BLEND)
+            bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
+            bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+
+            bgl.glDepthFunc(bgl.GL_LEQUAL)
+            bgl.glDepthMask(True)
+
+            if self.props and self.props.inFront:
+                bgl.glDisable(bgl.GL_DEPTH_TEST)
+            else:
+                bgl.glEnable(bgl.GL_DEPTH_TEST)
+
+        else:
+            bgl.glDisable(bgl.GL_MULTISAMPLE)
+            bgl.glDisable(bgl.GL_BLEND)
+            bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
+            bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+
+            bgl.glDisable(bgl.GL_DEPTH_TEST)
+            bgl.glDepthFunc(bgl.GL_LEQUAL)
+            bgl.glDepthMask(False)
+
+            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 def get_view():
     scene = bpy.context.scene
     ViewGen = scene.ViewGenerator
@@ -69,7 +118,6 @@ def get_loaded_addons():
             if is_enabled and is_loaded:
                 addon_list.append(mod_name)
     return addon_list
-
 
 def get_rv3d():
     spaces = bpy.context.area.spaces

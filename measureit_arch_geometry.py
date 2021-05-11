@@ -46,7 +46,7 @@ from .shaders import *
 from .measureit_arch_baseclass import recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit, OpenGL_Settings
 
 lastMode = {}
 lineBatch3D = {}
@@ -400,12 +400,13 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
                 dimProps = alignedDimStyle
 
     # Enable GL Settings
-    set_OpenGL_Settings(True, props=dimProps)
+
 
     lineWeight = dimProps.lineWeight
     # check all visibility conditions
-
-    if check_vis(dim, dimProps):
+    with OpenGL_Settings(dimProps):
+        if not check_vis(dim, dimProps):
+            return
 
         # Obj Properties
         scene = context.scene
@@ -514,7 +515,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
 
         # Collect coords and endcaps
         coords = [leadStartA, leadEndA, leadStartB,
-                  leadEndB, dimLineStartCoord, dimLineEndCoord]
+                leadEndB, dimLineStartCoord, dimLineEndCoord]
         filledCoords = []
         pos = (dimLineStart, dimLineEnd)
         for i, cap in enumerate(caps):
@@ -544,7 +545,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
                 svg_shaders.svg_text_shader(
                     dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
 
-    set_OpenGL_Settings(False)
 
 
 def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
@@ -556,11 +556,12 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    set_OpenGL_Settings(True, dimProps)
+    with OpenGL_Settings(dimProps):
 
-    lineWeight = dimProps.lineWeight
+        lineWeight = dimProps.lineWeight
 
-    if check_vis(dim, dimProps):
+        if not check_vis(dim, dimProps):
+            return
 
         # Obj Properties
         # For Collection Bounding Box
@@ -703,19 +704,19 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
 
         # identify axis pairs
         zpairs = [[0, 1],
-                  [2, 3],
-                  [4, 5],
-                  [6, 7]]
+                [2, 3],
+                [4, 5],
+                [6, 7]]
 
         xpairs = [[0, 4],
-                  [1, 5],
-                  [2, 6],
-                  [3, 7]]
+                [1, 5],
+                [2, 6],
+                [3, 7]]
 
         ypairs = [[0, 3],
-                  [1, 2],
-                  [4, 7],
-                  [5, 6]]
+                [1, 2],
+                [4, 7],
+                [5, 6]]
 
         # measureAxis = []
         # scene = context.scene
@@ -820,11 +821,10 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                     dimText.text_updated = True
 
                 placementResults = dim_text_placement(
-                    dim, dimProps, origin, dist, distVector, offsetDistance, capSize)
-                square = placementResults[0]
-                flipCaps = placementResults[1]
-                dimLineExtension = placementResults[2]
-                origin = placementResults[3]
+                    dim, dimProps, origin, dist, distVector, offsetDistance, capSize, textField = dimText)
+                flipCaps = placementResults[0]
+                dimLineExtension = placementResults[1]
+                origin = placementResults[2]
 
                 # Add the Extension to the dimension line
                 dimLineVec = dimLineStart - dimLineEnd
@@ -833,11 +833,12 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
                 dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension
 
                 if sceneProps.show_dim_text:
+                    square = dimText['textcard']
                     draw_text_3D(context, dimText, dimProps, myobj, square)
 
                 # Collect coords and endcaps
                 coords = [leadStartA, leadEndA, leadStartB,
-                          leadEndB, dimLineStartCoord, dimLineEndCoord]
+                        leadEndB, dimLineStartCoord, dimLineEndCoord]
                 # coords.append((0,0,0))
                 # coords.append(axisViewVec)
                 filledCoords = []
@@ -870,8 +871,6 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
 
             idx += 1
 
-    # Reset openGL Settings
-    set_OpenGL_Settings(False)
 
 
 def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
@@ -884,11 +883,12 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    set_OpenGL_Settings(True, dimProps)
+    with OpenGL_Settings(dimProps):
 
-    lineWeight = dimProps.lineWeight
+        lineWeight = dimProps.lineWeight
 
-    if check_vis(dim, dimProps):
+        if not check_vis(dim, dimProps):
+            return
 
         # Get CameraLoc or ViewRot
         if sceneProps.is_render_draw:
@@ -1101,7 +1101,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
 
         # Collect coords and endcaps
         coords = [leadStartA, leadEndA, leadStartB, leadEndB,
-                  dimLineStartCoord, dimLineEndCoord, viewDiffStartB, viewDiffEndB]
+                dimLineStartCoord, dimLineEndCoord, viewDiffStartB, viewDiffEndB]
         filledCoords = []
         pos = (dimLineStart, dimLineEnd)
         i = 0
@@ -1131,9 +1131,6 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
                 svg_shaders.svg_text_shader(
                     dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
 
-    # Reset openGL Settings
-    set_OpenGL_Settings(False)
-
 
 def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
     dimProps = dim
@@ -1143,9 +1140,10 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    set_OpenGL_Settings(True, dimProps)
+    with OpenGL_Settings(dimProps):
 
-    if check_vis(dim, dimProps):
+        if not check_vis(dim, dimProps):
+            return
 
         lineWeight = dimProps.lineWeight
 
@@ -1265,7 +1263,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
             draw_filled_coords(filledCoords, rgb)
 
         draw_lines(lineWeight, rgb, coords, twoPass=True,
-                   pointPass=True, pointCoords=pointCoords)
+                pointPass=True, pointCoords=pointCoords)
 
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
@@ -1276,8 +1274,6 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
             svg_shaders.svg_text_shader(
                 dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
 
-    # Reset openGL Settings
-    set_OpenGL_Settings(False)
 
 
 def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
@@ -1289,9 +1285,11 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    set_OpenGL_Settings(True, dimProps)
+    with OpenGL_Settings(dimProps):
 
-    if check_vis(dim, dimProps):
+        if not check_vis(dim, dimProps):
+            return
+
         lineWeight = dimProps.lineWeight
         rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
         radius = dim.dimOffset
@@ -1512,7 +1510,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
 
         # Draw Our Measurement
         draw_lines(lineWeight, rgb, measure_coords, twoPass=True,
-                   pointPass=True, pointCoords=measure_pointCoords)
+                pointPass=True, pointCoords=measure_pointCoords)
 
         # Draw the arc itself
         coords = []
@@ -1531,7 +1529,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
             arc_pointCoords.append(coord + center)
 
         draw_lines(lineWeight * 2, rgb, arc_coords, twoPass=True,
-                   pointPass=True, pointCoords=arc_pointCoords)
+                pointPass=True, pointCoords=arc_pointCoords)
 
         if dim.showRadius:
             pointCenter = [center]
@@ -1548,14 +1546,14 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
                 dim, dimProps, measure_coords, lineWeight * 2, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
+            # def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None)
             svg_shaders.svg_text_shader(
-                dimProps, lengthText.text, len_origin, len_square, rgb, svg, parent=svg_dim)
+                dim, dimProps, lengthText.text, len_origin, len_square, rgb, svg, parent=svg_dim)
             if dim.showRadius:
                 svg_shaders.svg_text_shader(
                     dim, dimProps, radiusText.text, rad_origin, rad_square, rgb, svg, parent=svg_dim)
 
-    # Reset openGL Settings
-    set_OpenGL_Settings(False)
+
 
 
 def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
@@ -1567,10 +1565,11 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             if alignedDimStyle.name == dim.style:
                 dimProps = alignedDimStyle
 
-    set_OpenGL_Settings(True, dimProps)
+    with OpenGL_Settings(dimProps):
 
-    # Check Visibility Conditions
-    if check_vis(dim, dimProps):
+        # Check Visibility Conditions
+        if not check_vis(dim, dimProps):
+            return
 
         lineWeight = dimProps.lineWeight
 
@@ -1669,7 +1668,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
 
         # Draw Perimeter
         draw_lines(lineWeight, rgb, perimeterCoords,
-                   twoPass=True, pointPass=True)
+                twoPass=True, pointPass=True)
 
         # Draw SVG
         if sceneProps.is_vector_draw:
@@ -1681,7 +1680,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             svg_shaders.svg_text_shader(
                 dim, dimProps, dimText.text, origin, square, textRGB, svg, parent=svg_dim)
 
-    set_OpenGL_Settings(False)
 
 
 # takes a set of co-ordinates returns the min and max value for each axis
@@ -1856,9 +1854,11 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 if lineStyle.name == lineGroup.style:
                     lineProps = lineStyle
 
-        set_OpenGL_Settings(True, lineProps)
+        with OpenGL_Settings(lineProps):
 
-        if check_vis(lineGroup, lineProps):
+            if not check_vis(lineGroup, lineProps):
+                return
+
             rgb = get_color(lineProps.color, myobj, only_active=False)
 
             # set other line properties
@@ -2091,7 +2091,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     batch3d = lineBatch3D[batchKey]
                 if sceneProps.is_render_draw:
                     batch3d = batch_for_shader(lineGroupShader, 'LINES', {
-                                               "pos": coords, "weight": tempWeights})
+                                            "pos": coords, "weight": tempWeights})
                 else:
                     batch3d = lineBatch3D[batchKey]
 
@@ -2123,10 +2123,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 svg_shaders.svg_line_shader(
                     lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat, dashed=dashed)
 
-        set_OpenGL_Settings(False)
-
     gpu.shader.unbind()
-    set_OpenGL_Settings(False)
 
 
 def get_color(rawRGB, myobj, is_active=True, only_active=True):
@@ -2168,12 +2165,13 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                 if annotationStyle.name == annotation.style:
                     annotationProps = annotationStyle
 
-        set_OpenGL_Settings(True, annotationProps)
+        with OpenGL_Settings(annotationProps):
 
-        endcap = annotationProps.endcapA
-        endcapSize = annotationProps.endcapSize
+            endcap = annotationProps.endcapA
+            endcapSize = annotationProps.endcapSize
 
-        if check_vis(annotation, annotationProps):
+            if not check_vis(annotation, annotationProps):
+                return
             lineWeight = annotationProps.lineWeight
             # undo blenders Default Gamma Correction
             rgb = get_color(annotationProps.color, myobj, is_active=annotation.is_active)
@@ -2352,7 +2350,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                     coords = []
 
                 draw_lines(lineWeight, rgb, coords,
-                           twoPass=True, pointPass=True)
+                        twoPass=True, pointPass=True)
 
             # Draw Line Endcaps
             if endcap == 'D':
@@ -2382,7 +2380,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                 for textField in fields:
                     textcard = textField['textcard']
                     draw_text_3D(context, textField,
-                                 annotationProps, myobj, textcard)
+                                annotationProps, myobj, textcard)
 
             if sceneProps.is_vector_draw:
                 svg_anno = svg.add(svg.g(id=annotation.name))
@@ -2399,9 +2397,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                     textcard = textField['textcard']
                     svg_shaders.svg_text_shader(
                         annotation, annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
-
-        set_OpenGL_Settings(False)
-
 
 def set_text(textField, obj):
 
@@ -2465,16 +2460,14 @@ def preview_dual(context):
     edges = bm.edges
 
     coords = []
-    set_OpenGL_Settings(True)
-    for edge in edges:
-        faces = edge.link_faces
-        for face in faces:
-            center = face.calc_center_median()
-            coords.append(mat @ center)
+    with OpenGL_Settings(None):
+        for edge in edges:
+            faces = edge.link_faces
+            for face in faces:
+                center = face.calc_center_median()
+                coords.append(mat @ center)
 
-    draw_lines(3, (1, 0, 0, 1), coords, twoPass=True, offset=-0.0005)
-    set_OpenGL_Settings(False)
-
+        draw_lines(3, (1, 0, 0, 1), coords, twoPass=True, offset=-0.0005)
 
 def draw_text_3D(context, textobj, textprops, myobj, card):
     # get props
@@ -2606,7 +2599,6 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
                   card[2], card[3], card[3], card[0]]
         draw_lines(1.0, (0.0, 1.0, 0.0, 1.0), coords)
 
-    set_OpenGL_Settings(True, props=textprops)
     if 'texture' in textobj and textobj.text != "":
         # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
         texArray = bgl.Buffer(bgl.GL_INT, [1])
@@ -2730,20 +2722,12 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
 
 
 def generate_text_card(
-        context, textobj, textProps, rotation=None, basePoint=None, xDir=None,
-        yDir=None, cardIdx=0):
+        context, textobj, textProps, rotation=Vector((0, 0, 0)), basePoint=Vector((0, 0, 0)), xDir=Vector((1, 0, 0)),
+        yDir=Vector((0, 1, 0)), cardIdx=0):
+
     """
     Returns a list of 4 Vectors
     """
-
-    if not rotation:
-        rotation = Vector((0, 0, 0))
-    if not basePoint:
-        basePoint = Vector((0, 0, 0))
-    if not xDir:
-        xDir = Vector((1, 0, 0))
-    if not yDir:
-        yDir = Vector((0, 1, 0))
 
     width = textobj.textWidth
     height = textobj.textHeight
@@ -2879,10 +2863,6 @@ def get_arc_data(pointa, pointb, pointc, pointd):
     return angle, rclength
 
 
-# --------------------------------------------------------------------
-# Get vertex data
-# mainobject
-# --------------------------------------------------------------------
 def get_mesh_vertices(myobj):
     """ Get vertex data """
     sceneProps = bpy.context.scene.MeasureItArchProps
@@ -3021,34 +3001,6 @@ def rgb_gamma_correct(rawRGB):
         rawRGB[3]))
 
 
-def set_OpenGL_Settings(toggleBool, props=None):
-    if toggleBool:
-        bgl.glEnable(bgl.GL_MULTISAMPLE)
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
-        bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-
-        bgl.glDepthFunc(bgl.GL_LEQUAL)
-        bgl.glDepthMask(True)
-
-        if props and props.inFront:
-            bgl.glDisable(bgl.GL_DEPTH_TEST)
-        else:
-            bgl.glEnable(bgl.GL_DEPTH_TEST)
-
-    else:
-        bgl.glDisable(bgl.GL_MULTISAMPLE)
-        bgl.glDisable(bgl.GL_BLEND)
-        bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
-        bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-
-        bgl.glDisable(bgl.GL_DEPTH_TEST)
-        bgl.glDepthFunc(bgl.GL_LEQUAL)
-        bgl.glDepthMask(False)
-
-        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-
-
 def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False):
     viewport = get_viewport()
 
@@ -3137,6 +3089,8 @@ def cap_extension(dirVec, capSize, capAngle):
     scale = get_scale()
     return dirVec.normalized() / 1000 * capSize * sin(capAngle) * scale
 
+def draw_dim_leaders(myobj, dim, dimProps, points, rotationMatrix, normal):
+    pass
 
 def dim_line_extension(capSize):
     scale = get_scale()
@@ -3244,7 +3198,6 @@ def z_order_objs(obj_list):
     to_sort.sort()
     ordered_obj_list = [item.item for item in to_sort]
     return ordered_obj_list
-
 
 
 def z_order_faces(face_list, obj):
