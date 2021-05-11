@@ -39,7 +39,7 @@ from datetime import datetime
 from . import svg_shaders
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_titleblock
-from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons, OpenGL_Settings
+from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render
 from .measureit_arch_units import BU_TO_INCHES
 from .shaders import Base_Shader_3D, DepthOnlyFrag
 
@@ -192,78 +192,79 @@ class RenderVectorButton(Operator):
 
 def render_main(self, context):
     """ Render image main entry point """
+
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-    sceneProps.is_render_draw = True
 
-    clipdepth = context.scene.camera.data.clip_end
-    objlist = context.view_layer.objects
+    with Set_Render(sceneProps):
+        clipdepth = context.scene.camera.data.clip_end
+        objlist = context.view_layer.objects
 
-    # Get resolution
-    render_scale = scene.render.resolution_percentage / 100
-    width = int(scene.render.resolution_x * render_scale)
-    height = int(scene.render.resolution_y * render_scale)
+        # Get resolution
+        render_scale = scene.render.resolution_percentage / 100
+        width = int(scene.render.resolution_x * render_scale)
+        height = int(scene.render.resolution_y * render_scale)
 
-    # Draw all lines offscreen
-    renderoffscreen = gpu.types.GPUOffScreen(width, height)
+        # Draw all lines offscreen
+        renderoffscreen = gpu.types.GPUOffScreen(width, height)
 
-    view_matrix_3d = scene.camera.matrix_world.inverted()
-    projection_matrix = scene.camera.calc_matrix_camera(
-        context.view_layer.depsgraph, x=width, y=height)
+        view_matrix_3d = scene.camera.matrix_world.inverted()
+        projection_matrix = scene.camera.calc_matrix_camera(
+            context.view_layer.depsgraph, x=width, y=height)
 
-    with OpenGL_Settings(None):
-        with renderoffscreen.bind():
+        with OpenGL_Settings(None):
+            with renderoffscreen.bind():
 
-            # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
-            bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-            bgl.glClearDepth(clipdepth)
+                # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
+                bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+                bgl.glClearDepth(clipdepth)
 
-            gpu.matrix.reset()
-            gpu.matrix.load_matrix(view_matrix_3d)
-            gpu.matrix.load_projection_matrix(projection_matrix)
+                gpu.matrix.reset()
+                gpu.matrix.load_matrix(view_matrix_3d)
+                gpu.matrix.load_projection_matrix(projection_matrix)
 
-            # Draw Scene for the depth buffer
-            draw_scene(self, context, projection_matrix)
+                # Draw Scene for the depth buffer
+                draw_scene(self, context, projection_matrix)
 
-            # Clear Color Buffer, we only need the depth info
-            bgl.glClearColor(0, 0, 0, 0)
-            bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+                # Clear Color Buffer, we only need the depth info
+                bgl.glClearColor(0, 0, 0, 0)
+                bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
-            # -----------------------------
-            # Loop to draw all objects
-            # -----------------------------
-            draw3d_loop(context, objlist)
-            dt = scene.MeasureItArchProps.vector_depthtest
-            scene.MeasureItArchProps.vector_depthtest = False
-            draw_titleblock(context)
-            scene.MeasureItArchProps.vector_depthtest = dt
+                # -----------------------------
+                # Loop to draw all objects
+                # -----------------------------
+                draw3d_loop(context, objlist)
+                dt = scene.MeasureItArchProps.vector_depthtest
+                scene.MeasureItArchProps.vector_depthtest = False
+                draw_titleblock(context)
+                scene.MeasureItArchProps.vector_depthtest = dt
 
-            buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-            bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
-            bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
-                            bgl.GL_UNSIGNED_BYTE, buffer)
+                buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+                bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
+                bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
+                                bgl.GL_UNSIGNED_BYTE, buffer)
 
-        # Create image
-        image_name = "measureit_arch_output"
-        if image_name not in bpy.data.images:
-            image = bpy.data.images.new(image_name, width, height)
+            # Create image
+            image_name = "measureit_arch_output"
+            if image_name not in bpy.data.images:
+                image = bpy.data.images.new(image_name, width, height)
 
-        image = bpy.data.images[image_name]
-        image.scale(width, height)
-        image.pixels = [v / 255 for v in buffer]
+            image = bpy.data.images[image_name]
+            image.scale(width, height)
+            image.pixels = [v / 255 for v in buffer]
 
-        renderoffscreen.free()
+            renderoffscreen.free()
 
-        # Save image
-        outpath = None
-        if image is not None:
-            view = get_view()
-            outpath = get_view_outpath(
-                scene, view, "{:04d}.png".format(scene.frame_current))
-            save_image(self, outpath, image)
+            # Save image
+            outpath = None
+            if image is not None:
+                view = get_view()
+                outpath = get_view_outpath(
+                    scene, view, "{:04d}.png".format(scene.frame_current))
+                save_image(self, outpath, image)
 
-    # Restore default value
-    sceneProps.is_render_draw = False
+        # Restore default value
+        sceneProps.is_render_draw = False
     return outpath
 
 
@@ -361,181 +362,180 @@ def render_main_svg(self, context):
     startTime = time.time()
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-    sceneProps.is_render_draw = True
-    sceneProps.is_vector_draw = True
 
-    svg_shaders.clear_db()
+    with Set_Render(sceneProps, is_vector = True):
+        svg_shaders.clear_db()
 
-    clipdepth = context.scene.camera.data.clip_end
-    objlist = context.view_layer.objects
+        clipdepth = context.scene.camera.data.clip_end
+        objlist = context.view_layer.objects
 
-    # Get resolution
-    render_scale = scene.render.resolution_percentage / 100
-    width = int(scene.render.resolution_x * render_scale)
-    height = int(scene.render.resolution_y * render_scale)
+        # Get resolution
+        render_scale = scene.render.resolution_percentage / 100
+        width = int(scene.render.resolution_x * render_scale)
+        height = int(scene.render.resolution_y * render_scale)
 
 
-    view_matrix_3d = scene.camera.matrix_world.inverted()
-    # Render Depth Buffer
-    print("Rendering Depth Buffer")
-    if sceneProps.vector_depthtest:
-        offscreen = gpu.types.GPUOffScreen(width, height)
-        with offscreen.bind():
-            # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
-            deps = context.evaluated_depsgraph_get()
-            projection_matrix = scene.camera.calc_matrix_camera(deps, x=width, y=height)
-            with OpenGL_Settings(None):
-                bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-                bgl.glClearDepth(clipdepth)
-                bgl.glEnable(bgl.GL_DEPTH_TEST)
-                bgl.glDepthFunc(bgl.GL_LEQUAL)
+        view_matrix_3d = scene.camera.matrix_world.inverted()
+        # Render Depth Buffer
+        print("Rendering Depth Buffer")
+        if sceneProps.vector_depthtest:
+            offscreen = gpu.types.GPUOffScreen(width, height)
+            with offscreen.bind():
+                # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
+                deps = context.evaluated_depsgraph_get()
+                projection_matrix = scene.camera.calc_matrix_camera(deps, x=width, y=height)
+                with OpenGL_Settings(None):
+                    bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+                    bgl.glClearDepth(clipdepth)
+                    bgl.glEnable(bgl.GL_DEPTH_TEST)
+                    bgl.glDepthFunc(bgl.GL_LEQUAL)
 
-                gpu.matrix.reset()
-                gpu.matrix.load_matrix(view_matrix_3d)
-                gpu.matrix.load_projection_matrix(projection_matrix)
+                    gpu.matrix.reset()
+                    gpu.matrix.load_matrix(view_matrix_3d)
+                    gpu.matrix.load_projection_matrix(projection_matrix)
 
-                texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
+                    texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
 
-                draw_scene(self, context, projection_matrix)
+                    draw_scene(self, context, projection_matrix)
 
-                bgl.glReadBuffer(bgl.GL_BACK)
-                bgl.glReadPixels(
-                    0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
+                    bgl.glReadBuffer(bgl.GL_BACK)
+                    bgl.glReadPixels(
+                        0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
 
-                if 'depthbuffer' in sceneProps:
-                    del sceneProps['depthbuffer']
-                sceneProps['depthbuffer'] = texture_buffer
+                    if 'depthbuffer' in sceneProps:
+                        del sceneProps['depthbuffer']
+                    sceneProps['depthbuffer'] = texture_buffer
 
-        # imageName = 'depthBufferTest'
-        # if imageName not in bpy.data.images:
-        #     bpy.data.images.new(imageName, width, height,
-        #                         alpha=False, float_buffer=True, is_data=True)
-        # image = bpy.data.images[imageName]
+            # imageName = 'depthBufferTest'
+            # if imageName not in bpy.data.images:
+            #     bpy.data.images.new(imageName, width, height,
+            #                         alpha=False, float_buffer=True, is_data=True)
+            # image = bpy.data.images[imageName]
 
-        # image.scale(width, height)
-        # image.pixels = [v for v in texture_buffer]
+            # image.scale(width, height)
+            # image.pixels = [v for v in texture_buffer]
 
-    # Setup Output Path
-    view = get_view()
-    outpath = get_view_outpath(
-        scene, view, "{:04d}.svg".format(scene.frame_current))
+        # Setup Output Path
+        view = get_view()
+        outpath = get_view_outpath(
+            scene, view, "{:04d}.svg".format(scene.frame_current))
 
-    if view and view.res_type == 'res_type_paper':
-        paperWidth = round(view.width * BU_TO_INCHES, 3)
-        paperHeight = round(view.height * BU_TO_INCHES, 3)
-    else:
-        print('No View Present, using default resolution')
-        paperWidth = width / sceneProps.default_resolution
-        paperHeight = height / sceneProps.default_resolution
+        if view and view.res_type == 'res_type_paper':
+            paperWidth = round(view.width * BU_TO_INCHES, 3)
+            paperHeight = round(view.height * BU_TO_INCHES, 3)
+        else:
+            print('No View Present, using default resolution')
+            paperWidth = width / sceneProps.default_resolution
+            paperHeight = height / sceneProps.default_resolution
 
-    # Setup basic svg
-    svg = svgwrite.Drawing(
-        outpath,
-        debug=False,
-        size=('{}in'.format(paperWidth), '{}in'.format(paperHeight)),
-        viewBox=('0 0 {} {}'.format(width, height)),
-        id='root',
-    )
+        # Setup basic svg
+        svg = svgwrite.Drawing(
+            outpath,
+            debug=False,
+            size=('{}in'.format(paperWidth), '{}in'.format(paperHeight)),
+            viewBox=('0 0 {} {}'.format(width, height)),
+            id='root',
+        )
 
-    view = get_view()
-    if view.embed_scene_render:
-        with local_attrs(scene, [
-                'render.image_settings.file_format',
-                'render.use_file_extension',
-                'render.filepath']):
+        view = get_view()
+        if view.embed_scene_render:
+            with local_attrs(scene, [
+                    'render.image_settings.file_format',
+                    'render.use_file_extension',
+                    'render.filepath']):
+
+                image_path = get_view_outpath(
+                    scene, view, "{:04d}.svg".format(scene.frame_current))
+                scene.render.filepath =  image_path
+                scene.render.image_settings.file_format = 'PNG'
+                scene.render.use_file_extension = True
+                bpy.ops.render.render(write_still=True)
+
+                png_image_path = os.path.basename("{}.png".format(image_path))
+                svg.add(svg.image(
+                    png_image_path, **{
+                        'width': width,
+                        'height': height
+                    }
+                ))
+
+
+        ## Freestyle Embed
+        freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
+        if view.embed_freestyle_svg and freestyle_svg_export:
+            # If "FreeStyle SVG export" addon is loaded, we render the scene to SVG
+            # and embed the output in the final SVG.
+
+            svg_image_path = get_view_outpath(
+                scene, view, "{}".format("_freestyle"))
+
+            with local_attrs(scene, [
+                    'render.filepath',
+                    'render.image_settings.file_format',
+                    'render.use_freestyle',
+                    'svg_export.use_svg_export',
+                    'svg_export.mode']):
+
+                scene.render.use_freestyle = True
+                scene.svg_export.use_svg_export = True
+                scene.svg_export.mode = 'FRAME'
+                scene.render.filepath = svg_image_path
+                scene.render.image_settings.file_format = 'PNG'
+                scene.render.use_file_extension = True
+                bpy.ops.render.render(write_still=False)
+
+
+                frame = scene.frame_current
+                svg_image_path += "{:04d}.svg".format(frame)
+                svg_root = ET.parse(svg_image_path).getroot()
+                for elem in svg_root:
+                    svg.add(SVGWriteElement(elem))
+
+                if (os.path.exists(svg_image_path) and
+                    not sceneProps.keep_freestyle_svg):
+                    os.remove(svg_image_path)
+
+        ## Greasepencil Embed
+        if view.embed_greasepencil_svg:
 
             image_path = get_view_outpath(
                 scene, view, "{:04d}.svg".format(scene.frame_current))
-            scene.render.filepath =  image_path
-            scene.render.image_settings.file_format = 'PNG'
-            scene.render.use_file_extension = True
-            bpy.ops.render.render(write_still=True)
-
-            png_image_path = os.path.basename("{}.png".format(image_path))
-            svg.add(svg.image(
-                png_image_path, **{
-                    'width': width,
-                    'height': height
-                }
-            ))
-
-
-    ## Freestyle Embed
-    freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
-    if view.embed_freestyle_svg and freestyle_svg_export:
-        # If "FreeStyle SVG export" addon is loaded, we render the scene to SVG
-        # and embed the output in the final SVG.
-
-        svg_image_path = get_view_outpath(
-            scene, view, "{}".format("_freestyle"))
-
-        with local_attrs(scene, [
-                'render.filepath',
-                'render.image_settings.file_format',
-                'render.use_freestyle',
-                'svg_export.use_svg_export',
-                'svg_export.mode']):
-
-            scene.render.use_freestyle = True
-            scene.svg_export.use_svg_export = True
-            scene.svg_export.mode = 'FRAME'
-            scene.render.filepath = svg_image_path
-            scene.render.image_settings.file_format = 'PNG'
-            scene.render.use_file_extension = True
-            bpy.ops.render.render(write_still=False)
-
-
             frame = scene.frame_current
-            svg_image_path += "{:04d}.svg".format(frame)
-            svg_root = ET.parse(svg_image_path).getroot()
+            gp_image_path = image_path + "_Grease_Pencil"
+
+            bpy.ops.wm.gpencil_export_svg(filepath= gp_image_path,
+                        check_existing=True,
+                        filemode=8,
+                        display_type='DEFAULT',
+                        sort_method='FILE_SORT_ALPHA',
+                        use_fill=True,
+                        selected_object_type='VISIBLE',
+                        stroke_sample=0,
+                        use_normalized_thickness=False,
+                        use_clip_camera=True)
+
+
+            svg_root = ET.parse(gp_image_path).getroot()
             for elem in svg_root:
                 svg.add(SVGWriteElement(elem))
 
-            if (os.path.exists(svg_image_path) and
-                not sceneProps.keep_freestyle_svg):
-                os.remove(svg_image_path)
+            if os.path.exists(gp_image_path):
+                os.remove(gp_image_path)
 
-    ## Greasepencil Embed
-    if view.embed_greasepencil_svg:
+        # -----------------------------
+        # Loop to draw all objects
+        # -----------------------------
+        draw3d_loop(context, objlist, svg=svg)
+        draw_titleblock(context, svg=svg)
 
-        image_path = get_view_outpath(
-            scene, view, "{:04d}.svg".format(scene.frame_current))
-        frame = scene.frame_current
-        gp_image_path = image_path + "_Grease_Pencil"
+        svg.save(pretty=True)
 
-        bpy.ops.wm.gpencil_export_svg(filepath= gp_image_path,
-                    check_existing=True,
-                    filemode=8,
-                    display_type='DEFAULT',
-                    sort_method='FILE_SORT_ALPHA',
-                    use_fill=True,
-                    selected_object_type='VISIBLE',
-                    stroke_sample=0,
-                    use_normalized_thickness=False,
-                    use_clip_camera=True)
+        # restore default value
+        sceneProps.is_render_draw = False
+        sceneProps.is_vector_draw = False
 
-
-        svg_root = ET.parse(gp_image_path).getroot()
-        for elem in svg_root:
-            svg.add(SVGWriteElement(elem))
-
-        if os.path.exists(gp_image_path):
-            os.remove(gp_image_path)
-
-    # -----------------------------
-    # Loop to draw all objects
-    # -----------------------------
-    draw3d_loop(context, objlist, svg=svg)
-    draw_titleblock(context, svg=svg)
-
-    svg.save(pretty=True)
-
-    # restore default value
-    sceneProps.is_render_draw = False
-    sceneProps.is_vector_draw = False
-
-    endTime = time.time()
-    print("Time: " + str(endTime - startTime))
+        endTime = time.time()
+        print("Time: " + str(endTime - startTime))
 
     return outpath
 

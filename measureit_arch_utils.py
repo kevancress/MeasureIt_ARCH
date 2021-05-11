@@ -42,6 +42,19 @@ class recursionlimit:
     def __exit__(self, type, value, tb):
         setrecursionlimit(self.old_limit)
 
+class Set_Render:
+    def __init__(self, sceneProps, is_vector=False):
+        self.sceneProps = sceneProps
+        self.is_vector = is_vector
+
+    def __enter__(self):
+        self.sceneProps.is_vector_draw = self.is_vector
+        self.sceneProps.is_render_draw = True
+
+    def __exit__(self, type, value, tb):
+        self.sceneProps.is_vector_draw = False
+        self.sceneProps.is_render_draw = False
+
 
 class OpenGL_Settings:
     def __init__(self,props):
@@ -80,6 +93,7 @@ class OpenGL_Settings:
             bgl.glDepthMask(False)
 
             bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+
 def get_view():
     scene = bpy.context.scene
     ViewGen = scene.ViewGenerator
