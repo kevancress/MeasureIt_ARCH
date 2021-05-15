@@ -263,10 +263,10 @@ class BaseWithText(BaseProp):
 
     # Endcap properties are defined here to ensure compatiblity but the
     # enumProps are overwritten in child property groups
-    endcapSize: IntProperty(
+    endcapSize: FloatProperty(
         name="dimEndcapSize",
         description="End Cap size",
-        default=12, min=1, max=500)
+        default=12, min=1, max=500,step=100,precision=0)
 
     endcapArrowAngle: FloatProperty(
         name="endcapArrowAngle",
@@ -303,6 +303,12 @@ class BaseDim(BaseWithText):
     dimPointB: IntProperty(
         name='dimPointB',
         description="Dimension End Vertex Index")
+
+    dimFlip: BoolProperty(
+        name= 'dimFlip',
+        description= "Flip Dimension",
+        default= False
+    )
 
     dimOffset: FloatProperty(
         name='Dimension Offset',
