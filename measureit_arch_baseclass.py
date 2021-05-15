@@ -250,12 +250,12 @@ class BaseWithText(BaseProp):
         name="align Font",
         description="Set Font Position")
 
-    fontSize: IntProperty(
+    fontSize: FloatProperty(
         name='Font Size',
         description="Font Size in pt (1pt = 1/72\")\n"
                     "Note: Font size is relative to the current scale\n"
                     "Scale is defined in your active view, or in the Scene unit settings",
-        default=18)
+        default=18, soft_min = 1, step=100, precision=0)
 
     font: PointerProperty(
         type=bpy.types.VectorFont,
@@ -266,7 +266,7 @@ class BaseWithText(BaseProp):
     endcapSize: FloatProperty(
         name="dimEndcapSize",
         description="End Cap size",
-        default=12, min=1, max=500,step=100,precision=0)
+        default=12, min=0, max=500,step=100,precision=0)
 
     endcapArrowAngle: FloatProperty(
         name="endcapArrowAngle",
