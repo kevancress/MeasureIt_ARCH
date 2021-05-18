@@ -324,7 +324,7 @@ def draw_material_hatches(context, myobj, mat, svg=None):
 
         bm = bmesh.new()
         if myobj.mode == 'OBJECT':
-            bm.from_object(myobj, bpy.context.view_layer.depsgraph, deform=True)
+            bm.from_object(myobj, bpy.context.view_layer.depsgraph)
         else:
             bm = bmesh.from_edit_mesh(mesh)
 
@@ -1584,7 +1584,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
             eval_res = sceneProps.eval_mods
             if (eval_res or dim.evalMods) and check_mods(myobj):  # From Evaluated Deps Graph
                 bm.from_object(
-                    myobj, bpy.context.view_layer.depsgraph, deform=True)
+                    myobj, bpy.context.view_layer.depsgraph)
             else:
                 bm.from_mesh(myobj.data)
         else:
@@ -1940,7 +1940,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
                     if myobj.mode == 'OBJECT':
                         bm.from_object(
-                            myobj, bpy.context.view_layer.depsgraph, deform=True)
+                            myobj, bpy.context.view_layer.depsgraph)
 
                         # For each edge get its linked faces and vertex indicies
                         for edge in bm.edges:
@@ -2451,7 +2451,7 @@ def preview_dual(context):
     mesh = myobj.data
     bm = bmesh.new()
     if myobj.mode == 'OBJECT':
-        bm.from_object(myobj, bpy.context.view_layer.depsgraph, deform=True)
+        bm.from_object(myobj, bpy.context.view_layer.depsgraph)
     else:
         bm = bmesh.from_edit_mesh(mesh)
 
@@ -2946,7 +2946,7 @@ def get_mesh_vertex(myobj, idx, evalMods):
             eval_res = sceneProps.eval_mods
             if (eval_res or evalMods) and check_mods(myobj):  # From Evaluated Deps Graph
                 bm.from_object(
-                    myobj, bpy.context.view_layer.depsgraph, deform=True)
+                    myobj, bpy.context.view_layer.depsgraph)
                 bm.verts.ensure_lookup_table()
                 verts = bm.verts
         # Get Co-ordinate for Index in Vertices
