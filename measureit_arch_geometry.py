@@ -2615,11 +2615,14 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
                             bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
                             bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
-
-        tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(
-            textobj['texture'], dtype=np.uint8))
-        bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width,
-                         height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
+        try:
+            tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(
+                textobj['texture'], dtype=np.uint8))
+            bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width,
+                            height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
+        except AttributeError:
+            print("ATTRIBUTE ERROR DRAWING TEXT ON {}".format(myobj.name))
+            return
 
         textobj.texture_updated = False
 
