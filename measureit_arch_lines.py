@@ -43,10 +43,6 @@ class LineProperties(BaseProp, PropertyGroup):
         description="Draw Round Caps",
         default=True)
 
-    numLines: IntProperty(
-        name="Number of Lines",
-        description="Number Of Single Lines")
-
     lineDrawHidden: BoolProperty(
         name="Draw Hidden Lines",
         description="Draw Hidden Lines",
@@ -531,7 +527,6 @@ class AddToLineGroup(Operator):
                         for x in range(0, len(mylist) - 1, 2):
                             bufferList.append(mylist[x])
                             bufferList.append(mylist[x + 1])
-                            lGroup.numLines += 1
 
                         # redraw
                         lGroup['lineBuffer'] = bufferList
@@ -689,7 +684,6 @@ class RemoveFromLineGroup(Operator):
                                     # print("A:" + str(pointA) + "B:" + str(pointB) )
                                     del bufferList[x]
                                     del bufferList[x]
-                                    lGroup.numLines -= 1
 
                         # redraw
                         lGroup['lineBuffer'] = bufferList

@@ -154,6 +154,11 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
     annotationAnchor: IntProperty(
         name="annotationAnchor",
         description="Index of Vertex that the annotation is Anchored to")
+    
+    annotationAnchorSpline: IntProperty(
+        name="annotationAnchorSpline",
+        description="Index of Spline that the annotation is Anchored to (Curves)",
+        default = -1)
 
     endcapSize: IntProperty(
         name="dimEndcapSize",
@@ -201,7 +206,7 @@ class AddAnnotationButton(Operator):
             return True
         elif obj.type == "EMPTY" or obj.type == "CAMERA" or obj.type == "LIGHT":
             return True
-        elif obj.type == "MESH" and bpy.context.mode == 'EDIT_MESH':
+        elif (obj.type == "MESH" or obj.type =="CURVE") and (bpy.context.mode == 'EDIT_MESH' or bpy.context.mode == "EDIT_CURVE"):
             return True
         else:
             return False
@@ -232,6 +237,8 @@ class AddAnnotationButton(Operator):
             for point in pointList:
                 obj = point['obj']
                 anchor = point['vert']
+                
+                    
 
                 annotationGen = obj.AnnotationGenerator
 
@@ -241,6 +248,10 @@ class AddAnnotationButton(Operator):
 
                 newAnnotation.itemType = 'A'
                 newAnnotation.annotationAnchorObject = mainobject
+                try:
+                    newAnnotation.annotationAnchorSpline = point['spline']
+                except KeyError:
+                    pass
 
                 if sceneProps.default_annotation_style != '':
                     newAnnotation.uses_style = True

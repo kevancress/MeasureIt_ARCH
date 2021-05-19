@@ -384,6 +384,27 @@ def get_smart_selected(filterObj=None, forceEdges=False, usePairs=True):
                                 pointList.append(pointData)
 
         print('In Edit Mode')
+    
+    # Curve Selection
+    elif bpy.context.mode == 'EDIT_CURVE':
+    
+        objs = bpy.context.objects_in_mode
+        for obj in objs:
+            spline_id=0
+            for spline in obj.data.splines:
+                point_id =0
+                for point in spline.bezier_points:
+                    if point.select_control_point:
+                        pointData = {}
+                        pointData['spline'] = spline_id
+                        pointData['vert'] = point_id
+                        pointData['obj'] = obj
+                        pointList.append(pointData)
+                    point_id += 1
+                spline_id += 1
+
+
+
 
     return (pointList, warningStr)
 

@@ -2185,7 +2185,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
             deleteFlag = False
             try:
                 p1local = get_mesh_vertex(
-                    myobj, annotation.annotationAnchor, annotationProps.evalMods)
+                    myobj, annotation.annotationAnchor, annotationProps.evalMods, spline_idx=annotation.annotationAnchorSpline)
                 p1 = get_point(p1local, mat)
             except IndexError:
                 deleteFlag = True
@@ -2932,7 +2932,7 @@ def get_archipack_loc(context, myobj, idx):
     return None
 
 
-def get_mesh_vertex(myobj, idx, evalMods):
+def get_mesh_vertex(myobj, idx, evalMods, spline_idx=-1):
     context = bpy.context
     coord = get_archipack_loc(context, myobj, idx)
     if coord is not None:
@@ -2965,6 +2965,9 @@ def get_mesh_vertex(myobj, idx, evalMods):
             coord = Vector((0,0,0))
 
     # free Bmesh and return
+    if myobj.type == 'CURVE':
+        coord = myobj.data.splines[spline_idx].bezier_points[idx].co
+        
     return coord
 
 
