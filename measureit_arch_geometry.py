@@ -1838,6 +1838,8 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 
     # Normalize Result
     bestNormal.normalize()
+    if dim.dimFlip:
+        bestNormal *= -1.0
     return bestNormal
 
 
@@ -2255,7 +2257,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                 cameraRotMat = cameraRotMat.to_4x4()
 
                 fullRotMat = cameraRotMat
-
                 extMat = locMatrix @ fullRotMat @ customScale
 
                 cameraX = cameraRotMat @ Vector((1, 0, 0))

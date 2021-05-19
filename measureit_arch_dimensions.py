@@ -1495,6 +1495,11 @@ class TranslateDimensionOp(bpy.types.Operator):
             context.area.header_text_set(None)
             return {'FINISHED'}
 
+        elif event.type == 'TAB':
+            dimension.dimFlip = not self.init_flip
+
+
+
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
             # Setting hide_viewport is a stupid hack to force Gizmos to update
             # after operator completes
@@ -1512,6 +1517,7 @@ class TranslateDimensionOp(bpy.types.Operator):
         dimension = eval('myobj.' + self.dimType)
         self.init_mouse_x = event.mouse_x
         self.init_mouse_y = event.mouse_y
+        self.init_flip = dimension.dimFlip
 
         self.init = dimension.dimOffset
         if dimension.uses_style:
