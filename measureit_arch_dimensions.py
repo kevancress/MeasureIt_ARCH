@@ -1432,6 +1432,7 @@ class TranslateDimensionOp(bpy.types.Operator):
         tweak_snap = event.ctrl
         tweak_precise = event.shift
         styleOffset = event.alt
+        
 
         if event.type == 'MOUSEMOVE':
             sensitivity = 0.01
@@ -1495,8 +1496,8 @@ class TranslateDimensionOp(bpy.types.Operator):
             context.area.header_text_set(None)
             return {'FINISHED'}
 
-        elif event.type == 'TAB':
-            dimension.dimFlip = not self.init_flip
+        elif event.type == 'TAB' and event.value == 'PRESS':
+            dimension.dimFlip = not dimension.dimFlip
 
 
 
@@ -1508,7 +1509,7 @@ class TranslateDimensionOp(bpy.types.Operator):
             dimension.dimOffset = self.init
 
             return {'CANCELLED'}
-
+        
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
