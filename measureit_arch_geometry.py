@@ -2446,6 +2446,18 @@ def set_text(textField, obj):
         elif textField.textSource == 'VIEWNUM':
             view = get_view()
             textField.text = view.view_num
+
+        elif textField.textSource == 'C_LENGTH':
+            if obj.type == 'CURVE':
+                if len(obj.data.splines) > 1:
+                    text = "USE ON SINGLE SPLINE CURVE"
+                elif obj.scale[0] != 1.0 or obj.scale[1] != 1.0 or obj.scale[1] != 1.0:
+                    text = "APPLY SCALE"
+                else:
+                    length = obj.data.splines[0].calc_length()
+                    text = format_distance(length)
+                textField.text = text
+
         # CUSTOM PROP
         elif textField.textSource == 'RNAPROP':
             if textField.rnaProp != '':
