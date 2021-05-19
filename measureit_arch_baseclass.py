@@ -314,6 +314,7 @@ class BaseDim(BaseWithText):
         name='Dimension Offset',
         description='Offset for Dimension',
         default=(0.5),
+        min = 0.0,
         subtype='DISTANCE',
         update=update_active_dim)
 

@@ -90,13 +90,13 @@ def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
                 dimProps = alignedDimStyle
 
     # Set Matrix
-    k = Vector((0, 0, 1))
+    k = Vector((0, 0, -1))
     basisMatrix = Matrix.Translation(Vector((0, 0, 0)))
     rot = k.rotation_difference(dim.gizRotDir)
     rotMatrix = rot.to_matrix()
     rotMatrix.resize_4x4()
 
-    basisMatrix.translation = Vector(dim.gizLoc) + (Vector(dim.gizRotDir) * 0.2)
+    basisMatrix.translation = Vector(dim.gizLoc) + (Vector(dim.gizRotDir) * -0.1)
     basisMatrix = basisMatrix @ rotMatrix
 
     # Offset Gizmo
@@ -115,7 +115,7 @@ def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
     dimOffsetGiz.scale_basis = 1
     dimOffsetGiz.color = (pow(dimProps.color[0], (1 / 2.2)), pow(
         dimProps.color[1], (1 / 2.2)), pow(dimProps.color[2], (1 / 2.2)))
-    dimOffsetGiz.alpha = 0.3
+    dimOffsetGiz.alpha = 0.7
 
     dimOffsetGiz.color_highlight = (pow(dimProps.color[0], (1 / 2.2)), pow(
         dimProps.color[1], (1 / 2.2)), pow(dimProps.color[2], (1 / 2.2)))

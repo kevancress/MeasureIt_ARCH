@@ -478,7 +478,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
             offsetDistance = geoOffsetDistance
 
         # Set Gizmo Props
-        dim.gizLoc = midpoint
+        dim.gizLoc = midpoint + offsetDistance 
         dim.gizRotDir = userOffsetVector
 
         # Define Lines
@@ -1033,7 +1033,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             offsetDistance = geoOffsetDistance
 
         # Set Gizmo Props
-        dim.gizLoc = midpoint
+        dim.gizLoc = midpoint + offsetDistance 
         dim.gizRotDir = userOffsetVector
 
         # Define Lines
