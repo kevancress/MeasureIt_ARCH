@@ -1915,7 +1915,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     preserve_all_data_layers=True, depsgraph=deps)
                 verts = mesh.vertices
             else:
-                verts = myobj.data.vertices
+                pass
+                #verts = myobj.data.vertices
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
@@ -1933,63 +1934,81 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                         idx, verts) for idx in lineGroup['lineBuffer']]
                     lineGroup['coordBuffer'] = tempCoords
 
-                    # Calculate dynamic lines
+                # Calculate dynamic lines or curve lines
 
                 if lineGroup.useDynamicCrease:
-                    tempCoords = []
-                    # Create a Bmesh Instance from the selected object
-                    bm = bmesh.new()
-                    mesh = myobj.data
-                    camera_z = get_camera_z()
-                    rot = mat.to_quaternion()
+                    if not lineGroup.is_curve:
+                        tempCoords = []
+                        # Create a Bmesh Instance from the selected object
+                        bm = bmesh.new()
+                        mesh = myobj.data
+                        camera_z = get_camera_z()
+                        rot = mat.to_quaternion()
 
-                    if myobj.mode == 'OBJECT':
-                        bm.from_object(
-                            myobj, bpy.context.view_layer.depsgraph)
+                        if myobj.mode == 'OBJECT':
+                            bm.from_object(
+                                myobj, bpy.context.view_layer.depsgraph)
 
-                        # For each edge get its linked faces and vertex indicies
-                        for edge in bm.edges:
-                            linked_faces = edge.link_faces
-                            pointA = edge.verts[0].co
-                            pointB = edge.verts[1].co
-                            if len(linked_faces) == 2:
-                                normalA = Vector(
-                                    linked_faces[0].normal).normalized()
-                                normalB = Vector(
-                                    linked_faces[1].normal).normalized()
-                                dotProd = (normalA.dot(normalB))
+                            # For each edge get its linked faces and vertex indicies
+                            for edge in bm.edges:
+                                linked_faces = edge.link_faces
+                                pointA = edge.verts[0].co
+                                pointB = edge.verts[1].co
+                                if len(linked_faces) == 2:
+                                    normalA = Vector(
+                                        linked_faces[0].normal).normalized()
+                                    normalB = Vector(
+                                        linked_faces[1].normal).normalized()
+                                    dotProd = (normalA.dot(normalB))
 
-                                #Check angle of adjacent faces
-                                if dotProd >= -1 and dotProd <= 1:
-                                    creaseAngle = math.acos(dotProd)
-                                    if creaseAngle > lineGroup.creaseAngle:
-                                        tempCoords.append(pointA)
-                                        tempCoords.append(pointB)
+                                    #Check angle of adjacent faces
+                                    if dotProd >= -1 and dotProd <= 1:
+                                        creaseAngle = math.acos(dotProd)
+                                        if creaseAngle > lineGroup.creaseAngle:
+                                            tempCoords.append(pointA)
+                                            tempCoords.append(pointB)
 
-                                #Check dynamic silhouette
-                                if lineGroup.dynamic_sil:
-                                    normalA.rotate(rot)
-                                    normalB.rotate(rot)
-                                    a_dot = camera_z.dot(normalA)
-                                    b_dot = camera_z.dot(normalB)
-                                    sign_a = np.sign(a_dot)
-                                    sign_b = np.sign(b_dot)
-                                    if sign_a != sign_b:
-                                        tempCoords.append(pointA)
-                                        tempCoords.append(pointB)
-
-
-                            # Any edge with greater or less
-                            # than 2 linked faces is non manifold
-                            else:
-                                tempCoords.append(pointA)
-                                tempCoords.append(pointB)
+                                    #Check dynamic silhouette
+                                    if lineGroup.dynamic_sil:
+                                        normalA.rotate(rot)
+                                        normalB.rotate(rot)
+                                        a_dot = camera_z.dot(normalA)
+                                        b_dot = camera_z.dot(normalB)
+                                        sign_a = np.sign(a_dot)
+                                        sign_b = np.sign(b_dot)
+                                        if sign_a != sign_b:
+                                            tempCoords.append(pointA)
+                                            tempCoords.append(pointB)
 
 
-                            lineGroup['coordBuffer'] = tempCoords
+                                # Any edge with greater or less
+                                # than 2 linked faces is non manifold
+                                else:
+                                    tempCoords.append(pointA)
+                                    tempCoords.append(pointB)
 
+
+                                lineGroup['coordBuffer'] = tempCoords
+
+                            if len(tempCoords) == 0:
+                                lineGroup['coordBuffer'] = [Vector((0,0,0)),Vector((0,0,0))]
+                    
+                    elif lineGroup.is_curve:
+                        mesh = myobj.to_mesh()
+                        edges = mesh.edges
+                        verts = mesh.vertices
+                        idx = 0
+                        tempCoords = []
+                        for edge in edges:
+                            pointA = verts[edge.vertices[0]].co
+                            pointB = verts[edge.vertices[1]].co
+                            tempCoords.append(pointA)
+                            tempCoords.append(pointB)
+
+                        lineGroup['coordBuffer'] = tempCoords
                         if len(tempCoords) == 0:
                             lineGroup['coordBuffer'] = [Vector((0,0,0)),Vector((0,0,0))]
+
 
             coords = []
             coords = lineGroup['coordBuffer']

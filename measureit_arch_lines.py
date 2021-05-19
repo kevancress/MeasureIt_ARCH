@@ -38,6 +38,11 @@ from .measureit_arch_utils import get_smart_selected, get_selected_vertex, get_s
 
 
 class LineProperties(BaseProp, PropertyGroup):
+    is_curve: BoolProperty(
+        name="Curve Line",
+        description="This Line Group is on a Curve",
+        default=False)
+
     pointPass: BoolProperty(
         name="Draw Round Caps",
         description="Draw Round Caps",
@@ -164,11 +169,8 @@ class AddLineButton(Operator):
         if o is None:
             return False
         else:
-            if o.type == "MESH":
-                if bpy.context.mode == 'EDIT_MESH':
-                    return True
-                else:
-                    return False
+            if o.type == "MESH" and bpy.context.mode == 'EDIT_MESH':
+                return True
             else:
                 return False
 
@@ -229,11 +231,8 @@ class AddDynamicLineButton(Operator):
         if o is None:
             return False
         else:
-            if o.type == "MESH":
-                if bpy.context.mode == 'OBJECT':
-                    return True
-                else:
-                    return False
+            if o.type == "MESH" and  bpy.context.mode == 'OBJECT':
+                return True
             else:
                 return False
 
@@ -259,6 +258,56 @@ class AddDynamicLineButton(Operator):
                 lGroup.name = 'Line ' + str(len(lineGen.line_groups))
 
                 lGroup.useDynamicCrease = True
+
+                # redraw
+                context.area.tag_redraw()
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'},
+                        "View3D not found, cannot run operator")
+
+        return {'CANCELLED'}
+
+class AddCurveLineButton(Operator):
+    bl_idname = "measureit_arch.addcurvelinebutton"
+    bl_label = "Add"
+    bl_description = "(EDITMODE) Creates a new Dynamic Line Group on a Curve"
+    bl_category = 'MeasureitArch'
+
+    @classmethod
+    def poll(cls, context):
+        o = context.object
+        if o is None:
+            return False
+        else:
+            if o.type == "CURVE" and  bpy.context.mode == 'OBJECT':
+                return True
+            else:
+                return False
+
+    def execute(self, context):
+        if context.area.type == 'VIEW_3D':
+            # Add properties
+            scene = context.scene
+            sceneProps = scene.MeasureItArchProps
+
+            for obj in context.selected_objects:
+                lineGen = obj.LineGenerator
+                lGroup = lineGen.line_groups.add()
+
+                # Set values
+                lGroup.itemType = 'L'
+                lGroup.style = sceneProps.default_line_style
+                if sceneProps.default_line_style != '':
+                    lGroup.uses_style = True
+                else:
+                    lGroup.uses_style = False
+                lGroup.lineWeight = 1
+                lGroup.lineColor = sceneProps.default_color
+                lGroup.name = 'Line ' + str(len(lineGen.line_groups))
+
+                lGroup.useDynamicCrease = True
+                lGroup.is_curve = True
 
                 # redraw
                 context.area.tag_redraw()

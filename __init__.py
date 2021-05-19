@@ -139,6 +139,7 @@ classes = (
     measureit_arch_lines.LineContainer,
     measureit_arch_lines.AddLineButton,
     measureit_arch_lines.AddDynamicLineButton,
+    measureit_arch_lines.AddCurveLineButton,
     measureit_arch_lines.AddToLineGroup,
     measureit_arch_lines.AddLineByProperty,
     measureit_arch_lines.RemoveFromLineGroup,

@@ -201,6 +201,10 @@ class MEASUREIT_PT_main_panel(Panel):
 
         col.operator("measureit_arch.adddynamiclinebutton",
                      text="Dynamic Line Group", icon="MESH_CUBE")
+       
+        col = box.column(align=True)
+        col.operator("measureit_arch.addcurvelinebutton",
+                     text="Curve Line Group", icon="MOD_CURVE")
 
         col = box.column(align=True)
         if hasGen:
