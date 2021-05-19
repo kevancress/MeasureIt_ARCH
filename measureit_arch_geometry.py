@@ -477,9 +477,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         if offsetDistance < geoOffsetDistance:
             offsetDistance = geoOffsetDistance
 
-        # Set Gizmo Props
-        dim.gizLoc = midpoint + offsetDistance 
-        dim.gizRotDir = userOffsetVector
+       
 
         # Define Lines
         leadStartA = Vector(p1) + geoOffsetDistance
@@ -499,6 +497,9 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
         # j = Vector((0, 1, 0))
         # k = Vector((0, 0, 1))
 
+        # Set Gizmo Props
+        dim.gizLoc = textLoc
+        dim.gizRotDir = userOffsetVector
 
         origin = Vector(textLoc)
 
@@ -1033,7 +1034,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
             offsetDistance = geoOffsetDistance
 
         # Set Gizmo Props
-        dim.gizLoc = midpoint + offsetDistance 
+  
         dim.gizRotDir = userOffsetVector
 
         # Define Lines
@@ -1087,6 +1088,8 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
         dimLineEnd = dimLineStart - Vector(secondPointAxis)
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
         origin = Vector(textLoc)
+
+        dim.gizLoc = textLoc
 
         # Setup Text Fields
         placementResults = setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance)
