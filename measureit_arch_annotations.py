@@ -142,6 +142,7 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
     leader_length: FloatProperty(
         name='Leader Offset',
         description='Leader Length',
+        subtype = 'DISTANCE',
         default=0.0,)
 
     annotationTextSource: StringProperty(

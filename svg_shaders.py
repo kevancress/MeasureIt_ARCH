@@ -104,6 +104,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
                     dashed_lines.add(line_draw)
 
 
+
 def svg_fill_shader(item, coords, color, svg, parent=None):
     if camera_cull(coords):
         return
@@ -121,6 +122,19 @@ def svg_fill_shader(item, coords, color, svg, parent=None):
             points=[coords_2d[x], coords_2d[x + 1], coords_2d[x + 2]])
         fills.add(tri)
 
+def svg_circle_shader(item, point, rad, color, svg, parent=None):
+    if camera_cull([point]):
+        return
+
+    idName = item.name + "_fills"
+    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
+    fills = svg.g(id=idName, fill=svgColor)
+    parent.add(fills)
+
+    point_2d = get_render_location(point)
+
+    circle = svg.circle(center=point_2d,r=rad)
+    fills.add(circle)
 
 def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL=''):
     if camera_cull(coords):
@@ -336,7 +350,6 @@ def true_z_buffer(context, zValue):
 
     else:
         return zValue
-
 
 def depth_test(p1, p2, mat, item, depthbuffer):
     scene = bpy.context.scene

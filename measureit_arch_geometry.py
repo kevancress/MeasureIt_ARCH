@@ -1555,7 +1555,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
             if dim.showRadius:
                 svg_shaders.svg_text_shader(
                     dim, dimProps, radiusText.text, rad_origin, rad_square, rgb, svg, parent=svg_dim)
-
+                svg_shaders.svg_circle_shader(dim,center,lineWeight * 5,rgb,svg,parent=svg_dim)
 
 
 
@@ -2293,7 +2293,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
             p3dir = fullRotMat @ Vector((1, 0, 0))
             p3dir.normalize()
 
-            p3 = p2 + p3dir * (leaderDist*get_scale()) * mult
+            p3 = p2 + p3dir * (leaderDist*get_scale()*0.5) * mult
 
             if annotation.customShape is not None:
                 col = annotation.customShape
@@ -2376,10 +2376,13 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                         twoPass=True, pointPass=True)
 
             # Draw Line Endcaps
+            dotcoord = None
             if endcap == 'D':
                 pointcoords = [p1]
-                size = endcapSize * get_scale() / 20
+                size = endcapSize * get_scale() / 10
+                dotcoord = [p1,size]
                 draw_points(size, rgb, pointcoords, depthpass=True)
+
 
             filledCoords = []
             if endcap == 'T':
@@ -2414,6 +2417,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                         annotation, annotationProps, customCoords, lineWeight, rgb, svg, parent=svg_anno)
                     svg_shaders.svg_fill_shader(
                         annotation, customFilledCoords, rgb, svg, parent=svg_anno)
+                if dotcoord:
+                    svg_shaders.svg_circle_shader(annotation,dotcoord[0],dotcoord[1],rgb,svg,parent=svg_anno)
                 svg_shaders.svg_fill_shader(
                     annotation, filledCoords, rgb, svg, parent=svg_anno)
                 for textField in fields:
