@@ -189,7 +189,7 @@ class AddLineButton(Operator):
                 lGroup = lineGen.line_groups.add()
 
                 # Set values
-                lGroup.itemType = 'L'
+                lGroup.itemType = 'line_groups'
                 lGroup.style = sceneProps.default_line_style
                 if sceneProps.default_line_style != '':
                     lGroup.uses_style = True
@@ -247,7 +247,7 @@ class AddDynamicLineButton(Operator):
                 lGroup = lineGen.line_groups.add()
 
                 # Set values
-                lGroup.itemType = 'L'
+                lGroup.itemType = 'line_groups'
                 lGroup.style = sceneProps.default_line_style
                 if sceneProps.default_line_style != '':
                     lGroup.uses_style = True
@@ -296,7 +296,7 @@ class AddCurveLineButton(Operator):
                 lGroup = lineGen.line_groups.add()
 
                 # Set values
-                lGroup.itemType = 'L'
+                lGroup.itemType = 'line_groups'
                 lGroup.style = sceneProps.default_line_style
                 if sceneProps.default_line_style != '':
                     lGroup.uses_style = True
@@ -622,7 +622,7 @@ class AddLineByProperty(Operator):
                         lGroup = lineGen.line_groups.add()
 
                         # Set values
-                        lGroup.itemType = 'L'
+                        lGroup.itemType = 'line_groups'
                         lGroup.style = sceneProps.default_line_style
                         if sceneProps.default_line_style != '':
                             lGroup.uses_style = True

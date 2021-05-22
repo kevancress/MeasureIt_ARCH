@@ -764,6 +764,8 @@ class SCENE_MT_Views_menu(bpy.types.Menu):
         layout.operator(
             'measureit_arch.duplicateviewbutton',
             text="Duplicate Selected View", icon='DUPLICATE')
+        layout.operator('measureit_arch.batchviewrender',
+            text = "Batch Render Views", icon = "DOCUMENTS")
 
 
 class AddViewButton(Operator):

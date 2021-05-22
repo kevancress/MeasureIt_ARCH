@@ -568,6 +568,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="Cull Objects Behind the Camera in Vector Renders",
         default=False,)
 
+    source_scene: PointerProperty(type = bpy.types.Scene)
+
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"
     bl_label = "Delete property"

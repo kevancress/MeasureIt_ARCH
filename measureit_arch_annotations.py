@@ -247,7 +247,7 @@ class AddAnnotationButton(Operator):
                 newAnnotation = annotationGen.annotations.add()
                 newAnnotation.annotationAnchor = anchor
 
-                newAnnotation.itemType = 'A'
+                newAnnotation.itemType = 'annotations'
                 newAnnotation.annotationAnchorObject = mainobject
                 try:
                     newAnnotation.annotationAnchorSpline = point['spline']

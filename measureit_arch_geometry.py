@@ -316,8 +316,7 @@ def draw_material_hatches(context, myobj, mat, svg=None):
 
     svg_obj = svg.add(svg.g(id=myobj.name))
 
-    if myobj.visible_get() and not myobj.hide_render:
-        mat = myobj.matrix_world
+    if not myobj.hide_render:
         mesh = myobj.data
 
         # polys = mesh.polygons
@@ -2176,6 +2175,20 @@ def get_color(rawRGB, myobj, is_active=True, only_active=True):
 
     return rgb
 
+def get_style(item, type_str):
+    scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    source_scene = sceneProps.source_scene
+    itemProps = item
+    style_source = eval("source_scene.StyleGenerator.{}".format(type_str))
+    if item.uses_style:
+        for itemStyle in style_source:
+            if itemStyle.name == item.style:
+                itemProps = itemStyle
+                return itemProps
+    
+    return itemProps
 
 def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = None):
     scene = context.scene
@@ -2183,11 +2196,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
     customCoords = []
     customFilledCoords = []
     for annotation in annotationGen.annotations:
-        annotationProps = annotation
-        if annotation.uses_style:
-            for annotationStyle in context.scene.StyleGenerator.annotations:
-                if annotationStyle.name == annotation.style:
-                    annotationProps = annotationStyle
+        annotationProps = get_style(annotation,"annotations")
+        
 
         with OpenGL_Settings(annotationProps):
 
@@ -3320,34 +3330,34 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
 
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator
-                draw_annotation(context, myobj, annotationGen, mat, svg=svg)
+                draw_annotation(context, myobj, annotationGen, mat, svg=svg, )
 
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator
 
                 for alignedDim in DimGen.alignedDimensions:
                     draw_alignedDimension(
-                        context, myobj, DimGen, alignedDim, svg=svg)
+                        context, myobj, DimGen, alignedDim, svg=svg, )
 
                 for angleDim in DimGen.angleDimensions:
                     draw_angleDimension(
-                        context, myobj, DimGen, angleDim, mat, svg=svg)
+                        context, myobj, DimGen, angleDim, mat, svg=svg, )
 
                 for axisDim in DimGen.axisDimensions:
                     draw_axisDimension(context, myobj, DimGen,
-                                       axisDim, mat, svg=svg)
+                                       axisDim, mat, svg=svg, )
 
                 for boundsDim in DimGen.boundsDimensions:
                     draw_boundsDimension(
-                        context, myobj, DimGen, boundsDim, mat, svg=svg)
+                        context, myobj, DimGen, boundsDim, mat, svg=svg, )
 
                 for arcDim in DimGen.arcDimensions:
                     draw_arcDimension(context, myobj, DimGen,
-                                      arcDim, mat, svg=svg)
+                                      arcDim, mat, svg=svg, )
 
                 for areaDim in DimGen.areaDimensions:
                     draw_areaDimension(context, myobj, DimGen,
-                                       areaDim, mat, svg=svg)
+                                       areaDim, mat, svg=svg, )
 
         if sceneProps.is_render_draw:
             endTime = time.time()

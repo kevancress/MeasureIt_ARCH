@@ -591,10 +591,12 @@ def draw_main_3d(context):
     else:
         objlist = context.view_layer.objects
 
+    sceneProps.source_scene = scene
     draw3d_loop(context, objlist)
     # preview_dual(context)
 
     # Draw TitleBlock
+
     if not sceneProps.hide_titleblock:
         draw_titleblock(context)
 
@@ -629,7 +631,9 @@ def draw_titleblock(context, svg=None):
         scaleMat.resize_4x4()
 
         extMat = cameraMat @ transMat @ scaleMat
+        sceneProps.source_scene = titleblockScene
         draw3d_loop(context, objlist, extMat=extMat, svg=svg, multMat=True)
+        sceneProps.source_scene = context.scene
 
 
 # -------------------------------------------------------------
