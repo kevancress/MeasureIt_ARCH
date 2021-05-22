@@ -46,7 +46,7 @@ from .shaders import *
 from .measureit_arch_baseclass import recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit, OpenGL_Settings
+from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit, OpenGL_Settings, get_sv3d
 
 lastMode = {}
 lineBatch3D = {}
@@ -3286,6 +3286,14 @@ class Dist_Sort(object):
     def __lt__(self, other):
         return self.dist > other.dist
 
+def check_obj_vis(myobj,custom_call):
+    scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    if not sceneProps.is_render_draw:
+        return (myobj.visible_get() or custom_call) and not myobj.hide_get()
+    else:
+        return custom_call or not myobj.hide_render
 
 def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_call=False):
     """
@@ -3307,7 +3315,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
                   str(totalobjs) + " Name: " + myobj.name)
             startTime = time.time()
 
-        if not myobj.hide_get():
+        if check_obj_vis(myobj,custom_call):
             mat = myobj.matrix_world
             if extMat is not None:
                 if multMat:

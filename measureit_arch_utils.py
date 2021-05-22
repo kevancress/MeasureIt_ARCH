@@ -141,6 +141,13 @@ def get_rv3d():
             rv3d = space.region_3d
     return rv3d
 
+def get_sv3d():
+    spaces = bpy.context.area.spaces
+    sv3d = None
+    for space in spaces:
+        if space.type == 'VIEW_3D':
+            sv3d = space
+    return sv3d
 
 def interpolate3d(v1, v2, d1):
     """
