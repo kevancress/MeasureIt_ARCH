@@ -3306,7 +3306,7 @@ def check_obj_vis(myobj,custom_call):
     if not sceneProps.is_render_draw:
         return (myobj.visible_get() or custom_call) and not myobj.hide_get()
     else:
-        return custom_call or not myobj.hide_renderz
+        return custom_call or not myobj.hide_render
 
 def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_call=False):
     """
