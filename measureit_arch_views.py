@@ -72,8 +72,11 @@ def update(self, context):
         update_camera_px(scene, camera)
 
     if view.view_layer != "":
-        vl = context.scene.view_layers[view.view_layer]
-        context.window.view_layer = vl
+        try:
+            vl = context.scene.view_layers[view.view_layer]
+            context.window.view_layer = vl
+        except KeyError:
+            pass
 
 def freestyle_update_flag(self, context):
     scene = context.scene
@@ -145,6 +148,7 @@ def change_scene_camera(self, context):
     scene = context.scene
     ViewGen = scene.ViewGenerator
     view = ViewGen.views[ViewGen.active_index]
+    ViewGen.view_changed = True
     camera = view.camera
     update(self, context)
     if camera is not None:
@@ -366,6 +370,7 @@ class ViewContainer(PropertyGroup):
         description='Index of the current View',
         update=change_scene_camera)
 
+    view_changed: BoolProperty(name='View_Changed', default=False)
     show_settings: BoolProperty(name='Show View Settings', default=False)
     show_text_fields: BoolProperty(name='Show Text Fields', default=False)
 
@@ -484,7 +489,7 @@ class BatchViewRender(Operator):
             return {'CANCELLED'}
 
         wm = context.window_manager
-        self._timer = wm.event_timer_add(0.1, window=context.window)
+        self._timer = wm.event_timer_add(1, window=context.window)
         wm.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 

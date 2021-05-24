@@ -1903,7 +1903,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 obj_last_mode = myobj.mode
                 lastMode[myobj.name] = obj_last_mode
 
-            if obj_last_mode != myobj.mode or evalMods or evalModsGlobal or sceneProps.is_render_draw:
+            if obj_last_mode != myobj.mode or evalMods or evalModsGlobal or sceneProps.is_render_draw or scene.ViewGenerator.view_changed:
                 recoordFlag = True
                 lastMode[myobj.name] = myobj.mode
 
@@ -3306,7 +3306,7 @@ def check_obj_vis(myobj,custom_call):
     if not sceneProps.is_render_draw:
         return (myobj.visible_get() or custom_call) and not myobj.hide_get()
     else:
-        return custom_call or not myobj.hide_render
+        return custom_call or not myobj.hide_renderz
 
 def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_call=False):
     """
@@ -3315,7 +3315,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-
+    
     totalobjs = len(objlist)
 
     if sceneProps.vector_z_order and sceneProps.is_vector_draw:
