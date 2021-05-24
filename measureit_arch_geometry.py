@@ -3245,7 +3245,7 @@ def z_order_objs(obj_list, extMat, multMat):
     to_sort = []
 
     for obj in obj_list:
-        loc = obj.location
+        loc = obj.matrix_world.to_translation()
         if extMat is not None:
             if multMat:
                 loc = extMat @ loc
@@ -3260,7 +3260,7 @@ def z_order_objs(obj_list, extMat, multMat):
 
         to_sort.append(Dist_Sort(obj, obj_dist))
 
-    to_sort.sort()
+    to_sort.sort(reverse=True)
     ordered_obj_list = [item.item for item in to_sort]
     return ordered_obj_list
 
@@ -3293,7 +3293,11 @@ class Dist_Sort(object):
         self.dist = dist
 
     def __lt__(self, other):
+        return self.dist < other.dist
+    def __gt__(self,other):
         return self.dist > other.dist
+    def __eq__(self,other):
+        return self.dist == other.dist
 
 def check_obj_vis(myobj,custom_call):
     scene = bpy.context.scene

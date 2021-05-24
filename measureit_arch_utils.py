@@ -120,7 +120,7 @@ def get_camera_z_dist(location):
     location = Vector(location)
     camera_z = get_camera_z()
     dist_vec = location - camera.location
-    dist_along_camera_z = camera_z.dot(dist_vec)
+    dist_along_camera_z = dist_vec.dot(camera_z)
     return dist_along_camera_z
 
 def get_loaded_addons():
