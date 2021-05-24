@@ -43,7 +43,7 @@ from sys import getrecursionlimit, setrecursionlimit
 
 from . import svg_shaders
 from .shaders import *
-from .measureit_arch_baseclass import recalc_dimWrapper_index
+from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit, OpenGL_Settings, get_sv3d
@@ -2344,9 +2344,9 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
 
             for textField in fields:
                 if instance is None:
-                    set_text(textField, myobj)
+                    set_text(textField, myobj,parent = annotationProps)
                 else:
-                    set_text(textField,instance.parent)
+                    set_text(textField,instance.parent,parent = annotationProps)
                 origin = p3
                 xDir = fullRotMat @ Vector((1 * mult, 0, 0))
                 yDir = fullRotMat @ Vector((0, 1, 0))
@@ -2436,7 +2436,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                     svg_shaders.svg_text_shader(
                         annotation, annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
 
-def set_text(textField, obj):
+def set_text(textField, obj, parent=None):
+    
 
     if textField.autoFillText:
         # DATE
@@ -2488,8 +2489,9 @@ def set_text(textField, obj):
                 except:
                     textField.text = 'Bad Data Path'
 
-    else:
-        return
+
+    if parent != None and parent.all_caps and (parent.text_updated or bpy.context.scene.MeasureItArchProps.is_render_draw):
+        textField.text = textField.text.upper()
 
 
 # This is a one off for a project where I need to preview the
@@ -3238,12 +3240,19 @@ def get_resolution():
     return sceneProps.default_resolution
 
 
-def z_order_objs(obj_list):
+def z_order_objs(obj_list, extMat, multMat):
     ordered_obj_list = []
     to_sort = []
 
     for obj in obj_list:
-        obj_dist = get_camera_z_dist(obj.location)
+        loc = obj.location
+        if extMat is not None:
+            if multMat:
+                loc = extMat @ loc
+            else:
+                loc = extMat.to_translation()
+       
+        obj_dist = get_camera_z_dist(loc)
 
         # If the obj is behind the camera, and we're culling objs Ignore it
         if obj_dist < 0 and bpy.context.scene.MeasureItArchProps.cull_objs:
@@ -3306,7 +3315,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
     totalobjs = len(objlist)
 
     if sceneProps.vector_z_order and sceneProps.is_vector_draw:
-        objlist = z_order_objs(objlist)
+        objlist = z_order_objs(objlist, extMat, multMat)
         print(objlist)
 
     for idx, myobj in enumerate(objlist, start=1):

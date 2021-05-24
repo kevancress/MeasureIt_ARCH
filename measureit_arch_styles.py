@@ -521,6 +521,7 @@ def draw_annotation_style_settings(annotation, layout):
     col.prop(annotation, 'evalMods')
     col.prop(annotation, 'draw_leader', text='Draw Leader')
     col.prop(annotation, 'align_to_camera')
+    col.prop(annotation, 'all_caps', text='All Caps')
 
 
 def draw_dimension_style_row(dim, layout):

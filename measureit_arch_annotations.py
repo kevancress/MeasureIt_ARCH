@@ -519,6 +519,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                         col = box.column()
                         col.prop(annotation, 'inFront', text='Draw in Front')
                         col.prop(annotation, 'align_to_camera')
+                        col.prop(annotation, 'all_caps', text='All Caps')
 
                 # Delete Operator (Move to drop down menu next to list)
                 col = layout.column()

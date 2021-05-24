@@ -288,6 +288,12 @@ class BaseWithText(BaseProp):
                ('1', "Line", "The point of the arrow are lines")),
         name="B end",
         description="Add arrows to point A")
+    
+    all_caps: BoolProperty(
+        name='All Caps',
+        description='Make Text All Caps',
+        default=False,
+        update=update_flag)
 
 
 class BaseDim(BaseWithText):
@@ -371,6 +377,8 @@ class BaseDim(BaseWithText):
         description = "Use Custom Text",
         default=False
     )
+
+
 
 
 class MeasureItARCHSceneProps(PropertyGroup):

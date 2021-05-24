@@ -621,7 +621,7 @@ def draw_titleblock(context, svg=None):
         objlist = titleblockScene.objects
 
         cameraMat = camera.matrix_world
-        offsetVec = Vector((0, 0, -1.1))
+        offsetVec = Vector((0, 0, -1.2))
         offsetVec *= camera.data.clip_start
 
         transMat = Matrix.Translation(offsetVec)
