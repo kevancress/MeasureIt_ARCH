@@ -467,6 +467,7 @@ def draw_line_style_settings(line, layout):
 
     col.prop(line, 'inFront', text="Draw In Front")
     col.prop(line, 'evalMods')
+    col.prop(line, 'pointPass', text="Round Caps")
 
 
 def draw_annotation_style_row(annotation, layout):

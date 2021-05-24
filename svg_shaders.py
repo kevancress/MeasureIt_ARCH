@@ -43,7 +43,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     idName = item.name + "_lines"
     dash_id_name = idName = item.name + "_dashed_lines"
     svgColor = get_svg_color(color)
-    if "pointPass" in item and item.pointPass:
+    if "pointPass" in itemProps and itemProps.pointPass:
         cap = 'round'
     else:
         cap = 'butt'
@@ -95,7 +95,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
             if vis or draw_hidden:
                 p1ss = get_render_location(mat @ Vector(p1))
                 p2ss = get_render_location(mat @ Vector(p2))
-                line_draw = svg.line(start=tuple(p1ss), end=tuple(p2ss))
+                line_draw = svg.line(start=tuple(p1ss), end=tuple(p2ss),stroke_linecap=cap)
                 if vis and not dashed:
                     lines.add(line_draw)
                 elif vis and dashed:
