@@ -345,7 +345,7 @@ def draw_material_hatches(context, myobj, mat, svg=None):
             hatch = slot.material.Hatch
             objMaterials.append(slot.material)
             if hatch.pattern is not None:
-                name = hatch.name + '_' + hatch.pattern.name
+                name = slot.material.name + '_' + hatch.pattern.name
                 objs = hatch.pattern.objects
                 weight = hatch.patternWeight
                 size = hatch.patternSize
@@ -374,11 +374,11 @@ def draw_material_hatches(context, myobj, mat, svg=None):
                 weight = hatch.lineWeight
                 fillURL = ''
                 if hatch.pattern is not None:
-                    fillURL = 'url(#' + hatch.name + '_' + \
+                    fillURL = 'url(#' + slot.material.name + '_' + \
                         hatch.pattern.name + ')'
 
                 coords = []
-                svg_hatch = svg_obj.add(svg.g(id=hatch.name))
+                svg_hatch = svg_obj.add(svg.g(id=slot.material.name))
                 for vert in face.verts:
                     coords.append(mat @ vert.co)
                 svg_shaders.svg_poly_fill_shader(
@@ -2498,28 +2498,30 @@ def set_text(textField, obj, parent=None):
 # "create dual mesh" Operator from Alessandro Zomparelli's tissue addon.
 # Keeping it here untill I can create a pull request for tissue to discuss adding it in there.
 def preview_dual(context):
-    myobj = context.view_layer.objects.active
-    mat = myobj.matrix_world
-    mesh = myobj.data
-    bm = bmesh.new()
-    if myobj.mode == 'OBJECT':
-        bm.from_object(myobj, bpy.context.view_layer.depsgraph)
-    else:
-        bm = bmesh.from_edit_mesh(mesh)
+    objs = context.selected_objects
+    for myobj in objs:
+        if myobj.type == 'MESH':
+            mat = myobj.matrix_world
+            mesh = myobj.data
+            bm = bmesh.new()
+            if myobj.mode == 'OBJECT':
+                bm.from_object(myobj, bpy.context.view_layer.depsgraph)
+            else:
+                bm = bmesh.from_edit_mesh(mesh)
 
-    bm.edges.ensure_lookup_table()
-    bm.faces.ensure_lookup_table()
-    edges = bm.edges
+            bm.edges.ensure_lookup_table()
+            bm.faces.ensure_lookup_table()
+            edges = bm.edges
 
-    coords = []
-    with OpenGL_Settings(None):
-        for edge in edges:
-            faces = edge.link_faces
-            for face in faces:
-                center = face.calc_center_median()
-                coords.append(mat @ center)
+            coords = []
+            with OpenGL_Settings(None):
+                for edge in edges:
+                    faces = edge.link_faces
+                    for face in faces:
+                        center = face.calc_center_median()
+                        coords.append(mat @ center)
 
-        draw_lines(3, (1, 0, 0, 1), coords, twoPass=True, offset=-0.0005)
+                draw_lines(3, (0, 0, 0, 0.7), coords, twoPass=True, offset=-0.0005)
 
 def draw_text_3D(context, textobj, textprops, myobj, card):
     # get props

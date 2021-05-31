@@ -30,7 +30,7 @@ from bpy.types import Panel, Operator, SpaceView3D
 from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
 
-from .measureit_arch_geometry import clear_batches, update_text, draw3d_loop
+from .measureit_arch_geometry import clear_batches, update_text, draw3d_loop, preview_dual
 from .measureit_arch_utils import get_view, get_rv3d
 
 
@@ -593,7 +593,7 @@ def draw_main_3d(context):
 
     sceneProps.source_scene = scene
     draw3d_loop(context, objlist)
-    # preview_dual(context)
+    #preview_dual(context)
 
     # Draw TitleBlock
 

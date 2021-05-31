@@ -278,7 +278,7 @@ def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
                        mesh.vertices[idx].co[1] * size)
                 pair.append(ssp)
             pattern.add(svg.line(start=tuple(pair[0]), end=tuple(
-                pair[1]), stroke_width=weight, stroke=svgColor))
+                pair[1]), stroke_width=weight, stroke=svgColor, stroke_linecap='round'))
 
 
 def clear_db():
