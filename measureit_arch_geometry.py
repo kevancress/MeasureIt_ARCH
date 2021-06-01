@@ -320,17 +320,29 @@ def draw_material_hatches(context, myobj, mat, svg=None):
         mesh = myobj.data
 
         # polys = mesh.polygons
+        if myobj.type == 'MESH':
+            bm = bmesh.new()
+            if myobj.mode == 'OBJECT':
+                bm.from_object(myobj, bpy.context.view_layer.depsgraph)
+            else:
+                bm = bmesh.from_edit_mesh(mesh)
 
-        bm = bmesh.new()
-        if myobj.mode == 'OBJECT':
-            bm.from_object(myobj, bpy.context.view_layer.depsgraph)
-        else:
-            bm = bmesh.from_edit_mesh(mesh)
+            bm.edges.ensure_lookup_table()
+            bm.faces.ensure_lookup_table()
+            faces = bm.faces
+            # verts = bm.verts
+        if myobj.type == 'CURVE':
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            eval_obj = myobj.evaluated_get(depsgraph)
+            mesh = eval_obj.to_mesh(preserve_all_data_layers= True,)
+            bm = bmesh.new()
+            bm.from_mesh(mesh)
 
-        bm.edges.ensure_lookup_table()
-        bm.faces.ensure_lookup_table()
-        faces = bm.faces
-        # verts = bm.verts
+            #bm.from_object(myobj, bpy.context.evaluated_depsgraph_get())
+            
+            bm.edges.ensure_lookup_table()
+            bm.faces.ensure_lookup_table()
+            faces = bm.faces
 
         faces = z_order_faces(faces, myobj)
 
@@ -3338,7 +3350,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
                 else:
                     mat = extMat
 
-            if sceneProps.is_vector_draw and myobj.type == 'MESH':
+            if sceneProps.is_vector_draw and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                 draw_material_hatches(context, myobj, mat, svg=svg)
 
             sheetGen = myobj.SheetGenerator
