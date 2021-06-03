@@ -38,10 +38,13 @@ from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, re
 
 depthbuffer = None
 
-def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
-                    dashed=False, mat=Matrix.Identity(4)):
+def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
     dash_id_name = idName = item.name + "_dashed_lines"
+
+    if "lineDrawDashed" in itemProps and itemProps.lineDrawDashed:
+        dashed = True
+
     svgColor = get_svg_color(color)
     if "pointPass" in itemProps and itemProps.pointPass:
         cap = 'round'
@@ -136,12 +139,25 @@ def svg_circle_shader(item, point, rad, color, svg, parent=None):
     circle = svg.circle(center=point_2d,r=rad)
     fills.add(circle)
 
-def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL=''):
+def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL='', itemProps = None, closed=True):
     if camera_cull(coords):
         return
 
     coords_2d = []
     idName = item.name + "_fills"
+    dashed = False     
+    if itemProps==None: itemProps = item
+    if  "lineDrawDashed" in itemProps and itemProps.lineDrawDashed:
+        dashed = True  
+
+        if "lineHiddenDashScale" in itemProps:     
+            dash_size = itemProps.lineHiddenDashScale
+            dash_space = (itemProps.lineDashSpace *4) - 1
+            dash_val = "{},{}".format(dash_size, dash_size*dash_space)
+        elif "dash_size" in itemProps:
+            dash_val = "{},{}".format(itemProps.dash_size, itemProps.gap_size)
+        else:
+            dash_val = "5,5"
 
     fill = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
 
@@ -149,14 +165,22 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     lineColor = svgwrite.rgb(
         line_color[0] * 100, line_color[1] * 100, line_color[2] * 100, '%')
     lineOpacity = lineColor[3]
-    solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
-                      stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round")
+    if dashed:
+        solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
+                        stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round",  stroke_dasharray=dash_val, stroke_linecap='butt')
+    else:
+        solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
+                        stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round")
     parent.add(solidfill)
 
     for coord in coords:
         coords_2d.append(get_render_location(coord))
 
-    poly = svg.polygon(points=coords_2d)
+    if closed:
+        poly = svg.polygon(points=coords_2d)
+    else:
+        poly = svg.polyline(points=coords_2d)
+
     solidfill.add(poly)
 
     if fillURL != '':

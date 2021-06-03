@@ -1972,7 +1972,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                         bm.from_mesh(mesh)
 
                     # For each edge get its linked faces and vertex indicies
-                    for edge in bm.edges:
+                    for idx, edge in enumerate(bm.edges):
                         linked_faces = edge.link_faces
                         pointA = edge.verts[0].co
                         pointB = edge.verts[1].co
@@ -2000,14 +2000,16 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                                 sign_b = np.sign(b_dot)
                                 if sign_a != sign_b:
                                     tempCoords.append(pointA)
-                                    tempCoords.append(pointB)
+                                    if not lineGroup.chain:
+                                        tempCoords.append(pointB)
 
 
                         # Any edge with greater or less
                         # than 2 linked faces is non manifold
                         else:
                             tempCoords.append(pointA)
-                            tempCoords.append(pointB)
+                            if not lineGroup.chain or idx == (len(bm.edges)-1):
+                                tempCoords.append(pointB)
 
 
                         lineGroup['coordBuffer'] = tempCoords
@@ -2091,12 +2093,15 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
                 global dashedBatch3D
                 batchKey = myobj.name + lineGroup.name
-                if batchKey not in dashedBatch3D or recoordFlag:
-                    dashedBatch3D[batchKey] = batch_for_shader(
-                        dashedLineShader, 'LINES', {"pos": coords})
-                if sceneProps.is_render_draw:
-                    batchDashed = batch_for_shader(
-                        dashedLineShader, 'LINES', {"pos": coords})
+                if batchKey not in dashedBatch3D or recoordFlag or sceneProps.is_render_draw:
+                    if not lineGroup.chain:
+                        dashedBatch3D[batchKey] = batch_for_shader(
+                            dashedLineShader, 'LINES', {"pos": coords})
+                        batchDashed = dashedBatch3D[batchKey]
+                    else:
+                        dashedBatch3D[batchKey] = batch_for_shader(
+                            dashedLineShader, 'LINE_STRIP', {"pos": coords})
+                        batchDashed = dashedBatch3D[batchKey]
                 else:
                     batchDashed = dashedBatch3D[batchKey]
 
@@ -2121,13 +2126,16 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
                 global lineBatch3D
                 batchKey = myobj.name + lineGroup.name
-                if batchKey not in lineBatch3D or recoordFlag or myobj.mode == 'WEIGHT_PAINT':
-                    lineBatch3D[batchKey] = batch_for_shader(
-                        lineGroupShader, 'LINES', {"pos": coords, "weight": tempWeights})
-                    batch3d = lineBatch3D[batchKey]
-                if sceneProps.is_render_draw:
-                    batch3d = batch_for_shader(lineGroupShader, 'LINES', {
-                                            "pos": coords, "weight": tempWeights})
+                if batchKey not in lineBatch3D or recoordFlag or myobj.mode == 'WEIGHT_PAINT' or sceneProps.is_render_draw:
+                    if not lineGroup.chain:
+                        lineBatch3D[batchKey] = batch_for_shader(
+                            lineGroupShader, 'LINES', {"pos": coords, "weight": tempWeights})
+                        batch3d = lineBatch3D[batchKey]
+                    else:
+                        lineBatch3D[batchKey] = batch_for_shader(
+                            lineGroupShader, 'LINE_STRIP', {"pos": coords, "weight": tempWeights})
+                        batch3d = lineBatch3D[batchKey]
+
                 else:
                     batch3d = lineBatch3D[batchKey]
 
@@ -2153,11 +2161,12 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 gpu.shader.unbind()
 
             if sceneProps.is_vector_draw:
-                dashed = False
-                if lineProps.lineDrawDashed:
-                    dashed = True
-                svg_shaders.svg_line_shader(
-                    lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat, dashed=dashed)
+                if not lineGroup.chain:
+                    svg_shaders.svg_line_shader(
+                        lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat)
+                else:
+                    svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,parent=svg,closed=False)
+            
 
     gpu.shader.unbind()
 

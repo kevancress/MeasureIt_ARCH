@@ -77,6 +77,25 @@ class HatchProperties(PropertyGroup):
         soft_min=1.0,
         step=25,
         min=0)
+    
+    lineDrawDashed: BoolProperty(
+        name="Draw Dashed",
+        description="Force Line Group to Draw Dashed",
+        default=False)
+    
+    dash_size: IntProperty(
+        name="Dash Size",
+        description ="Dash Size",
+        default = 5,
+        subtype = 'PIXEL'
+    )
+
+    gap_size: IntProperty(
+        name="Gap Size",
+        description ="Gap Size",
+        default = 5,
+        subtype = 'PIXEL'
+    )
 
 class MATERIAL_PT_UIHatch(Panel):
     """ A Panel in the Material properties window """
@@ -122,4 +141,9 @@ class MATERIAL_PT_UIHatch(Panel):
         col.prop(hatch, 'patternSize', text="Pattern Size",)
         col.prop(hatch, 'patternRot', text="Pattern Rotation",)
         col.prop(hatch, 'patternOpacity', text="Pattern Opacity",)
+
+        col = main_col.column()
+        col.prop(hatch, 'lineDrawDashed', text="Draw Dashed",)
+        col.prop(hatch, 'dash_size', text="Dash Size",)
+        col.prop(hatch, 'gap_size', text="Gap Size",)
 

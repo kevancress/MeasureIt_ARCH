@@ -138,6 +138,12 @@ class LineProperties(BaseProp, PropertyGroup):
                     'WARNING: This can be quite slow for large meshes \n or complex modifier stacks',
         default=False)
 
+    chain: BoolProperty(
+        name="Chain lines",
+        description='Try to draw a line chain rather than line segments \n'
+        'WARNING: EXPERIMENTAL, will likely break things, works best on single spline curves',
+        default=False)
+
 
 class LineContainer(PropertyGroup):
     line_num: IntProperty(
@@ -452,6 +458,7 @@ class OBJECT_PT_UILines(Panel):
                             col.prop(line, 'inFront', text="Draw In Front")
                             col.prop(line, 'evalMods')
                         col.prop(line, 'pointPass', text="Round Caps")
+                        col.prop(line, 'chain', text="Chain line")
 
 
 class OBJECT_MT_lines_menu(bpy.types.Menu):
