@@ -203,10 +203,6 @@ class MEASUREIT_PT_main_panel(Panel):
                      text="Dynamic Line Group", icon="MESH_CUBE")
        
         col = box.column(align=True)
-        col.operator("measureit_arch.addcurvelinebutton",
-                     text="Curve Line Group", icon="MOD_CURVE")
-
-        col = box.column(align=True)
         if hasGen:
             col.prop_search(sceneProps, 'default_line_style',
                             StyleGen, 'line_groups', text="", icon='COLOR')
