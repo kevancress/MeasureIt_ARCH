@@ -139,7 +139,7 @@ def svg_circle_shader(item, point, rad, color, svg, parent=None):
     circle = svg.circle(center=point_2d,r=rad)
     fills.add(circle)
 
-def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL='', itemProps = None, closed=True):
+def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL='', itemProps = None, closed=True, mat = Matrix.Identity(4)):
     if camera_cull(coords):
         return
 
@@ -152,7 +152,7 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
 
         if "lineHiddenDashScale" in itemProps:     
             dash_size = itemProps.lineHiddenDashScale
-            dash_space = (itemProps.lineDashSpace *4) - 1
+            dash_space = (itemProps.lineDashSpace *2)
             dash_val = "{},{}".format(dash_size, dash_size*dash_space)
         elif "dash_size" in itemProps:
             dash_val = "{},{}".format(itemProps.dash_size, itemProps.gap_size)
@@ -177,7 +177,7 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
         svg.add(solidfill)
 
     for coord in coords:
-        coords_2d.append(get_render_location(coord))
+        coords_2d.append(get_render_location(mat @ Vector(coord)))
 
     if closed:
         poly = svg.polygon(points=coords_2d)

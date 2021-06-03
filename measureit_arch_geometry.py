@@ -2165,7 +2165,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     svg_shaders.svg_line_shader(
                         lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat)
                 else:
-                    svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False)
+                    svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False, mat=mat)
             
 
     gpu.shader.unbind()
