@@ -41,7 +41,7 @@ depthbuffer = None
 def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
     dash_id_name = idName = item.name + "_dashed_lines"
-
+    dashed = False
     if "lineDrawDashed" in itemProps and itemProps.lineDrawDashed:
         dashed = True
 
