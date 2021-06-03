@@ -171,7 +171,10 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     else:
         solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
                         stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round")
-    parent.add(solidfill)
+    if parent:
+        parent.add(solidfill)
+    else:
+        svg.add(solidfill)
 
     for coord in coords:
         coords_2d.append(get_render_location(coord))
@@ -186,7 +189,7 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     if fillURL != '':
         fill = fillURL
         patternfill = svg.g(id=idName, fill=fill, fill_opacity=item.patternOpacity,
-                            stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round")
+                            stroke=0)
         parent.add(patternfill)
         patternfill.add(poly)
 
