@@ -3401,12 +3401,17 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
     # Draw Instanced Objects
     if not custom_call:
         deps = bpy.context.view_layer.depsgraph
-        for obj_int in deps.object_instances:
+        num_instances = len(deps.object_instances)
+        for idx,obj_int in enumerate(deps.object_instances, start=1):
             if obj_int.is_instance:
                 myobj = obj_int.object
+                mat = obj_int.matrix_world
 
-                if 'LineGenerator' in myobj or 'AnnotationGenerator' in myobj or 'DimensionGenerator' in myobj:
-                    mat = obj_int.matrix_world
+                print("Rendering Instance Object: " + str(idx) + " of: " +
+                    str(num_instances) + " Name: " + myobj.name)
+
+                if sceneProps.is_vector_draw and (myobj.type == 'MESH' or myobj.type =="CURVE"):
+                    draw_material_hatches(context, myobj, mat, svg=svg)                   
 
                 if 'LineGenerator' in myobj:
                     lineGen = myobj.LineGenerator
