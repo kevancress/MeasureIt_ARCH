@@ -336,7 +336,10 @@ def draw_material_hatches(context, myobj, mat, svg=None):
             eval_obj = myobj.evaluated_get(depsgraph)
             mesh = eval_obj.to_mesh(preserve_all_data_layers= True,)
             bm = bmesh.new()
-            bm.from_mesh(mesh)
+            try:
+                bm.from_mesh(mesh)
+            except AttributeError:
+                print('No Mesh Data for Obj: {}'.format(myobj.name))
 
             #bm.from_object(myobj, bpy.context.evaluated_depsgraph_get())
             
@@ -3269,6 +3272,7 @@ def z_order_objs(obj_list, extMat, multMat):
     to_sort = []
 
     for obj in obj_list:
+        if obj is Inst_Sort: obj = obj.object
         loc = obj.matrix_world.to_translation()
         if extMat is not None:
             if multMat:
@@ -3322,6 +3326,18 @@ class Dist_Sort(object):
         return self.dist > other.dist
     def __eq__(self,other):
         return self.dist == other.dist
+
+class Inst_Sort(object):
+    object = None
+    matrix_world = None
+    is_instance = False
+    parent = None
+
+    def __init__(self, obj_int):
+        self.object = obj_int.object
+        self.matrix_world = obj_int.matrix_world.copy()
+        self.is_instance = obj_int.is_instance
+        self.parent = obj_int.parent
 
 def check_obj_vis(myobj,custom_call):
     scene = bpy.context.scene
@@ -3411,14 +3427,20 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
     # Draw Instanced Objects
     if not custom_call:
         deps = bpy.context.view_layer.depsgraph
-        num_instances = len(deps.object_instances)
-        for idx,obj_int in enumerate(deps.object_instances, start=1):
+        
+        objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
+        num_instances = len(objlist) 
+        if sceneProps.vector_z_order and sceneProps.is_vector_draw:
+            objlist = z_order_objs(objlist, extMat, multMat)
+
+        for idx,obj_int in enumerate(objlist, start=1):
             if obj_int.is_instance:
                 myobj = obj_int.object
                 mat = obj_int.matrix_world
 
-                print("Rendering Instance Object: " + str(idx) + " of: " +
-                    str(num_instances) + " Name: " + myobj.name)
+                if sceneProps.is_render_draw:
+                    print("Rendering Instance Object: " + str(idx) + " of: " +
+                        str(num_instances) + " Name: " + myobj.name)
 
                 if sceneProps.is_vector_draw and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                     draw_material_hatches(context, myobj, mat, svg=svg)                   
