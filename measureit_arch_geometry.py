@@ -3361,12 +3361,15 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
     if sceneProps.vector_z_order and sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
         print(objlist)
+    
+    if sceneProps.is_render_draw:
+        startTime = time.time()
 
     for idx, myobj in enumerate(objlist, start=1):
         if sceneProps.is_render_draw:
             print("Rendering Object: " + str(idx) + " of: " +
                   str(totalobjs) + " Name: " + myobj.name)
-            startTime = time.time()
+            
 
         if check_obj_vis(myobj,custom_call):
             mat = myobj.matrix_world
@@ -3420,9 +3423,6 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
                     draw_areaDimension(context, myobj, DimGen,
                                        areaDim, mat, svg=svg, )
 
-        if sceneProps.is_render_draw:
-            endTime = time.time()
-            print("Time: " + str(endTime - startTime))
 
     # Draw Instanced Objects
     if not custom_call:
@@ -3467,7 +3467,9 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
                         for axisDim in DimGen.axisDimensions:
                             draw_axisDimension(
                                 context, myobj, DimGen, axisDim, mat, svg=svg)
-
+    if sceneProps.is_render_draw:
+        endTime = time.time()
+        print("Time: " + str(endTime - startTime))
 
 def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance):
     context =bpy.context
