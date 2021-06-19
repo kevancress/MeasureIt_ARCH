@@ -239,8 +239,6 @@ class AddAnnotationButton(Operator):
                 obj = point['obj']
                 anchor = point['vert']
                 
-                    
-
                 annotationGen = obj.AnnotationGenerator
 
                 annotationGen.num_annotations += 1

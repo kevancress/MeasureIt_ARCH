@@ -2241,6 +2241,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                 p1local = get_mesh_vertex(
                     myobj, annotation.annotationAnchor, annotationProps.evalMods, spline_idx=annotation.annotationAnchorSpline)
                 p1 = get_point(p1local, mat)
+                annotation['p1anchorCoord'] = p1
             except IndexError:
                 deleteFlag = True
 
@@ -2487,7 +2488,15 @@ def set_text(textField, obj, parent=None):
         elif textField.textSource == 'VIEWNUM':
             view = get_view()
             textField.text = view.view_num
+            
+        
+        elif textField.textSource == 'ELEVATION':
+            if parent == None: 
+                textField.text = ""
+            elif "p1anchorCoord" in parent:
+                textField.text = format_distance(parent['p1anchorCoord'][2])
 
+                
         elif textField.textSource == 'C_LENGTH':
             if obj.type == 'CURVE':
                 if len(obj.data.splines) > 1:
@@ -2498,6 +2507,8 @@ def set_text(textField, obj, parent=None):
                     length = obj.data.splines[0].calc_length()
                     text = format_distance(length)
                 textField.text = text
+            else:
+                textField.text = "Not a Curve"
 
         # CUSTOM PROP
         elif textField.textSource == 'RNAPROP':
