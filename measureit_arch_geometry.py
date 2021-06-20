@@ -2370,9 +2370,9 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
 
             for textField in fields:
                 if instance is None:
-                    set_text(textField, myobj,parent = annotationProps)
+                    set_text(textField, myobj, style = annotationProps, item = annotation)
                 else:
-                    set_text(textField,instance.parent,parent = annotationProps)
+                    set_text(textField,instance.parent, style = annotationProps, item = annotation)
                 origin = p3
                 xDir = fullRotMat @ Vector((1 * mult, 0, 0))
                 yDir = fullRotMat @ Vector((0, 1, 0))
@@ -2462,7 +2462,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                     svg_shaders.svg_text_shader(
                         annotation, annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
 
-def set_text(textField, obj, parent=None):
+def set_text(textField, obj, style=None, item=None):
     
 
     if textField.autoFillText:
@@ -2491,10 +2491,10 @@ def set_text(textField, obj, parent=None):
             
         
         elif textField.textSource == 'ELEVATION':
-            if parent == None: 
+            if item == None: 
                 textField.text = ""
-            elif "p1anchorCoord" in parent:
-                textField.text = format_distance(parent['p1anchorCoord'][2])
+            elif "p1anchorCoord" in item:
+                textField.text = format_distance(item['p1anchorCoord'][2])
 
                 
         elif textField.textSource == 'C_LENGTH':
@@ -2526,7 +2526,7 @@ def set_text(textField, obj, parent=None):
                     textField.text = 'Bad Data Path'
 
 
-    if parent != None and parent.all_caps and (parent.text_updated or bpy.context.scene.MeasureItArchProps.is_render_draw):
+    if style != None and style.all_caps and (style.text_updated or bpy.context.scene.MeasureItArchProps.is_render_draw):
         textField.text = textField.text.upper()
 
 
