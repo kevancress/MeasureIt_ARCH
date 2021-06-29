@@ -389,7 +389,7 @@ def draw_material_hatches(context, myobj, mat, svg=None):
                 weight = hatch.lineWeight
                 fillURL = ''
                 if hatch.pattern is not None:
-                    fillURL = 'url(#' + slot.material.name + '_' + \
+                    fillURL = 'url(#' + faceMat.name + '_' + \
                         hatch.pattern.name + ')'
 
                 coords = []
@@ -2015,16 +2015,12 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                                 tempCoords.append(pointB)
 
 
-                        lineGroup['coordBuffer'] = tempCoords
-
-                        if len(tempCoords) == 0:
-                            lineGroup['coordBuffer'] = [Vector((0,0,0)),Vector((0,0,0))]
-                
+                      
 
 
-                        lineGroup['coordBuffer'] = tempCoords
-                        if len(tempCoords) == 0:
-                            lineGroup['coordBuffer'] = [Vector((0,0,0)),Vector((0,0,0))]
+                    lineGroup['coordBuffer'] = tempCoords
+                    if len(tempCoords) == 0:
+                        lineGroup['coordBuffer'] = [Vector((0,0,0)),Vector((0,0,0))]
 
 
             coords = []

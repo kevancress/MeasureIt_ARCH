@@ -210,23 +210,26 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
     ssp0 = get_render_location(textCard[0])
     ssp1 = get_render_location(textCard[1])
-    # ssp2 = get_render_location(textCard[2])
+    ssp2 = get_render_location(textCard[2])
     ssp3 = get_render_location(textCard[3])
 
-    cardHeight = Vector(ssp1) - Vector(ssp0)
+    
+    xDirVec = Vector(ssp0) - Vector(ssp3)
+    yDirVec = Vector(ssp1) - Vector(ssp0)
+    
+    center = Vector(ssp0) + ((Vector(ssp2) - Vector(ssp0))/2)
 
-    dirVec = Vector(ssp3) - Vector(ssp0)
+    cardHeight = yDirVec.length
 
-    heightOffsetAmount = 1 / 8 * cardHeight.length
-    heightOffset = Vector((dirVec[1], -dirVec[0])).normalized()
+    heightOffsetAmount = 0.3 * cardHeight
+    heightOffset = yDirVec.copy().normalized() * heightOffsetAmount
 
-    heightOffset *= heightOffsetAmount
 
     leftVec = Vector(ssp0)
     rightVec = Vector(ssp3)
     midVec = (leftVec + rightVec) / 2
 
-    if dirVec.length == 0:
+    if xDirVec.length == 0:
         return
 
     text_position = (0, 0)
@@ -249,8 +252,8 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
         # position_flip = leftVec
         anchor_flip = 'start'
 
-    xvec = Vector((999, 1)).normalized() #again we need to make this slightly off axis to make rotation consistent for orthogonal views
-    rotation = math.degrees(dirVec.angle_signed(xvec))
+    xvec = Vector((99999, 1)).normalized() #again we need to make this slightly off axis to make rotation consistent for orthogonal views
+    rotation = math.degrees(xDirVec.angle_signed(xvec))
     print("{} Rotation: {}".format(item.name, rotation))
     badrot_1 = rotation < -90 and rotation > -180
     badrot_2 = rotation > 90 and rotation < 180
@@ -258,11 +261,15 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
         rotation += 180
         # text_position = position_flip
         text_anchor = anchor_flip
-        heightOffset = -heightOffset
+        # heightOffset = -heightOffset
         print('{} did flip'.format(item.name))
+    
+    rotMat = Matrix.Rotation(math.radians(-rotation),2)
+    heightOffset.rotate(rotMat)
 
     #print(heightOffset)
-    text_position += heightOffset
+    offset_text_position = text_position + heightOffset
+    center += heightOffset
     view = get_view()
     res = bpy.context.scene.MeasureItArchProps.default_resolution
     if view is not None:
@@ -275,11 +282,11 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     except:
         font_family = "Open Sans"
 
-    parent.add(svg.text(text, insert=tuple(text_position), fill=svgColor, **{
+    parent.add(svg.text(text, insert=tuple(offset_text_position), fill=svgColor, **{
         'transform': 'rotate({} {} {})'.format(
-            rotation,
-            text_position[0],
-            text_position[1]
+            -rotation,
+            center[0],
+            center[1]
         ),
 
         # I wish i could tell you why this fudge factor is necessary, but for some reason
