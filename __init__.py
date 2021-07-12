@@ -62,6 +62,7 @@ if "measureit_arch_main" in locals():
     importlib.reload(measureit_arch_sheets)
     importlib.reload(measureit_arch_styles)
     importlib.reload(measureit_arch_views)
+    importlib.reload(measureit_arch_units)
 else:
     print("M_ARCH import modules")
     from . import measureit_arch_baseclass
@@ -70,6 +71,7 @@ else:
     from . import measureit_arch_gizmos
     from . import measureit_arch_material_hatches
     from . import measureit_arch_lines
+    from . import measureit_arch_units
     from . import measureit_arch_main
     from . import measureit_arch_render
     from . import measureit_arch_schedules
@@ -81,7 +83,11 @@ classes = (
     measureit_arch_main.ShowHideViewportButton,
     measureit_arch_main.MEASUREIT_PT_main_panel,
     measureit_arch_main.OBJECT_PT_Panel,
-    measureit_arch_main.SCENE_PT_MARCH_units,
+
+    #measureit_arch_main.MeasureIt_nav_button,
+    
+    measureit_arch_units.SCENE_PT_MARCH_units,
+
 
     # Base Classes
     measureit_arch_baseclass.TextField,

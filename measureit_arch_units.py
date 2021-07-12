@@ -29,6 +29,7 @@ import math
 import unittest
 
 from typing import Tuple
+from bpy.types import Panel
 
 
 __all__ = (
@@ -47,6 +48,46 @@ THOU_PER_INCH = 1000
 # Conversion factor from Blender Units to Inches / Feet
 BU_TO_INCHES = 100.0 / INCH_TO_CM
 BU_TO_FEET = 100.0 / (INCH_TO_CM * INCHES_PER_FEET)
+
+
+# MeasureIt_ARCH Unit settings
+class SCENE_PT_MARCH_units(Panel):
+    """ MeasureIt_ARCH Unit settings """
+
+    bl_parent_id = 'SCENE_PT_unit'
+    bl_idname = "SCENE_PT_MARCH_Units"
+    bl_label = "MeasureIt_ARCH Unit Settings"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = 'scene'
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon='SNAP_INCREMENT')
+
+    # -----------------------------------------------------
+    # Draw (create UI interface)
+    # -----------------------------------------------------
+    def draw(self, context):
+        scene = context.scene
+        sceneProps = scene.MeasureItArchProps
+
+        layout = self.layout
+        layout.use_property_decorate = False
+        layout.use_property_split = True
+
+        scene = context.scene
+
+        col = layout.column()
+        col.prop(sceneProps, 'metric_precision', text="Metric Precision")
+        col.prop(sceneProps, 'angle_precision', text="Angle Precision")
+        col.prop(sceneProps, 'imperial_precision', text="Imperial Precision")
+        col.prop(sceneProps, 'use_unit_scale')
+
+        col = layout.column(align=True)
+        col.prop(sceneProps, 'default_scale', text="Default Scale 1:")
+
 
 
 def format_distance(distance: float) -> str:
@@ -118,9 +159,8 @@ def format_area(area: float) -> str:
             'METRIC', 'AREA', area, precision=precision,
             split_unit=separate_units, compatible_unit=False)
     elif unit_system == 'IMPERIAL':
-        return bpy.utils.units.to_string(
-            'IMPERIAL', 'AREA', area, split_unit=separate_units,
-            compatible_unit=False)
+        precision = scene.MeasureItArchProps.metric_precision
+        return _format_imperial_area(area, precision)
 
     return bpy.utils.units.to_string(
         'NONE', 'LENGTH', area, split_unit=separate_units,
@@ -231,6 +271,26 @@ def _format_imperial_length(value, precision, unit_length='INCH') -> str:
         'IMPERIAL', 'LENGTH', value, precision=precision,
         split_unit=False, compatible_unit=False)
 
+
+def _format_imperial_area(value, precision, unit_length='INCH', hide_units=False) -> str:
+    """
+    (Internal) Format an area as a string using imperial units
+
+    :param value: area in BU/meters
+    :param type: float
+    :param value: precision expressed as 1/n'th inch
+    :param type: int
+    :param unit_length: one of 'INCHES', 'FEET', 'MILES' or 'THOU'
+    :param type: str
+    """
+
+    areaToInches = 1550
+    inPerFoot = 143.999
+    unit = " ft²"
+    value *= areaToInches
+    value /= inPerFoot
+
+    return "{:.{}f}{}".format(value, precision, "" if hide_units else unit)
 
 def _inches_to_fraction(inches: float, precision: int) -> Tuple[int, int, int]:
     """

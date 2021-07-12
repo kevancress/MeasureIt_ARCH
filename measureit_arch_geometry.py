@@ -1638,7 +1638,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
                 sumArea += area
 
         # Get the Perimeter Coords
-        perimeterCoords = []
+            perimeterCoords = []
         for edgeIdx in dim['perimeterEdgeBuffer'].to_list():
             edge = bm.edges[edgeIdx]
             verts = edge.verts
@@ -1677,7 +1677,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         dimProps.textPosition = 'M'
 
         # Setup Text Fields
-        placementResults = setup_dim_text(myobj,dim,dimProps,area,origin,vecX,0.0)
+        placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,0.0, is_area=True)
         origin = placementResults[2]
 
         # Draw Fill
@@ -3212,7 +3212,7 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
         origin -= Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     square = generate_text_card(
-        context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance,cardIdx=cardIdx)
+        context, textField, dim, basePoint=origin, xDir=normDistVector,cardIdx=cardIdx)
 
     cardX = square[3] - square[0]
     cardY = square[1] - square[0]
@@ -3478,7 +3478,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
         endTime = time.time()
         print("Time: " + str(endTime - startTime))
 
-def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance):
+def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):
     context =bpy.context
     sceneProps = context.scene.MeasureItArchProps
     if len(dim.textFields) == 0:
@@ -3488,7 +3488,10 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance):
 
     # format text and update if necessary
     if not dim.use_custom_text:
+
         distanceText = format_distance(dist)
+        if is_area:
+            distanceText = format_area(dist)
         if dimText.text != distanceText:
             dimText.text = distanceText
             dimText.text_updated = True
