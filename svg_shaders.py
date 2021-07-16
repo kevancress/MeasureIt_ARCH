@@ -286,13 +286,19 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     except:
         font_family = "Open Sans"
 
+    # Get Skew
+    #skewX = 90-math.degrees(yDirVec.angle_signed(xDirVec))
+    #print("Skew: {}".format(skew))
+
+
     # Draw the text
     parent.add(svg.text(text, insert=tuple(offset_text_position), fill=svgColor, **{
-        'transform': 'rotate({} {} {})'.format(
+        'transform-origin': '{} {}'.format(offset_text_position[0], offset_text_position[1]),
+        'transform': 'rotate({})'.format(
             rotation,
-            offset_text_position[0],
-            offset_text_position[1]
         ),
+        
+
         # I wish i could tell you why this fudge factor is necessary, but for some reason
         # spec-ing svg units in inches and using this factor for text size is the only way to get
         # sensible imports in both inkscape and illustrator
