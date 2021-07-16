@@ -194,6 +194,8 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
         patternfill.add(poly)
 
 
+
+
 def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
     # Card Indicies:
@@ -206,75 +208,77 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     if camera_cull(textCard):
         return
 
-    text_position = get_render_location(mid)
     svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
     ssp0 = get_render_location(textCard[0])
     ssp1 = get_render_location(textCard[1])
     ssp2 = get_render_location(textCard[2])
     ssp3 = get_render_location(textCard[3])
 
+    card = [Vector(ssp0),Vector(ssp1),Vector(ssp2),Vector(ssp3)]
     
-    xDirVec = Vector(ssp0) - Vector(ssp3)
-    yDirVec = Vector(ssp1) - Vector(ssp0)
-    
-    center = Vector(ssp0) + ((Vector(ssp2) - Vector(ssp0))/2)
+    xDirVec = card[3] - card[0]
+    yDirVec = card[1] - card[0]
+
+    # If either card direction is 0, don't draw any text
+    if xDirVec.length == 0 or yDirVec.length == 0:
+        return
+
+    # If the card is not ordered correctly on the page flip it
+    if yDirVec.dot(Vector((1,1000))) > 0:
+        card[0] = Vector(ssp1)
+        card[3] = Vector(ssp2)
+        card[1] = Vector(ssp0)
+        card[2] = Vector(ssp3)
+
+    if xDirVec.dot(Vector((1,0))) < 0:
+        temp = card[0]
+        card[0] = card[3]
+        card[3] = temp
+        temp2 = card[1]
+        card[1] = card[2]
+        card[2] = temp2
+
+    # Re Calc direction vectors aftor flips
+    xDirVec = card[3] - card[0]
+    yDirVec = card[1] - card[0]
+    center = card[0] + ((card[2] - card[0])/2)
 
     cardHeight = yDirVec.length
 
-    heightOffsetAmount = 0.3 * cardHeight
-    heightOffset = yDirVec.copy().normalized() * heightOffsetAmount
+    # Get the rotation angle of the text card from horizontal
+    xvec = Vector((9999, -1)).normalized() #again we need to make this slightly off axis to make rotation consistent for orthogonal views
+    rotation = math.degrees(xDirVec.angle_signed(xvec))
 
+    # Define Anchor Points
+    leftVec = card[0]
+    rightVec = card[3]
+    midVec =card[0] + ((card[3]-card[0])/2)
 
-    leftVec = Vector(ssp0)
-    rightVec = Vector(ssp3)
-    midVec = (leftVec + rightVec) / 2
-
-    if xDirVec.length == 0:
-        return
-
-    text_position = (0, 0)
-    text_anchor = 'start'
+    # Set anchor point and positon
     if style.textAlignment == 'L':
         text_position = leftVec
         text_anchor = 'start'
-        # position_flip = rightVec
-        anchor_flip = 'end'
 
     if style.textAlignment == 'C':
         text_position = midVec
         text_anchor = 'middle'
-        # position_flip = midVec
-        anchor_flip = 'middle'
 
     if style.textAlignment == 'R':
         text_position = rightVec
         text_anchor = 'end'
-        # position_flip = leftVec
-        anchor_flip = 'start'
 
-    xvec = Vector((99999, 1)).normalized() #again we need to make this slightly off axis to make rotation consistent for orthogonal views
-    rotation = math.degrees(xDirVec.angle_signed(xvec))
-    print("{} Rotation: {}".format(item.name, rotation))
-    badrot_1 = rotation < -90 and rotation > -180
-    badrot_2 = rotation > 90 and rotation < 180
-    if badrot_1 or badrot_2:
-        rotation += 180
-        # text_position = position_flip
-        text_anchor = anchor_flip
-        # heightOffset = -heightOffset
-        print('{} did flip'.format(item.name))
-    
-    rotMat = Matrix.Rotation(math.radians(-rotation),2)
-    heightOffset.rotate(rotMat)
-
-    #print(heightOffset)
+    # Height Offset to match the raster texture shift
+    heightOffsetAmount = 0.3 * cardHeight
+    heightOffset = yDirVec.copy().normalized() * heightOffsetAmount
     offset_text_position = text_position + heightOffset
-    center += heightOffset
+    
+    # Get resolution for text size
     view = get_view()
     res = bpy.context.scene.MeasureItArchProps.default_resolution
     if view is not None:
         res = view.res
 
+    # Try to get font
     try:
         font_file = style.font.filepath
         tt = ttLib.TTFont(font_file, verbose=1)
@@ -282,13 +286,13 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     except:
         font_family = "Open Sans"
 
+    # Draw the text
     parent.add(svg.text(text, insert=tuple(offset_text_position), fill=svgColor, **{
         'transform': 'rotate({} {} {})'.format(
-            -rotation,
-            center[0],
-            center[1]
+            rotation,
+            offset_text_position[0],
+            offset_text_position[1]
         ),
-
         # I wish i could tell you why this fudge factor is necessary, but for some reason
         # spec-ing svg units in inches and using this factor for text size is the only way to get
         # sensible imports in both inkscape and illustrator
@@ -297,6 +301,22 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
         'text-anchor': text_anchor,
         'text-align': text_anchor
     }))
+
+    ## Debug Draw Text Card for troubleshooting
+    if bpy.context.scene.MeasureItArchProps.show_text_cards:
+
+        svg.add(svg.line(start=tuple(ssp0), end=tuple(ssp1), stroke="blue", stroke_width=1))
+        svg.add(svg.line(start=tuple(ssp1), end=tuple(ssp2), stroke="blue", stroke_width=1))
+        svg.add(svg.line(start=tuple(ssp2), end=tuple(ssp3), stroke="blue", stroke_width=1))
+        svg.add(svg.line(start=tuple(ssp0), end=tuple(ssp3), stroke="blue", stroke_width=1))
+
+        svg.add(svg.line(start=tuple(card[0]), end=tuple(card[3]), stroke="red", stroke_width=2))
+        svg.add(svg.line(start=tuple(card[0]), end=tuple(card[1]), stroke="green", stroke_width=2))
+        svg.add(svg.line(start=tuple(midVec), end=tuple(center), stroke="blue", stroke_width=2))
+        svg.add(svg.line(start=tuple(text_position), end=tuple(offset_text_position), stroke="yellow", stroke_width=2))
+
+        svg.add(svg.line(start=tuple((0,0)), end=tuple((50,0)), stroke="red", stroke_width=1))
+        svg.add(svg.line(start=tuple((0,0)), end=tuple((0,50)), stroke="green", stroke_width=1))
 
 
 def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):

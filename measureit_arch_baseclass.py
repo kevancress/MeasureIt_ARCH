@@ -330,6 +330,7 @@ class BaseDim(BaseWithText):
         name='Dimension Offset',
         description='Offset for Dimension',
         default=(0.0),
+        min = 0,
         subtype='DISTANCE',
         update=update_active_dim)
 
@@ -337,6 +338,7 @@ class BaseDim(BaseWithText):
         name='Dimension Offset',
         description='Offset for Dimension',
         default=(0.05),
+        min = 0,
         subtype='DISTANCE')
 
     dimViewPlane: EnumProperty(

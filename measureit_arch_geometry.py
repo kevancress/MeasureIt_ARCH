@@ -1694,8 +1694,10 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
                 dim, dimProps, perimeterCoords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, fillRGB, svg, parent=svg_dim)
-            svg_shaders.svg_text_shader(
-                dim, dimProps, dimText.text, origin, square, textRGB, svg, parent=svg_dim)
+            for textField in dim.textFields:
+                textcard = textField['textcard']
+                svg_shaders.svg_text_shader(
+                    dim, dimProps, textField.text, origin, textcard, textRGB, svg, parent=svg_dim)
 
 
 
@@ -2878,14 +2880,7 @@ def sortPoints(p1, p2):
     tempDirVec = Vector(p1) - Vector(p2)
     domAxis = get_dom_axis(tempDirVec)
 
-    # check dom axis alignment for text
-    # if domAxis==0:
-    #    if p2[domAxis] > p1[domAxis]:
-    #        switchTemp = p1
-    #        p1 = p2
-    #        p2 = switchTemp
-    # else:
-    if p2[domAxis] < p1[domAxis]:
+    if p2[domAxis] > p1[domAxis]:
         switchTemp = p1
         p1 = p2
         p2 = switchTemp
@@ -3212,7 +3207,7 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
         origin -= Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     square = generate_text_card(
-        context, textField, dim, basePoint=origin, xDir=normDistVector,cardIdx=cardIdx)
+        context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance.normalized() ,cardIdx=cardIdx)
 
     cardX = square[3] - square[0]
     cardY = square[1] - square[0]
@@ -3224,7 +3219,7 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
             dimLineExtension = dim_line_extension(capSize)
             origin += distVec * -0.5 - (dimLineExtension * normDistVector) - cardX / 2 - cardY / 2
             square = generate_text_card(
-                context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance)
+                context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance.normalized())
     textField['textcard'] = square
     return (flipCaps, dimLineExtension, origin)
 
