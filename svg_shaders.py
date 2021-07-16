@@ -230,7 +230,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
         card[1] = Vector(ssp0)
         card[2] = Vector(ssp3)
 
-    if xDirVec.dot(Vector((1,0))) < 0:
+    if xDirVec.dot(Vector((10000,-1))) < 0:
         temp = card[0]
         card[0] = card[3]
         card[3] = temp
