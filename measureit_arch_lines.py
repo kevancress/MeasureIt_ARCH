@@ -144,6 +144,69 @@ class LineProperties(BaseProp, PropertyGroup):
         'WARNING: EXPERIMENTAL, will likely break things, works best on single spline curves',
         default=False)
 
+    num_dashes: IntProperty(
+        name= "Num Dashes",
+        description = 'Number of Dash Segments (1 - 4)',
+        default = 1,
+        min=1,
+        max=4,
+    )
+
+    d1_length: IntProperty(
+        name= "Dash 1 Length",
+        description = 'Dash 1 Length in pixels',
+        default = 5,
+        subtype='PIXEL'
+    )
+
+    d2_length: IntProperty(
+        name= "Dash 2 Length",
+        description = 'Dash 3 Length in pixels',
+        default = 5,
+        subtype='PIXEL'
+    )
+
+    d3_length: IntProperty(
+        name= "Dash 3 Length",
+        description = 'Dash 3 Length in pixels',
+        default = 5,
+        subtype='PIXEL'
+    )
+
+    d4_length: IntProperty(
+        name= "Dash 4 Length",
+        description = 'Dash 4 Length in pixels',
+        default = 5,
+        subtype='PIXEL'
+    )
+
+    g1_length: IntProperty(
+        name= "Gap 1 Length",
+        description = 'Gap 1 Length in pixels',
+        default = 5,
+        subtype='PIXEL'
+    )
+
+    g2_length: IntProperty(
+        name= "Gap 2 Length",
+        description = 'Gap 2 Length in pixels',
+        default = 5,
+        subtype='PIXEL'
+    )
+
+    g3_length: IntProperty(
+        name= "Gap 3 Length",
+        description = 'Gap 3 Length in pixels',
+        default = 5,
+        subtype='PIXEL'
+    )
+
+    g4_length: IntProperty(
+        name= "Gap 3 Length",
+        description = 'Gap 3 Length in pixels',
+        default = 5,
+        subtype='PIXEL'
+    )
 
 class LineContainer(PropertyGroup):
     line_num: IntProperty(
@@ -446,9 +509,19 @@ class OBJECT_PT_UILines(Panel):
                                 col.enabled = True
                             else:
                                 col.enabled = False
-                            col.prop(line, 'lineHiddenDashScale',
-                                     text="Dash Scale")
-                            col.prop(line, 'lineDashSpace', text="Dash Spacing")
+                            #col.prop(line, 'lineHiddenDashScale',
+                            #         text="Dash Scale")
+                            #col.prop(line, 'lineDashSpace', text="Dash Spacing")
+                            col.prop(line, 'num_dashes')
+
+                            for i in range(line.num_dashes+1):
+                                if i == 0: continue
+                                c = col.column(align=True)
+                                r = c.row(align = True)
+                                r.prop(line, 'd{}_length'.format(i))
+                                r.prop(line, 'g{}_length'.format(i), text="")
+
+             
 
                             col = box.column(align=True)
 

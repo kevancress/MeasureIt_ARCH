@@ -2116,7 +2116,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 lineGroupShader.uniform_float("thickness", lineWeight)
                 lineGroupShader.uniform_float(
                     "extension", lineGroup.lineOverExtension)
-                lineGroupShader.uniform_float("pointPass", lineGroup.pointPass)
+                lineGroupShader.uniform_float("pointPass", lineProps.pointPass)
                 lineGroupShader.uniform_float(
                     "weightInfluence", lineGroup.weightGroupInfluence)
                 lineGroupShader.uniform_float(
@@ -2162,7 +2162,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 gpu.shader.unbind()
 
             if sceneProps.is_vector_draw:
-                if not lineGroup.chain:
+                if not lineProps.chain:
                     svg_shaders.svg_line_shader(
                         lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat)
                 else:
@@ -3285,7 +3285,7 @@ def z_order_objs(obj_list, extMat, multMat):
         obj_dist = get_camera_z_dist(loc)
 
         # If the obj is behind the camera, and we're culling objs Ignore it
-        if obj_dist < 0 and bpy.context.scene.MeasureItArchProps.cull_objs:
+        if obj_dist < 0:
             continue
 
         to_sort.append(Dist_Sort(obj, obj_dist))
@@ -3303,12 +3303,12 @@ def z_order_faces(face_list, obj):
         face_dist = get_camera_z_dist(obj.matrix_world @ face.calc_center_median())
 
         # If the face is behind the camera, and we're culling faces Ignore it
-        if face_dist < 0 and bpy.context.scene.MeasureItArchProps.cull_faces:
+        if face_dist < 0:
             continue
 
         to_sort.append(Dist_Sort(face, face_dist))
 
-    to_sort.sort()
+    to_sort.sort(reverse=True)
     ordered_face_list = [item.item for item in to_sort]
 
     return ordered_face_list
@@ -3360,7 +3360,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
     
     totalobjs = len(objlist)
 
-    if sceneProps.vector_z_order and sceneProps.is_vector_draw:
+    if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
         print(objlist)
     
@@ -3432,7 +3432,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
         
         objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
         num_instances = len(objlist) 
-        if sceneProps.vector_z_order and sceneProps.is_vector_draw:
+        if sceneProps.is_vector_draw:
             objlist = z_order_objs(objlist, extMat, multMat)
 
         for idx,obj_int in enumerate(objlist, start=1):

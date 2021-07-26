@@ -330,7 +330,6 @@ class BaseDim(BaseWithText):
         name='Dimension Offset',
         description='Offset for Dimension',
         default=(0.0),
-        min = 0,
         subtype='DISTANCE',
         update=update_active_dim)
 
@@ -492,11 +491,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="Flag to use svg draw code",
         default=False)
 
-    vector_z_order: BoolProperty(
-        name="Vector Z Order",
-        description="Order Vector Layers by Object Z Height",
-        default=False)
-
     vector_depthtest: BoolProperty(
         name="Use Vector Depth Test",
         description="Check for Occlusion when rending to SVG\n"
@@ -567,16 +561,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
     hide_linework: BoolProperty(
         name="Hide Linework",
         description="Hide Linework",
-        default=False,)
-
-    cull_faces: BoolProperty(
-        name="Cull Faces",
-        description="Cull Faces Behind the Camera in Vector Renders",
-        default=False,)
-
-    cull_objs: BoolProperty(
-        name="Cull Objects",
-        description="Cull Objects Behind the Camera in Vector Renders",
         default=False,)
 
     source_scene: PointerProperty(type = bpy.types.Scene)

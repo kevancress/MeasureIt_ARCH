@@ -64,6 +64,7 @@ def update(self, context):
         view.end_frame = view.start_frame
     scene.frame_end = view.end_frame
     scene.frame_start = view.start_frame
+    scene.render.engine = view.render_engine
     # scene.frame_current = view.start_frame
 
     if view.res_type == 'res_type_paper':
@@ -173,6 +174,17 @@ def create_preset_view(dummy):
 class ViewProperties(PropertyGroup):
 
     textFields: CollectionProperty(type=TextField)
+
+    render_engine: EnumProperty(
+        items=(
+            ('BLENDER_EEVEE', 'Eevee', ''),
+            ('CYCLES', 'Cycles', ''),
+            ('BLENDER_WORKBENCH', 'Workbench', ''),
+        ),
+        name="Render Engine",
+        description="Render Engine used for this View",
+        default='BLENDER_EEVEE',
+        update=update)
 
     camera: PointerProperty(
         type=bpy.types.Object,
@@ -593,6 +605,8 @@ class SCENE_PT_Views(Panel):
             if ViewGen.show_settings:
                 col = box.column()
                 if view.camera is not None:
+                    col = box.column(align=True)
+                    col.prop(view, "render_engine")
                     col = box.column(align=True)
                     col.prop(view, "view_num")
                     col.prop(view, "name")

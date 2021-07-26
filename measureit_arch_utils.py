@@ -31,17 +31,6 @@ class recursionlimit:
     def __exit__(self, type, value, tb):
         setrecursionlimit(self.old_limit)
 
-class recursionlimit:
-    def __init__(self, limit):
-        self.limit = limit
-        self.old_limit = getrecursionlimit()
-
-    def __enter__(self):
-        setrecursionlimit(self.limit)
-
-    def __exit__(self, type, value, tb):
-        setrecursionlimit(self.old_limit)
-
 class Set_Render:
     def __init__(self, sceneProps, is_vector=False):
         self.sceneProps = sceneProps

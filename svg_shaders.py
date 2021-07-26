@@ -25,6 +25,8 @@
 #
 # ----------------------------------------------------------
 import bpy
+import bmesh
+import time
 import bpy_extras.object_utils as object_utils
 import math
 import svgwrite
@@ -37,19 +39,26 @@ from sys import getrecursionlimit, setrecursionlimit
 from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit
 
 depthbuffer = None
+facemap = []
 
 def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
     dash_id_name = idName = item.name + "_dashed_lines"
     dashed = False
+
     if "lineDrawDashed" in itemProps and itemProps.lineDrawDashed:
         dashed = True
 
     svgColor = get_svg_color(color)
-    if "pointPass" in itemProps and itemProps.pointPass:
-        cap = 'round'
-    else:
-        cap = 'butt'
+    
+    cap = 'butt'
+    try:
+        if itemProps.pointPass:
+            cap = 'round'
+    except AttributeError:
+        pass
+
+        
 
     lines = svg.g(id=idName, stroke=svgColor,
                   stroke_width=thickness, stroke_linecap=cap)
@@ -65,10 +74,14 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         dash_col = get_svg_color(itemProps.lineHiddenColor)
         dash_weight = itemProps.lineHiddenWeight
 
-    if "lineHiddenDashScale" in itemProps:
-        dash_size = itemProps.lineHiddenDashScale
-        dash_space = (itemProps.lineDashSpace *4) - 1
-        dash_val = "{},{}".format(dash_size, dash_size*dash_space)
+    if "num_dashes" in itemProps:
+        dash_val = ""
+        for i in range(itemProps.num_dashes+1):
+            if i == 0: continue
+            if i > 1: dash_val += ","
+            dash_space = eval('itemProps.d{}_length'.format(i))
+            gap_space = eval('itemProps.g{}_length'.format(i))
+            dash_val += "{},{}".format(dash_space , gap_space)
     else:
         dash_val = "5,5"
 
@@ -83,7 +96,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     # Get Depth Buffer as list
     sceneProps = bpy.context.scene.MeasureItArchProps
     global depthbuffer
-    if 'depthbuffer' in sceneProps and depthbuffer is None:
+    if 'depthbuffer' in sceneProps and depthbuffer is None and sceneProps.vector_depthtest:
         depthbuffer = sceneProps['depthbuffer'].to_list()
 
     for x in range(0, len(coords) - 1, 2):
@@ -105,8 +118,6 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
                     dashed_lines.add(line_draw)
                 elif not vis and draw_hidden:
                     dashed_lines.add(line_draw)
-
-
 
 def svg_fill_shader(item, coords, color, svg, parent=None):
     if camera_cull(coords):
@@ -150,10 +161,14 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     if  "lineDrawDashed" in itemProps and itemProps.lineDrawDashed:
         dashed = True  
 
-        if "lineHiddenDashScale" in itemProps:     
-            dash_size = itemProps.lineHiddenDashScale
-            dash_space = (itemProps.lineDashSpace *2)
-            dash_val = "{},{}".format(dash_size, dash_size*dash_space)
+        if "num_dashes" in itemProps:
+            dash_val = ""
+            for i in range(itemProps.num_dashes+1):
+                if i == 0: continue
+                if i > 1: dash_val += ","
+                dash_space = eval('itemProps.d{}_length'.format(i))
+                gap_space = eval('itemProps.g{}_length'.format(i))
+                dash_val += "{},{}".format(dash_space , gap_space)
         elif "dash_size" in itemProps:
             dash_val = "{},{}".format(itemProps.dash_size, itemProps.gap_size)
         else:
@@ -179,6 +194,11 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     for coord in coords:
         coords_2d.append(get_render_location(mat @ Vector(coord)))
 
+    if False:
+        coords_2d = polygon_occlusion(coords_2d)
+
+
+
     if closed:
         poly = svg.polygon(points=coords_2d)
     else:
@@ -192,9 +212,6 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
                             stroke=0)
         parent.add(patternfill)
         patternfill.add(poly)
-
-
-
 
 def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
@@ -341,9 +358,77 @@ def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
                 pair[1]), stroke_width=weight, stroke=svgColor, stroke_linecap='round'))
 
 
+def polygon_occlusion(coords):
+    polygon = coords
+    global facemap
+    #Generate Face Map if none exists
+    if len(facemap) == 0:
+        start_time = time.time()
+        generate_facemap()
+        end_time = time.time()
+        print("Facemap Generation took: " + str(end_time - start_time))
+    
+    for face in facemap:
+        cut_coords = []
+        for edge in face.edges:
+            cut_coords.append(edge.start_coord)
+        polygon = polygon_subtract(polygon,cut_coords)
+
+    return coords
+
+def polygon_subtract(source, cut):
+    return source
+
+
+class FacemapEdge(object):
+    start_coord: Vector = Vector((0,0))
+    end_coord: Vector = Vector((0,1))
+
+    def __init__(self, start, end):
+        self.start_coord =start
+        self.end_coord = end
+
+class FacemapPolygon(object):
+    edges = []
+    depth = None
+
+    def __init__(self, edge_array, depth):
+        self.edges = edge_array
+        self.depth = depth
+
+def generate_facemap():
+    
+    context = bpy.context
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+    global facemap
+    objlist = context.view_layer.objects
+
+    for obj in objlist:
+        if obj.type != 'MESH':
+            continue
+        mat = obj.matrix_world
+        bm = bmesh.new()
+        bm.from_object(obj, bpy.context.view_layer.depsgraph)
+        faces = bm.faces
+        for face in faces:
+            center = face.calc_center_bounds()
+            depth = get_camera_z_dist(center)
+            edge_array = []
+            for edge in face.edges:
+                start = get_render_location(edge.verts[0].co @ mat)
+                end = get_render_location(edge.verts[1].co @ mat)
+                edge_array.append(FacemapEdge(start,end))
+            facemap.append(FacemapPolygon(edge_array,depth))
+
+    
+
+# Clear the depth buffer and facemap
 def clear_db():
     global depthbuffer
+    global facemap
     depthbuffer = None
+    facemap = []
 # --------------------------------------------------------------------
 # Get position in final render image
 # (Z < 0 out of camera)
@@ -456,19 +541,16 @@ def depth_test(p1, p2, mat, item, depthbuffer):
 
     return line_segs
 
-
 def clamp(minimum, x, maximum):
     return max(minimum, min(x, maximum))
 
 # For getting the depthbuffer ss point
 def get_ss_point(point):
-    context = bpy.context
     scene = bpy.context.scene
     render = scene.render
 
     #Get Render info
     render_scale = scene.render.resolution_percentage / 100
-    width = int(render.resolution_x * render_scale)
     height = int(render.resolution_y * render_scale)
 
     # Get Screen Space Points
@@ -484,6 +566,7 @@ def check_visible(item, point):
     render = scene.render
     #Set Z-offset
     z_offset = 0.1
+
     if 'lineDepthOffset' in item:
         z_offset += item.lineDepthOffset / 10
 

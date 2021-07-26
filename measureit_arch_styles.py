@@ -458,14 +458,25 @@ def draw_line_style_settings(line, layout):
         col.enabled = True
     else:
         col.enabled = False
-    col.prop(line, 'lineHiddenDashScale', text="Dash Scale")
-    col.prop(line, 'lineDashSpace', text="Dash Spacing")
+    #col.prop(line, 'lineHiddenDashScale', text="Dash Scale")
+    #col.prop(line, 'lineDashSpace', text="Dash Spacing")
+    col.prop(line, 'num_dashes')
+
+    for i in range(line.num_dashes+1):
+        if i == 0: continue
+        c = col.column(align=True)
+        r = c.row(align = True)
+        r.prop(line, 'd{}_length'.format(i))
+        r.prop(line, 'g{}_length'.format(i), text="")
+
 
     col = layout.column(align=True)
     col.prop(line, 'lineDrawDashed', text="Draw Dashed")
     col.prop(line, 'screenSpaceDashes', text="Screen Space Dashes")
 
     col.prop(line, 'inFront', text="Draw In Front")
+    col.prop(line, 'pointPass', text="Round Caps")
+    col.prop(line, 'chain', text="Chain Lines")
     col.prop(line, 'evalMods')
     col.prop(line, 'pointPass', text="Round Caps")
 
