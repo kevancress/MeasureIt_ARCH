@@ -161,7 +161,7 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     if  "lineDrawDashed" in itemProps and itemProps.lineDrawDashed:
         dashed = True  
 
-        if "num_dashes" in itemProps:
+        try:
             dash_val = ""
             for i in range(itemProps.num_dashes+1):
                 if i == 0: continue
@@ -169,10 +169,11 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
                 dash_space = eval('itemProps.d{}_length'.format(i))
                 gap_space = eval('itemProps.g{}_length'.format(i))
                 dash_val += "{},{}".format(dash_space , gap_space)
-        elif "dash_size" in itemProps:
-            dash_val = "{},{}".format(itemProps.dash_size, itemProps.gap_size)
-        else:
-            dash_val = "5,5"
+        except AttributeError:
+            if "dash_size" in itemProps:
+                dash_val = "{},{}".format(itemProps.dash_size, itemProps.gap_size)
+            else:
+                dash_val = "5,5"
 
     fill = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
 
@@ -309,10 +310,12 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
 
     # Draw the text
-    parent.add(svg.text(text, insert=tuple(offset_text_position), fill=svgColor, **{
-        'transform-origin': '{} {}'.format(offset_text_position[0], offset_text_position[1]),
-        'transform': 'rotate({})'.format(
+    svg.add(svg.text(text, insert=tuple(offset_text_position), fill=svgColor, **{
+        #'transform-origin': '{}px {}px'.format(offset_text_position[0], offset_text_position[1]),
+        'transform': 'rotate({} {} {})'.format(
             rotation,
+            offset_text_position[0],
+            offset_text_position[1]
         ),
         
 
