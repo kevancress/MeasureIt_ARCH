@@ -2045,13 +2045,14 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 bgl.glDepthFunc(bgl.GL_GREATER)
                 hiddenLineWeight = lineProps.lineHiddenWeight
                 dashRGB = rgb_gamma_correct(lineProps.lineHiddenColor)
-
+                view = get_view()
                 dashedLineShader.bind()
-                dashedLineShader.uniform_float(
-                    "u_Scale", lineProps.lineHiddenDashScale)
-                dashedLineShader.uniform_float(
-                    "dashSpace", lineProps.lineDashSpace)
+
+                dashedLineShader.uniform_float("resolution",  view.res)
+                dashedLineShader.uniform_float("u_dashSize",  lineProps.d1_length)
+                dashedLineShader.uniform_float("u_gapSize", lineProps.g1_length)
                 dashedLineShader.uniform_float("Viewport", viewport)
+                dashedLineShader.uniform_float("Render", (scene.render.resolution_x, scene.render.resolution_y) )
                 dashedLineShader.uniform_float("objectMatrix", mat)
                 dashedLineShader.uniform_float("thickness", hiddenLineWeight)
                 dashedLineShader.uniform_float(
@@ -2079,11 +2080,12 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
             if lineProps.lineDrawDashed:
                 dashedLineShader.bind()
-                dashedLineShader.uniform_float(
-                    "u_Scale", lineProps.lineHiddenDashScale)
-                dashedLineShader.uniform_float(
-                    "dashSpace", lineProps.lineDashSpace)
+                view = get_view()
+                dashedLineShader.uniform_float("resolution",  view.res)
+                dashedLineShader.uniform_float("u_dashSize",  lineProps.d1_length)
+                dashedLineShader.uniform_float("u_gapSize", lineProps.g1_length)
                 dashedLineShader.uniform_float("Viewport", viewport)
+                dashedLineShader.uniform_float("Render", (scene.render.resolution_x, scene.render.resolution_y) )
                 dashedLineShader.uniform_float("objectMatrix", mat)
                 dashedLineShader.uniform_float("thickness", lineWeight)
                 dashedLineShader.uniform_float(

@@ -74,7 +74,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         dash_col = get_svg_color(itemProps.lineHiddenColor)
         dash_weight = itemProps.lineHiddenWeight
 
-    if "num_dashes" in itemProps:
+    try:
         dash_val = ""
         for i in range(itemProps.num_dashes+1):
             if i == 0: continue
@@ -82,7 +82,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
             dash_space = eval('itemProps.d{}_length'.format(i))
             gap_space = eval('itemProps.g{}_length'.format(i))
             dash_val += "{},{}".format(dash_space , gap_space)
-    else:
+    except AttributeError:
         dash_val = "5,5"
 
     dashed_lines = svg.g(id=dash_id_name, stroke=dash_col, stroke_width=dash_weight,
@@ -154,6 +154,14 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     if camera_cull(coords):
         return
 
+
+    cap = 'butt'
+    try:
+        if itemProps.pointPass:
+            cap = 'round'
+    except AttributeError:
+        pass
+
     coords_2d = []
     idName = item.name + "_fills"
     dashed = False     
@@ -183,10 +191,10 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     lineOpacity = lineColor[3]
     if dashed:
         solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
-                        stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round",  stroke_dasharray=dash_val, stroke_linecap='butt')
+                        stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round",  stroke_dasharray=dash_val, stroke_linecap= cap)
     else:
         solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
-                        stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round")
+                        stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round", stroke_linecap= cap)
     if parent:
         parent.add(solidfill)
     else:

@@ -438,9 +438,9 @@ class Frag_Shaders_3D_B283 ():
 
     dashed_fragment_shader = '''
         in vec2 mTexCoord;
-        uniform float u_Scale;
         uniform vec4 finalColor;
-        uniform float dashSpace;
+        uniform float u_dashSize;
+        uniform float u_gapSize;
         in float alpha;
 
         in float g_ArcLength;
@@ -461,8 +461,8 @@ class Frag_Shaders_3D_B283 ():
 
             aaColor = mix(mixColor,aaColor,aa);
 
-            float mapdashSpace = 2*dashSpace - 1;
-            if (step(sin(g_ArcLength * u_Scale), mapdashSpace) == 1) discard;
+
+            if (fract(g_ArcLength / (u_dashSize + u_gapSize)) > u_dashSize/(u_dashSize + u_gapSize))discard; 
             fragColor = blender_srgb_to_framebuffer_space(aaColor);
         }
     '''
@@ -513,6 +513,8 @@ class Dashed_Shader_3D ():
 
         uniform mat4 ModelViewProjectionMatrix;
         uniform vec2 Viewport;
+        uniform vec2 Render;
+        uniform float resolution;
         uniform float thickness;
         uniform bool screenSpaceDash;
         out vec2 mTexCoord;
@@ -583,13 +585,14 @@ class Dashed_Shader_3D ():
             float arcLengths[4];
             arcLengths[0] = 0;
             arcLengths[1] = 0;
-
+            float scale_fac = Render.x / Viewport.x;
             if (screenSpaceDash){
-                arcLengths[2] = length(ssp2-ssp1) * 20;
-                arcLengths[3] = length(ssp2-ssp1) * 20;
+               
+                arcLengths[2] = length(ssp2-ssp1)*resolution*scale_fac;
+                arcLengths[3] = length(ssp2-ssp1)*resolution*scale_fac;
             } else {
-                arcLengths[2] = length(v_arcpos[1]-v_arcpos[0])*2;
-                arcLengths[3] = length(v_arcpos[1]-v_arcpos[0])*2;
+                arcLengths[2] = length(v_arcpos[1]-v_arcpos[0])*resolution;
+                arcLengths[3] = length(v_arcpos[1]-v_arcpos[0])*resolution;
             }
 
             for (int i = 0; i < 4; ++i) {
