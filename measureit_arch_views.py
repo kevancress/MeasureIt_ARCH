@@ -1,6 +1,8 @@
 import bpy
 import os
 import copy
+import webbrowser
+
 
 from bpy.props import (
     CollectionProperty,
@@ -619,7 +621,9 @@ class SCENE_PT_Views(Panel):
                                     'view_layers', text='View Layer')
 
                     col = box.column(align=True)
-                    col.prop(view, "output_path")
+                    row = col.row(align=True)
+                    row.prop(view, "output_path")
+                    row.operator("measureit_arch.openinbrowser",text="",icon="WINDOW")
                     col.prop(view, "date_folder", text="Date Folder")
 
                     col = box.column(align=True)
@@ -785,6 +789,20 @@ class SCENE_MT_Views_menu(bpy.types.Menu):
             text="Duplicate Selected View", icon='DUPLICATE')
         layout.operator('measureit_arch.batchviewrender',
             text = "Batch Render Views", icon = "DOCUMENTS")
+
+
+class OpenInBrowser(Operator):
+    bl_idname = "measureit_arch.openinbrowser"
+    bl_label = "Open"
+    bl_description = "Open the Output Folder is the OS File Browser"
+    bl_category = 'MeasureitArch'
+
+    def execute(self,context):
+        view = get_view()
+        path = bpy.path.abspath(view.output_path)
+        webbrowser.open(path)
+
+        return {'FINISHED'}
 
 
 class AddViewButton(Operator):
