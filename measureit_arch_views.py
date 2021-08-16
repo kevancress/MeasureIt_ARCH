@@ -322,7 +322,7 @@ class ViewProperties(PropertyGroup):
         name="Output Path",
         description="Render Output Path for this View",
         subtype='FILE_PATH',
-        default="",
+        default="//Renders\\",
         update=update)
 
     view_layer: StringProperty(
