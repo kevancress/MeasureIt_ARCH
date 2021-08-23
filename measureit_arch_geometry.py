@@ -46,7 +46,7 @@ from .shaders import *
 from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
-from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit, OpenGL_Settings, get_sv3d
+from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit, OpenGL_Settings, get_sv3d, safe_name
 
 lastMode = {}
 lineBatch3D = {}
@@ -3288,6 +3288,7 @@ def z_order_objs(obj_list, extMat, multMat):
 
         # If the obj is behind the camera, and we're culling objs Ignore it
         if obj_dist < 0:
+            print("Culled: {} Origin Behind Camera".format(obj.name))
             continue
 
         to_sort.append(Dist_Sort(obj, obj_dist))
@@ -3364,7 +3365,6 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
 
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
-        print(objlist)
     
     if sceneProps.is_render_draw:
         startTime = time.time()
@@ -3372,7 +3372,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
     for idx, myobj in enumerate(objlist, start=1):
         if sceneProps.is_render_draw:
             print("Rendering Object: " + str(idx) + " of: " +
-                  str(totalobjs) + " Name: " + myobj.name)
+                  str(totalobjs) + " Name: " + safe_name(myobj.name))
             
 
         if check_obj_vis(myobj,custom_call):
@@ -3443,8 +3443,11 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
                 mat = obj_int.matrix_world
 
                 if sceneProps.is_render_draw:
-                    print("Rendering Instance Object: " + str(idx) + " of: " +
-                        str(num_instances) + " Name: " + myobj.name)
+                    try:
+                        print("Rendering Instance Object: " + str(idx) + " of: " +
+                            str(num_instances) + " Name: " + safe_name(myobj.name))
+                    except UnicodeDecodeError:
+                        print("UNICODE ERROR ON OBJECT NAME")
 
                 if sceneProps.is_vector_draw and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                     draw_material_hatches(context, myobj, mat, svg=svg)                   

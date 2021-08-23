@@ -20,6 +20,18 @@ __all__ = (
 )
 
 
+
+def safe_name(name):
+    try:
+        ascii_name = name.encode('ascii','strict')
+        safe_name = ascii_name.decode()
+    except:
+        ascii_name = name.encode('ascii','ignore')
+        safe_name = ascii_name.decode()
+        print("Extended ASCII Characters Not Supported. Extended Character has been Ignored, Please Rename: {}".format(name))
+
+    return safe_name
+
 class recursionlimit:
     def __init__(self, limit):
         self.limit = limit

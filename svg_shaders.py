@@ -121,6 +121,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
 
 def svg_fill_shader(item, coords, color, svg, parent=None):
     if camera_cull(coords):
+        print("No Points In front of Camera: {} Culled in Fill Shader")
         return
     coords_2d = []
     idName = item.name + "_fills"
@@ -138,6 +139,7 @@ def svg_fill_shader(item, coords, color, svg, parent=None):
 
 def svg_circle_shader(item, point, rad, color, svg, parent=None):
     if camera_cull([point]):
+        print("No Points In front of Camera: {} Culled in Circle Shader")
         return
 
     idName = item.name + "_fills"
@@ -151,7 +153,8 @@ def svg_circle_shader(item, point, rad, color, svg, parent=None):
     fills.add(circle)
 
 def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL='', itemProps = None, closed=True, mat = Matrix.Identity(4)):
-    if camera_cull(coords):
+    if camera_cull(coords,mat):
+        print("No Points In front of Camera: {} Culled in Poly Fill Shader")
         return
 
 
@@ -232,6 +235,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     #     0----------------3
 
     if camera_cull(textCard):
+        print("No Points In front of Camera: {} Culled Text Card")
         return
 
     svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
@@ -471,11 +475,11 @@ def get_clip_space_coord(mypoint):
 
     return co_clip
 
-def camera_cull(points):
+def camera_cull(points, mat = Matrix.Identity(4)):
     camera = bpy.context.scene.camera.data
     should_cull = []
     for point in points:
-        dist = get_camera_z_dist(point)
+        dist = get_camera_z_dist(mat @ Vector(point))
         if dist < camera.clip_start or dist > camera.clip_end:
             should_cull.append(True)
         else:
