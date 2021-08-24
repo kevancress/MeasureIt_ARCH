@@ -3272,26 +3272,40 @@ def get_resolution():
 
 
 def z_order_objs(obj_list, extMat, multMat):
+    scene = bpy.context.scene
+    camera = scene.camera.data
     ordered_obj_list = []
     to_sort = []
 
     for obj in obj_list:
         if obj is Inst_Sort: obj = obj.object
-        loc = obj.matrix_world.to_translation()
-        if extMat is not None:
-            if multMat:
-                loc = extMat @ loc
-            else:
-                loc = extMat.to_translation()
-       
-        obj_dist = get_camera_z_dist(loc)
+        bound_box = obj.bound_box
+        point_in_camera = False
+        dist_sum = 0
+        print("OBJECT: {}".format(obj.name))
+        for point in bound_box:
+            loc = obj.matrix_world @ Vector(point)
+            if extMat is not None:
+                if multMat:
+                    loc = extMat @ loc
+                else:
+                    loc = extMat @ Vector(point)
 
-        # If the obj is behind the camera, and we're culling objs Ignore it
-        if obj_dist < 0:
-            print("Culled: {} Origin Behind Camera".format(obj.name))
-            continue
+            point_dist = get_camera_z_dist(loc)
+            print(point_dist)
 
-        to_sort.append(Dist_Sort(obj, obj_dist))
+            dist_sum += point_dist
+            
+            # is this point in front of the camera?
+            if point_dist > 0:
+                point_in_camera = True       
+
+        # If object has no bounds infront of the camera ignore it
+        if point_in_camera:
+            obj_dist = dist_sum * (1/8)
+            to_sort.append(Dist_Sort(obj, obj_dist))
+        else:
+            print("Bounding Box Not in Camera: {} Culled".format(obj.name))
 
     to_sort.sort(reverse=True)
     ordered_obj_list = [item.item for item in to_sort]
@@ -3338,10 +3352,12 @@ class Inst_Sort(object):
     matrix_world = None
     is_instance = False
     parent = None
+    bound_box = None
 
     def __init__(self, obj_int):
         self.name = obj_int.object.name + "_Instance"
         self.object = obj_int.object
+        self.bound_box = obj_int.object.bound_box
         self.matrix_world = obj_int.matrix_world.copy()
         self.is_instance = obj_int.is_instance
         self.parent = obj_int.parent
