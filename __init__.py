@@ -91,6 +91,7 @@ classes = (
 
     # Base Classes
     measureit_arch_baseclass.TextField,
+    measureit_arch_baseclass.ObjProps,
     measureit_arch_baseclass.MeasureItARCHSceneProps,
     measureit_arch_baseclass.DeletePropButton,
     measureit_arch_baseclass.AddTextField,
@@ -234,6 +235,9 @@ def register():
         type=measureit_arch_sheets.SheetViewContainer)
 
     # Register collection properties
+    Object.MeasureItArchProps = bpy.props.PointerProperty(
+        type=measureit_arch_baseclass.ObjProps
+    )
     Object.DimensionGenerator = bpy.props.PointerProperty(
         type=measureit_arch_dimensions.DimensionContainer)
     Object.LineGenerator = bpy.props.PointerProperty(

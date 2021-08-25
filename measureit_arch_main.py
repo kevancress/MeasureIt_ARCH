@@ -232,6 +232,15 @@ class OBJECT_PT_Panel(Panel):
     bl_context = "object"
 
     def draw(self, context):
+        #layout = self.layout
+        #layout.use_property_decorate = False
+        #layout.use_property_split = True
+        #scene = context.scene
+        #obj = context.active_object
+        #obj_props = obj.MeasureItArchProps
+
+        #col = layout.column(align=True)
+        #col.prop(obj_props, "ignore_in_depth_test")
         pass
 
 

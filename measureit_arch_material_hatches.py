@@ -52,6 +52,16 @@ class HatchProperties(PropertyGroup):
         max=1.0,
         step=1,)
 
+    use_object_color: BoolProperty(
+        name="Use Object Color",
+        description="Use Object Color for Fill Color",
+        default=False)
+    
+    use_material_offset: BoolProperty(
+        name="Use Material Offset",
+        description="Use the next material in the Stack for Hatch Settings",
+        default=False)
+
     fill_color: FloatVectorProperty(
         name="Color",
         description="Color for the Item",
@@ -127,12 +137,17 @@ class MATERIAL_PT_UIHatch(Panel):
         layout.use_property_decorate = False
 
         hatch = context.material.Hatch
+        obj = context.active_object
         main_col = layout.column()
         col = main_col.column()
 
         main_col.enabled = hatch.visible
         col = main_col.column()
-        col.prop(hatch, 'fill_color', text="Fill Color",)
+        col.prop(hatch, 'use_object_color',)
+        if hatch.use_object_color:
+            col.prop(obj, 'color', text="Object Color")
+        else:
+            col.prop(hatch, 'fill_color', text="Fill Color",)
         col.prop(hatch, 'line_color', text="Line Color",)
         col.prop(hatch, 'lineWeight', text="Line Weight",)
         col = main_col.column()

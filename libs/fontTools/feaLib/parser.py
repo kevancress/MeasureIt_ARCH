@@ -1487,7 +1487,7 @@ class Parser(object):
                     statements.append(designAxis)
                     self.expect_symbol_(";")
                 elif self.is_cur_keyword_("AxisValue"):
-                    axisValueRecord = self.parse_STAT_axis_value_()
+                    axisValueRecord = self.parse_STAT_axis_val  ue_()
                     for location in axisValueRecord.locations:
                         if location.tag not in design_axes:
                             # Tag must be defined in a DesignAxis before it

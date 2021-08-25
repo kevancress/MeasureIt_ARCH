@@ -384,7 +384,10 @@ def draw_material_hatches(context, myobj, mat, svg=None):
 
             if faceMat.Hatch.visible :
                 hatch = faceMat.Hatch
-                fillRGB = rgb_gamma_correct(hatch.fill_color)
+                if hatch.use_object_color:
+                    fillRGB = rgb_gamma_correct(myobj.color)
+                else:
+                    fillRGB = rgb_gamma_correct(hatch.fill_color)
                 lineRGB = rgb_gamma_correct(hatch.line_color)
                 weight = hatch.lineWeight
                 fillURL = ''
@@ -907,7 +910,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
 
         # Get CameraLoc or ViewRot
         if sceneProps.is_render_draw:
-            cameraLoc = context.scene.camera.location.normalized()
+            cameraLoc = context.scene.camera.matrix_world.to_translation().normalized()
         else:
             viewRot = context.area.spaces[0].region_3d.view_rotation
 
@@ -1677,11 +1680,13 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         dimProps.textPosition = 'M'
 
         # Setup Text Fields
-        placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,0.0, is_area=True)
+        placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,vecY, is_area=True)
         origin = placementResults[2]
 
         # Draw Fill
-        draw_filled_coords(filledCoords, fillRGB, polySmooth=False)
+        draw_filled_coords(filledCoords, fillRGB, polySmooth=False)\
+
+            
 
         # Draw Perimeter
         draw_lines(lineWeight, rgb, perimeterCoords,
@@ -3282,7 +3287,6 @@ def z_order_objs(obj_list, extMat, multMat):
         bound_box = obj.bound_box
         point_in_camera = False
         dist_sum = 0
-        print("OBJECT: {}".format(obj.name))
         for point in bound_box:
             loc = obj.matrix_world @ Vector(point)
             if extMat is not None:
@@ -3292,8 +3296,6 @@ def z_order_objs(obj_list, extMat, multMat):
                     loc = extMat @ Vector(point)
 
             point_dist = get_camera_z_dist(loc)
-            print(point_dist)
-
             dist_sum += point_dist
             
             # is this point in front of the camera?

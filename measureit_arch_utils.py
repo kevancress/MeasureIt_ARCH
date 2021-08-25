@@ -121,8 +121,6 @@ def get_camera_z_dist(location):
     location = Vector(location)
     camera_z = get_camera_z()
     dist_vec = location - camera.matrix_world.to_translation()
-    print("Camera Loc: {}".format(camera.location))
-    print("Dist Vec: {}".format(dist_vec))
     dist_along_camera_z = dist_vec.dot(camera_z)
     return dist_along_camera_z
 

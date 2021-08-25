@@ -9,7 +9,6 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
 def update_flag(self, context):
     self.text_updated = True
 
-
 def has_dimension_generator(context):
     return context.object is not None and \
         hasattr(context.object, "DimensionGenerator") and \
@@ -30,7 +29,6 @@ def update_active_dim(self, context):
                     dimGen.active_index = idx
                     return
         idx += 1
-
 
 def recalc_dimWrapper_index(self, context):
     for obj in context.selected_objects:
@@ -57,7 +55,6 @@ def recalc_dimWrapper_index(self, context):
             elif dim.itemType == 'areaDimensions':
                 dim.itemIndex = id_area
                 id_area += 1
-
 
 class BaseProp:
     is_active: BoolProperty(
@@ -161,6 +158,12 @@ class BaseProp:
         description="Default Rot Direction for item Gizmo",
         subtype='TRANSLATION')
 
+class ObjProps(PropertyGroup):
+    ignore_in_depth_test: BoolProperty(
+        name='Ignore in Depth Test',
+        description='Ignore this object in Vector Depth Tests',
+        default=False)
+
 
 class TextField(PropertyGroup):
     text_updated: BoolProperty(
@@ -225,7 +228,6 @@ class TextField(PropertyGroup):
         name='texture_updated',
         description='flag when text texture need to be redrawn',
         default=False)
-
 
 class BaseWithText(BaseProp):
 
@@ -295,7 +297,6 @@ class BaseWithText(BaseProp):
         description='Make Text All Caps',
         default=False,
         update=update_flag)
-
 
 class BaseDim(BaseWithText):
 
@@ -379,9 +380,6 @@ class BaseDim(BaseWithText):
         description = "Use Custom Text",
         default=False
     )
-
-
-
 
 class MeasureItARCHSceneProps(PropertyGroup):
     bound_x: BoolProperty()
@@ -658,7 +656,6 @@ class AddTextField(Operator):
             textFields.remove(len(textFields) - 1)
         return {'FINISHED'}
 
-
 class MoveItem(Operator):
     bl_idname = "measureit_arch.moveitem"
     bl_label = "Move Item"
@@ -676,7 +673,6 @@ class MoveItem(Operator):
         collectionProp.move(idx, idx + self.upDown)
 
         return {'FINISHED'}
-
 
 class DeleteAllItemsButton(Operator):
     bl_idname = "measureit_arch.deleteallitemsbutton"

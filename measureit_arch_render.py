@@ -309,7 +309,7 @@ def draw_scene(self, context, projection_matrix):
         deps = bpy.context.view_layer.depsgraph
         for obj_int in deps.object_instances:
             obj = obj_int.object
-            if obj.type == 'MESH' and not obj.hide_render:
+            if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE"):
                 mat = obj_int.matrix_world
                 obj_eval = obj.evaluated_get(deps)
                 mesh = obj_eval.to_mesh(
@@ -374,8 +374,9 @@ def render_main_svg(self, context):
 
         view_matrix_3d = scene.camera.matrix_world.inverted()
         # Render Depth Buffer
-        print("Rendering Depth Buffer")
+
         if sceneProps.vector_depthtest:
+            print("Rendering Depth Buffer")
             offscreen = gpu.types.GPUOffScreen(width, height)
             with offscreen.bind():
                 # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
