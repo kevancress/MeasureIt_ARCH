@@ -1873,6 +1873,21 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
     viewport = get_viewport()
 
+    # Check for object mode changes, outside of line group loop
+    global lastMode
+    mode_change_flag = False
+    evalModsGlobal = sceneProps.eval_mods
+    try:
+        obj_last_mode = lastMode[myobj.name]
+    except KeyError:
+        obj_last_mode = myobj.mode
+        lastMode[myobj.name] = obj_last_mode
+
+    if obj_last_mode != myobj.mode:
+        mode_change_flag = True
+        lastMode[myobj.name] = myobj.mode
+
+    # Draw Line Groups
     for lineGroup in lineGen.line_groups:
         lineProps = lineGroup
         if lineGroup.uses_style:
@@ -1916,20 +1931,20 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
             # Flag for re-evaluation of batches & mesh data
             verts = []
-            global lastMode
-            recoordFlag = False
-            evalModsGlobal = sceneProps.eval_mods
-            try:
-                obj_last_mode = lastMode[myobj.name]
-            except KeyError:
-                obj_last_mode = myobj.mode
-                lastMode[myobj.name] = obj_last_mode
 
-            if obj_last_mode != myobj.mode or evalMods or evalModsGlobal or sceneProps.is_render_draw or scene.ViewGenerator.view_changed:
-                recoordFlag = True
-                lastMode[myobj.name] = myobj.mode
+            # Conditions for re calculating Line Co-ordinates
+            if mode_change_flag or \
+                myobj.mode == 'WEIGHT_PAINT' or \
+                sceneProps.is_render_draw or\
+                scene.ViewGenerator.view_changed or\
+                evalModsGlobal or\
+                evalMods:
+                recoord_flag = True
+            else:
+                recoord_flag = False
+            
 
-            if (evalModsGlobal or evalMods or recoordFlag) and check_mods(myobj):
+            if recoord_flag and check_mods(myobj):
                 deps = bpy.context.view_layer.depsgraph
                 obj_eval = myobj.evaluated_get(deps)
                 mesh = obj_eval.to_mesh(
@@ -1941,7 +1956,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
-            if 'coordBuffer' not in lineGroup or recoordFlag:
+            if 'coordBuffer' not in lineGroup or recoord_flag:
                 # Handle line groups created with older versions of MeasureIt_ARCH
                 if 'singleLine' in lineGroup and 'lineBuffer' not in lineGroup:
                     toLineBuffer = []
@@ -2068,7 +2083,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
                 global hiddenBatch3D
                 batchKey = myobj.name + lineGroup.name
-                if batchKey not in hiddenBatch3D or recoordFlag:
+                if batchKey not in hiddenBatch3D or recoord_flag:
                     hiddenBatch3D[batchKey] = batch_for_shader(
                         dashedLineShader, 'LINES', {"pos": coords})
                 if sceneProps.is_render_draw:
@@ -2101,7 +2116,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
                 global dashedBatch3D
                 batchKey = myobj.name + lineGroup.name
-                if batchKey not in dashedBatch3D or recoordFlag or sceneProps.is_render_draw:
+                if batchKey not in dashedBatch3D or recoord_flag:
                     if not lineGroup.chain:
                         dashedBatch3D[batchKey] = batch_for_shader(
                             dashedLineShader, 'LINES', {"pos": coords})
@@ -2134,7 +2149,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
                 global lineBatch3D
                 batchKey = myobj.name + lineGroup.name
-                if batchKey not in lineBatch3D or recoordFlag or myobj.mode == 'WEIGHT_PAINT' or sceneProps.is_render_draw:
+                if batchKey not in lineBatch3D or recoord_flag:
                     if not lineGroup.chain:
                         lineBatch3D[batchKey] = batch_for_shader(
                             lineGroupShader, 'LINES', {"pos": coords, "weight": tempWeights})
