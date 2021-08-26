@@ -309,7 +309,7 @@ def draw_scene(self, context, projection_matrix):
         deps = bpy.context.view_layer.depsgraph
         for obj_int in deps.object_instances:
             obj = obj_int.object
-            if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE"):
+            if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or obj.MeasureItArchProps.ignore_in_depth_test):
                 mat = obj_int.matrix_world
                 obj_eval = obj.evaluated_get(deps)
                 mesh = obj_eval.to_mesh(

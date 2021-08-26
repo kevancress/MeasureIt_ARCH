@@ -223,25 +223,6 @@ class MEASUREIT_PT_main_panel(Panel):
                             StyleGen, 'annotations', text="", icon='COLOR')
 
 
-class OBJECT_PT_Panel(Panel):
-    """ Panel in the object properties window """
-    bl_idname = 'OBJECT_PT_Panel'
-    bl_label = "MeasureIt_ARCH"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "object"
-
-    def draw(self, context):
-        #layout = self.layout
-        #layout.use_property_decorate = False
-        #layout.use_property_split = True
-        #scene = context.scene
-        #obj = context.active_object
-        #obj_props = obj.MeasureItArchProps
-
-        #col = layout.column(align=True)
-        #col.prop(obj_props, "ignore_in_depth_test")
-        pass
 
 
 class SCENE_PT_Panel(bpy.types.Panel):
