@@ -386,6 +386,16 @@ class MeasureItARCHSceneProps(PropertyGroup):
     bound_y: BoolProperty()
     bound_z: BoolProperty()
 
+    depth_samples: EnumProperty(
+        items=(
+            ('POINT', 'Point (2x)', ''),
+            ('CROSS', 'Cross (10x)', ''),
+            ('SQUARE', 'Square (18x)', ''),
+        ),
+        name="Depth Test",
+        description="Numer and Shape of Samples for Vector Depth Testing",
+        default='CROSS')
+
     viewPlane: EnumProperty(
         items=(('99', "None", "No View Plane Selected", 'EMPTY_AXIS', 0),
                ('XY', "XY Plane",

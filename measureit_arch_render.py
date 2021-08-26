@@ -362,6 +362,7 @@ def render_main_svg(self, context):
 
     with Set_Render(sceneProps, is_vector = True):
         svg_shaders.clear_db()
+        
 
         clipdepth = context.scene.camera.data.clip_end
         objlist = context.view_layer.objects
@@ -404,6 +405,7 @@ def render_main_svg(self, context):
                         del sceneProps['depthbuffer']
                     sceneProps['depthbuffer'] = texture_buffer
 
+        svg_shaders.set_globals()
             # imageName = 'depthBufferTest'
             # if imageName not in bpy.data.images:
             #     bpy.data.images.new(imageName, width, height,

@@ -40,6 +40,11 @@ from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, re
 
 depthbuffer = None
 facemap = []
+near_clip = None
+far_clip = None
+camera_type = None
+width = None
+height = None
 
 def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
@@ -93,11 +98,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     else:
         svg.add(dashed_lines)
 
-    # Get Depth Buffer as list
-    sceneProps = bpy.context.scene.MeasureItArchProps
-    global depthbuffer
-    if 'depthbuffer' in sceneProps and depthbuffer is None and sceneProps.vector_depthtest:
-        depthbuffer = sceneProps['depthbuffer'].to_list()
+    # Get Depth Buffer as list and also other common props 
 
     for x in range(0, len(coords) - 1, 2):
         line_segs = depth_test(coords[x], coords[x + 1], mat, itemProps, depthbuffer)
@@ -444,17 +445,35 @@ def clear_db():
     global facemap
     depthbuffer = None
     facemap = []
+
+def set_globals():
+    sceneProps = bpy.context.scene.MeasureItArchProps
+    global depthbuffer
+    global near_clip
+    global far_clip
+    global camera_type
+    global width
+    global height
+    if 'depthbuffer' in sceneProps and depthbuffer is None and sceneProps.vector_depthtest:
+        depthbuffer = sceneProps['depthbuffer'].to_list()
+    
+    scene = bpy.context.scene
+    camera = bpy.context.scene.camera.data
+    near_clip = camera.clip_start
+    far_clip = camera.clip_end
+    camera_type = camera.type
+    render_scale = scene.render.resolution_percentage / 100
+    width = int(scene.render.resolution_x * render_scale)
+    height = int(scene.render.resolution_y * render_scale)
+    
 # --------------------------------------------------------------------
 # Get position in final render image
 # (Z < 0 out of camera)
 # return 2d position
 # --------------------------------------------------------------------
 def get_render_location(mypoint):
+    global width
     scene = bpy.context.scene
-    render_scale = scene.render.resolution_percentage / 100
-
-    width = int(scene.render.resolution_x * render_scale)
-    height = int(scene.render.resolution_y * render_scale)
 
     v1 = Vector(mypoint)
 
@@ -476,11 +495,10 @@ def get_clip_space_coord(mypoint):
     return co_clip
 
 def camera_cull(points, mat = Matrix.Identity(4)):
-    camera = bpy.context.scene.camera.data
     should_cull = []
     for point in points:
         dist = get_camera_z_dist(mat @ Vector(point))
-        if dist < camera.clip_start or dist > camera.clip_end:
+        if dist < near_clip or dist > far_clip:
             should_cull.append(True)
         else:
             should_cull.append(False)
@@ -490,22 +508,19 @@ def camera_cull(points, mat = Matrix.Identity(4)):
     else:
         return True
 
-def true_z_buffer(context, zValue):
-    camera = context.scene.camera.data
-    if camera.type == 'ORTHO':
-        nearClip = camera.clip_start
-        farClip = camera.clip_end
-
-        depth = zValue * (farClip - nearClip) + nearClip - 0.09
+def true_z_buffer(zValue):
+    global near_clip
+    global far_clip
+    global camera_type
+    
+    if camera_type == 'ORTHO':
+        depth = zValue * (far_clip - near_clip) + near_clip - 0.09
         return depth
 
-    elif camera.type == 'PERSP':
-        nearClip = camera.clip_start
-        farClip = camera.clip_end
-
+    elif camera_type == 'PERSP':
         z_ndc = 2.0 * zValue - 1.0
-        depth = 2.0 * nearClip * farClip / \
-            (farClip + nearClip - z_ndc * (farClip - nearClip))
+        depth = 2.0 * near_clip * far_clip / \
+            (far_clip + near_clip - z_ndc * (far_clip - near_clip))
         return depth
 
     else:
@@ -561,12 +576,7 @@ def clamp(minimum, x, maximum):
 
 # For getting the depthbuffer ss point
 def get_ss_point(point):
-    scene = bpy.context.scene
-    render = scene.render
-
-    #Get Render info
-    render_scale = scene.render.resolution_percentage / 100
-    height = int(render.resolution_y * render_scale)
+    global height
 
     # Get Screen Space Points
     p1ss = get_render_location(point)
@@ -577,8 +587,7 @@ def get_ss_point(point):
 def check_visible(item, point):
     context = bpy.context
     scene = context.scene
-    camera = scene.camera.data
-    render = scene.render
+    global width
     #Set Z-offset
     z_offset = 0.1
 
@@ -589,43 +598,72 @@ def check_visible(item, point):
     if dist < 0:
         return -1
 
-    if dist < camera.clip_start or dist > camera.clip_end:
+    if dist < near_clip or dist > far_clip:
         return -1
 
     #Get Render info
-    render_scale = scene.render.resolution_percentage / 100
-    width = int(render.resolution_x * render_scale)
 
     point_ss = get_ss_point(point)
     point_clip = get_clip_space_coord(point)
 
     # Get Depth buffer Pixel Index based on SS Point
-    pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)
-    pxIdx2 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1)
 
-    pxIdx3 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width
-    pxIdx4 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width
+    if scene.MeasureItArchProps.depth_samples == 'POINT':
+        pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)
+        pxIdx2 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1)
+        samples = [pxIdx1,pxIdx2]
 
-    pxIdx5 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width
-    pxIdx6 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width
+    if scene.MeasureItArchProps.depth_samples == 'CROSS':
+        pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)
+        pxIdx2 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1)
 
-    pxIdx7 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + 1
-    pxIdx8 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + 1
+        pxIdx3 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width
+        pxIdx4 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width
 
-    pxIdx9 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - 1
-    pxIdx10 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - 1
+        pxIdx5 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width
+        pxIdx6 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width
 
-    samples = [pxIdx1,pxIdx2,pxIdx3,pxIdx4,pxIdx5,pxIdx6,pxIdx7,pxIdx8,pxIdx9,pxIdx10]
+        pxIdx7 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + 1
+        pxIdx8 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + 1
 
-    #samples = [pxIdx1,pxIdx2]
+        pxIdx9 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - 1
+        pxIdx10 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - 1
 
-    point_depth = 0
-    for sample in samples:
-        val = get_bufffer_at_idx(sample)
-        val = true_z_buffer(context, val)
-        point_depth += val
+        samples = [pxIdx1,pxIdx2,pxIdx3,pxIdx4,pxIdx5,pxIdx6,pxIdx7,pxIdx8,pxIdx9,pxIdx10]
+    
+    if scene.MeasureItArchProps.depth_samples == 'SQUARE':
+        pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)
+        pxIdx2 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1)
 
-    point_depth /= len(samples)
+        pxIdx3 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width
+        pxIdx4 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width
+
+        pxIdx5 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width + 1
+        pxIdx6 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width +1
+
+        pxIdx7 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width - 1
+        pxIdx8 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width -1
+
+        pxIdx9 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width
+        pxIdx10 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width
+
+        pxIdx11 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width + 1
+        pxIdx12 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width + 1
+
+        pxIdx13 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width - 1
+        pxIdx14 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width - 1
+
+        pxIdx15 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + 1
+        pxIdx16 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + 1
+
+        pxIdx17 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - 1
+        pxIdx18 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - 1
+
+        samples = [pxIdx1,pxIdx2,pxIdx3,pxIdx4,pxIdx5,pxIdx6,pxIdx7,pxIdx8,pxIdx9,pxIdx10,pxIdx11,pxIdx12,pxIdx13,pxIdx14,pxIdx15,pxIdx16,pxIdx17,pxIdx18]
+
+
+    true_samples = [get_true_z_at_idx(sample) for sample in samples]
+    point_depth = sum(true_samples) / len(true_samples)
 
     # Get Depth From Clip Space point
     point_vecdepth = (point_clip[2]) - z_offset
@@ -634,6 +672,12 @@ def check_visible(item, point):
     pointVisible = point_depth > point_vecdepth
 
     return pointVisible
+
+def get_true_z_at_idx(idx):
+    val = get_bufffer_at_idx(idx)
+    true_val = true_z_buffer(val)
+    return true_val
+
 
 def get_bufffer_at_idx(idx):
     # Get Depth Buffer Value buffer value
