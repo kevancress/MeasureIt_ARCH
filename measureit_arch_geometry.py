@@ -1994,7 +1994,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                             dotProd = (normalA.dot(normalB))
 
                             #Check angle of adjacent faces
-                            if dotProd >= -1 and dotProd <= 1:
+                            if dotProd >= -1 and dotProd <= 1 and not lineGroup.dynamic_sil:
                                 creaseAngle = math.acos(dotProd)
                                 if creaseAngle > lineGroup.creaseAngle:
                                     tempCoords.append(pointA)

@@ -603,25 +603,25 @@ def check_visible(item, point):
     pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)
     pxIdx2 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1)
 
-    #pxIdx3 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width
-    #pxIdx4 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width
+    pxIdx3 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width
+    pxIdx4 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width
 
-    #pxIdx5 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width
-    #pxIdx6 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width
+    pxIdx5 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width
+    pxIdx6 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width
 
-    #pxIdx7 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + 1
-    #pxIdx8 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + 1
+    pxIdx7 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + 1
+    pxIdx8 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + 1
 
-    #pxIdx9 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - 1
-    #pxIdx10 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - 1
+    pxIdx9 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - 1
+    pxIdx10 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - 1
 
-    #samples = [pxIdx1,pxIdx2,pxIdx3,pxIdx4,pxIdx5,pxIdx6,pxIdx7,pxIdx8,pxIdx9,pxIdx10]
+    samples = [pxIdx1,pxIdx2,pxIdx3,pxIdx4,pxIdx5,pxIdx6,pxIdx7,pxIdx8,pxIdx9,pxIdx10]
 
-    samples = [pxIdx1,pxIdx2]
+    #samples = [pxIdx1,pxIdx2]
 
     point_depth = 0
     for sample in samples:
-        val = get_bufffer_at_idx(pxIdx1)
+        val = get_bufffer_at_idx(sample)
         val = true_z_buffer(context, val)
         point_depth += val
 
