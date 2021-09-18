@@ -340,23 +340,23 @@ class Line_Group_Shader_3D ():
                 vec2 sspC = vec2(pointCenter.xy / pointCenter.w);
 
                 // Get number of segments in the circle
-                int segments = int(thickness) + 5;
+                int segments = int(floor(thickness)) + 5;
                 segments = clamp(segments,0,28);
 
                 // Generate Circle
                 gl_Position = pointCenter;
-                mTexCoord = vec2(0,0.5);
+                mTexCoord = vec2(0.0,0.5);
                 EmitVertex();
 
                 for (int i = 0; i <= segments; i++) {
                     // Angle between each side in radians
-                    float ang = PI * 2.0 / segments * i;
+                    float ang = PI * 2.0 / float(segments) * float(i);
 
                     // Offset from center of point
                     vec2 circleOffset = vec2(cos(ang)*radius, -sin(ang)*radius);
                     circleOffset.x /= Viewport.x;
                     circleOffset.y /= Viewport.y;
-                    mTexCoord = vec2(0,1);
+                    mTexCoord = vec2(0.0,1.0);
                     gl_Position = vec4((sspC + circleOffset)*pointCenter.w, pointCenter.z, pointCenter.w);
                     alpha = alpha1;
                     EmitVertex();
@@ -669,7 +669,7 @@ class Point_Shader_3D ():
         vec4 p1 =  gl_in[0].gl_Position;
         vec2 ssp1 = vec2(p1.xy / p1.w);
 
-        int segments = int(thickness) + 5;
+        int segments = int(floor(thickness)) + 5;
 
         const float PI = 3.1415926;
 
@@ -706,14 +706,14 @@ class Point_Shader_3D ():
 
         void main() {
             gl_Position = gl_in[0].gl_Position;
-            mTexCoord = vec2(0,0.5);
+            mTexCoord = vec2(0.0,0.5);
             alpha = lineAlpha;
             EmitVertex();
 
             segments = clamp(segments,0,24);
             for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
-                float ang = PI * 2.0 / segments * i;
+                float ang = PI * 2.0 / float(segments) * float(i);
 
                 // Offset from center of point
                 vec2 offset = vec2(cos(ang)*radius, -sin(ang)*radius);
