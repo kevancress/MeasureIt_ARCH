@@ -672,6 +672,7 @@ class Point_Shader_3D ():
         int segments = int(floor(thickness)) + 5;
 
         const float PI = 3.1415926;
+        float val = 0.8625;
 
         vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
         float minLength =  length(pxVec);
@@ -700,21 +701,19 @@ class Point_Shader_3D ():
             return alpha;
         }
 
-        float val = 0.8625;
-        float radius = length(get_line_width(vec2(val), thickness));
-        float lineAlpha = get_line_alpha(vec2(val), thickness);
-
         void main() {
             gl_Position = gl_in[0].gl_Position;
             mTexCoord = vec2(0.0,0.5);
-            alpha = lineAlpha;
+
+            float radius = length(get_line_width(vec2(val), thickness));
+            float lineAlpha = get_line_alpha(vec2(val), thickness);
             EmitVertex();
 
             segments = clamp(segments,0,24);
             for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
                 float ang = PI * 2.0 / float(segments) * float(i);
-
+                
                 // Offset from center of point
                 vec2 offset = vec2(cos(ang)*radius, -sin(ang)*radius);
                 offset.x /= aspect;
