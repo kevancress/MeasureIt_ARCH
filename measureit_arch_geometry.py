@@ -359,6 +359,11 @@ def draw_material_hatches(context, myobj, mat, svg=None):
                 continue
             hatch = slot.material.Hatch
             objMaterials.append(slot.material)
+
+            if context.view_layer.material_override != None:
+                hatch = context.view_layer.material_override.Hatch
+
+
             if hatch.pattern is not None:
                 name = slot.material.name + '_' + hatch.pattern.name
                 objs = hatch.pattern.objects
@@ -381,9 +386,15 @@ def draw_material_hatches(context, myobj, mat, svg=None):
                 faceMat = objMaterials[matIdx]
             except:
                 continue
+            
+            # Check For Material Override
+            hatch = faceMat.Hatch
+            if context.view_layer.material_override != None:
+                hatch = context.view_layer.material_override.Hatch
+            
 
-            if faceMat.Hatch.visible :
-                hatch = faceMat.Hatch
+            if hatch.visible :
+               
                 if hatch.use_object_color:
                     fillRGB = rgb_gamma_correct(myobj.color)
                 else:
