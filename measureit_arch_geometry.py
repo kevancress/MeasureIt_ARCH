@@ -2404,7 +2404,10 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                     set_text(textField, myobj, style = annotationProps, item = annotation)
                 else:
                     set_text(textField,instance.parent, style = annotationProps, item = annotation)
-                origin = p3
+                origin = p3.copy()
+                if annotationProps.leader_length > 0:
+                    pass
+                    origin += p3dir * (0.0015*get_scale()) * mult
                 xDir = fullRotMat @ Vector((1 * mult, 0, 0))
                 yDir = fullRotMat @ Vector((0, 1, 0))
 
