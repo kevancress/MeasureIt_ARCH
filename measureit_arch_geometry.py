@@ -1911,7 +1911,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
             if not check_vis(lineGroup, lineProps):
                 return
 
-            rgb = get_color(lineProps.color, myobj, only_active=False)
+            rgb = get_color(lineProps.color, myobj, is_active=lineGroup.is_active)
 
             # set other line properties
             isOrtho = False
@@ -2077,7 +2077,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 # Invert The Depth test for hidden lines
                 bgl.glDepthFunc(bgl.GL_GREATER)
                 hiddenLineWeight = lineProps.lineHiddenWeight
-                dashRGB = rgb_gamma_correct(lineProps.lineHiddenColor)
+                dashRGB = get_color(lineProps.lineHiddenColor,myobj, is_active=lineGroup.is_active)
                 view = get_view()
                 dashedLineShader.bind()
 

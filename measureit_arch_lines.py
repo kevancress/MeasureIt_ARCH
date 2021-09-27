@@ -209,12 +209,23 @@ class LineProperties(BaseProp, PropertyGroup):
         subtype='PIXEL'
     )
 
+def update_active(self,context):
+    Generator = context.object.LineGenerator
+
+    for item in Generator.line_groups:
+        item.is_active = False
+
+    activeItem = Generator.line_groups[Generator.active_index]
+    activeItem.is_active = True
+
 class LineContainer(PropertyGroup):
     line_num: IntProperty(
         name='Number of Line Groups', min=0, max=1000, default=0,
         description='Number total of line groups')
 
-    active_index: IntProperty(name='Active Line Index')
+    active_index: IntProperty(
+        name='Active Line Index',
+        update = update_active)
 
     show_line_settings: BoolProperty(name='Show Line Settings', default=False)
 
