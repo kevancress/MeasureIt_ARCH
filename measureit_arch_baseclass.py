@@ -57,6 +57,13 @@ def recalc_dimWrapper_index(self, context):
                 id_area += 1
 
 class BaseProp:
+
+    creation_time: StringProperty(
+        name='Creation Time',
+        description ='Timestamp of elements creation, used as a UID for caching line groups',
+        default = '0'
+    )
+
     is_active: BoolProperty(
         name='Is Active',
         description='This item is actively selected',
@@ -589,7 +596,7 @@ class DeletePropButton(Operator):
 
         Generator = eval(self.genPath)
         itemGroup = eval('Generator.' + self.item_type)
-
+        print(self.genPath)
         # Delete element
         itemGroup[self.tag].free = True
         itemGroup.remove(self.tag)

@@ -33,6 +33,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, PointerProperty
 from mathutils import Vector
 
+from datetime import datetime
 from .measureit_arch_baseclass import BaseProp
 from .measureit_arch_utils import get_smart_selected, get_selected_vertex, get_selected_vertex_history
 
@@ -253,6 +254,7 @@ class AddLineButton(Operator):
                 lGroup = lineGen.line_groups.add()
 
                 # Set values
+                lGroup.creation_time = str(int(datetime.utcnow().timestamp() * 100)) 
                 lGroup.itemType = 'line_groups'
                 lGroup.style = sceneProps.default_line_style
                 if sceneProps.default_line_style != '':
@@ -311,6 +313,7 @@ class AddDynamicLineButton(Operator):
                 lGroup = lineGen.line_groups.add()
 
                 # Set values
+                lGroup.creation_time = str(int(datetime.utcnow().timestamp() * 100))
                 lGroup.itemType = 'line_groups'
                 lGroup.style = sceneProps.default_line_style
                 if sceneProps.default_line_style != '':
@@ -646,6 +649,7 @@ class AddLineByProperty(Operator):
                         lGroup = lineGen.line_groups.add()
 
                         # Set values
+                        lGroup.creation_time = str(int(datetime.utcnow().timestamp() * 100))
                         lGroup.itemType = 'line_groups'
                         lGroup.style = sceneProps.default_line_style
                         if sceneProps.default_line_style != '':

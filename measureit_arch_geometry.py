@@ -1954,16 +1954,18 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
             else:
                 recoord_flag = False
             
-
-            if recoord_flag and check_mods(myobj):
-                deps = bpy.context.view_layer.depsgraph
-                obj_eval = myobj.evaluated_get(deps)
-                mesh = obj_eval.to_mesh(
-                    preserve_all_data_layers=True, depsgraph=deps)
-                verts = mesh.vertices
-            else:
-                pass
-                #verts = myobj.data.vertices
+            try:
+                if recoord_flag and check_mods(myobj):
+                    deps = bpy.context.view_layer.depsgraph
+                    obj_eval = myobj.evaluated_get(deps)
+                    mesh = obj_eval.to_mesh(
+                        preserve_all_data_layers=True, depsgraph=deps)
+                    verts = mesh.vertices
+                else:
+                    pass
+                    #verts = myobj.data.vertices
+            except AttributeError:
+                print('{} Has an Error'.format(myobj.name))
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
@@ -2093,7 +2095,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 dashedLineShader.uniform_float("offset", -offset)
 
                 global hiddenBatch3D
-                batchKey = myobj.name + lineGroup.name
+                batchKey = myobj.name + lineGroup.name + lineGroup.creation_time
                 if batchKey not in hiddenBatch3D or recoord_flag:
                     hiddenBatch3D[batchKey] = batch_for_shader(
                         dashedLineShader, 'LINES', {"pos": coords})
@@ -2126,7 +2128,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 dashedLineShader.uniform_float("offset", -offset)
 
                 global dashedBatch3D
-                batchKey = myobj.name + lineGroup.name
+                batchKey = myobj.name + lineGroup.name + lineGroup.creation_time
                 if batchKey not in dashedBatch3D or recoord_flag:
                     if not lineGroup.chain:
                         dashedBatch3D[batchKey] = batch_for_shader(
@@ -2159,7 +2161,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 # colors = [(rgb[0], rgb[1], rgb[2], rgb[3]) for coord in range(len(coords))]
 
                 global lineBatch3D
-                batchKey = myobj.name + lineGroup.name
+                batchKey = myobj.name + lineGroup.name + lineGroup.creation_time
                 if batchKey not in lineBatch3D or recoord_flag:
                     if not lineGroup.chain:
                         lineBatch3D[batchKey] = batch_for_shader(
