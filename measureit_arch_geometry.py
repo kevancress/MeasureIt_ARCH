@@ -421,11 +421,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-    dimProps = dim
-    if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-            if alignedDimStyle.name == dim.style:
-                dimProps = alignedDimStyle
+    dimProps = get_style(dim,'alignedDimensions')
 
     # Enable GL Settings
 
@@ -579,11 +575,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
 def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
     sceneProps = context.scene.MeasureItArchProps
 
-    dimProps = dim
-    if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-            if alignedDimStyle.name == dim.style:
-                dimProps = alignedDimStyle
+    dimProps = get_style(dim,'alignedDimensions')
+    
 
     with OpenGL_Settings(dimProps):
 
@@ -906,11 +899,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
 
     sceneProps = context.scene.MeasureItArchProps
 
-    dimProps = dim
-    if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-            if alignedDimStyle.name == dim.style:
-                dimProps = alignedDimStyle
+    dimProps = get_style(dim,'alignedDimensions')
 
     with OpenGL_Settings(dimProps):
 
@@ -1164,12 +1153,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
 
 
 def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
-    dimProps = dim
-    sceneProps = context.scene.MeasureItArchProps
-    if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-            if alignedDimStyle.name == dim.style:
-                dimProps = alignedDimStyle
+    dimProps = get_style(dim,'alignedDimensions')
 
     with OpenGL_Settings(dimProps):
 
@@ -1309,12 +1293,9 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
 
 def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
 
-    dimProps = dim
+    dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
-    if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-            if alignedDimStyle.name == dim.style:
-                dimProps = alignedDimStyle
+    
 
     with OpenGL_Settings(dimProps):
 
@@ -1588,13 +1569,10 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
 
 
 def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
-    dimProps = dim
+    dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
 
-    if dim.uses_style:
-        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-            if alignedDimStyle.name == dim.style:
-                dimProps = alignedDimStyle
+    
 
     with OpenGL_Settings(dimProps):
 
@@ -1900,11 +1878,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
 
     # Draw Line Groups
     for lineGroup in lineGen.line_groups:
-        lineProps = lineGroup
-        if lineGroup.uses_style:
-            for lineStyle in context.scene.StyleGenerator.line_groups:
-                if lineStyle.name == lineGroup.style:
-                    lineProps = lineStyle
+        lineProps = get_style(lineGroup,'line_groups')
 
         with OpenGL_Settings(lineProps):
 
@@ -2241,10 +2215,16 @@ def get_style(item, type_str):
     itemProps = item
     style_source = eval("source_scene.StyleGenerator.{}".format(type_str))
     if item.uses_style:
-        for itemStyle in style_source:
-            if itemStyle.name == item.style:
-                itemProps = itemStyle
+        for style_item in style_source:
+            if style_item.name == item.style:
+                itemProps = style_item
                 return itemProps
+        # if we got out of the loop, the style wasn't found
+        # Check previous names to updata property
+        for style_item in style_source:
+            if style_item.previous_name == item.style:
+                item.style = style_item.name
+                itemProps = style_item
     
     return itemProps
 

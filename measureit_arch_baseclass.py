@@ -1,10 +1,40 @@
 import bpy
 import math
 
+
 from bpy.types import PropertyGroup, Operator
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
+def recalc_index(self, context):
+    # ensure index's are accurate
+    StyleGen = context.scene.StyleGenerator
+    wrapper = StyleGen.wrapper
+    id_l = 0
+    id_a = 0
+    id_d = 0
+    for style in wrapper:
+        if style.itemType == 'line_groups':
+            style.itemIndex = id_l
+            id_l += 1
+        elif style.itemType == 'alignedDimensions':
+            style.itemIndex = id_d
+            id_d += 1
+        elif style.itemType == 'annotations':
+            style.itemIndex = id_a
+            id_a += 1
+
+
+class StyleWrapper(PropertyGroup):
+    itemType: EnumProperty(
+        items=(
+            ('line_groups', "Line", ""),
+            ('annotations', "Annotation", ""),
+            ('alignedDimensions', "Dimension", "")),
+        name="Style Item Type",
+        update=recalc_index)
+
+    itemIndex: IntProperty(name='Item Index')
 
 def update_flag(self, context):
     self.text_updated = True
@@ -56,7 +86,27 @@ def recalc_dimWrapper_index(self, context):
                 dim.itemIndex = id_area
                 id_area += 1
 
+
 class BaseProp:
+    def get_name(self):
+        try:
+            return self['name']
+        except KeyError:
+            return ''
+
+    def set_name(self,value):
+        self['previous_name'] = self.name
+        self['name'] = value
+
+    name: StringProperty(
+        name='Name',
+        get = get_name,
+        set = set_name
+    )
+
+    previous_name: StringProperty(
+        name='Previous Name'
+    )
 
     creation_time: StringProperty(
         name='Creation Time',
@@ -110,6 +160,10 @@ class BaseProp:
         description="Item Name",
         default="",
         update=update_flag)
+
+    style_pointer: PointerProperty(
+        type = StyleWrapper
+    )
 
     itemType: StringProperty(
         name="Item Type",

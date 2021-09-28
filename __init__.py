@@ -100,6 +100,7 @@ classes = (
     measureit_arch_baseclass.MoveItem,
     measureit_arch_baseclass.DeleteAllItemsButton,
     measureit_arch_baseclass.MovePropButton,
+    measureit_arch_baseclass.StyleWrapper,
 
     # Annotations
     measureit_arch_annotations.OBJECT_PT_UIAnnotations,
@@ -179,7 +180,6 @@ classes = (
     measureit_arch_sheets.M_ARCH_UL_Sheets_list,
 
     # Styles
-    measureit_arch_styles.StyleWrapper,
     measureit_arch_styles.StyleContainer,
     measureit_arch_styles.ListDeletePropButton,
     measureit_arch_styles.AddStyleButton,

@@ -41,7 +41,7 @@ from bpy.props import (
     EnumProperty
 )
 
-from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index
+from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index, StyleWrapper, recalc_index
 from .measureit_arch_dimensions import AlignedDimensionProperties, \
     draw_alignedDimensions_settings
 from .measureit_arch_annotations import AnnotationProperties
@@ -70,38 +70,6 @@ def create_preset_styles(dummy):
         for style in context.scene.StyleGenerator.wrapper)
     if not has_line_group_styles:
         add_line_group_style(context)
-
-
-def recalc_index(self, context):
-    # ensure index's are accurate
-    StyleGen = context.scene.StyleGenerator
-    wrapper = StyleGen.wrapper
-    id_l = 0
-    id_a = 0
-    id_d = 0
-    for style in wrapper:
-        if style.itemType == 'line_groups':
-            style.itemIndex = id_l
-            id_l += 1
-        elif style.itemType == 'alignedDimensions':
-            style.itemIndex = id_d
-            id_d += 1
-        elif style.itemType == 'annotations':
-            style.itemIndex = id_a
-            id_a += 1
-
-
-class StyleWrapper(PropertyGroup):
-    itemType: EnumProperty(
-        items=(
-            ('line_groups', "Line", ""),
-            ('annotations', "Annotation", ""),
-            ('alignedDimensions', "Dimension", "")),
-        name="Style Item Type",
-        update=recalc_index)
-
-    itemIndex: IntProperty(name='Item Index')
-
 
 class StyleContainer(PropertyGroup):
     active_index: IntProperty(
