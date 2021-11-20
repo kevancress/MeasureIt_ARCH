@@ -1154,7 +1154,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
 
 def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
     dimProps = get_style(dim,'alignedDimensions')
-
+    sceneProps = context.scene.MeasureItArchProps
     with OpenGL_Settings(dimProps):
 
         if not check_vis(dim, dimProps):
@@ -1237,6 +1237,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
         square = generate_text_card(
             context, dim.textFields[0], dimProps, basePoint=midPoint, xDir=vecX, yDir=midVec)
 
+        
         if sceneProps.show_dim_text:
             draw_text_3D(context, dim.textFields[0], dimProps, myobj, square)
 
@@ -1980,7 +1981,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                     if myobj.type == 'CURVE':
                         depsgraph = bpy.context.evaluated_depsgraph_get()
                         eval_obj = myobj.evaluated_get(depsgraph)
-                        mesh = eval_obj.to_mesh(preserve_all_data_layers= True,)
+                        mesh = eval_obj.to_mesh()
+                        print(mesh)
                         bm.from_mesh(mesh)
 
                     # For each edge get its linked faces and vertex indicies
@@ -3393,7 +3395,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
 
     
     totalobjs = len(objlist)
-
+    #preview_dual(context)
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
     

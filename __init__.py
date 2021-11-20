@@ -189,6 +189,7 @@ classes = (
     measureit_arch_views.ViewContainer,
     measureit_arch_views.DeleteViewButton,
     measureit_arch_views.DuplicateViewButton,
+    measureit_arch_views.DuplicateViewWithLayerButton,
     measureit_arch_views.AddViewButton,
     measureit_arch_views.M_ARCH_OP_Render_Preview,
     measureit_arch_views.BatchViewRender,

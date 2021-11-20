@@ -1,3 +1,4 @@
+from typing import DefaultDict
 import bpy
 import os
 import copy
@@ -411,11 +412,12 @@ class DeleteViewButton(Operator):
 
 class DuplicateViewButton(Operator):
     bl_idname = "measureit_arch.duplicateviewbutton"
-    bl_label = "Delete View"
-    bl_description = "Delete a View"
+    bl_label = "Duplicate View"
+    bl_description = "Duplicate a View"
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'}
     tag: IntProperty()
+    new_layer: BoolProperty(default = False)
 
     @classmethod
     def poll(cls, context):
@@ -433,7 +435,7 @@ class DuplicateViewButton(Operator):
         ActiveView = Generator.views[Generator.active_index]
         newView = Generator.views.add()
         newView.name = ActiveView.name + ' copy'
-
+        
         # Get props to loop through
         for key in Generator.views[Generator.active_index].__annotations__.keys():
             try:
@@ -441,9 +443,101 @@ class DuplicateViewButton(Operator):
             except:
                 pass
 
+        if self.new_layer:
+            bpy.ops.scene.view_layer_add(type='COPY')
+            newView.view_layer = context.view_layer.name
+
         return {'FINISHED'}
 
+class DuplicateViewWithLayerButton(Operator):
+    bl_idname = "measureit_arch.duplicateviewlayerbutton"
+    bl_label = "Duplicate View with new View Layer"
+    bl_description = "Duplicates a view"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'}
+    new_name: StringProperty(name = "View Layer Name")
+    new_camera: BoolProperty(default = False)
+    new_collection: BoolProperty(default=False)
 
+    @classmethod
+    def poll(cls, context):
+        Generator = context.scene.ViewGenerator
+        try:
+            Generator.views[Generator.active_index]
+        except:
+            return False
+        return True
+
+    def execute(self, context):
+        # Add properties
+
+        Generator = context.scene.ViewGenerator
+        ActiveView = Generator.views[Generator.active_index]
+        newView = Generator.views.add()
+        newView.name = self.new_name
+        
+        # Get props to loop through
+        for key in Generator.views[Generator.active_index].__annotations__.keys():
+            try:
+                newView[key] = ActiveView[key]
+            except:
+                pass
+
+
+        bpy.ops.scene.view_layer_add(type='COPY')
+        context.view_layer.name = self.new_name
+        newView.view_layer = context.view_layer.name
+
+        new_collection = None
+        if self.new_collection:
+            # Check For a "VIEWS" Collection, make one if doesn't exist
+            views_collection = None
+            try:
+                views_collection = context.scene.collection.children['VIEWS']
+            except KeyError:
+                views_collection  = bpy.data.collections.new("VIEWS")
+                context.scene.collection.children.link(views_collection)
+
+            # Create our View Collection, add it to "VIEWS"
+            new_collection  = bpy.data.collections.new(self.new_name)
+            views_collection.children.link(new_collection)
+
+            # Exclude our new View Collection from all other view Layers
+            for layer in context.scene.view_layers:
+                for col in layer.layer_collection.children['VIEWS'].children:
+                    col.exclude = col.name != layer.name
+
+
+        if self.new_camera:
+            bpy.ops.object.camera_add(enter_editmode=False, align='VIEW', location=(0, 0, 0), rotation=(1.10871, 0.0132652, 1.14827), scale=(1, 1, 1))
+            new_camera = bpy.context.active_object
+            old_camera = bpy.context.scene.camera
+            new_camera.name = self.new_name
+            new_camera.location = old_camera.location
+            new_camera.rotation_euler = old_camera.rotation_euler
+            newView.camera = new_camera
+            if new_collection != None:
+                new_collection.objects.link(new_camera)
+                #context.scene.collection.objects.unlink(new_camera)
+        
+        
+                
+
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        self.new_name = context.view_layer.name + ' copy'
+        return wm.invoke_props_dialog(self)
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        col.prop(self, "new_name", text = "View Layer Name")
+        col.prop(self, "new_camera",text = "Create New Camera")
+        col.prop(self, "new_collection",text = "Create View Collection")
+   
 class BatchViewRender(Operator):
     bl_idname = "measureit_arch.batchviewrender"
     bl_label = "Render All Views"
@@ -787,6 +881,10 @@ class SCENE_MT_Views_menu(bpy.types.Menu):
         layout.operator(
             'measureit_arch.duplicateviewbutton',
             text="Duplicate Selected View", icon='DUPLICATE')
+        
+        layout.operator('measureit_arch.duplicateviewlayerbutton',
+            text="Duplicate View & Layer", icon='RENDERLAYERS')
+        
         layout.operator('measureit_arch.batchviewrender',
             text = "Batch Render Views", icon = "DOCUMENTS")
 
