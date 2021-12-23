@@ -69,6 +69,7 @@ def update(self, context):
     scene.frame_start = view.start_frame
     scene.render.engine = view.render_engine
     scene.view_settings.view_transform = view.view_transform
+    scene.render.film_transparent = view.film_transparent
     # scene.frame_current = view.start_frame
 
     if view.res_type == 'res_type_paper':
@@ -394,6 +395,12 @@ class ViewProperties(PropertyGroup):
         description="View (Color) Transform used for rendering",
         default='Filmic',
         update=update)
+    
+    film_transparent: BoolProperty(
+        name="Film Transparent",
+        description="Film Transparent",
+        default=False,
+        update = update)
 
 
 class ViewContainer(PropertyGroup):
@@ -721,6 +728,7 @@ class SCENE_PT_Views(Panel):
                     col = box.column(align=True)
                     col.prop(view, "render_engine")
                     col.prop(view, "view_transform")
+                    col.prop(view, "film_transparent")
                     col = box.column(align=True)
                     col.prop(view, "view_num")
                     col.prop(view, "name")
