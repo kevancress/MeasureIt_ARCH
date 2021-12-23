@@ -560,12 +560,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="Flag to use svg draw code",
         default=False)
 
-    vector_depthtest: BoolProperty(
-        name="Use Vector Depth Test",
-        description="Check for Occlusion when rending to SVG\n"
-                    "WARNING: SLOW, open system console before rendering to view progress",
-        default=False)
-
     show_gizmos: BoolProperty(
         name="Show Gizmos",
         description="Display MeasureIt_ARCH Gizmos",

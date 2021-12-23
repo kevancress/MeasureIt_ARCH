@@ -373,6 +373,12 @@ class ViewProperties(PropertyGroup):
                     "image with the Measureit-ARCH render pass",
         default=False,)
 
+    vector_depthtest: BoolProperty(
+        name="Use Vector Depth Test",
+        description="Check for Occlusion when rending to SVG\n"
+                    "WARNING: SLOW, open system console before rendering to view progress",
+        default=False)
+
     include_in_batch: BoolProperty(
         name="Include In Batch View Render",
         description="Include In Batch View Render",
@@ -800,11 +806,13 @@ class SCENE_PT_Views(Panel):
 
                     col.prop(view, "embed_scene_render", text="Embed Scene Render")
                     col.prop(view, "embed_greasepencil_svg", text="Embed Grease Pencil SVG")
+                    col.prop(view, "vector_depthtest", text="Use Vector Depth Test")
 
                     col = box.column(align=True)
                     freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
                     col.active = freestyle_svg_export
                     col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
+                    
 
 
 

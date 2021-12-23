@@ -448,13 +448,14 @@ def clear_db():
 
 def set_globals():
     sceneProps = bpy.context.scene.MeasureItArchProps
+    view = get_view()
     global depthbuffer
     global near_clip
     global far_clip
     global camera_type
     global width
     global height
-    if 'depthbuffer' in sceneProps and depthbuffer is None and sceneProps.vector_depthtest:
+    if 'depthbuffer' in sceneProps and depthbuffer is None and view.vector_depthtest:
         depthbuffer = sceneProps['depthbuffer'].to_list()
     
     scene = bpy.context.scene
@@ -534,7 +535,8 @@ def depth_test(p1, p2, mat, item, depthbuffer):
         return [[-1, p1, p2]]
 
     # Don't Depth test if not enabled
-    if not scene.MeasureItArchProps.vector_depthtest or item.inFront:
+    view = get_view()
+    if not view.vector_depthtest or item.inFront:
         return [[True, p1, p2]]
 
     p1Local = mat @ Vector(p1)

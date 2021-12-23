@@ -81,10 +81,6 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
         if sceneProps.enable_experimental:
             pass
 
-        col = layout.column()
-        col.prop(sceneProps, "vector_depthtest",
-                     text="Use Vector DepthTest")
-
 
 class RenderImageButton(Operator):
     """ Button for render option """
@@ -231,10 +227,11 @@ def render_main(self, context):
                 # Loop to draw all objects
                 # -----------------------------
                 draw3d_loop(context, objlist)
-                dt = scene.MeasureItArchProps.vector_depthtest
-                scene.MeasureItArchProps.vector_depthtest = False
+                view = get_view()
+                dt = view.vector_depthtest
+                view.vector_depthtest = False
                 draw_titleblock(context)
-                scene.MeasureItArchProps.vector_depthtest = dt
+                view.vector_depthtest = dt
 
                 buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
                 bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
@@ -359,6 +356,7 @@ def render_main_svg(self, context):
     startTime = time.time()
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
+    view = get_view()
 
     with Set_Render(sceneProps, is_vector = True):
         svg_shaders.clear_db()
@@ -376,7 +374,7 @@ def render_main_svg(self, context):
         view_matrix_3d = scene.camera.matrix_world.inverted()
         # Render Depth Buffer
 
-        if sceneProps.vector_depthtest:
+        if view.vector_depthtest:
             print("Rendering Depth Buffer")
             offscreen = gpu.types.GPUOffScreen(width, height)
             with offscreen.bind():
