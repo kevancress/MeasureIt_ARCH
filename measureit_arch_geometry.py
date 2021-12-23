@@ -3478,7 +3478,7 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
                 if sceneProps.is_render_draw:
                     try:
                         print("Rendering Instance Object: " + str(idx) + " of: " +
-                            str(num_instances) + " Name: " + safe_name(myobj.name))
+                            str(num_instances) + " Name: " + safe_name(obj_int.name))
                     except UnicodeDecodeError:
                         print("UNICODE ERROR ON OBJECT NAME")
 
