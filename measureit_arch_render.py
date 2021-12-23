@@ -304,42 +304,53 @@ def draw_scene(self, context, projection_matrix):
     with OpenGL_Settings(None):
         # Get List of Mesh Objects
         deps = bpy.context.view_layer.depsgraph
+        num_instances = len(deps.object_instances)
+        idx = 0
+        vertices = []
+        indices = []
+  
         for obj_int in deps.object_instances:
+            idx += 1 
+            #print("Rendering Obj {} of {} to Depth Buffer".format(idx,num_instances))
             obj = obj_int.object
             if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or obj.MeasureItArchProps.ignore_in_depth_test):
                 mat = obj_int.matrix_world
                 obj_eval = obj.evaluated_get(deps)
                 mesh = obj_eval.to_mesh(
-                    preserve_all_data_layers=True, depsgraph=bpy.context.view_layer.depsgraph)
+                    preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
                 mesh.calc_loop_triangles()
                 tris = mesh.loop_triangles
-                vertices = []
-                indices = []
+       
+                
+                vertices = [mat @ vert.co for vert in mesh.vertices]
+                indices = [[tri.vertices[0],tri.vertices[1],tri.vertices[2]] for tri in tris]
 
-                for vert in mesh.vertices:
+                #for vert in mesh.vertices:
                     # Multipy vertex Position by Object Transform Matrix
-                    vertices.append(mat @ vert.co)
+                #    vertices.append(mat @ vert.co)
 
-                for tri in tris:
-                    indices.append(tri.vertices)
+                #for tri in tris:
+                #    indices.append([tri.vertices[0],tri.vertices[1],tri.vertices[2]])
 
-                batch = batch_for_shader(depthOnlyshader, 'TRIS', {
-                                        "pos": vertices}, indices=indices)
-                batch.program_set(depthOnlyshader)
-                batch.draw()
                 obj_eval.to_mesh_clear()
-                gpu.shader.unbind()
+
+            batch = batch_for_shader(depthOnlyshader, 'TRIS', {
+                                    "pos": vertices}, indices=indices)
+            batch.program_set(depthOnlyshader)
+            batch.draw()
+            gpu.shader.unbind()
 
         # Write to Image for Debug
         debug = False
         if debug:
+            print("Reading Buffer to Image")
             scene = context.scene
             render_scale = scene.render.resolution_percentage / 100
             width = int(scene.render.resolution_x * render_scale)
             height = int(scene.render.resolution_y * render_scale)
 
             buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-            bgl.glReadBuffer(bgl.COLOR_ATTACHMENT0)
+            bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
             bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
                             bgl.GL_UNSIGNED_BYTE, buffer)
 
@@ -392,9 +403,10 @@ def render_main_svg(self, context):
                     gpu.matrix.load_projection_matrix(projection_matrix)
 
                     texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
-
+                    print("Drawing Scene")
                     draw_scene(self, context, projection_matrix)
-
+                    
+                    print("Reading to Buffer")
                     bgl.glReadBuffer(bgl.GL_BACK)
                     bgl.glReadPixels(
                         0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
