@@ -68,6 +68,7 @@ def update(self, context):
     scene.frame_end = view.end_frame
     scene.frame_start = view.start_frame
     scene.render.engine = view.render_engine
+    scene.view_settings.view_transform = view.view_transform
     # scene.frame_current = view.start_frame
 
     if view.res_type == 'res_type_paper':
@@ -383,6 +384,16 @@ class ViewProperties(PropertyGroup):
         name="Include In Batch View Render",
         description="Include In Batch View Render",
         default=True,)
+
+    view_transform: EnumProperty(
+        items=(
+            ('Standard', 'Standard', ''),
+            ('Filmic', 'Filmic', ''),
+        ),
+        name="View Transform",
+        description="View (Color) Transform used for rendering",
+        default='Filmic',
+        update=update)
 
 
 class ViewContainer(PropertyGroup):
@@ -709,6 +720,7 @@ class SCENE_PT_Views(Panel):
                 if view.camera is not None:
                     col = box.column(align=True)
                     col.prop(view, "render_engine")
+                    col.prop(view, "view_transform")
                     col = box.column(align=True)
                     col.prop(view, "view_num")
                     col.prop(view, "name")
