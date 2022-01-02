@@ -1631,15 +1631,22 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
                 sumArea += area
 
         # Get the Perimeter Coords
-            perimeterCoords = []
-        for edgeIdx in dim['perimeterEdgeBuffer'].to_list():
-            edge = bm.edges[edgeIdx]
-            verts = edge.verts
-            perimeterCoords.append(mat @ verts[0].co)
-            perimeterCoords.append(mat @ verts[1].co)
+        perimeterCoords = []
+        polyfillCoords = []
+        buffer_list = dim['perimeterVertBuffer'].to_list()
+        idx = 0
+        print(buffer_list)
+        for vert_idx in buffer_list:
+            idx += 1
+            v1 = bm.verts[vert_idx]
+            polyfillCoords.append(mat @ v1.co)
+            perimeterCoords.append(mat @ v1.co)
+            
+            if idx < len(buffer_list):
+                v2 = bm.verts[buffer_list[idx]]
+                perimeterCoords.append(mat @ v2.co)
 
-
-
+        #print(dim['perimeterEdgeBuffer'].to_list())
         # Get local Rotation and Translation
         rot = mat.to_quaternion()
 
@@ -1685,17 +1692,15 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         # Draw SVG
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
-            svg_shaders.svg_line_shader(
-                dim, dimProps, perimeterCoords, lineWeight, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_fill_shader(
-                dim, filledCoords, fillRGB, svg, parent=svg_dim)
+            svg_shaders.svg_poly_fill_shader( dim, polyfillCoords,(0,0,0,0),svg, line_color = rgb, lineWeight= lineWeight, itemProps=dimProps)
+              
+            svg_shaders.svg_poly_fill_shader(
+                dim, polyfillCoords, fillRGB, svg, parent=svg_dim)
             for textField in dim.textFields:
                 textcard = textField['textcard']
                 svg_shaders.svg_text_shader(
                     dim, dimProps, textField.text, origin, textcard, textRGB, svg, parent=svg_dim)
-
-
-
+            
 # takes a set of co-ordinates returns the min and max value for each axis
 def get_axis_aligned_bounds(coords):
     """

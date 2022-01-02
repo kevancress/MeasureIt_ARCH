@@ -23,6 +23,7 @@
 # Author: Antonio Vazquez (antonioya), Kevan Cress
 #
 # ----------------------------------------------------------
+from typing import List
 import bpy
 import bmesh
 import random
@@ -488,6 +489,87 @@ class AddAxisDimensionButton(Operator):
             self.report({'WARNING'}, "View3D not found, cannot run operator")
             return {'CANCELLED'}
 
+class PerimeterEdge():
+    edge_idx = 0
+    vertA_idx = 0
+    vertB_idx = 0
+
+    def __init__(self, e_idx, a_idx, b_idx) -> None:
+        self.edge_idx = e_idx
+        self.vertA_idx = a_idx
+        self.vertB_idx = b_idx
+        pass
+
+    def is_connected(self,other_edge):
+        return other_edge.vertA_idx == self.vertA_idx or other_edge.vertA_idx == self.vertB_idx \
+            or other_edge.vertB_idx == self.vertA_idx or other_edge.vertB_idx == self.vertB_idx
+    
+    def get_other_vert(self,vert_idx):
+        if vert_idx == self.vertA_idx:
+            return self.vertB_idx
+        elif vert_idx == self.vertB_idx:
+            return self.vertA_idx
+        else:
+            return -1
+    
+    def get_shared_vert(self, other_edge):
+        if self.vertA_idx == other_edge.vertA_idx or self.vertA_idx == other_edge.vertB_idx:
+            return self.vertA_idx
+        elif self.vertB_idx == other_edge.vertA_idx or self.vertB_idx == other_edge.vertA_idx:
+            return self.vertB_idx
+
+
+# Sorts perimeter edges into a continuous loop
+def sort_perimeter_edges(perimeter_edges):
+    sorted_list = []
+    safety_idx = 0
+    last_entry = None
+    while len(perimeter_edges) > 0:
+        item = perimeter_edges.pop(0)
+        if last_entry == None:
+            sorted_list.append(item)
+            last_entry = item
+
+        elif last_entry.is_connected(item):
+            last_entry = item
+            sorted_list.append(item)
+            
+        else:
+            safety_idx += 1
+            perimeter_edges.append(item)
+
+        if safety_idx > 100000:
+            print('Somthing went wrong sorting perimeter edges')
+            break
+
+    return sorted_list
+
+def get_perimeter_verts(sorted_perimeter_edges):
+    edges = sorted_perimeter_edges.copy()
+    sorted_verts = []
+    last_vert = None
+    first_vert = None
+    while len(edges)>0:
+        if len(sorted_verts) == 0:
+            e1 = edges.pop(0)
+            e2 = edges.pop(0)
+            first_vert = e1.get_shared_vert(e2)
+            last_vert = e1.get_other_vert(first_vert)
+            sorted_verts.append(first_vert)
+            sorted_verts.append(e2.get_other_vert(first_vert))
+        else:
+            current_vert = sorted_verts[-1]
+            e = edges.pop(0)
+            sorted_verts.append(e.get_other_vert(current_vert))
+
+    sorted_verts.append(last_vert)
+    sorted_verts.append(first_vert)
+
+    return sorted_verts
+
+
+
+
 
 class AddAreaButton(Operator):
     bl_idname = "measureit_arch.addareabutton"
@@ -532,21 +614,30 @@ class AddAreaButton(Operator):
                 faces = bm.faces
 
                 bm.faces.ensure_lookup_table()
+                bm.verts.ensure_lookup_table()
 
-                perimiterEdges = []
+                perimeterEdges = []
                 for faceIdx in mylist:
                     face = faces[faceIdx]
                     edges = face.edges
                     for edge in edges:
                         adjFaces = edge.link_faces
+                        vertA = edge.verts[0].index
+                        vertB = edge.verts[1].index
                         if len(adjFaces) > 1:
                             if adjFaces[0].index in mylist and adjFaces[1].index in mylist:
                                 pass
+                            else:
+                                perimeterEdges.append(PerimeterEdge(edge.index,vertA,vertB))
                         else:
-                            perimiterEdges.append(edge.index)
+                            perimeterEdges.append(PerimeterEdge(edge.index,vertA,vertB))
+                
+                sorted_perimeter_edge_idxs = sort_perimeter_edges(perimeterEdges)
+                sorted_perimeter_vert_idxs = get_perimeter_verts(sorted_perimeter_edge_idxs)
 
                 # Add perimeter edges to buffer
-                newDim['perimeterEdgeBuffer'] = perimiterEdges
+                # newDim['perimeterEdgeBuffer'] = sorted_perimeter_edge_idxs
+                newDim['perimeterVertBuffer'] = sorted_perimeter_vert_idxs
                 newDim.name = 'Area {}'.format(len(dimGen.areaDimensions))
                 newDim.fillColor = (
                     random.random(), random.random(), random.random(), 1)
@@ -573,6 +664,7 @@ class AddAreaButton(Operator):
             self.report({'WARNING'}, "View3D not found, cannot run operator")
 
         return {'CANCELLED'}
+
 
 
 class AddAngleButton(Operator):
