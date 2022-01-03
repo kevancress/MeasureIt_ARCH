@@ -1635,7 +1635,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         polyfillCoords = []
         buffer_list = dim['perimeterVertBuffer'].to_list()
         idx = 0
-        print(buffer_list)
         for vert_idx in buffer_list:
             idx += 1
             v1 = bm.verts[vert_idx]
