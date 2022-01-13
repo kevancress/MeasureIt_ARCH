@@ -1633,7 +1633,12 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         # Get the Perimeter Coords
         perimeterCoords = []
         polyfillCoords = []
-        buffer_list = dim['perimeterVertBuffer'].to_list()
+        if 'perimeterVertBuffer' in dim:
+            buffer_list = dim['perimeterVertBuffer'].to_list()
+        else:
+            buffer_list = []
+            dim['perimeterVertBuffer'] = []
+            print("No Peimeter Vert Buffer found in {} on {}. Please re-create area dimension".format(dim.name,myobj.name))
         idx = 0
         for vert_idx in buffer_list:
             idx += 1
@@ -1983,11 +1988,12 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                             myobj, bpy.context.view_layer.depsgraph)
                     
                     if myobj.type == 'CURVE':
-                        depsgraph = bpy.context.evaluated_depsgraph_get()
+                    #    depsgraph = bpy.context.evaluated_depsgraph_get()
+                        depsgraph = bpy.context.view_layer.depsgraph
                         eval_obj = myobj.evaluated_get(depsgraph)
-                        mesh = eval_obj.to_mesh()
-                        print(mesh)
-                        bm.from_mesh(mesh)
+                        temp_mesh = eval_obj.to_mesh()
+                        print('Getting Dynamic Line Group from Curve mesh {}'.format(myobj.name))
+                        bm.from_mesh(temp_mesh)
 
                     # For each edge get its linked faces and vertex indicies
                     for idx, edge in enumerate(bm.edges):
@@ -2033,10 +2039,10 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                       
 
 
-                    lineGroup['coordBuffer'] = tempCoords
+                    lineGroup['coordBuffer'] = tempCoords.copy()
                     if len(tempCoords) == 0:
                         lineGroup['coordBuffer'] = [Vector((0,0,0)),Vector((0,0,0))]
-
+                    bm.free()
 
             coords = []
             coords = lineGroup['coordBuffer']
@@ -3410,7 +3416,9 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
         if sceneProps.is_render_draw:
             print("Rendering Object: " + str(idx) + " of: " +
                   str(totalobjs) + " Name: " + safe_name(myobj.name))
-            
+        
+        if myobj.name == "BezierCircle":
+           print('just a breakpoint')
 
         if check_obj_vis(myobj,custom_call):
             mat = myobj.matrix_world
