@@ -511,7 +511,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                         col.prop(annotation, 'annotationOffset', text='Offset')
 
                         col = box.column()
-                        col.enabled = not annotation.align_to_camera
+                        col.enabled = (not annotation.align_to_camera or True)
                         col.prop(annotation, 'annotationRotation', text='Rotation')
 
                         col = box.column()

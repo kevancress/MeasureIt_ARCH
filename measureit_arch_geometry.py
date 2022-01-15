@@ -1609,9 +1609,12 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         filledCoords = []
         sumArea = 0
         verts = bm.verts
-        for faceIdx in dim['facebuffer'].to_list():
+        center = Vector((0,0,0))
+        area_faces = dim['facebuffer'].to_list()
+        for faceIdx in area_faces:
             face = faces[faceIdx]
             area = face.calc_area()
+            center += face.calc_center_median_weighted()
 
             indices = []
             for vert in face.verts:
@@ -1630,6 +1633,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
                 area = area_tri(p1, p2, p3)
                 sumArea += area
 
+        center /= len(area_faces)
         # Get the Perimeter Coords
         perimeterCoords = []
         polyfillCoords = []
@@ -1660,14 +1664,38 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
         rotMatrix.resize_4x4()
 
         originFace = faces[dim.originFaceIdx]
-        origin = originFace.calc_center_bounds()
+        #origin = originFace.calc_center_bounds()
+        origin = center
         normal = rotMatrix @ originFace.normal
         tangent = rotMatrix @ originFace.calc_tangent_edge()
 
-        origin += dim.dimTextPos + normal * 0.001
+        origin += dim.dimTextPos + normal * 0.01
 
-        vecY = normal.cross(tangent)
-        vecX = normal.cross(vecY)
+        # Get Camera X
+        # Only use the z rot of the annotation rotation
+        annoMat = Matrix.Identity(3).copy()
+        annoEuler = Euler((0, 0, dim.dimRotation), 'XYZ')
+        annoMat.rotate(annoEuler)
+        annoMat = annoMat.to_4x4()
+
+        # use Camera rot for the rest
+        camera = context.scene.camera
+        cameraMat = camera.matrix_world
+        cameraRot = cameraMat.decompose()[1]
+        cameraRotMat = Matrix.Identity(3)
+        cameraRotMat.rotate(cameraRot)
+        cameraRotMat = cameraRotMat.to_4x4()
+
+        fullRotMat = annoMat @ cameraRotMat
+
+        cameraX = cameraRotMat @ Vector((1, 0, 0))
+
+        ### Get camera X projected onto the area plane
+        proj_camera_x_on_normal = (cameraX.dot(normal)/normal.length**2)*normal
+        proj_camera_x_on_plane = cameraX - proj_camera_x_on_normal
+
+        vecX = proj_camera_x_on_plane
+        vecY = normal.cross(vecX)
 
         # y.rotate(Quaternion(normal,radians(-45)))
         # x.rotate(Quaternion(normal,radians(-45)))
@@ -2327,9 +2355,9 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
             if annotationProps.align_to_camera:
                 # Only use the z rot of the annotation rotation
                 annoMat = Matrix.Identity(3).copy()
-                annoEuler = Euler((0, 0, 0), 'XYZ')
+                annoEuler = Euler((0, 0, annotation.annotationRotation.z), 'XYZ')
                 annoMat.rotate(annoEuler)
-                annoMat = rotMat.to_4x4()
+                annoMat = annoMat.to_4x4()
 
                 # use Camera rot for the rest
                 camera = context.scene.camera
@@ -2339,7 +2367,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                 cameraRotMat.rotate(cameraRot)
                 cameraRotMat = cameraRotMat.to_4x4()
 
-                fullRotMat = cameraRotMat
+                fullRotMat = annoMat @ cameraRotMat
                 extMat = locMatrix @ fullRotMat @ customScale
 
                 cameraX = cameraRotMat @ Vector((1, 0, 0))

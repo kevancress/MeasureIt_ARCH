@@ -648,13 +648,12 @@ class AddAreaButton(Operator):
                     random.random(), random.random(), random.random(), 1)
 
                 newDim.style = sceneProps.default_dimension_style
+                if sceneProps.default_dimension_style != '':
+                    newDim.uses_style = True
+                else:
+                    newDim.uses_style = False
 
 
-                # User last Selected face as text origin
-                try:
-                    newDim.originFaceIdx = bm.select_history[-1].index
-                except IndexError:
-                    newDim.originFaceIdx = mylist[len(mylist) - 1]
 
                 newWrapper = dimGen.wrapper.add()
                 newWrapper.itemType = 'areaDimensions'
