@@ -515,8 +515,11 @@ class PerimeterEdge():
     def get_shared_vert(self, other_edge):
         if self.vertA_idx == other_edge.vertA_idx or self.vertA_idx == other_edge.vertB_idx:
             return self.vertA_idx
-        elif self.vertB_idx == other_edge.vertA_idx or self.vertB_idx == other_edge.vertA_idx:
+        elif self.vertB_idx == other_edge.vertA_idx or self.vertB_idx == other_edge.vertB_idx:
             return self.vertB_idx
+        else:
+            print('No Shared Vert!!!')
+            return-1
 
 
 # Sorts perimeter edges into a continuous loop
@@ -596,6 +599,8 @@ class AddAreaButton(Operator):
         if context.area.type == 'VIEW_3D':
             # Add properties
             myobj = context.object
+            scene = context.scene
+            sceneProps = scene.MeasureItArchProps
 
             # Get all selected faces
             mylist = get_selected_faces(myobj)
@@ -641,6 +646,9 @@ class AddAreaButton(Operator):
                 newDim.name = 'Area {}'.format(len(dimGen.areaDimensions))
                 newDim.fillColor = (
                     random.random(), random.random(), random.random(), 1)
+
+                newDim.style = sceneProps.default_dimension_style
+
 
                 # User last Selected face as text origin
                 try:

@@ -3475,6 +3475,10 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
 
     # Draw Instanced Objects
     if not custom_call:
+        #if 'ALL' in bpy.context.scene.view_layers:
+        #    deps =  bpy.context.scene.view_layers['ALL'].depsgraph
+        #else:
+        #    deps = bpy.context.view_layer.depsgraph
         deps = bpy.context.view_layer.depsgraph
         
         objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
