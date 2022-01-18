@@ -1,3 +1,4 @@
+from enum import Enum
 import bpy
 import math
 
@@ -251,6 +252,7 @@ class TextField(PropertyGroup):
                ('ELEVATION', "Elevation","",'TRACKING_CLEAR_FORWARDS',5),
                ('SCALE', "Scale", "", 'SNAP_INCREMENT', 6),
                ('VIEWNUM', "Drawing Number", "", 'SORTALPHA', 7),
+               ('LENGTH', "Dimension Length", "", 'DRIVER_DISTANCE', 8),
                ('RNAPROP', "Custom Property", "", 'RNA', 99)),
         name="Text Source",
         default='RNAPROP',
@@ -442,6 +444,22 @@ class BaseDim(BaseWithText):
         default=False
     )
 
+    use_secondary_units: BoolProperty(
+        name = "Use Secondary Units",
+        description = "Show dimension in both unit systems",
+        default = False
+    )
+
+    override_unit_system: EnumProperty(
+        items = (('NONE', '--', "None"),
+                 ('METRIC', 'Metric', "Metric"),
+                 ('IMPERIAL', 'Imperial', 'Imperial')
+        ),
+        name = "Override Unit System",
+        description = "Override Scene Unit System for this Dimension",
+        default = 'NONE'
+    )
+
 class MeasureItARCHSceneProps(PropertyGroup):
     bound_x: BoolProperty()
     bound_y: BoolProperty()
@@ -593,6 +611,27 @@ class MeasureItARCHSceneProps(PropertyGroup):
                ('64', "1/64\"", "1/64th Inch")),
         name="Imperial Precision",
         description="Measurement Precision for Imperial Units")
+
+    metric_area_units: EnumProperty(
+        items = (('KILOMETERS', 'Kilometers', 'Kilometers'),
+                ('METERS', 'Meters', 'Meters'),
+                ('CENTEMETERS', 'Centimeters', 'Centimeters'),
+                ('MILLIMETERS', 'Millimeters', 'Millimeters')
+        ),
+        name = 'Metric Area Units',
+        description = 'Units to Use for Metric Area Dimensions',
+        default = 'METERS'
+    )
+
+    imperial_area_units: EnumProperty(
+        items = (('HECTARE', 'Hectare', 'Hectare'),
+                ('ACRE', 'Acre', 'Acre'),
+                ('FEET', 'Feet', 'Feet'),
+        ),
+        name = 'Imperial Area Units',
+        description = 'Units to Use for Imperial Area Dimensions',
+        default = 'FEET'
+    )
 
     use_text_autoplacement: BoolProperty(
         name="Use Text Autoplacement",

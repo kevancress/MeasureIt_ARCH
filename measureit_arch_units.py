@@ -80,9 +80,14 @@ class SCENE_PT_MARCH_units(Panel):
         scene = context.scene
 
         col = layout.column()
+        col.label(text='Precision:')
         col.prop(sceneProps, 'metric_precision', text="Metric Precision")
         col.prop(sceneProps, 'angle_precision', text="Angle Precision")
         col.prop(sceneProps, 'imperial_precision', text="Imperial Precision")
+        col.label(text='Areas:')
+        col.prop(sceneProps, 'imperial_area_units')
+        col.prop(sceneProps, 'metric_area_units')
+        col.label(text='Scale:')
         col.prop(sceneProps, 'use_unit_scale')
 
         col = layout.column(align=True)
@@ -142,8 +147,13 @@ def format_area(area: float) -> str:
     :return type: string
     """
     scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
+
     unit_system = scene.unit_settings.system
-    unit_length = scene.unit_settings.length_unit
+    if unit_system == 'METRIC':
+        unit_length = sceneProps.metric_area_units
+    else:
+        unit_length = sceneProps.imperial_area_units
     separate_units = scene.unit_settings.use_separate
     hide_units = scene.MeasureItArchProps.hide_units
 
@@ -160,7 +170,7 @@ def format_area(area: float) -> str:
             split_unit=separate_units, compatible_unit=False)
     elif unit_system == 'IMPERIAL':
         precision = scene.MeasureItArchProps.metric_precision
-        return _format_imperial_area(area, precision)
+        return _format_imperial_area(area, precision, unit_length)
 
     return bpy.utils.units.to_string(
         'NONE', 'LENGTH', area, split_unit=separate_units,
@@ -272,7 +282,7 @@ def _format_imperial_length(value, precision, unit_length='INCH') -> str:
         split_unit=False, compatible_unit=False)
 
 
-def _format_imperial_area(value, precision, unit_length='INCH', hide_units=False) -> str:
+def _format_imperial_area(value, precision, unit_length='FEET', hide_units=False) -> str:
     """
     (Internal) Format an area as a string using imperial units
 
@@ -280,15 +290,26 @@ def _format_imperial_area(value, precision, unit_length='INCH', hide_units=False
     :param type: float
     :param value: precision expressed as 1/n'th inch
     :param type: int
-    :param unit_length: one of 'INCHES', 'FEET', 'MILES' or 'THOU'
+    :param unit_length: one of 'FEET', 'ACRE', 'HECTARE
     :param type: str
     """
 
     areaToInches = 1550
     inPerFoot = 143.999
-    unit = " ft²"
+    feetPerAcre = 43560
+    feetPerHectare = 107639
+
     value *= areaToInches
     value /= inPerFoot
+
+    if unit_length == 'FEET':
+        unit = " ft²"
+    elif unit_length == 'ACRE':
+        unit = 'Acres'
+        value /= feetPerAcre
+    elif unit_length == 'HECTARE':
+        unit = 'ha'
+        value /= feetPerHectare
 
     return "{:.{}f}{}".format(value, precision, "" if hide_units else unit)
 

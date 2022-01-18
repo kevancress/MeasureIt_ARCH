@@ -1710,10 +1710,10 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
 
         # Setup Text Fields
         placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,vecY, is_area=True)
-        origin = placementResults[2]
+        #origin = placementResults[2]
 
         # Draw Fill
-        draw_filled_coords(filledCoords, fillRGB, polySmooth=False)\
+        draw_filled_coords(filledCoords, fillRGB, polySmooth=False)
 
             
 
@@ -2496,7 +2496,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
 
             if sceneProps.show_dim_text:
                 for textField in fields:
-                    textcard = textField['textcard']
+                    textcard = textField['textcard']    
                     draw_text_3D(context, textField,
                                 annotationProps, myobj, textcard)
 
