@@ -37,6 +37,7 @@ from sys import exc_info
 from datetime import datetime
 
 from . import svg_shaders
+from . import vector_utils
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_titleblock
 from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render
@@ -370,7 +371,7 @@ def render_main_svg(self, context):
     view = get_view()
 
     with Set_Render(sceneProps, is_vector = True):
-        svg_shaders.clear_db()
+        vector_utils.clear_db()
         
 
         clipdepth = context.scene.camera.data.clip_end
@@ -415,7 +416,7 @@ def render_main_svg(self, context):
                         del sceneProps['depthbuffer']
                     sceneProps['depthbuffer'] = texture_buffer
 
-        svg_shaders.set_globals()
+        vector_utils.set_globals()
             # imageName = 'depthBufferTest'
             # if imageName not in bpy.data.images:
             #     bpy.data.images.new(imageName, width, height,
