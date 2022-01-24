@@ -43,7 +43,7 @@ camera_type = None
 width = None
 height = None
 
-def get_render_location(mypoint):
+def get_render_location(mypoint, svg_flip_y = True):
     global width
     scene = bpy.context.scene
 
@@ -54,6 +54,17 @@ def get_render_location(mypoint):
 
     return [(co_2d.x * width), height - (co_2d.y * height)]
 
+def get_worldscale_projection(mypoint):
+    view = get_view()
+    scene = bpy.context.scene
+    v1 = Vector(mypoint)
+    ndc =  object_utils.world_to_camera_view(scene, scene.camera, v1)
+
+    camera_scale = view.model_scale / view.paper_scale
+    world_width = view.width * camera_scale
+    world_height = view.height * camera_scale
+
+    return [(ndc.x * world_width), (ndc.y * world_height)]
 
 def polygon_occlusion(coords):
     polygon = coords

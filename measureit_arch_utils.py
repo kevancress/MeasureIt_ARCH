@@ -44,17 +44,20 @@ class recursionlimit:
         setrecursionlimit(self.old_limit)
 
 class Set_Render:
-    def __init__(self, sceneProps, is_vector=False):
+    def __init__(self, sceneProps, is_vector=False, is_dxf = False):
         self.sceneProps = sceneProps
         self.is_vector = is_vector
+        self.is_dxf = is_dxf
 
     def __enter__(self):
         self.sceneProps.is_vector_draw = self.is_vector
+        self.sceneProps.is_dxf_draw = self.is_dxf
         self.sceneProps.is_render_draw = True
 
     def __exit__(self, type, value, tb):
         self.sceneProps.is_vector_draw = False
         self.sceneProps.is_render_draw = False
+        self.sceneProps.is_dxf_draw = False
 
 
 class OpenGL_Settings:

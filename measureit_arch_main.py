@@ -590,7 +590,7 @@ def draw_main_3d(context):
     scene.ViewGenerator.view_changed = False
 
 
-def draw_titleblock(context, svg=None):
+def draw_titleblock(context, svg=None, dxf = None):
     view = get_view()
     rv3d = get_rv3d()
     sceneProps = context.scene.MeasureItArchProps
@@ -621,7 +621,7 @@ def draw_titleblock(context, svg=None):
 
         extMat = cameraMat @ transMat @ scaleMat
         sceneProps.source_scene = titleblockScene
-        draw3d_loop(context, objlist, extMat=extMat, svg=svg, multMat=True, custom_call=True)
+        draw3d_loop(context, objlist, extMat=extMat, svg=svg, dxf = dxf, multMat=True, custom_call=True)
         sceneProps.source_scene = context.scene
 
 

@@ -27,9 +27,11 @@ import bgl
 import bpy
 import gpu
 import os
+from .measureit_arch_baseclass import recalc_index
 import svgwrite
 import xml.etree.ElementTree as ET
 import time
+import ezdxf
 
 from addon_utils import check, paths
 from bpy.types import Panel, Operator
@@ -76,6 +78,8 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
                      icon='RENDER_ANIMATION', text="MeasureIt_ARCH Animation")
         col.operator("measureit_arch.rendervectorbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH Vector")
+        col.operator("measureit_arch.renderdxfbutton",
+                     icon='DOCUMENTS', text="MeasureIt_ARCH to DXF")
 
 
 
@@ -183,6 +187,21 @@ class RenderVectorButton(Operator):
         self.report({'INFO'}, "SVG exported to: {}".format(outpath))
         return {'FINISHED'}
 
+class RenderDXFButton(Operator):
+    bl_idname = "measureit_arch.renderdxfbutton"
+    bl_label = "Render to DFX"
+    bl_description = "Create a DXF drawing, saved to render output path."
+    bl_category = 'MeasureitArch'
+
+    def execute(self, context):
+        # Check camera
+        if not context.scene.camera:
+            self.report({'ERROR'}, "Unable to render: no camera found!")
+            return {'FINISHED'}
+
+        outpath = render_main_dxf(self, context)
+        self.report({'INFO'}, "DXF exported to: {}".format(outpath))
+        return {'FINISHED'}
 
 def render_main(self, context):
     """ Render image main entry point """
@@ -551,6 +570,118 @@ def render_main_svg(self, context):
     return outpath
 
 
+
+def render_main_dxf(self, context):
+    startTime = time.time()
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+    view = get_view()
+
+    with Set_Render(sceneProps, is_dxf = True):
+        vector_utils.clear_db()
+        
+
+        clipdepth = context.scene.camera.data.clip_end
+        objlist = context.view_layer.objects
+
+        # Get resolution
+        render_scale = scene.render.resolution_percentage / 100
+        width = int(scene.render.resolution_x * render_scale)
+        height = int(scene.render.resolution_y * render_scale)
+
+
+        view_matrix_3d = scene.camera.matrix_world.inverted()
+        # Render Depth Buffer
+
+        if view.vector_depthtest:
+            print("Rendering Depth Buffer")
+            offscreen = gpu.types.GPUOffScreen(width, height)
+            with offscreen.bind():
+                # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
+                deps = context.evaluated_depsgraph_get()
+                projection_matrix = scene.camera.calc_matrix_camera(deps, x=width, y=height)
+                with OpenGL_Settings(None):
+                    bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+                    bgl.glClearDepth(clipdepth)
+                    bgl.glEnable(bgl.GL_DEPTH_TEST)
+                    bgl.glDepthFunc(bgl.GL_LEQUAL)
+
+                    gpu.matrix.reset()
+                    gpu.matrix.load_matrix(view_matrix_3d)
+                    gpu.matrix.load_projection_matrix(projection_matrix)
+
+                    texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
+                    print("Drawing Scene")
+                    draw_scene(self, context, projection_matrix)
+                    
+                    print("Reading to Buffer")
+                    bgl.glReadBuffer(bgl.GL_BACK)
+                    bgl.glReadPixels(
+                        0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
+
+                    if 'depthbuffer' in sceneProps:
+                        del sceneProps['depthbuffer']
+                    sceneProps['depthbuffer'] = texture_buffer
+
+        vector_utils.set_globals()
+
+        # Setup Output Path
+        view = get_view()
+        outpath = get_view_outpath(
+            scene, view, "{:04d}.dxf".format(scene.frame_current))
+
+        if view and view.res_type == 'res_type_paper':
+            paperWidth = round(view.width * BU_TO_INCHES, 3)
+            paperHeight = round(view.height * BU_TO_INCHES, 3)
+        else:
+            print('No View Present, using default resolution')
+            paperWidth = width / sceneProps.default_resolution
+            paperHeight = height / sceneProps.default_resolution
+
+        # Setup basic dxf
+        doc = ezdxf.new(dxfversion="AC1032", setup=True, units = 6)
+        doc.units = ezdxf.units.M
+        doc.header['$LUNITS'] = 2 # For Decimal
+        doc.header['$INSUNITS'] = 14 # For Decimeters, I have no idea why this works best for CAD but it does... AutoCADs unit system is a mess
+        doc.header['$MEASUREMENT'] = 1 #for Metric
+
+        # Setup Layers based on styles 
+        recalc_index(self, context)
+        styles = scene.StyleGenerator.wrapper
+        cad_col_id = 0
+        for style_wrapper in styles:
+            name = style_wrapper.name
+            type_str = style_wrapper.itemType
+            idx = style_wrapper.itemIndex
+            
+            source_scene = sceneProps.source_scene
+            style = eval("source_scene.StyleGenerator.{}[{}]".format(type_str,idx)) 
+
+            if "lineDrawDashed" in style and style.lineDrawDashed:
+                doc.layers.add(name, color=cad_col_id, linetype="DASHED2")
+            else:
+                doc.layers.add(name, color=cad_col_id)
+
+            cad_col_id += 1
+
+        view = get_view()
+
+        # -----------------------------
+        # Loop to draw all objects
+        # -----------------------------
+        draw3d_loop(context, objlist,dxf=doc)
+        #draw_titleblock(context, dxf = doc)
+
+        doc.saveas(outpath)
+
+        # restore default value
+        sceneProps.is_render_draw = False
+        sceneProps.is_vector_draw = False
+
+        endTime = time.time()
+        print("Time: " + str(endTime - startTime))
+
+    return outpath
 
 
 

@@ -17,12 +17,15 @@ def recalc_index(self, context):
     for style in wrapper:
         if style.itemType == 'line_groups':
             style.itemIndex = id_l
+            style.name = StyleGen.line_groups[id_l].name
             id_l += 1
         elif style.itemType == 'alignedDimensions':
             style.itemIndex = id_d
+            style.name = StyleGen.alignedDimensions[id_d].name
             id_d += 1
         elif style.itemType == 'annotations':
             style.itemIndex = id_a
+            style.name = StyleGen.annotations[id_a].name
             id_a += 1
 
 
@@ -576,6 +579,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
     is_vector_draw: BoolProperty(
         name="Is Vector Render",
         description="Flag to use svg draw code",
+        default=False)
+    
+    is_dxf_draw: BoolProperty(
+        name="Is dxf Render",
+        description="Flag to use dxf draw code",
         default=False)
 
     show_gizmos: BoolProperty(

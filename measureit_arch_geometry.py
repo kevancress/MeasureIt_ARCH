@@ -42,6 +42,7 @@ from mathutils.geometry import area_tri
 from sys import getrecursionlimit, setrecursionlimit
 
 from . import svg_shaders
+from . import dxf_shaders
 from .shaders import *
 from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
@@ -209,7 +210,7 @@ def update_text(textobj, props, context, fields=[]):
     textobj.text_updated = False
 
 
-def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
+def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None, dxf=None):
 
     if sheet_view.scene is None:
         return
@@ -310,11 +311,12 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None):
     gpu.shader.unbind()
 
 
-def draw_material_hatches(context, myobj, mat, svg=None):
-    if svg == None:
-        return
+def draw_material_hatches(context, myobj, mat, svg=None, dxf=None):
+    sceneProps = context.scene.MeasureItArchProps
 
-    svg_obj = svg.add(svg.g(id=myobj.name))
+    if sceneProps.is_vector_draw:
+        svg_obj = svg.add(svg.g(id=myobj.name))
+
 
     if not myobj.hide_render:
         mesh = myobj.data
@@ -371,13 +373,15 @@ def draw_material_hatches(context, myobj, mat, svg=None):
                 size = hatch.patternSize
                 color = hatch.line_color
                 rotation = math.degrees(hatch.patternRot)
-                pattern = svgwrite.pattern.Pattern(width=size, height=size, id=name, patternUnits="userSpaceOnUse", **{
-                    'patternTransform': 'rotate({} {} {})'.format(
-                        rotation, 0, 0
-                    )})
-                svg_shaders.svg_line_pattern_shader(
-                    pattern, svg, objs, weight, color, size)
-                svg.defs.add(pattern)
+
+                if sceneProps.is_vector_draw:
+                    pattern = svgwrite.pattern.Pattern(width=size, height=size, id=name, patternUnits="userSpaceOnUse", **{
+                        'patternTransform': 'rotate({} {} {})'.format(
+                            rotation, 0, 0
+                        )})
+                    svg_shaders.svg_line_pattern_shader(
+                        pattern, svg, objs, weight, color, size)
+                    svg.defs.add(pattern)
 
 
         for face in faces:
@@ -407,16 +411,22 @@ def draw_material_hatches(context, myobj, mat, svg=None):
                         hatch.pattern.name + ')'
 
                 coords = []
-                svg_hatch = svg_obj.add(svg.g(id=slot.material.name))
+
                 for vert in face.verts:
                     coords.append(mat @ vert.co)
-                svg_shaders.svg_poly_fill_shader(
-                    hatch, coords, fillRGB, svg, parent=svg_hatch,
-                    line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
+                
+                if sceneProps.is_vector_draw:
+                    svg_hatch = svg_obj.add(svg.g(id=slot.material.name))
+                    svg_shaders.svg_poly_fill_shader(
+                        hatch, coords, fillRGB, svg, parent=svg_hatch,
+                        line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
+
+                if sceneProps.is_dxf_draw:
+                    dxf_shaders.dxf_hatch_shader(hatch,coords,dxf,faceMat)
 
 
 
-def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
+def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, dxf=None):
 
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -569,10 +579,13 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None):
                 textcard = textField['textcard']
                 svg_shaders.svg_text_shader(
                     dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
+        
+        if sceneProps.is_dxf_draw:
+            dxf_shaders.dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf)
 
 
 
-def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
+def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None):
     sceneProps = context.scene.MeasureItArchProps
 
     dimProps = get_style(dim,'alignedDimensions')
@@ -895,7 +908,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None):
 
 
 
-def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
+def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None):
 
     sceneProps = context.scene.MeasureItArchProps
 
@@ -1150,9 +1163,12 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None):
                 textcard = textField['textcard']
                 svg_shaders.svg_text_shader(
                     dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
+        
+        if sceneProps.is_dxf_draw:
+            dxf_shaders.dxf_axis_dimension(dim, dimProps, p1, p2, origin, dxf)
 
 
-def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
+def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
     dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
     with OpenGL_Settings(dimProps):
@@ -1292,7 +1308,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None):
 
 
 
-def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
+def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
     dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
@@ -1569,7 +1585,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None):
 
 
 
-def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None):
+def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
     dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
 
@@ -1894,7 +1910,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     return bestNormal
 
 
-def draw_line_group(context, myobj, lineGen, mat, svg=None):
+def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
@@ -2217,7 +2233,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None):
                 else:
                     svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False, mat=mat)
             
-
+            if sceneProps.is_dxf_draw:
+                dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf, mat=mat)
     gpu.shader.unbind()
 
 
@@ -2268,7 +2285,7 @@ def get_style(item, type_str):
     
     return itemProps
 
-def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = None):
+def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, instance = None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     customCoords = []
@@ -2518,6 +2535,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, instance = Non
                     svg_shaders.svg_text_shader(
                         annotation, annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
 
+            if sceneProps.is_dxf_draw:
+                dxf_shaders.dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf)
 def set_text(textField, obj, style=None, item=None):
     
 
@@ -3424,7 +3443,7 @@ def check_obj_vis(myobj,custom_call):
     else:
         return custom_call or not myobj.hide_render
 
-def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_call=False):
+def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=False,custom_call=False):
     """
     Generate all OpenGL calls
     """
@@ -3456,49 +3475,49 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
                 else:
                     mat = extMat
 
-            if sceneProps.is_vector_draw and (myobj.type == 'MESH' or myobj.type =="CURVE"):
-                draw_material_hatches(context, myobj, mat, svg=svg)
+            if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
+                draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf)
 
             sheetGen = myobj.SheetGenerator
             for sheet_view in sheetGen.sheet_views:
                 draw_sheet_views(context, myobj, sheetGen,
-                                 sheet_view, mat, svg=svg)
+                                 sheet_view, mat, svg=svg, dxf=dxf)
 
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator
                 if not sceneProps.hide_linework or sceneProps.is_render_draw:
-                    draw_line_group(context, myobj, lineGen, mat, svg=svg)
+                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf)
 
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator
-                draw_annotation(context, myobj, annotationGen, mat, svg=svg, )
+                draw_annotation(context, myobj, annotationGen, mat, svg=svg, dxf=dxf)
 
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator
 
                 for alignedDim in DimGen.alignedDimensions:
                     draw_alignedDimension(
-                        context, myobj, DimGen, alignedDim, svg=svg, )
+                        context, myobj, DimGen, alignedDim, svg=svg, dxf=dxf)
 
                 for angleDim in DimGen.angleDimensions:
                     draw_angleDimension(
-                        context, myobj, DimGen, angleDim, mat, svg=svg, )
+                        context, myobj, DimGen, angleDim, mat, svg=svg, dxf=dxf)
 
                 for axisDim in DimGen.axisDimensions:
                     draw_axisDimension(context, myobj, DimGen,
-                                       axisDim, mat, svg=svg, )
+                                       axisDim, mat, svg=svg,dxf=dxf )
 
                 for boundsDim in DimGen.boundsDimensions:
                     draw_boundsDimension(
-                        context, myobj, DimGen, boundsDim, mat, svg=svg, )
+                        context, myobj, DimGen, boundsDim, mat, svg=svg, dxf=dxf)
 
                 for arcDim in DimGen.arcDimensions:
                     draw_arcDimension(context, myobj, DimGen,
-                                      arcDim, mat, svg=svg, )
+                                      arcDim, mat, svg=svg, dxf=dxf)
 
                 for areaDim in DimGen.areaDimensions:
                     draw_areaDimension(context, myobj, DimGen,
-                                       areaDim, mat, svg=svg, )
+                                       areaDim, mat, svg=svg, dxf=dxf)
 
 
     # Draw Instanced Objects
@@ -3526,17 +3545,17 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
                     except UnicodeDecodeError:
                         print("UNICODE ERROR ON OBJECT NAME")
 
-                if sceneProps.is_vector_draw and (myobj.type == 'MESH' or myobj.type =="CURVE"):
-                    draw_material_hatches(context, myobj, mat, svg=svg)                   
+                if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
+                    draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf)                   
 
                 if 'LineGenerator' in myobj:
                     lineGen = myobj.LineGenerator
-                    draw_line_group(context, myobj, lineGen, mat, svg=svg)
+                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf)
 
                 if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
                     annotationGen = myobj.AnnotationGenerator
                     draw_annotation(
-                        context, myobj, annotationGen, mat, svg=svg, instance=obj_int)
+                        context, myobj, annotationGen, mat, svg=svg, dxf=dxf, instance=obj_int)
 
                 if sceneProps.instance_dims:
                     if 'DimensionGenerator' in myobj and myobj.DimensionGenerator.measureit_arch_num != 0:
@@ -3544,13 +3563,13 @@ def draw3d_loop(context, objlist, svg=None, extMat=None, multMat=False,custom_ca
                         mat = obj_int.matrix_world
                         for alignedDim in DimGen.alignedDimensions:
                             draw_alignedDimension(
-                                context, myobj, DimGen, alignedDim, mat=mat, svg=svg)
+                                context, myobj, DimGen, alignedDim, mat=mat, svg=svg, dxf=dxf)
                         for angleDim in DimGen.angleDimensions:
                             draw_angleDimension(
-                                context, myobj, DimGen, angleDim, mat, svg=svg)
+                                context, myobj, DimGen, angleDim, mat, svg=svg, dxf=dxf)
                         for axisDim in DimGen.axisDimensions:
                             draw_axisDimension(
-                                context, myobj, DimGen, axisDim, mat, svg=svg)
+                                context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
     if sceneProps.is_render_draw:
         endTime = time.time()
         print("Time: " + str(endTime - startTime))
