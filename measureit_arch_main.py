@@ -272,6 +272,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(sceneProps, "use_text_autoplacement")
         col.prop(sceneProps, 'default_resolution', text="Default Resolution")
         col.prop(sceneProps, 'keep_freestyle_svg', text="Keep Freestyle SVG")
+        col.prop(sceneProps, 'show_dxf_props', text="Show DXF Options")
 
         col = layout.column(align=True, heading='Debug')
         col.prop(sceneProps, "measureit_arch_debug_text")

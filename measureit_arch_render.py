@@ -78,7 +78,9 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
                      icon='RENDER_ANIMATION', text="MeasureIt_ARCH Animation")
         col.operator("measureit_arch.rendervectorbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH Vector")
-        col.operator("measureit_arch.renderdxfbutton",
+        
+        if sceneProps.show_dxf_props:
+            col.operator("measureit_arch.renderdxfbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH to DXF")
 
 

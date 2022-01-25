@@ -586,6 +586,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="Flag to use dxf draw code",
         default=False)
 
+    show_dxf_props: BoolProperty(
+        name="show dxf props",
+        description="Show Dxf Export Property & Render Button",
+        default=False)
+
     show_gizmos: BoolProperty(
         name="Show Gizmos",
         description="Display MeasureIt_ARCH Gizmos",
