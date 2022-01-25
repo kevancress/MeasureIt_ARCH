@@ -138,8 +138,12 @@ def update_text(textobj, props, context, fields=[]):
 
             # Get Font Id
             badfonts = [None]
-            if 'Bfont' in bpy.data.fonts:
-                badfonts.append(bpy.data.fonts['Bfont'])
+            if 'Bfont Regular' in bpy.data.fonts or 'Bfont' in bpy.data.fonts:
+                try:
+                    badfonts.append(bpy.data.fonts['Bfont Regular'])
+                    badfonts.append(bpy.data.fonts['Bfont'])
+                except KeyError:
+                    pass
             if props.font not in badfonts:
                 vecFont = props.font
                 fontPath = vecFont.filepath
@@ -2785,7 +2789,8 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
                 textobj['texture'], dtype=np.uint8))
             bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width,
                             height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
-        except AttributeError:
+        except AttributeError as atribError:
+            print(atribError)
             print("ATTRIBUTE ERROR DRAWING TEXT ON {}".format(myobj.name))
             return
 
