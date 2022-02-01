@@ -119,8 +119,8 @@ def update_camera(scene, camera):
     ppi = view.res
 
     render.resolution_percentage = 100
-    render.resolution_x = width * ppi * BU_TO_INCHES
-    render.resolution_y = height * ppi * BU_TO_INCHES
+    render.resolution_x = int(width * ppi * BU_TO_INCHES)
+    render.resolution_y = int(height * ppi * BU_TO_INCHES)
 
     if width > height:
         camera.ortho_scale = (
