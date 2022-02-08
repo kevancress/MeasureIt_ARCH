@@ -143,7 +143,7 @@ def update_text(textobj, props, context, fields=[]):
                     badfonts.append(bpy.data.fonts['Bfont Regular'])
                     badfonts.append(bpy.data.fonts['Bfont'])
                 except KeyError:
-                    pass
+                    passa
             if props.font not in badfonts:
                 vecFont = props.font
                 fontPath = vecFont.filepath
@@ -3126,7 +3126,9 @@ def get_mesh_vertex(myobj, idx, evalMods, spline_idx=-1):
     # free Bmesh and return
     if myobj.type == 'CURVE':
         coord = myobj.data.splines[spline_idx].bezier_points[idx].co
-        
+    
+        bm.free()
+
     return coord
 
 
@@ -3526,7 +3528,8 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
 
 
     # Draw Instanced Objects
-    if not custom_call:
+    view = get_view()
+    if not custom_call and not view.skip_instances:
         #if 'ALL' in bpy.context.scene.view_layers:
         #    deps =  bpy.context.scene.view_layers['ALL'].depsgraph
         #else:

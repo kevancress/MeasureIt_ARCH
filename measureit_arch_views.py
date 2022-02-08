@@ -402,6 +402,11 @@ class ViewProperties(PropertyGroup):
         default=False,
         update = update)
 
+    skip_instances: BoolProperty(
+        name="Skip Instances",
+        description="Will skip drawing Measureit_ARCH elements from instanced Collections",
+        default=False)
+
 
 class ViewContainer(PropertyGroup):
     active_index: IntProperty(
@@ -827,11 +832,13 @@ class SCENE_PT_Views(Panel):
                     col.prop(view, "embed_scene_render", text="Embed Scene Render")
                     col.prop(view, "embed_greasepencil_svg", text="Embed Grease Pencil SVG")
                     col.prop(view, "vector_depthtest", text="Use Vector Depth Test")
+                    col.prop(view, "skip_instances",)
 
                     col = box.column(align=True)
                     freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
                     col.active = freestyle_svg_export
                     col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
+                    
                     
 
 
