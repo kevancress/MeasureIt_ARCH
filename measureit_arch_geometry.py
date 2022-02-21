@@ -143,7 +143,7 @@ def update_text(textobj, props, context, fields=[]):
                     badfonts.append(bpy.data.fonts['Bfont Regular'])
                     badfonts.append(bpy.data.fonts['Bfont'])
                 except KeyError:
-                    passa
+                    pass
             if props.font not in badfonts:
                 vecFont = props.font
                 fontPath = vecFont.filepath
