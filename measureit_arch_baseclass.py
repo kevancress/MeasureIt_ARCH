@@ -791,6 +791,7 @@ class MoveItem(Operator):
 
         return {'FINISHED'}
 
+
 class DeleteAllItemsButton(Operator):
     bl_idname = "measureit_arch.deleteallitemsbutton"
     bl_label = "Delete All Items?"

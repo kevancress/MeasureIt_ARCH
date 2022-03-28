@@ -135,7 +135,8 @@ class MATERIAL_PT_UIHatch(Panel):
         layout = self.layout
         layout.use_property_split = True
         layout.use_property_decorate = False
-
+        if context.material == None:
+            return
         hatch = context.material.Hatch
         obj = context.active_object
         main_col = layout.column()

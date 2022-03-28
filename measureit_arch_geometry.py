@@ -106,10 +106,15 @@ def get_dim_tag(self, obj):
     itemType = self.itemType
     idx = 0
     for wrap in dimGen.wrapper:
-        if itemType == wrap.itemType:
-            if self == eval('dimGen.' + itemType + '[wrap.itemIndex]'):
-                return idx
+        try:
+            if itemType == wrap.itemType:
+                if self == eval('dimGen.' + itemType + '[wrap.itemIndex]'):
+                    return idx
+        except IndexError:
+            print('Index Error in get_dim_tag')
+            return idx
         idx += 1
+    return idx
 
 
 def clear_batches():
@@ -369,7 +374,6 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None):
             if context.view_layer.material_override != None:
                 hatch = context.view_layer.material_override.Hatch
 
-
             if hatch.pattern is not None:
                 name = slot.material.name + '_' + hatch.pattern.name
                 objs = hatch.pattern.objects
@@ -418,12 +422,15 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None):
 
                 for vert in face.verts:
                     coords.append(mat @ vert.co)
-                
-                if sceneProps.is_vector_draw:
-                    svg_hatch = svg_obj.add(svg.g(id=slot.material.name))
-                    svg_shaders.svg_poly_fill_shader(
-                        hatch, coords, fillRGB, svg, parent=svg_hatch,
-                        line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
+
+                try:
+                    if sceneProps.is_vector_draw:
+                        svg_hatch = svg_obj.add(svg.g(id=slot.material.name))
+                        svg_shaders.svg_poly_fill_shader(
+                            hatch, coords, fillRGB, svg, parent=svg_hatch,
+                            line_color=lineRGB, lineWeight=weight, fillURL=fillURL)
+                except AttributeError:
+                    print('Error Drawing Hatch, Maybe Empty Material Slot?')
 
                 if sceneProps.is_dxf_draw:
                     dxf_shaders.dxf_hatch_shader(hatch,coords,dxf,faceMat)
@@ -480,11 +487,15 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
         except IndexError:
             print('point excepted for ' + dim.name + ' on ' + myobj.name)
             dimGen = myobj.DimensionGenerator
-            wrapTag = get_dim_tag(dim, myobj)
-            wrapper = dimGen.wrapper[wrapTag]
-            tag = wrapper.itemIndex
-            dimGen.alignedDimensions.remove(tag)
-            dimGen.wrapper.remove(wrapTag)
+            try:
+                wrapTag = get_dim_tag(dim, myobj)
+                wrapper = dimGen.wrapper[wrapTag]
+                tag = wrapper.itemIndex
+                dimGen.alignedDimensions.remove(tag)
+                dimGen.wrapper.remove(wrapTag)
+            except IndexError:
+                dimGen.alignedDimensions.remove(0)
+
             recalc_dimWrapper_index(None, context)
             return
 
@@ -1996,8 +2007,9 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                 else:
                     pass
                     #verts = myobj.data.vertices
-            except AttributeError:
-                print('{} Has an Error'.format(myobj.name))
+            except (AttributeError, RuntimeError) as e:
+                print('{} Has an Error @ draw_line_group 2011: {}'.format(myobj.name,e))
+                return
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
@@ -2089,14 +2101,15 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
 
                     lineGroup['coordBuffer'] = tempCoords.copy()
                     if len(tempCoords) == 0:
-                        lineGroup['coordBuffer'] = [Vector((0,0,0)),Vector((0,0,0))]
+                        lineGroup['coordBuffer'] = []
+                        return
                     bm.free()
 
             coords = []
             coords = lineGroup['coordBuffer']
 
-            # if len(coords) == 0:
-            #    return
+            if len(coords) == 0:
+                return
 
             # line weight group setup
             tempWeights = []
@@ -2238,7 +2251,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                     svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False, mat=mat)
             
             if sceneProps.is_dxf_draw:
-                dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf, mat=mat)
+                dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf,myobj, mat=mat, )
     gpu.shader.unbind()
 
 
@@ -3482,14 +3495,17 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                 else:
                     mat = extMat
 
+            # HATCHES
             if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                 draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf)
 
+            # SHEETS
             sheetGen = myobj.SheetGenerator
             for sheet_view in sheetGen.sheet_views:
                 draw_sheet_views(context, myobj, sheetGen,
                                  sheet_view, mat, svg=svg, dxf=dxf)
 
+            # DIMS ANNO LINES
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator
                 if not sceneProps.hide_linework or sceneProps.is_render_draw:

@@ -44,9 +44,19 @@ from mathutils import Vector, Matrix
 hatch_col_id = 10
 hatch_col_dict = {}
 
-def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, mat=Matrix.Identity(4)):
+def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, mat=Matrix.Identity(4)):
     dashed = False
     model_space = dxf.modelspace()
+    ss_origin = vector_utils.get_worldscale_projection(myobj.location)
+    block = None
+    try:
+        dxf.blocks.get(myobj.name)
+        block = dxf.blocks[myobj.name]
+    except ezdxf.DXFKeyError:
+        block = dxf.blocks.new(name = myobj.name)  
+        model_space.add_blockref(myobj.name, (0,0), dxfattribs={"layer": itemProps.name})
+
+    
 
     dashed = "lineDrawDashed" in itemProps and itemProps.lineDrawDashed
     draw_hidden = 'lineDrawHidden' in itemProps and itemProps.lineDrawHidden
@@ -64,7 +74,8 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, mat=Matr
             if vis or draw_hidden:
                 p1ss = vector_utils.get_worldscale_projection(mat @ Vector(p1)*10) 
                 p2ss = vector_utils.get_worldscale_projection(mat @ Vector(p2)*10)
-                model_space.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
+                #line = model_space.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
+                block.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
 
 
 # From https://ezdxf.readthedocs.io/en/stable/tutorials/linear_dimension.html
