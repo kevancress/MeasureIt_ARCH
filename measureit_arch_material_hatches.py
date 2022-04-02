@@ -118,16 +118,22 @@ class MATERIAL_PT_UIHatch(Panel):
     @classmethod
     def poll(cls, context):
         idx = context.object.active_material_index
-        mat = context.object.material_slots[idx]
-        if mat.name == '':
+        try:
+            mat = context.object.material_slots[idx]
+        except IndexError:
+            return False
+        if mat.name == '' or mat == None:
             return False
         else:
             return True
 
 
     def draw_header(self, context):
+        if context.material == None:
+            return
         layout = self.layout
         row = layout.row()
+        
         hatch = context.material.Hatch
         row.prop(hatch, "visible", text="",)
 
