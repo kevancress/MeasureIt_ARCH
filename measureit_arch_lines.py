@@ -606,12 +606,17 @@ class AddToLineGroup(Operator):
                     # get selected
 
                     mainobject = context.object
-                    mylist = get_selected_vertex_history(mainobject)
-                    if len(mylist) < 2:  # if not selected linked vertex
-                        mylist = get_selected_vertex_history(mainobject)
-                    else:
+                    selectionDict, warningStr = get_smart_selected(
+                        filterObj=mainobject, forceEdges=True)
+
+                    if len(selectionDict) >= 2:
+
                         lineGen = mainobject.LineGenerator
                         lGroup = lineGen.line_groups[self.tag]
+
+                        mylist = []
+                        for item in selectionDict:
+                            mylist.append(item['vert'])
 
                         bufferList = lGroup['lineBuffer'].to_list()
                         for x in range(0, len(mylist) - 1, 2):
@@ -756,15 +761,18 @@ class RemoveFromLineGroup(Operator):
                     # get selected
 
                     mainobject = context.object
-                    mylist = get_smart_selected(mainobject)
-
-                    if len(mylist) < 2:  # if not selected linked vertex
-                        mylist = get_selected_vertex(mainobject)
-
-                    if len(mylist) >= 2:
+                    selectionDict, warningStr = get_smart_selected(
+                        filterObj=mainobject, forceEdges=True)
+                    
+                    if len(selectionDict) >= 2:
+                        
+                        mylist = []
+                        for item in selectionDict:
+                            mylist.append(item['vert'])
 
                         lineGen = mainobject.LineGenerator
                         lGroup = lineGen.line_groups[self.tag]
+
                         bufferList = lGroup['lineBuffer'].to_list()
                         for x in range(0, len(lGroup['lineBuffer']), 2):
                             pointA = lGroup['lineBuffer'][x]
