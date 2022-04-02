@@ -2004,9 +2004,6 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                     mesh = obj_eval.to_mesh(
                         preserve_all_data_layers=True, depsgraph=deps)
                     verts = mesh.vertices
-                else:
-                    pass
-                    #verts = myobj.data.vertices
             except (AttributeError, RuntimeError) as e:
                 print('{} Has an Error @ draw_line_group 2011: {}'.format(myobj.name,e))
                 return
@@ -2028,7 +2025,6 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                     lineGroup['coordBuffer'] = tempCoords
 
                 # Calculate dynamic lines or curve lines
-
                 if lineGroup.useDynamicCrease:
                     tempCoords = []
                     tempIdxs = []
@@ -2067,6 +2063,24 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                             normalB = Vector(
                                 linked_faces[1].normal).normalized()
                             dotProd = (normalA.dot(normalB))
+
+                            #Check Filter Vertex Group
+                            if lineGroup.lineWeightGroup != '':
+                                print('Has Filter Group')
+                                eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
+                                vertex_group = obj_eval.vertex_groups[lineGroup.lineWeightGroup]
+                                group_idx = vertex_group.index
+                                v1_groups = eval_obj.data.vertices[edge.verts[0].index].groups
+                                v2_groups = eval_obj.data.vertices[edge.verts[1].index].groups
+                                id1 = []
+                                id2 = []
+                                for item in v1_groups:
+                                    id1.append(item.group)
+                                for item in v2_groups:
+                                    id2.append(item.group)
+                                    
+                                if lineGroup.invertGroupFilter - (group_idx not in id1 and group_idx not in id2):
+                                    continue
 
                             #Check angle of adjacent faces
                             if dotProd >= -1 and dotProd <= 1 and not lineGroup.dynamic_sil:
@@ -2109,23 +2123,37 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                         return
                     bm.free()
 
+
+                # Get vertex group for evaluated mesh
+                # line weight group setup
+                tempWeights = []
+                #if lineGroup.lineWeightGroup != "":
+                #    obj_eval = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
+                #    vertex_group = obj_eval.vertex_groups[lineGroup.lineWeightGroup]
+                #    group_idx = vertex_group.index
+                #    for idx in lineGroup['lineBuffer']:
+                #        try:
+                #            vert = obj_eval.data.vertices[idx]
+                #            print(vert.groups)
+                #            tempWeights.append(vert.groups[group_idx].weight)
+                #        except IndexError as e:
+                #            print("Index: {} not in Vertex Group: {} on obj: {}".format(idx,lineGroup.lineWeightGroup,myobj.name))
+                #            tempWeights.append(0.0)
+                #else:
+                tempWeights = [1.0] * len(lineGroup['coordBuffer'])
+
+                lineGroup['weightBuffer'] = tempWeights
+
             coords = []
             coords = lineGroup['coordBuffer']
+            weights = lineGroup['weightBuffer']
+
+
 
             if len(coords) == 0:
                 return
 
-            # line weight group setup
-            tempWeights = []
-            if lineGroup.lineWeightGroup != "":
-                vertexGroup = myobj.vertex_groups[lineGroup.lineWeightGroup]
-                for idx in lineGroup['lineBuffer']:
-                    try:
-                        tempWeights.append(vertexGroup.weight(idx))
-                    except RuntimeError:
-                        tempWeights.append(0)
-            else:
-                tempWeights = [1.0] * len(coords)
+  
 
             if drawHidden:
                 # Invert The Depth test for hidden lines
@@ -2219,11 +2247,11 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                 if batchKey not in lineBatch3D or recoord_flag:
                     if not lineGroup.chain:
                         lineBatch3D[batchKey] = batch_for_shader(
-                            lineGroupShader, 'LINES', {"pos": coords, "weight": tempWeights})
+                            lineGroupShader, 'LINES', {"pos": coords, "weight": weights})
                         batch3d = lineBatch3D[batchKey]
                     else:
                         lineBatch3D[batchKey] = batch_for_shader(
-                            lineGroupShader, 'LINE_STRIP', {"pos": coords, "weight": tempWeights})
+                            lineGroupShader, 'LINE_STRIP', {"pos": coords, "weight": weights})
                         batch3d = lineBatch3D[batchKey]
 
                 else:

@@ -78,12 +78,14 @@ class LineProperties(BaseProp, PropertyGroup):
 
     lineWeightGroup: StringProperty(name='Line Weight Group')
 
+    invertGroupFilter: BoolProperty(default = False)
+
     weightGroupInfluence: FloatProperty(
         name='Group Influence',
         min=0,
         soft_max=1.0,
         max=10,
-        default=1,
+        default=0.0,
         subtype='FACTOR')
 
     lineHiddenDashScale: IntProperty(
@@ -492,14 +494,18 @@ class OBJECT_PT_UILines(Panel):
                             col.prop(line, 'creaseAngle',
                                      text="Crease Threshold")
 
+                        col = box.column(align=True)
+                        row = col.row(align=True)
+                        row.prop_search(line, "lineWeightGroup", context.active_object, "vertex_groups",
+                                text="Filter Vertex Group")
+                        row.prop(line, "invertGroupFilter")
+                        #col.prop(line, 'weightGroupInfluence', text="Influence")
+
                         if not line.uses_style:
 
                             col = box.column(align=True)
                             col.prop(line, 'lineWeight', text="Lineweight")
-                            col.prop_search(
-                                line, "lineWeightGroup", context.active_object, "vertex_groups",
-                                text="Line Weight Group")
-                            col.prop(line, 'weightGroupInfluence', text="Influence")
+
 
                             col = box.column(align=True)
                             col.prop_search(
