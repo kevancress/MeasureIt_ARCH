@@ -2031,6 +2031,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
 
                 if lineGroup.useDynamicCrease:
                     tempCoords = []
+                    tempIdxs = []
                     # Create a Bmesh Instance from the selected object
                     bm = bmesh.new()
                     mesh = myobj.data
@@ -2073,6 +2074,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                                 if creaseAngle > lineGroup.creaseAngle:
                                     tempCoords.append(pointA)
                                     tempCoords.append(pointB)
+                                    tempIdxs.append(edge.verts[0].index)
+                                    tempIdxs.append(edge.verts[1].index)
 
                             #Check dynamic silhouette
                             if lineGroup.dynamic_sil:
@@ -2100,6 +2103,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
 
 
                     lineGroup['coordBuffer'] = tempCoords.copy()
+                    lineGroup['lineBuffer'] = tempIdxs.copy()   
                     if len(tempCoords) == 0:
                         lineGroup['coordBuffer'] = []
                         return
@@ -2116,7 +2120,10 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
             if lineGroup.lineWeightGroup != "":
                 vertexGroup = myobj.vertex_groups[lineGroup.lineWeightGroup]
                 for idx in lineGroup['lineBuffer']:
-                    tempWeights.append(vertexGroup.weight(idx))
+                    try:
+                        tempWeights.append(vertexGroup.weight(idx))
+                    except RuntimeError:
+                        tempWeights.append(0)
             else:
                 tempWeights = [1.0] * len(coords)
 

@@ -484,7 +484,7 @@ class OBJECT_PT_UILines(Panel):
                     if lineGen.show_line_settings:
                         col = box.column(align=True)
                         StyleGen = context.scene.StyleGenerator
-                        col.prop_search(line, 'style_pointer', StyleGen, 'line_groups', text="", icon='COLOR')
+                        #col.prop_search(line, 'style_pointer', StyleGen, 'line_groups', text="", icon='COLOR')
                         col.prop(line, 'useDynamicCrease',
                                  text="Dynamic Crease")
                         col.prop(line, 'dynamic_sil', text = "Dynamic Silhouette")

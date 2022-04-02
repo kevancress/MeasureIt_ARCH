@@ -615,9 +615,10 @@ class BatchViewRender(Operator):
             self.report({'ERROR'}, "Unable to render: no camera found!")
             return {'FINISHED'}
 
-        for area in context.screen.areas:
-            if area.type == 'VIEW_3D':
-                self.view3d = area
+        for window in context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == 'VIEW_3D':
+                    self.view3d = area
 
         if self.view3d is None:
             self.report(
@@ -632,7 +633,8 @@ class BatchViewRender(Operator):
 
     def cancel(self, context):
         wm = context.window_manager
-        wm.event_timer_remove(self._timer)
+        if self._timer != None:
+            wm.event_timer_remove(self._timer)
         return {'CANCELLED'}
 
 
