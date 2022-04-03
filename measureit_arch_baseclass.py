@@ -545,7 +545,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     debug_flip_text: BoolProperty(
         name="Debug Text Flip Vectors",
-        description="Displys Text Card and View Vectors used to Flip Text",
+        description="Displays Text Card and View Vectors used to Flip Text",
         default=False)
 
     default_color: FloatVectorProperty(
@@ -653,7 +653,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     keep_freestyle_svg: BoolProperty(
         name="Keep Freestyle SVG",
-        description="When Embeding a Freestyle SVG, keep the generated Freestyle SVG as a seperate file as well",
+        description="When Embeding a Freestyle SVG, keep the generated Freestyle SVG as a separate file as well",
         default=False,)
 
     default_resolution: IntProperty(
