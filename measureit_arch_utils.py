@@ -357,7 +357,7 @@ def get_smart_selected(filterObj=None, forceEdges=False, usePairs=True):
 
                     # Warning Text for too many verts
                     if len(verts) > 2 and len(objs) > 2:
-                        warningStr = ("More than 2 Verticies selected across multiple objects\n"
+                        warningStr = ("More than 2 Vertices selected across multiple objects\n"
                                       "Order may not be as expected")
 
                     for vert in verts:
