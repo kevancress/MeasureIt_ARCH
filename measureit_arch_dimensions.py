@@ -167,7 +167,7 @@ class ArcDimensionProperties(BaseDim, PropertyGroup):
 
     displayAsAngle: BoolProperty(
         name='Display Arc Length as Angle',
-        description='Display the Arc Length as the angle between the two extreems',
+        description='Display the Arc Length as the angle between the two extremes',
         default=False)
 
     endcapC: EnumProperty(
@@ -197,7 +197,7 @@ class AngleDimensionProperties(BaseDim, PropertyGroup):
 
     reflexAngle: BoolProperty(
         name='Show Reflex Angle',
-        description='Displays the Reflex Angle (Greater then 180 Degrees)',
+        description='Displays the Reflex Angle (Greater than 180 Degrees)',
         default=False)
 
 
@@ -542,7 +542,7 @@ def sort_perimeter_edges(perimeter_edges):
             perimeter_edges.append(item)
 
         if safety_idx > 100000:
-            print('Somthing went wrong sorting perimeter edges')
+            print('Something went wrong sorting perimeter edges')
             break
 
     return sorted_list
