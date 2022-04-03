@@ -102,7 +102,7 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
 
     custom_fit_text: BoolProperty(
         name='Fit Text',
-        description='Scale Custom Shap to Text Length',
+        description='Scale Custom Shape to Text Length',
         default=True)
 
     custom_scale: FloatProperty(
@@ -175,7 +175,7 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
 
     align_to_camera: BoolProperty(
         name='Align Text to Camera',
-        description='Keeps Anotation Text Aligned to the Active Camera',
+        description='Keeps Annotation Text Aligned to the Active Camera',
         default=False)
 
 
