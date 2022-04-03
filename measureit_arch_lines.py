@@ -137,7 +137,7 @@ class LineProperties(BaseProp, PropertyGroup):
 
     dynamic_sil: BoolProperty(
         name="Dynamic silhouette",
-        description='Dynamically add lines to silhoutte edges on vector render \n'
+        description='Dynamically add lines to silhouette edges on vector render \n'
                     'WARNING: This can be quite slow for large meshes \n or complex modifier stacks',
         default=False)
 
@@ -718,7 +718,7 @@ class AddLineByProperty(Operator):
                                     vertsToAdd.append(pointB)
 
                         # Free the Bmesh instance and add the
-                        # vertex indicies to the line groups line buffer
+                        # vertex indices to the line groups line buffer
                         bm.free()
                         lGroup['lineBuffer'] = vertsToAdd
                         lineGen.line_num += 1
