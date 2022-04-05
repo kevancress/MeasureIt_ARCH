@@ -2068,7 +2068,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                             if lineGroup.lineWeightGroup != '':
                                 print('Has Filter Group')
                                 eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
-                                vertex_group = obj_eval.vertex_groups[lineGroup.lineWeightGroup]
+                                vertex_group = eval_obj.vertex_groups[lineGroup.lineWeightGroup]
                                 group_idx = vertex_group.index
                                 v1_groups = eval_obj.data.vertices[edge.verts[0].index].groups
                                 v2_groups = eval_obj.data.vertices[edge.verts[1].index].groups
@@ -2080,7 +2080,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                                     id2.append(item.group)
                                     
                                 if lineGroup.invertGroupFilter - (group_idx not in id1 and group_idx not in id2):
-                                    continue
+                                    continue        
 
                             #Check angle of adjacent faces
                             if dotProd >= -1 and dotProd <= 1 and not lineGroup.dynamic_sil:
@@ -2146,11 +2146,18 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
 
             coords = []
             coords = lineGroup['coordBuffer']
-            weights = lineGroup['weightBuffer']
+            
+            try:
+                weights = lineGroup['weightBuffer']
+            except KeyError:
+                tempWeights = [1.0] * len(lineGroup['coordBuffer'])
+                lineGroup['weightBuffer'] = tempWeights      
+                weights = lineGroup['weightBuffer'] 
 
-
+            lineGroup.weightGroupInfluence = 0.0 
 
             if len(coords) == 0:
+                print("No Coords")
                 return
 
   
