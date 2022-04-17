@@ -492,9 +492,12 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                             col = box.column(align=True)
                             col.prop(annotation, 'fontSize', text="Font Size")
+
+
                             col.prop(annotation, 'textAlignment', text='Justification')
                             col.prop(annotation, 'textPosition', text='Position')
 
+                        if not annotation.uses_style:
                             col = box.column(align=True)
                             col.prop(annotation, 'endcapA', text='End Cap')
                             col.prop(annotation, 'endcapSize', text='Size')

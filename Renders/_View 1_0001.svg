@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="11.024in" id="root" version="1.1" viewBox="0 0 1920 1080" width="16.929in">
+  <defs/>
+  <g id="Cube"/>
+  <g id="Dimension 1">
+    <g id="Dimension 1_dashed_lines" stroke="rgb(0%,0%,0%)" stroke-linecap="butt" stroke-width="1.0">
+      <line stroke-linecap="butt" x1="1314.1157913208008" x2="1372.5159072875977" y1="297.74425506591797" y2="199.57765817642212"/>
+      <line stroke-linecap="butt" x1="973.154182434082" x2="1026.8815612792969" y1="180.85000276565552" y2="93.76850366592407"/>
+      <line stroke-linecap="butt" x1="1369.3555068969727" x2="1023.9724731445312" y1="204.89017009735107" y2="98.48363399505615"/>
+    </g>
+    <g id="Dimension 1_dashed_lines" stroke="rgb(0%,0%,0%)" stroke-dasharray="5,5" stroke-linecap="butt" stroke-width="1.0"/>
+    <g fill="rgb(0%,0%,0%)" id="Dimension 1_fills">
+      <polygon points="1355.530128479004,204.6098256111145 1369.3555068969727,204.89017009735107 1359.5346450805664,197.88702964782715"/>
+      <polygon points="1031.6060256958008,104.41200256347656 1023.9724731445312,98.48363399505615 1035.3107070922852,98.40136528015137"/>
+    </g>
+  </g>
+  <text fill="rgb(0%,0%,0%)" font-family="Open Sans" font-size="37.5" text-align="middle" text-anchor="middle" transform="rotate(17.128867928868452 1194.1904296875 138.04891967773438)" x="1194.1904296875" y="138.04891967773438">2.00 m</text>
+</svg>

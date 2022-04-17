@@ -345,6 +345,7 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None):
         if myobj.type == 'CURVE':
             depsgraph = bpy.context.evaluated_depsgraph_get()
             eval_obj = myobj.evaluated_get(depsgraph)
+            
             mesh = eval_obj.to_mesh(preserve_all_data_layers= True,)
             bm = bmesh.new()
             try:
@@ -2146,7 +2147,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
 
             coords = []
             coords = lineGroup['coordBuffer']
-            
+
             try:
                 weights = lineGroup['weightBuffer']
             except KeyError:
@@ -2157,7 +2158,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
             lineGroup.weightGroupInfluence = 0.0 
 
             if len(coords) == 0:
-                print("No Coords")
+                #print("No Coords") 
                 return
 
   
@@ -2510,7 +2511,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 yDir = fullRotMat @ Vector((0, 1, 0))
 
                 # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
-
+                
                 textcard = generate_text_card(
                     context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
                 textField['textcard'] = textcard
@@ -3526,9 +3527,6 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
             print("Rendering Object: " + str(idx) + " of: " +
                   str(totalobjs) + " Name: " + safe_name(myobj.name))
         
-        if myobj.name == "BezierCircle":
-           print('just a breakpoint')
-
         if check_obj_vis(myobj,custom_call):
             mat = myobj.matrix_world
             if extMat is not None:
