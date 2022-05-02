@@ -90,6 +90,11 @@ def dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf):
     ssp2 = vector_utils.get_worldscale_projection(Vector(p2)*10)
     ssOrigin = vector_utils.get_worldscale_projection(Vector(origin)*10)
 
+    if (Vector(ssp1) - Vector(ssp2)).length == 0:
+        print('zero length ss dim vector, returning')
+        return
+        
+
     dim = model_space.add_aligned_dim(
         distance = dist,  # location of the dimension line
         p1=ssp1,  # 1st measurement point

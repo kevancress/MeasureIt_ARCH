@@ -2080,7 +2080,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                                 for item in v2_groups:
                                     id2.append(item.group)
                                     
-                                if lineGroup.invertGroupFilter - (group_idx not in id1 and group_idx not in id2):
+                                if lineGroup.invertGroupFilter - (group_idx not in id1 or group_idx not in id2):
                                     continue        
 
                             #Check angle of adjacent faces
@@ -2597,6 +2597,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
             if sceneProps.is_dxf_draw:
                 dxf_shaders.dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf)
+
 def set_text(textField, obj, style=None, item=None):
     
 
@@ -2618,6 +2619,24 @@ def set_text(textField, obj, style=None, item=None):
         elif textField.textSource == 'SCALE':
             view = get_view()
             scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
+            textField.text = scaleStr
+
+        elif textField.textSource == 'SCALE_IMPERIAL':
+            view = get_view()
+            scales_dict ={ "1:1" : "1' = 1'",
+                    "1:12" : "1\" = 1'",
+                    "1:24" : "1/2\" = 1'",
+                    "1:48" : "1/4\" = 1'",
+                    "1:96" : "1/8\" = 1'",
+            }
+
+            met_scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
+
+            if met_scaleStr in scales_dict.keys():
+                scaleStr = scales_dict[met_scaleStr]
+            else:
+                scaleStr = met_scaleStr
+            
             textField.text = scaleStr
 
         elif textField.textSource == 'VIEWNUM':
