@@ -19,7 +19,7 @@ from bpy.app.handlers import persistent
 
 from .measureit_arch_render import render_main, render_main_svg
 from .measureit_arch_baseclass import TextField
-from . measureit_arch_utils import get_loaded_addons, get_view
+from . measureit_arch_utils import get_loaded_addons, get_view, _imp_scales_dict, _metric_scales_dict
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -45,6 +45,12 @@ PAPER_SIZES = (
     ('ARCH_E2', 'Arch E2', ('26in',   '38in')),
     ('ARCH_E3', 'Arch E3', ('27in',   '39in')),
 )
+
+paper_size_items = map(lambda o: (o[0], o[1], ''), PAPER_SIZES)
+
+metric_scale_items = map(lambda o: (o, o, ''), _metric_scales_dict.keys())
+
+imperial_scale_items = map(lambda o: (o, o, ''), _imp_scales_dict.keys())
 
 
 def scene_text_update_flag(self, context):
@@ -90,6 +96,14 @@ def freestyle_update_flag(self, context):
     if view.embed_freestyle_svg:
         scene.render.use_freestyle = view.embed_freestyle_svg
         scene.svg_export.use_svg_export = view.embed_freestyle_svg
+
+def update_scale(self,context):
+    if self.paper_scale_mode == 'METRIC':
+        self.paper_scale = _metric_scales_dict[self.metric_scale][0]
+        self.model_scale = _metric_scales_dict[self.metric_scale][1]
+    if self.paper_scale_mode == 'IMPERIAL':
+        self.paper_scale = _imp_scales_dict[self.imp_scale][0]
+        self.model_scale = _imp_scales_dict[self.imp_scale][1]
 
 def update_paper_size(self, context):
     if self.paper_size == 'CUSTOM':
@@ -264,6 +278,18 @@ class ViewProperties(PropertyGroup):
         update=scene_text_update_flag,
         step=1)
 
+    paper_scale_mode: EnumProperty(
+        items=(
+            ('METRIC', 'Metric', ''),
+            ('IMPERIAL', 'Imperial', ''),
+            ('CUSTOM', 'Custom', '')
+        ),
+        name="Scale Mode",
+        description="",
+        default='CUSTOM',
+        update = update_scale)
+
+
     # Model Length
     model_scale: IntProperty(
         name="model_scale",
@@ -301,10 +327,22 @@ class ViewProperties(PropertyGroup):
         update=update)
 
     paper_size: EnumProperty(
-        items=map(lambda o: (o[0], o[1], ''), PAPER_SIZES),
+        items=paper_size_items,
         name="Paper size",
         description="Paper size used for rendering",
         update=update_paper_size)
+    
+    metric_scale: EnumProperty(
+        items=metric_scale_items,
+        name="Scale",
+        description="Metric Scale",
+        update=update_scale)
+    
+    imp_scale: EnumProperty(
+        items=imperial_scale_items,
+        name="Scale",
+        description="Imperial Scale",
+        update=update_scale)
 
     paper_orientation: EnumProperty(
         items=(
@@ -803,9 +841,17 @@ class SCENE_PT_Views(Panel):
                         # row.operator(AddPaperScalePreset.bl_idname, text="", icon='ADD')
                         # row.operator(AddPaperScalePreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
-                        row = col.row(align=True)
-                        row.prop(view, 'paper_scale', text="Scale")
-                        row.prop(view, 'model_scale', text=":")
+                        col.row().prop(view, 'paper_scale_mode', expand=True)
+                        if view.paper_scale_mode == 'CUSTOM':
+                            row = col.row(align=True)
+                            row.prop(view, 'paper_scale', text="Scale")
+                            row.prop(view, 'model_scale', text=":")
+                        
+                        if view.paper_scale_mode == 'METRIC':
+                            col.prop(view, 'metric_scale')
+                        
+                        if view.paper_scale_mode == 'IMPERIAL':
+                            col.prop(view, 'imp_scale')
 
                     else:
 

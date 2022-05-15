@@ -47,7 +47,7 @@ from .shaders import *
 from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
-from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit, OpenGL_Settings, get_sv3d, safe_name
+from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit, OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict
 
 lastMode = {}
 lineBatch3D = {}
@@ -2621,24 +2621,8 @@ def set_text(textField, obj, style=None, item=None):
             scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
             textField.text = scaleStr
 
-        elif textField.textSource == 'SCALE_IMPERIAL':
-            view = get_view()
-            scales_dict ={ "1:1" : "1' = 1'",
-                    "1:12" : "1\" = 1'",
-                    "1:24" : "1/2\" = 1'",
-                    "1:48" : "1/4\" = 1'",
-                    "1:64" : "3/16\" = 1'",
-                    "1:96" : "1/8\" = 1'",
-            }
-
-            met_scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
-
-            if met_scaleStr in scales_dict.keys():
-                scaleStr = scales_dict[met_scaleStr]
-            else:
-                scaleStr = met_scaleStr
-            
-            textField.text = scaleStr
+            if view.paper_scale_mode == 'IMPERIAL':
+                textField.text = view.imp_scale
 
         elif textField.textSource == 'VIEWNUM':
             view = get_view()
@@ -3156,7 +3140,7 @@ def archipack_datablock(o):
     """
     try:
         return o.data.archipack_dimension_auto[0]
-    except:
+    except Exception:
         return None
 
 
@@ -3176,13 +3160,15 @@ def get_mesh_vertex(myobj, idx, evalMods, spline_idx=-1):
     sceneProps = bpy.context.scene.MeasureItArchProps
     verts = []
     coord = Vector((0, 0, 0))
-    bm = bmesh.new()
+
 
     if myobj.type == 'MESH':
         # Get Vertices
+        bm = bmesh.new()
         verts = myobj.data.vertices
         if myobj.mode == 'EDIT':  # From Edit Mesh
             bm = bmesh.from_edit_mesh(myobj.data)
+            bm.verts.ensure_lookup_table()
             verts = bm.verts
         else:
             eval_res = sceneProps.eval_mods
@@ -3198,12 +3184,11 @@ def get_mesh_vertex(myobj, idx, evalMods, spline_idx=-1):
             if idx != 9999999:
                 raise IndexError
             coord = Vector((0,0,0))
-
-    # free Bmesh and return
+        
     if myobj.type == 'CURVE':
         coord = myobj.data.splines[spline_idx].bezier_points[idx].co
     
-        bm.free()
+
 
     return coord
 

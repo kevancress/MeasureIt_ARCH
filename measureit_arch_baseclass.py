@@ -254,7 +254,6 @@ class TextField(PropertyGroup):
                ('C_LENGTH', "Curve Length", "", 'OUTLINER_DATA_CURVE', 4),
                ('ELEVATION', "Elevation","",'TRACKING_CLEAR_FORWARDS',5),
                ('SCALE', "Scale", "", 'SNAP_INCREMENT', 6),
-               ('SCALE_IMPERIAL', "Imperial Scale", "", 'SNAP_INCREMENT', 7),
                ('VIEWNUM', "Drawing Number", "", 'SORTALPHA', 8),
                ('LENGTH', "Dimension Length", "", 'DRIVER_DISTANCE', 9),
                ('RNAPROP', "Custom Property", "", 'RNA', 99)),
