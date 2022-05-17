@@ -319,6 +319,12 @@ def _inches_to_fraction(inches: float, precision: int) -> Tuple[int, int, int]:
     part, numerator and denominator (all integers), rounded to precision
     (expressed as 1/n'th of an inch).
     """
+
+    # TODO: I Shouldnt need this check, has to do with an eval depsgraph issue
+    if inches == float('inf'):
+        print ("Inf Inches")
+        return (inches,0,0)
+
     inches_ = round(inches * precision) / float(precision)
     frac, int_ = math.modf(inches_)
     num, denom = frac.as_integer_ratio()

@@ -47,7 +47,8 @@ from .shaders import *
 from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
-from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit, OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict
+from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit,\
+    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict
 
 lastMode = {}
 lineBatch3D = {}
@@ -1955,7 +1956,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
             if not check_vis(lineGroup, lineProps):
                 return
 
-            rgb = get_color(lineProps.color, myobj, is_active= not lineGroup.is_active)
+            rgb = get_color(lineProps.color, myobj, is_active= not lineGroup.is_active, cad_col_idx= lineProps.cad_col_idx)
 
             # set other line properties
             isOrtho = False
@@ -2298,11 +2299,18 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
     gpu.shader.unbind()
 
 
-def get_color(rawRGB, myobj, is_active=True, only_active=True):
+def get_color(rawRGB, myobj, is_active=True, only_active=True, cad_col_idx = 256):
     # undo blenders Default Gamma Correction
 
     context = bpy.context
     sceneProps = bpy.context.scene.MeasureItArchProps
+    if sceneProps.use_cad_col and cad_col_idx != 256:
+        try:
+            rawRGB = _cad_col_dict[cad_col_idx]
+        except KeyError:
+            rawRGB = rawRGB
+
+
     rgb = rgb_gamma_correct(rawRGB)
 
     if not sceneProps.highlight_selected or sceneProps.is_render_draw:

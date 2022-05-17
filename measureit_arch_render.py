@@ -23,6 +23,7 @@
 #
 # ----------------------------------------------------------
 
+from random import randint
 import bgl
 import bpy
 import gpu
@@ -577,6 +578,7 @@ def render_main_svg(self, context):
 
 
 def render_main_dxf(self, context):
+    print('rendering dxf')
     startTime = time.time()
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -653,7 +655,7 @@ def render_main_dxf(self, context):
         # Setup Layers based on styles 
         recalc_index(self, context)
         styles = scene.StyleGenerator.wrapper
-        cad_col_id = 0
+        
         for style_wrapper in styles:
             name = style_wrapper.name
             type_str = style_wrapper.itemType
@@ -661,13 +663,15 @@ def render_main_dxf(self, context):
             
             source_scene = sceneProps.source_scene
             style = eval("source_scene.StyleGenerator.{}[{}]".format(type_str,idx)) 
+            cad_col_id = style.cad_col_idx
+
+            if cad_col_id == 256:
+                cad_col_id = randint(0,255)
 
             if "lineDrawDashed" in style and style.lineDrawDashed:
                 doc.layers.add(name, color=cad_col_id, linetype="DASHED2")
             else:
                 doc.layers.add(name, color=cad_col_id)
-
-            cad_col_id += 1
 
         view = get_view()
 

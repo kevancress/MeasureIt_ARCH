@@ -183,6 +183,13 @@ class BaseProp:
         subtype='COLOR',
         size=4,
         update=update_flag)
+    
+    cad_col_idx: IntProperty(
+        name="CAD Color Index",
+        description="Autocad Color Index, for .dxf export or high contrast preview",
+        default=256,
+        min=1,
+        soft_max=255,)
 
     lineWeight: FloatProperty(
         name="Line Weight",
@@ -589,6 +596,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
     show_dxf_props: BoolProperty(
         name="show dxf props",
         description="Show Dxf Export Property & Render Button",
+        default=False)
+    
+    use_cad_col: BoolProperty(
+        name="Use CAD Colors",
+        description="Use CAD Color Idx when drawing",
         default=False)
 
     show_gizmos: BoolProperty(
