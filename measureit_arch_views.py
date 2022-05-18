@@ -68,6 +68,10 @@ def update(self, context):
     camera = view.camera.data
     if camera is not None:
         camera.type = view.cameraType
+    
+    if view.world is not None:
+        context.scene.world = view.world
+
 
     if view.end_frame < view.start_frame:
         view.end_frame = view.start_frame
@@ -218,6 +222,11 @@ class ViewProperties(PropertyGroup):
         description="Camera Type",
         default='ORTHO',
         update=update)
+
+    world: PointerProperty(
+        name = "View World",
+        type=bpy.types.World,
+        update = update)
 
     width: FloatProperty(
         name="Width",
@@ -772,6 +781,7 @@ class SCENE_PT_Views(Panel):
                 if view.camera is not None:
                     col = box.column(align=True)
                     col.prop(view, "render_engine")
+                    col.prop(view, "world")
                     col.prop(view, "view_transform")
                     col.prop(view, "film_transparent")
                     col = box.column(align=True)
