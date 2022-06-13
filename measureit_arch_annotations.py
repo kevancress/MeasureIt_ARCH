@@ -401,13 +401,11 @@ class OBJECT_PT_UIAnnotations(Panel):
                     txtAddOp = row.operator(
                         "measureit_arch.addtextfield", text="", icon="ADD")
                     txtAddOp.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
-                    txtAddOp.idx = annoGen.active_index
                     txtAddOp.add = True
 
                     txtRemoveOp = row.operator(
                         "measureit_arch.addtextfield", text="", icon="REMOVE")
                     txtRemoveOp.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
-                    txtRemoveOp.idx = annoGen.active_index
                     txtRemoveOp.add = False
 
                     if annoGen.show_annotation_fields:
@@ -419,10 +417,10 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                             row = col.row(align=True)
 
-                            split = row.split(factor=0.2)
-                            split.label(text='Text Field ' + str(idx + 1))
+                            #split = row.split(factor=0.2)
+                            #split.label(text='Text Field ' + str(idx + 1))
 
-                            row = split.row(align=True)
+                            #row = split.row(align=True)
                             row.prop(textField, 'autoFillText',
                                      text="", icon="FILE_TEXT")
 
@@ -446,6 +444,15 @@ class OBJECT_PT_UIAnnotations(Panel):
                             op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
                             op.upDown = -1
                             op.idx = idx
+
+                            
+                            txtRemoveOp = row.operator(
+                                "measureit_arch.addtextfield", text="", icon="X")
+                            txtRemoveOp.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
+                            txtRemoveOp.idx = idx
+                            txtRemoveOp.add = False
+
+
                             idx += 1
 
                     if annoGen.show_annotation_settings:

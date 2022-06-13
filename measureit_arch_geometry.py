@@ -1927,11 +1927,15 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     return bestNormal
 
 
-def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
+def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instance_draw = False):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
     viewport = get_viewport()
+
+    #print('Drawing Line group on {}, is instance: {}'.format(myobj.name, is_instance_draw))
+    #if is_instance_draw:
+    #   print('break')
 
     # Check for object mode changes, outside of line group loop
     global lastMode
@@ -2000,19 +2004,19 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                 recoord_flag = False
             
             try:
-                if recoord_flag and check_mods(myobj):
-                    deps = bpy.context.view_layer.depsgraph
-                    obj_eval = myobj.evaluated_get(deps)
-                    mesh = obj_eval.to_mesh(
-                        preserve_all_data_layers=True, depsgraph=deps)
-                    verts = mesh.vertices
+                if recoord_flag and check_mods(myobj) and not is_instance_draw:
+                    if myobj.type == 'MESH':
+                        deps = bpy.context.view_layer.depsgraph
+                        obj_eval = myobj.evaluated_get(deps)
+                        mesh = obj_eval.to_mesh()
+                        verts = mesh.vertices
             except (AttributeError, RuntimeError) as e:
                 print('{} Has an Error @ draw_line_group 2011: {}'.format(myobj.name,e))
                 return
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
-            if 'coordBuffer' not in lineGroup or recoord_flag:
+            if ('coordBuffer' not in lineGroup or recoord_flag) and not is_instance_draw:
                 # Handle line groups created with older versions of MeasureIt_ARCH
                 if 'singleLine' in lineGroup and 'lineBuffer' not in lineGroup:
                     toLineBuffer = []
@@ -2043,16 +2047,14 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None):
                         return    
                     
                     if myobj.type == 'MESH':
-                        bm.from_object(
-                            myobj, bpy.context.view_layer.depsgraph)
+                        bm.from_object(myobj, bpy.context.view_layer.depsgraph)
                     
                     if myobj.type == 'CURVE':
                     #    depsgraph = bpy.context.evaluated_depsgraph_get()
-                        depsgraph = bpy.context.view_layer.depsgraph
-                        eval_obj = myobj.evaluated_get(depsgraph)
-                        temp_mesh = eval_obj.to_mesh()
                         print('Getting Dynamic Line Group from Curve mesh {}'.format(myobj.name))
-                        bm.from_mesh(temp_mesh)
+                        tempmesh = bpy.data.meshes.new_from_object(myobj, depsgraph = bpy.context.view_layer.depsgraph)
+                        bm.from_mesh(tempmesh)
+                        bpy.data.meshes.remove(tempmesh)
 
                     # For each edge get its linked faces and vertex indicies
                     for idx, edge in enumerate(bm.edges):
@@ -3627,7 +3629,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
 
                 if 'LineGenerator' in myobj:
                     lineGen = myobj.LineGenerator
-                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf)
+                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=True)
 
                 if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
                     annotationGen = myobj.AnnotationGenerator

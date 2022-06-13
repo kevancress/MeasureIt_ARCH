@@ -773,7 +773,7 @@ class AddTextField(Operator):
     bl_category = 'MeasureitArch'
 
     propPath: StringProperty()
-    idx: IntProperty()
+    idx: IntProperty(default = -1)
     add: BoolProperty()
 
     def execute(self, context):
@@ -782,7 +782,10 @@ class AddTextField(Operator):
         if self.add:
             textFields.add()
         else:
-            textFields.remove(len(textFields) - 1)
+            if self.idx == -1:
+                textFields.remove(len(textFields) - 1)
+            else:
+                textFields.remove(self.idx)
         return {'FINISHED'}
 
 class MoveItem(Operator):
