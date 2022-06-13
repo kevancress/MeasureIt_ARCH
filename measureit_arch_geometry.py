@@ -321,44 +321,49 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None, dxf=No
     gpu.shader.unbind()
 
 
-def draw_material_hatches(context, myobj, mat, svg=None, dxf=None):
+def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_draw = False):
     sceneProps = context.scene.MeasureItArchProps
 
     if sceneProps.is_vector_draw:
-        svg_obj = svg.add(svg.g(id=myobj.name))
+        try:
+            svg_obj = svg.add(svg.g(id=myobj.name))
+        except UnicodeDecodeError:
+            svg_obj = svg.add(svg.g(id="BAD NAME AHHH"))
 
 
     if not myobj.hide_render:
         mesh = myobj.data
-
+        bm = bmesh.new()
         # polys = mesh.polygons
         if myobj.type == 'MESH':
-            bm = bmesh.new()
+
             if myobj.mode == 'OBJECT':
                 bm.from_object(myobj, bpy.context.view_layer.depsgraph)
+                #depsgraph = bpy.context.view_layer.depsgraph
+                #eval_obj = myobj.evaluated_get(depsgraph)
+                #temp_mesh = eval_obj.data
+                #bm.from_mesh(temp_mesh)
             else:
                 bm = bmesh.from_edit_mesh(mesh)
 
-            bm.edges.ensure_lookup_table()
-            bm.faces.ensure_lookup_table()
-            faces = bm.faces
-            # verts = bm.verts
+        if myobj.type == 'CURVE' and is_instance_draw:
+            return
+
         if myobj.type == 'CURVE':
             depsgraph = bpy.context.evaluated_depsgraph_get()
             eval_obj = myobj.evaluated_get(depsgraph)
             
-            mesh = eval_obj.to_mesh(preserve_all_data_layers= True,)
-            bm = bmesh.new()
+            mesh = eval_obj.to_mesh(preserve_all_data_layers= True)
+
             try:
                 bm.from_mesh(mesh)
             except AttributeError:
                 print('No Mesh Data for Obj: {}'.format(myobj.name))
 
-            #bm.from_object(myobj, bpy.context.evaluated_depsgraph_get())
-            
-            bm.edges.ensure_lookup_table()
-            bm.faces.ensure_lookup_table()
-            faces = bm.faces
+
+        bm.edges.ensure_lookup_table()
+        bm.faces.ensure_lookup_table()
+        faces = bm.faces
 
         faces = z_order_faces(faces, myobj)
 
@@ -371,6 +376,10 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None):
             if slot.material is None:
                 continue
             hatch = slot.material.Hatch
+            
+            if not hatch.visible:
+                continue
+
             objMaterials.append(slot.material)
 
             if context.view_layer.material_override != None:
@@ -437,6 +446,7 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None):
                 if sceneProps.is_dxf_draw:
                     dxf_shaders.dxf_hatch_shader(hatch,coords,dxf,faceMat)
 
+        bm.free()
 
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, dxf=None):
@@ -1934,9 +1944,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
     viewport = get_viewport()
 
     #print('Drawing Line group on {}, is instance: {}'.format(myobj.name, is_instance_draw))
-    #if is_instance_draw:
-    #   print('break')
-
+  
     # Check for object mode changes, outside of line group loop
     global lastMode
     mode_change_flag = False
@@ -2004,13 +2012,12 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 recoord_flag = False
             
             if is_instance_draw: recoord_flag = False
-            
             try:
                 if recoord_flag and check_mods(myobj) and not is_instance_draw:
                     if myobj.type == 'MESH':
                         deps = bpy.context.view_layer.depsgraph
                         obj_eval = myobj.evaluated_get(deps)
-                        mesh = obj_eval.to_mesh()
+                        mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
                         verts = mesh.vertices
             except (AttributeError, RuntimeError) as e:
                 print('{} Has an Error @ draw_line_group 2011: {}'.format(myobj.name,e))
@@ -2050,14 +2057,17 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                         return    
                     
                     if myobj.type == 'MESH':
-                        bm.from_object(myobj, bpy.context.view_layer.depsgraph)
+                        depsgraph = bpy.context.view_layer.depsgraph
+                        eval_obj = myobj.evaluated_get(depsgraph)
+                        temp_mesh = eval_obj.data
+                        bm.from_mesh(temp_mesh)
+                        #bm.from_object(myobj, bpy.context.view_layer.depsgraph)
                     
                     if myobj.type == 'CURVE':
-                    #    depsgraph = bpy.context.evaluated_depsgraph_get()
-                        #print('Getting Dynamic Line Group from Curve mesh {}'.format(myobj.name))
-                        tempmesh = bpy.data.meshes.new_from_object(myobj, depsgraph = bpy.context.view_layer.depsgraph)
-                        bm.from_mesh(tempmesh)
-                        bpy.data.meshes.remove(tempmesh)
+                        depsgraph = bpy.context.view_layer.depsgraph
+                        eval_obj = myobj.evaluated_get(depsgraph)
+                        temp_mesh = eval_obj.to_mesh()
+                        bm.from_mesh(temp_mesh)
 
                     # For each edge get its linked faces and vertex indicies
                     for idx, edge in enumerate(bm.edges):
@@ -2258,6 +2268,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
                 global lineBatch3D
                 batchKey = myobj.name + lineGroup.name + lineGroup.creation_time
+                batch3d = None
                 if batchKey not in lineBatch3D or recoord_flag:
                     if not lineGroup.chain:
                         lineBatch3D[batchKey] = batch_for_shader(
@@ -3618,6 +3629,11 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
         for idx,obj_int in enumerate(objlist, start=1):
             if obj_int.is_instance:
                 myobj = obj_int.object
+                parent = obj_int.parent
+
+                if myobj.type == 'MESH' and parent.type == 'CURVE':
+                    continue
+
                 mat = obj_int.matrix_world
 
                 if sceneProps.is_render_draw:
@@ -3628,7 +3644,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                         print("UNICODE ERROR ON OBJECT NAME")
 
                 if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
-                    draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf)                   
+                    draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=True)                   
 
                 if 'LineGenerator' in myobj:
                     lineGen = myobj.LineGenerator
