@@ -2003,6 +2003,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             else:
                 recoord_flag = False
             
+            if is_instance_draw: recoord_flag = False
+            
             try:
                 if recoord_flag and check_mods(myobj) and not is_instance_draw:
                     if myobj.type == 'MESH':
@@ -2016,7 +2018,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
-            if ('coordBuffer' not in lineGroup or recoord_flag) and not is_instance_draw:
+            if ('coordBuffer' not in lineGroup or recoord_flag):
                 # Handle line groups created with older versions of MeasureIt_ARCH
                 if 'singleLine' in lineGroup and 'lineBuffer' not in lineGroup:
                     toLineBuffer = []
@@ -2024,14 +2026,15 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                         toLineBuffer.append(line['pointA'])
                         toLineBuffer.append(line['pointB'])
                     lineGroup['lineBuffer'] = toLineBuffer
-
+                
+                # Get Coords From non Dynamic Lines
                 if 'lineBuffer' in lineGroup:
                     tempCoords = [get_line_vertex(
                         idx, verts) for idx in lineGroup['lineBuffer']]
                     lineGroup['coordBuffer'] = tempCoords
 
-                # Calculate dynamic lines or curve lines
-                if lineGroup.useDynamicCrease:
+                # Calculate dynamic lines or curve lines (only for non instances)
+                if lineGroup.useDynamicCrease and not is_instance_draw:
                     tempCoords = []
                     tempIdxs = []
                     # Create a Bmesh Instance from the selected object
@@ -2051,7 +2054,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     
                     if myobj.type == 'CURVE':
                     #    depsgraph = bpy.context.evaluated_depsgraph_get()
-                        print('Getting Dynamic Line Group from Curve mesh {}'.format(myobj.name))
+                        #print('Getting Dynamic Line Group from Curve mesh {}'.format(myobj.name))
                         tempmesh = bpy.data.meshes.new_from_object(myobj, depsgraph = bpy.context.view_layer.depsgraph)
                         bm.from_mesh(tempmesh)
                         bpy.data.meshes.remove(tempmesh)
@@ -2119,7 +2122,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
                       
 
-
+    
                     lineGroup['coordBuffer'] = tempCoords.copy()
                     lineGroup['lineBuffer'] = tempIdxs.copy()   
                     if len(tempCoords) == 0:
