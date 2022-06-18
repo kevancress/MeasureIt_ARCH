@@ -401,9 +401,6 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
             matIdx = face.material_index
             try:
                 faceMat = objMaterials[matIdx]
-                print(objMaterials)
-                print(matIdx)
-                print(faceMat.name)
             except:
                 continue
             
