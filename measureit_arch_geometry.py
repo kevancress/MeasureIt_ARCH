@@ -377,13 +377,7 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 continue
             hatch = slot.material.Hatch
             
-            if not hatch.visible:
-                continue
-
             objMaterials.append(slot.material)
-
-            if context.view_layer.material_override != None:
-                hatch = context.view_layer.material_override.Hatch
 
             if hatch.pattern is not None:
                 name = slot.material.name + '_' + hatch.pattern.name
@@ -407,12 +401,16 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
             matIdx = face.material_index
             try:
                 faceMat = objMaterials[matIdx]
+                print(objMaterials)
+                print(matIdx)
+                print(faceMat.name)
             except:
                 continue
             
             # Check For Material Override
             hatch = faceMat.Hatch
             if context.view_layer.material_override != None:
+                print('HAS OVERRIDE')
                 hatch = context.view_layer.material_override.Hatch
             
 

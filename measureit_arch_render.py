@@ -339,7 +339,13 @@ def draw_scene(self, context, projection_matrix):
             idx += 1 
             #print("Rendering Obj {} of {} to Depth Buffer".format(idx,num_instances))
             obj = obj_int.object
-            if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or obj.MeasureItArchProps.ignore_in_depth_test):
+            parent = obj_int.parent
+
+            ignore = obj.MeasureItArchProps.ignore_in_depth_test
+            if parent != None:
+                ignore = obj.MeasureItArchProps.ignore_in_depth_test or parent.MeasureItArchProps.ignore_in_depth_test
+                
+            if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or ignore):
                 mat = obj_int.matrix_world
                 obj_eval = obj.evaluated_get(deps)
                 mesh = obj_eval.to_mesh(
@@ -561,8 +567,13 @@ def render_main_svg(self, context):
         # -----------------------------
         # Loop to draw all objects
         # -----------------------------
+        drawing_group = svg.g(id="Drawing")
         draw3d_loop(context, objlist, svg=svg)
+        svg.add(drawing_group)
+        
+        tb_group = svg.g(id="Titleblock")
         draw_titleblock(context, svg=svg)
+        svg.add(tb_group)
 
         svg.save(pretty=True)
 
