@@ -320,6 +320,15 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None, dxf=No
         bgl.glDeleteTextures(1, texArray)
     gpu.shader.unbind()
 
+def get_hatch_name(mat_name, hatch_name):
+    name = mat_name + '_' + hatch_name
+    
+    #Check valid name
+    if " " in name:
+        name = name.replace(" ", "_")
+    
+    return name
+
 
 def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_draw = False):
     sceneProps = context.scene.MeasureItArchProps
@@ -380,16 +389,12 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
             objMaterials.append(slot.material)
 
             if hatch.pattern is not None:
-                name = slot.material.name + '_' + hatch.pattern.name
+                name = get_hatch_name(slot.material.name, hatch.pattern.name)
                 objs = hatch.pattern.objects
                 weight = hatch.patternWeight
                 size = hatch.patternSize
                 color = hatch.line_color
                 rotation = math.degrees(hatch.patternRot)
-
-                #Check valid name
-                if " " in name:
-                    name = name.replace(" ", "_")
 
                 if sceneProps.is_vector_draw:
                     pattern = svgwrite.pattern.Pattern(width=size, height=size, id=name, patternUnits="userSpaceOnUse", **{
@@ -425,8 +430,8 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 weight = hatch.lineWeight
                 fillURL = ''
                 if hatch.pattern is not None:
-                    fillURL = 'url(#' + faceMat.name + '_' + \
-                        hatch.pattern.name + ')'
+                    name = get_hatch_name(faceMat.name,hatch.pattern.name)
+                    fillURL = 'url(#{})'.format(name)
 
                 coords = []
 
