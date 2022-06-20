@@ -387,6 +387,10 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 color = hatch.line_color
                 rotation = math.degrees(hatch.patternRot)
 
+                #Check valid name
+                if " " in name:
+                    name = name.replace(" ", "_")
+
                 if sceneProps.is_vector_draw:
                     pattern = svgwrite.pattern.Pattern(width=size, height=size, id=name, patternUnits="userSpaceOnUse", **{
                         'patternTransform': 'rotate({} {} {})'.format(
