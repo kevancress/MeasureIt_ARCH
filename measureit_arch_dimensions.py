@@ -1276,6 +1276,14 @@ def draw_alignedDimensions_settings(dim, layout):
         col = layout.column(align=True)
         col.prop(dim, 'dimViewPlane', text='View Plane Overide')
 
+        # Unit Overrides
+        col = layout.column(align=True)
+        col.prop(dim, 'override_unit_system', text='Unit Override')
+        if dim.override_unit_system == 'METRIC':
+            col.prop(dim, 'override_metric_length', text='Metric Length Override')
+        elif dim.override_unit_system == 'IMPERIAL':
+            col.prop(dim, 'override_imperial_length', text='Imperial Length Override')
+
         col = layout.column(align=True)
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
         col.prop(dim, 'textAlignment', text='Alignment')

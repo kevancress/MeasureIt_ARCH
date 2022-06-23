@@ -95,7 +95,7 @@ class SCENE_PT_MARCH_units(Panel):
 
 
 
-def format_distance(distance: float) -> str:
+def format_distance(distance: float, dim = None) -> str:
     """
     Format a distance (length) for display
 
@@ -110,6 +110,15 @@ def format_distance(distance: float) -> str:
     separate_units = scene.unit_settings.use_separate
     hide_units = scene.MeasureItArchProps.hide_units
     unit_scale = scene.unit_settings.scale_length
+    
+    if dim != None:
+        if dim.override_unit_system != 'NONE':
+            unit_system = dim.override_unit_system
+            if unit_system == 'METRIC' and dim.override_metric_length != 'NONE':
+                unit_length = dim.override_metric_length
+            elif unit_system == 'IMPERIAL' and dim.override_imperial_length != 'NONE':
+                unit_length = dim.override_imperial_length
+    
     if scene.MeasureItArchProps.use_unit_scale:
         distance *= unit_scale
     if unit_system == 'METRIC':

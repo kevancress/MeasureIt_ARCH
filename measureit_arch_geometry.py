@@ -881,7 +881,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                 dimText = dim.textFields[idx]
 
                 # format text and update if necessary
-                distanceText = format_distance(dist)
+                distanceText = format_distance(dist,dim=dim)
                 if dimText.text != distanceText:
                     dimText.text = distanceText
                     dimText.text_updated = True
@@ -2180,8 +2180,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             if len(coords) == 0:
                 #print("No Coords") 
                 return
-
-  
+            
 
             if drawHidden:
                 # Invert The Depth test for hidden lines
@@ -2602,8 +2601,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             if sceneProps.show_dim_text:
                 for textField in fields:
                     textcard = textField['textcard']    
-                    draw_text_3D(context, textField,
-                                annotationProps, myobj, textcard)
+                    draw_text_3D(context, textField, annotationProps, myobj, textcard)
 
             if sceneProps.is_vector_draw:
                 svg_anno = svg.add(svg.g(id=annotation.name))
@@ -2855,6 +2853,8 @@ def draw_text_3D(context, textobj, textprops, myobj, card):
         coords = [card[0], card[1], card[1], card[2],
                   card[2], card[3], card[3], card[0]]
         draw_lines(1.0, (0.0, 1.0, 0.0, 1.0), coords)
+
+
 
     if 'texture' in textobj and textobj.text != "":
         # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
@@ -3636,6 +3636,8 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                 parent = obj_int.parent
 
                 if myobj.type == 'MESH' and parent.type == 'CURVE':
+                    if sceneProps.is_render_draw:
+                        print(f'Skipping: {myobj.name}')
                     continue
 
                 mat = obj_int.matrix_world
@@ -3687,9 +3689,9 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
     # format text and update if necessary
     if not dim.use_custom_text:
 
-        distanceText = format_distance(dist)
+        distanceText = format_distance(dist,dim=dim)
         if is_area:
-            distanceText = format_area(dist)
+            distanceText = format_area(dist, dim=dim)
         if dimText.text != distanceText:
             dimText.text = distanceText
             dimText.text_updated = True

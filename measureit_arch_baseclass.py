@@ -470,6 +470,27 @@ class BaseDim(BaseWithText):
         default = 'NONE'
     )
 
+    override_metric_length: EnumProperty(
+        items = (('NONE', '--', "None"),
+                 ('METERS', 'Meters', "Meters"),
+                 ('MILLIMETERS', 'Millimeters', 'Millimeters')
+        ),
+        name = "Override Metric Length",
+        description = "Override Metric Length for this Dimension",
+        default = 'NONE'
+    )
+
+    override_imperial_length: EnumProperty(
+        items = (('NONE', '--', "None"),
+                 ('FEET', 'Feet', "Feet"),
+                 ('INCHES', 'Inches', 'Inches')
+        ),
+        name = "Override Imperial Length",
+        description = "Override Imperial Length for this Dimension",
+        default = 'NONE'
+    )
+
+
 class MeasureItARCHSceneProps(PropertyGroup):
     bound_x: BoolProperty()
     bound_y: BoolProperty()

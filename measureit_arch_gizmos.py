@@ -151,7 +151,10 @@ def createAnnotationTranslateGiz(group, annotationGen, objIndex):
 
         # Basic Move Gizmo
         annotationMove = group.gizmos.new("GIZMO_GT_move_3d")
-        annotationMove.target_set_prop("offset", anno, "annotationOffset")
+        op = annotationMove.target_set_operator("measureit_arch.translate_annotation")
+        op.constrainAxis = (True, False, False)
+        op.objIndex = objIndex
+        op.idx = idx
 
         annotationMove.matrix_basis = basisMatrix
         annotationMove.scale_basis = 0.15
