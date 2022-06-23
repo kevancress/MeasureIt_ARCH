@@ -3434,9 +3434,10 @@ def get_resolution():
     sceneProps = scene.MeasureItArchProps
     view = get_view()
 
-    if (view is not None and
-        view.camera is not None and
-            view.res_type == 'res_type_paper'):
+    if sceneProps.use_default_res and not sceneProps.is_render_draw:
+        return sceneProps.default_resolution
+
+    if (view is not None and view.camera is not None and view.res_type == 'res_type_paper'):
         return view.res
 
     return sceneProps.default_resolution

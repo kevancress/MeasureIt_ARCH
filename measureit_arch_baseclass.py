@@ -689,9 +689,15 @@ class MeasureItARCHSceneProps(PropertyGroup):
         description="When Embeding a Freestyle SVG, keep the generated Freestyle SVG as a separate file as well",
         default=False,)
 
+    use_default_res: BoolProperty(
+        name="Use Default Resolution ",
+        description="Use Default Resolution instead of View Resolution for 3D view Text",
+        default=True,
+        update=update_flag)
+
     default_resolution: IntProperty(
         name='Default Resolution ', min=1,
-        default=150,
+        default=72,
         soft_min=50,
         soft_max=1200,
         description="Default Resolution (used for font sizing)",
