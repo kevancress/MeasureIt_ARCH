@@ -624,6 +624,8 @@ def draw_titleblock(context, svg=None, dxf = None):
 
         extMat = cameraMat @ transMat @ scaleMat
         sceneProps.source_scene = titleblockScene
+        if sceneProps.is_render_draw:
+             text_update_loop(context, objlist)
         draw3d_loop(context, objlist, extMat=extMat, svg=svg, dxf = dxf, multMat=True, custom_call=True)
         sceneProps.source_scene = context.scene
 

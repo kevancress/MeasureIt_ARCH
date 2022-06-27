@@ -42,7 +42,7 @@ from datetime import datetime
 from . import svg_shaders
 from . import vector_utils
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
-from .measureit_arch_main import draw_titleblock
+from .measureit_arch_main import draw_main, draw_titleblock, text_update_loop
 from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render
 from .measureit_arch_units import BU_TO_INCHES
 from .shaders import Base_Shader_3D, DepthOnlyFrag
@@ -567,6 +567,7 @@ def render_main_svg(self, context):
         # -----------------------------
         # Loop to draw all objects
         # -----------------------------
+        text_update_loop(context, objlist)
         drawing_group = svg.g(id="Drawing")
         draw3d_loop(context, objlist, svg=svg)
         svg.add(drawing_group)
@@ -580,7 +581,8 @@ def render_main_svg(self, context):
         # restore default value
         sceneProps.is_render_draw = False
         sceneProps.is_vector_draw = False
-
+        sceneProps.text_updated = True
+        
         endTime = time.time()
         print("Time: " + str(endTime - startTime))
 

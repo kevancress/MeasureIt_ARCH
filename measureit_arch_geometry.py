@@ -133,7 +133,7 @@ def update_text(textobj, props, context, fields=[]):
         textFields = fields
 
     for textField in textFields:
-        if textobj.text_updated or props.text_updated:
+        if textobj.text_updated or props.text_updated or sceneProps.is_render_draw:
             textField.text_updated = True
 
         if textField.text_updated or sceneProps.text_updated:
@@ -3434,7 +3434,7 @@ def get_resolution():
     sceneProps = scene.MeasureItArchProps
     view = get_view()
 
-    if sceneProps.use_default_res and not sceneProps.is_render_draw:
+    if sceneProps.use_default_res and not (sceneProps.is_render_draw or sceneProps.is_vector_draw):
         return sceneProps.default_resolution
 
     if (view is not None and view.camera is not None and view.res_type == 'res_type_paper'):
