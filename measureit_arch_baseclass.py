@@ -503,7 +503,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
             ('SQUARE', 'Square (18x)', ''),
         ),
         name="Depth Test",
-        description="Numer and Shape of Samples for Vector Depth Testing",
+        description="Number and Shape of Samples for Vector Depth Testing",
         default='CROSS')
 
     viewPlane: EnumProperty(
