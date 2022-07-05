@@ -1823,8 +1823,6 @@ def get_view_axis(context, dim, dimProps):
 
         if context.scene.camera != None:
             cameraRot = context.scene.camera.matrix_world.to_quaternion()
-            print(context.scene.camera.name)
-            print(cameraRot)
 
             viewVec = -k.copy()
             viewVec.rotate(cameraRot)
@@ -1844,7 +1842,6 @@ def get_view_axis(context, dim, dimProps):
             viewVec.rotate(viewRot)
             viewAxis = viewVec
 
-        print(viewAxis)
         # Use Basic Threshold
         basicThreshold = 0.5773
 
