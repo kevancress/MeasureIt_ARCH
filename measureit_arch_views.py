@@ -424,7 +424,7 @@ class ViewProperties(PropertyGroup):
 
     vector_depthtest: BoolProperty(
         name="Use Vector Depth Test",
-        description="Check for Occlusion when rending to SVG\n"
+        description="Check for Occlusion when rendering to SVG\n"
                     "WARNING: SLOW, open system console before rendering to view progress",
         default=False)
 
