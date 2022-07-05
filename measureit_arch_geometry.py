@@ -1003,24 +1003,8 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
         j = Vector((0, 1, 0))
         k = Vector((0, 0, 1))
 
-        if dim.dimViewPlane == '99':
-            viewPlane = dimProps.dimViewPlane
-        else:
-            viewPlane = dim.dimViewPlane
-
-        if viewPlane == 'XY':
-            viewAxis = k
-        elif viewPlane == 'XZ':
-            viewAxis = j
-        elif viewPlane == 'YZ':
-            viewAxis = i
-        elif viewPlane == '99':
-            if sceneProps.is_render_draw:
-                viewAxis = cameraLoc
-            else:
-                viewVec = k.copy()
-                viewVec.rotate(viewRot)
-                viewAxis = viewVec
+        viewPlane = get_view_plane(dim, dimProps)
+        viewAxis = get_view_axis(context, dim, dimProps)
 
         # define axis relatd values
         # basicThreshold = 0.5773
@@ -1810,22 +1794,21 @@ def get_axis_aligned_bounds(coords):
 
     return [maxX, minX, maxY, minY, maxZ, minZ]
 
-
-def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
-    # Set properties
-    context = bpy.context
-    sceneProps = context.scene.MeasureItArchProps
-    i = Vector((1, 0, 0))  # X Unit Vector
-    j = Vector((0, 1, 0))  # Y Unit Vector
-    k = Vector((0, 0, 1))  # Z Unit Vector
-    centerRay = Vector((-1, 1, 1))
-    badNormals = False
-
+def get_view_plane(dim,dimProps):
     # Check for View Plane Overides
     if dim.dimViewPlane == '99':
         viewPlane = dimProps.dimViewPlane
     else:
         viewPlane = dim.dimViewPlane
+    
+    return viewPlane
+
+def get_view_axis(context, dim, dimProps):
+    i = Vector((1, 0, 0))  # X Unit Vector
+    j = Vector((0, 1, 0))  # Y Unit Vector
+    k = Vector((0, 0, 1))  # Z Unit Vector
+
+    viewPlane = get_view_plane(dim,dimProps)
 
     # Set viewAxis
     if viewPlane == 'XY':
@@ -1838,15 +1821,16 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     if viewPlane == '99':
         # Get Viewport and CameraLoc or ViewRot
 
-        cameraRot = context.scene.camera.matrix_world.to_quaternion()
-        print(context.scene.camera.name)
-        print(cameraRot)
+        if context.scene.camera != None:
+            cameraRot = context.scene.camera.matrix_world.to_quaternion()
+            print(context.scene.camera.name)
+            print(cameraRot)
 
-        viewVec = -k.copy()
-        viewVec.rotate(cameraRot)
-        viewAxis = viewVec
+            viewVec = -k.copy()
+            viewVec.rotate(cameraRot)
+            viewAxis = viewVec
             
-        if context.scene.camera == None:
+        elif context.scene.camera == None:
             space3D = None
             for space in context.area.spaces:
                 if space.type == 'VIEW_3D':
@@ -1871,6 +1855,20 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
             viewAxis = j
         if viewAxis[2] > basicThreshold or viewAxis[2] < -basicThreshold:
             viewAxis = k
+    
+    return viewAxis
+
+def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
+    # Set properties
+    context = bpy.context
+    sceneProps = context.scene.MeasureItArchProps
+    i = Vector((1, 0, 0))  # X Unit Vector
+    j = Vector((0, 1, 0))  # Y Unit Vector
+    k = Vector((0, 0, 1))  # Z Unit Vector
+    centerRay = Vector((-1, 1, 1))
+    badNormals = False
+
+    viewAxis = get_view_axis(context, dim, dimProps)
 
     # Mesh Dimension Behaviour
     if myobj.type == 'MESH':
