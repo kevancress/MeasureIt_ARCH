@@ -557,11 +557,6 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
         dimLineEnd = Vector(p2) + offsetDistance
         textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
-        # i,j,k as card axis
-        # i = Vector((1, 0, 0))
-        # j = Vector((0, 1, 0))
-        # k = Vector((0, 0, 1))
-
         # Set Gizmo Props
         dim.gizLoc = textLoc
         dim.gizRotDir = userOffsetVector
@@ -1842,10 +1837,16 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 
     if viewPlane == '99':
         # Get Viewport and CameraLoc or ViewRot
-        if sceneProps.is_render_draw:
-            cameraLoc = context.scene.camera.location.normalized()
-            viewAxis = cameraLoc
-        else:
+
+        cameraRot = context.scene.camera.matrix_world.to_quaternion()
+        print(context.scene.camera.name)
+        print(cameraRot)
+
+        viewVec = -k.copy()
+        viewVec.rotate(cameraRot)
+        viewAxis = viewVec
+            
+        if context.scene.camera == None:
             space3D = None
             for space in context.area.spaces:
                 if space.type == 'VIEW_3D':
@@ -1859,6 +1860,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
             viewVec.rotate(viewRot)
             viewAxis = viewVec
 
+        print(viewAxis)
         # Use Basic Threshold
         basicThreshold = 0.5773
 
