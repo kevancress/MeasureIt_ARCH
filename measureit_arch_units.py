@@ -111,13 +111,7 @@ def format_distance(distance: float, dim = None) -> str:
     hide_units = scene.MeasureItArchProps.hide_units
     unit_scale = scene.unit_settings.scale_length
     
-    if dim != None:
-        if dim.override_unit_system != 'NONE':
-            unit_system = dim.override_unit_system
-            if unit_system == 'METRIC' and dim.override_metric_length != 'NONE':
-                unit_length = dim.override_metric_length
-            elif unit_system == 'IMPERIAL' and dim.override_imperial_length != 'NONE':
-                unit_length = dim.override_imperial_length
+    unit_system, unit_length = get_dim_unit_override(dim,unit_system,unit_length)
     
     if scene.MeasureItArchProps.use_unit_scale:
         distance *= unit_scale
@@ -145,8 +139,18 @@ def format_distance(distance: float, dim = None) -> str:
         'NONE', 'LENGTH', distance, split_unit=separate_units,
         compatible_unit=False)
 
+def get_dim_unit_override(dim, unit_system, unit_length = None):
+    if dim != None:
+        if dim.override_unit_system != 'NONE':
+            unit_system = dim.override_unit_system
+            if unit_system == 'METRIC' and dim.override_metric_length != 'NONE':
+                unit_length = dim.override_metric_length
+            elif unit_system == 'IMPERIAL' and dim.override_imperial_length != 'NONE':
+                unit_length = dim.override_imperial_length
+    
+    return unit_system, unit_length
 
-def format_area(area: float) -> str:
+def format_area(area: float, dim) -> str:
     """
     Format an area for display
 
@@ -165,6 +169,8 @@ def format_area(area: float) -> str:
         unit_length = sceneProps.imperial_area_units
     separate_units = scene.unit_settings.use_separate
     hide_units = scene.MeasureItArchProps.hide_units
+
+    unit_system, unit_length = get_dim_unit_override(dim,unit_system,unit_length)
 
     if unit_system == 'METRIC':
         precision = scene.MeasureItArchProps.metric_precision
