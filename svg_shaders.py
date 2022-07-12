@@ -61,7 +61,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
 
         
 
-    lines = svg.g(id=idName, stroke=svgColor,
+    lines = svg.g(id=idName, stroke=svgColor,fill = 'none',
                   stroke_width=thickness, stroke_linecap=cap)
     if parent:
         parent.add(lines)
@@ -86,7 +86,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     except AttributeError:
         dash_val = "5,5"
 
-    dashed_lines = svg.g(id=dash_id_name, stroke=dash_col, stroke_width=dash_weight,
+    dashed_lines = svg.g(id=dash_id_name, stroke=dash_col,fill = 'none', stroke_width=dash_weight,
                     stroke_dasharray=dash_val, stroke_linecap='butt')
 
     if parent:
