@@ -286,6 +286,10 @@ def render_main(self, context):
 
 
 def get_view_outpath(scene, view, suffix):
+    # Reset default outpath for older files
+    if view.output_path == "//Renders\\":
+        view.output_path = "//Renders"
+
     if view.output_path:
         filenameStr =  "{}_{}".format(view.view_num, view.name)
         outpath = os.path.join(view.output_path, filenameStr)
