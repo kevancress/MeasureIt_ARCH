@@ -195,13 +195,12 @@ def true_z_buffer(zValue):
     global camera_type
     
     if camera_type == 'ORTHO':
-        depth = zValue * (far_clip - near_clip) + near_clip - 0.09
+        depth = zValue * (far_clip - near_clip) + near_clip - 0.09 #TODO Why is this fudge factor here
         return depth
 
     elif camera_type == 'PERSP':
         z_ndc = 2.0 * zValue - 1.0
-        depth = 2.0 * near_clip * far_clip / \
-            (far_clip + near_clip - z_ndc * (far_clip - near_clip))
+        depth = 2.0 * near_clip * far_clip / (far_clip + near_clip - z_ndc * (far_clip - near_clip))
         return depth
 
     else:

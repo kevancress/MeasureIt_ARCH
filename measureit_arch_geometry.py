@@ -2078,7 +2078,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
                         #Check Filter Vertex Group
                         if lineGroup.lineWeightGroup != '':
-                            print('has filter group')
+                            #print('has filter group')
                             eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
                             vertex_group = eval_obj.vertex_groups[lineGroup.lineWeightGroup]
                             group_idx = vertex_group.index
@@ -2088,15 +2088,15 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                             id2 = []
                             for item in v1_groups:
                                 id1.append(item.group)
-                                print('v1 in group: {} looking for group: {}'.format(item.group,group_idx))
+                                #print('v1 in group: {} looking for group: {}'.format(item.group,group_idx))
                             for item in v2_groups:
                                 id2.append(item.group)
-                                print('v2 in group: {} looking for group: {}'.format(item.group,group_idx))
+                                #print('v2 in group: {} looking for group: {}'.format(item.group,group_idx))
                             
                             
                                 
                             if lineGroup.invertGroupFilter - (group_idx not in id1 or group_idx not in id2):
-                                print('skipping line segment')
+                                #print('skipping line segment')
                                 continue  
 
 
