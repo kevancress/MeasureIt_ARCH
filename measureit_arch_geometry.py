@@ -1967,7 +1967,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         with OpenGL_Settings(lineProps):
 
             if not check_vis(lineGroup, lineProps):
-                return
+                continue
 
             rgb = get_color(lineProps.color, myobj, is_active= not lineGroup.is_active, cad_col_idx= lineProps.cad_col_idx)
 
