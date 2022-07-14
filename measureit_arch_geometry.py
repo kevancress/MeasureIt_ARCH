@@ -2095,7 +2095,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                             
                             
                                 
-                            if group_idx not in id1 or group_idx not in id2:
+                            if lineGroup.invertGroupFilter - (group_idx not in id1 or group_idx not in id2):
                                 print('skipping line segment')
                                 continue  
 
