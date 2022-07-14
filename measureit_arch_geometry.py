@@ -2075,30 +2075,37 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                         linked_faces = edge.link_faces
                         pointA = edge.verts[0].co
                         pointB = edge.verts[1].co
+
+                        #Check Filter Vertex Group
+                        if lineGroup.lineWeightGroup != '':
+                            print('has filter group')
+                            eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
+                            vertex_group = eval_obj.vertex_groups[lineGroup.lineWeightGroup]
+                            group_idx = vertex_group.index
+                            v1_groups = eval_obj.data.vertices[edge.verts[0].index].groups
+                            v2_groups = eval_obj.data.vertices[edge.verts[1].index].groups
+                            id1 = []
+                            id2 = []
+                            for item in v1_groups:
+                                id1.append(item.group)
+                                print('v1 in group: {} looking for group: {}'.format(item.group,group_idx))
+                            for item in v2_groups:
+                                id2.append(item.group)
+                                print('v2 in group: {} looking for group: {}'.format(item.group,group_idx))
+                            
+                            
+                                
+                            if group_idx not in id1 or group_idx not in id2:
+                                print('skipping line segment')
+                                continue  
+
+
                         if len(linked_faces) == 2:
                             normalA = Vector(
                                 linked_faces[0].normal).normalized()
                             normalB = Vector(
                                 linked_faces[1].normal).normalized()
-                            dotProd = (normalA.dot(normalB))
-
-                            #Check Filter Vertex Group
-                            if lineGroup.lineWeightGroup != '':
-                                print('Has Filter Group')
-                                eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
-                                vertex_group = eval_obj.vertex_groups[lineGroup.lineWeightGroup]
-                                group_idx = vertex_group.index
-                                v1_groups = eval_obj.data.vertices[edge.verts[0].index].groups
-                                v2_groups = eval_obj.data.vertices[edge.verts[1].index].groups
-                                id1 = []
-                                id2 = []
-                                for item in v1_groups:
-                                    id1.append(item.group)
-                                for item in v2_groups:
-                                    id2.append(item.group)
-                                    
-                                if lineGroup.invertGroupFilter - (group_idx not in id1 or group_idx not in id2):
-                                    continue        
+                            dotProd = (normalA.dot(normalB))      
 
                             #Check angle of adjacent faces
                             if dotProd >= -1 and dotProd <= 1 and not lineGroup.dynamic_sil:
