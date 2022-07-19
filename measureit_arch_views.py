@@ -963,6 +963,15 @@ class SCENE_PT_Views(Panel):
                     op.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
                     op.upDown = -1
                     op.idx = idx
+
+
+                    txtRemoveOp = row.operator(
+                    "measureit_arch.addtextfield", text="", icon="X")
+                    txtRemoveOp.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
+                    txtRemoveOp.idx = idx
+                    txtRemoveOp.add = False
+
+                    # Increment Index
                     idx += 1
 
 
