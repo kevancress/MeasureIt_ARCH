@@ -341,7 +341,7 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
 
 
     if not myobj.hide_render:
-        mesh = myobj.data
+
         bm = bmesh.new()
         # polys = mesh.polygons
         if myobj.type == 'MESH':
@@ -353,21 +353,24 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 #temp_mesh = eval_obj.data
                 #bm.from_mesh(temp_mesh)
             else:
+                mesh = myobj.data
                 bm = bmesh.from_edit_mesh(mesh)
 
         if myobj.type == 'CURVE' and is_instance_draw:
             return
 
         if myobj.type == 'CURVE':
-            depsgraph = bpy.context.evaluated_depsgraph_get()
-            eval_obj = myobj.evaluated_get(depsgraph)
+            #depsgraph = bpy.context.evaluated_depsgraph_get()
+            #eval_obj = myobj.evaluated_get(depsgraph)
             
-            mesh = eval_obj.to_mesh(preserve_all_data_layers= True)
+            mesh =  bpy.data.meshes.new_from_object(myobj, depsgraph =  bpy.context.evaluated_depsgraph_get())
 
             try:
                 bm.from_mesh(mesh)
             except AttributeError:
                 print('No Mesh Data for Obj: {}'.format(myobj.name))
+            
+            #bpy.data.meshes.remove(mesh)
 
 
         bm.edges.ensure_lookup_table()
@@ -449,8 +452,6 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
 
                 if sceneProps.is_dxf_draw:
                     dxf_shaders.dxf_hatch_shader(hatch,coords,dxf,faceMat)
-
-        bm.free()
 
 
 def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, dxf=None):
@@ -2018,7 +2019,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     if myobj.type == 'MESH':
                         deps = bpy.context.view_layer.depsgraph
                         obj_eval = myobj.evaluated_get(deps)
-                        mesh = obj_eval.to_mesh(preserve_all_data_layers=True, depsgraph=deps)
+                        mesh = obj_eval.data
                         verts = mesh.vertices
             except (AttributeError, RuntimeError) as e:
                 print('{} Has an Error @ draw_line_group 2011: {}'.format(myobj.name,e))
@@ -2065,9 +2066,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                         #bm.from_object(myobj, bpy.context.view_layer.depsgraph)
                     
                     if myobj.type == 'CURVE':
-                        depsgraph = bpy.context.view_layer.depsgraph
-                        eval_obj = myobj.evaluated_get(depsgraph)
-                        temp_mesh = eval_obj.to_mesh()
+                        temp_mesh = bpy.data.meshes.new_from_object(myobj, depsgraph =  bpy.context.evaluated_depsgraph_get())
                         bm.from_mesh(temp_mesh)
 
                     # For each edge get its linked faces and vertex indicies
@@ -3134,10 +3133,7 @@ def get_mesh_vertices(myobj):
             else:
                 eval_res = sceneProps.eval_mods
                 if eval_res or check_mods(myobj):
-                    deps = bpy.context.view_layer.depsgraph
-                    obj_eval = myobj.evaluated_get(deps)
-                    mesh = obj_eval.to_mesh(
-                        preserve_all_data_layers=True, depsgraph=deps)
+                    mesh = bpy.data.meshes.new_from_object(myobj, depsgraph =  bpy.context.evaluated_depsgraph_get())
                     verts = mesh.vertices
                 else:
                     verts = myobj.data.vertices
