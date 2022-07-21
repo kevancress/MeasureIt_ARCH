@@ -360,10 +360,10 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
             return
 
         if myobj.type == 'CURVE':
-            #depsgraph = bpy.context.evaluated_depsgraph_get()
-            #eval_obj = myobj.evaluated_get(depsgraph)
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            eval_obj = myobj.evaluated_get(depsgraph)
             
-            mesh =  bpy.data.meshes.new_from_object(myobj, depsgraph =  bpy.context.evaluated_depsgraph_get())
+            mesh =  bpy.data.meshes.new_from_object(eval_obj, depsgraph =  bpy.context.evaluated_depsgraph_get())
 
             try:
                 bm.from_mesh(mesh)
@@ -2014,16 +2014,14 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 recoord_flag = False
             
             if is_instance_draw: recoord_flag = False
-            try:
-                if recoord_flag and check_mods(myobj) and not is_instance_draw:
-                    if myobj.type == 'MESH':
-                        deps = bpy.context.view_layer.depsgraph
-                        obj_eval = myobj.evaluated_get(deps)
-                        mesh = obj_eval.data
-                        verts = mesh.vertices
-            except (AttributeError, RuntimeError) as e:
-                print('{} Has an Error @ draw_line_group 2011: {}'.format(myobj.name,e))
-                return
+            
+            if recoord_flag and check_mods(myobj) and not is_instance_draw:
+                if myobj.type == 'MESH':
+                    deps = bpy.context.view_layer.depsgraph
+                    obj_eval = myobj.evaluated_get(deps)
+                    mesh = obj_eval.data
+                    verts = mesh.vertices
+            
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
