@@ -2064,7 +2064,9 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                         #bm.from_object(myobj, bpy.context.view_layer.depsgraph)
                     
                     if myobj.type == 'CURVE':
-                        temp_mesh = bpy.data.meshes.new_from_object(myobj, depsgraph =  bpy.context.evaluated_depsgraph_get())
+                        depsgraph = bpy.context.view_layer.depsgraph
+                        eval_obj = myobj.evaluated_get(depsgraph)
+                        temp_mesh = bpy.data.meshes.new_from_object(eval_obj, depsgraph = bpy.context.view_layer.depsgraph)
                         bm.from_mesh(temp_mesh)
 
                     # For each edge get its linked faces and vertex indicies
@@ -3448,7 +3450,8 @@ def z_order_objs(obj_list, extMat, multMat):
     to_sort = []
 
     for obj in obj_list:
-        if obj is Inst_Sort: obj = obj.object
+        if type(obj) is bpy.types.DepsgraphObjectInstance: 
+            obj = obj.object
         bound_box = obj.bound_box
         point_in_camera = False
         dist_sum = 0
@@ -3618,18 +3621,21 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     # Draw Instanced Objects
     view = get_view()
     if not custom_call and not view.skip_instances:
-        #if 'ALL' in bpy.context.scene.view_layers:
-        #    deps =  bpy.context.scene.view_layers['ALL'].depsgraph
-        #else:
-        #    deps = bpy.context.view_layer.depsgraph
+
         deps = bpy.context.view_layer.depsgraph
         
         objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
-        num_instances = len(objlist) 
-        if sceneProps.is_vector_draw:
-            objlist = z_order_objs(objlist, extMat, multMat)
-
-        for idx,obj_int in enumerate(objlist, start=1):
+        #obj_inst_list = deps.object_instances
+         
+        #if sceneProps.is_vector_draw:
+        #    objlist = z_order_objs(objlist, extMat, multMat)
+        num_instances = len(objlist)
+        for idx,obj_int in enumerate(objlist , start=1):
+            #try:
+            #    obj_int = obj_inst_list[idx-1]
+            #except IndexError:
+            #    print('index error for obj: {}'.format(obj.name))
+            #    continue
             if obj_int.is_instance:
                 myobj = obj_int.object
                 parent = obj_int.parent
@@ -3644,7 +3650,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                 if sceneProps.is_render_draw:
                     try:
                         print("Rendering Instance Object: " + str(idx) + " of: " +
-                            str(num_instances) + " Name: " + safe_name(obj_int.name))
+                            str(num_instances) + " Name: " + safe_name(myobj.name + '_Instance'))
                     except UnicodeDecodeError:
                         print("UNICODE ERROR ON OBJECT NAME")
 
