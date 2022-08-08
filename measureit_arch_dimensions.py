@@ -637,6 +637,7 @@ class AddAreaButton(Operator):
                         else:
                             perimeterEdges.append(PerimeterEdge(edge.index,vertA,vertB))
                 
+                newDim.originFaceIdx = mylist[0]
                 sorted_perimeter_edge_idxs = sort_perimeter_edges(perimeterEdges)
                 sorted_perimeter_vert_idxs = get_perimeter_verts(sorted_perimeter_edge_idxs)
 

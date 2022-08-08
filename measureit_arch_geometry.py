@@ -1609,7 +1609,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             return
 
         lineWeight = dimProps.lineWeight
-
+        
         rgb = get_color(dim.fillColor, myobj, is_active=dim.is_active)
         fillRGB = (rgb[0], rgb[1], rgb[2], dim.fillAlpha)
 
@@ -1682,6 +1682,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
                 perimeterCoords.append(mat @ v2.co)
 
         #print(dim['perimeterEdgeBuffer'].to_list())
+        
         # Get local Rotation and Translation
         rot = mat.to_quaternion()
 
@@ -1694,9 +1695,11 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         #origin = originFace.calc_center_bounds()
         origin = center
         normal = rotMatrix @ originFace.normal
-        tangent = rotMatrix @ originFace.calc_tangent_edge()
+        
+        print(dim.originFaceIdx)
 
         origin += dim.dimTextPos + normal * 0.01
+
 
         # Get Camera X
         # Only use the z rot of the annotation rotation
@@ -1706,12 +1709,14 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         annoMat = annoMat.to_4x4()
 
         # use Camera rot for the rest
+
         camera = context.scene.camera
         cameraMat = camera.matrix_world
         cameraRot = cameraMat.decompose()[1]
         cameraRotMat = Matrix.Identity(3)
         cameraRotMat.rotate(cameraRot)
         cameraRotMat = cameraRotMat.to_4x4()
+
 
         fullRotMat = annoMat @ cameraRotMat
 
@@ -1732,12 +1737,38 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         origin = mat @ origin
 
+
         dimProps.textAlignment = 'C'
         dimProps.textPosition = 'M'
 
         # Setup Text Fields
-        placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,vecY, is_area=True)
-        #origin = placementResults[2]
+        #def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):
+        #placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,vecY, is_area=True)
+        if len(dim.textFields) == 0:
+            dim.textFields.add()
+
+        dimText = dim.textFields[0]
+
+        # format text and update if necessary
+        if not dim.use_custom_text:
+
+           
+            distanceText = format_area(sumArea, dim=dim)
+            
+            if dimText.text != distanceText:
+                dimText.text = distanceText
+                dimText.text_updated = True
+
+        idx = 0
+        for textField in dim.textFields:
+            set_text(textField, myobj)
+            
+            textcard = generate_text_card(context, textField, dim, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=0)
+            textField['textcard'] = textcard
+
+            if sceneProps.show_dim_text:
+                draw_text_3D(context, textField, dimProps, myobj, textField['textcard'])
+            idx += 1
 
         # Draw Fill
         draw_filled_coords(filledCoords, fillRGB, polySmooth=False)
@@ -1747,6 +1778,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         # Draw Perimeter
         draw_lines(lineWeight, rgb, perimeterCoords,
                 twoPass=True, pointPass=True)
+
 
         # Draw SVG
         if sceneProps.is_vector_draw:
@@ -3558,7 +3590,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
         startTime = time.time()
 
     for idx, myobj in enumerate(objlist, start=1):
-        if sceneProps.is_render_draw:
+        if sceneProps. is_render_draw:
             print("Rendering Object: " + str(idx) + " of: " +
                   str(totalobjs) + " Name: " + safe_name(myobj.name))
         
