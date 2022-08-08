@@ -1763,7 +1763,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         for textField in dim.textFields:
             set_text(textField, myobj)
             
-            textcard = generate_text_card(context, textField, dim, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=0)
+            textcard = generate_text_card(context, textField, dim, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
             textField['textcard'] = textcard
 
             if sceneProps.show_dim_text:
