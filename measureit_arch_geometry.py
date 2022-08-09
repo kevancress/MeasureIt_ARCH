@@ -173,7 +173,10 @@ def update_text(textobj, props, context, fields=[]):
             fwidth = 0
             for line in lines:
                 fheight += line_height
-                line_width = blf.dimensions(font_id, line + '  ')[0]
+                text = line
+                if props.all_caps:
+                    text = line.upper()
+                line_width = blf.dimensions(font_id, text + '  ')[0]
                 if line_width > fwidth:
                     fwidth = line_width
             
@@ -207,7 +210,10 @@ def update_text(textobj, props, context, fields=[]):
                     y_offset = height - line_height * 0.8
                     for line in lines:
                         blf.position(font_id, 0, y_offset, 0)
-                        blf.draw(font_id, line)
+                        text = line
+                        if props.all_caps:
+                            text = line.upper()
+                        blf.draw(font_id, text)
                         idx += 1
                         y_offset -= line_height * 1.1
 
