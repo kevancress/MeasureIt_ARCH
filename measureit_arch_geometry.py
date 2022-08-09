@@ -2727,9 +2727,12 @@ def set_text(textField, obj, style=None, item=None):
 
         elif textField.textSource == 'TEXT_FILE':
             textField.text = ''
-            for line in textField.textFile.lines:
-                textField.text += line.body
-                textField.text += '\n'
+            try:
+                for line in textField.textFile.lines:
+                    textField.text += line.body
+                    textField.text += '\n'
+            except AttributeError:
+                pass
             
 
         # CUSTOM PROP

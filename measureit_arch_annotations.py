@@ -41,7 +41,7 @@ from bpy.props import (
 )
 from mathutils import Vector
 
-from .measureit_arch_baseclass import BaseWithText
+from .measureit_arch_baseclass import BaseWithText, draw_textfield_settings
 from .measureit_arch_utils import get_smart_selected
 
 
@@ -409,54 +409,8 @@ class OBJECT_PT_UIAnnotations(Panel):
                     txtRemoveOp.add = False
 
                     if annoGen.show_annotation_fields:
-
-                        col = box.column(align=True)
-                        idx = 0
-                        for textField in annotation.textFields:
-                            col = box.column(align=True)
-
-                            row = col.row(align=True)
-
-                            #split = row.split(factor=0.2)
-                            #split.label(text='Text Field ' + str(idx + 1))
-
-                            #row = split.row(align=True)
-                            row.prop(textField, 'autoFillText',
-                                     text="", icon="FILE_TEXT")
-
-                            if textField.autoFillText:
-                                row.prop(textField, 'textSource', text="")
-                            else:
-                                row.prop(textField, 'text', text="")
-
-                            if textField.textSource == 'RNAPROP' and textField.autoFillText:
-                                row.prop(textField, 'rnaProp', text="")
-                            
-                            elif textField.textSource == 'TEXT_FILE' and textField.autoFillText:
-                                row.prop_search(textField, 'textFile', bpy.data, 'texts', text="", icon='TEXT')
-
-                            row.emboss = 'PULLDOWN_MENU'
-                            op = row.operator(
-                                'measureit_arch.moveitem', text="", icon='TRIA_DOWN')
-                            op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
-                            op.upDown = 1
-                            op.idx = idx
-
-                            op = row.operator(
-                                'measureit_arch.moveitem', text="", icon='TRIA_UP')
-                            op.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
-                            op.upDown = -1
-                            op.idx = idx
-
-                            
-                            txtRemoveOp = row.operator(
-                                "measureit_arch.addtextfield", text="", icon="X")
-                            txtRemoveOp.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
-                            txtRemoveOp.idx = idx
-                            txtRemoveOp.add = False
-
-
-                            idx += 1
+                        prop_path = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
+                        draw_textfield_settings(annotation, box, prop_path)
 
                     if annoGen.show_annotation_settings:
                         settingsIcon = 'DISCLOSURE_TRI_DOWN'

@@ -307,6 +307,50 @@ class TextField(PropertyGroup):
         description='flag when text texture need to be redrawn',
         default=False)
 
+def draw_textfield_settings(item, box, prop_path):
+    col = box.column(align=True)
+    idx = 0
+    for textField in item.textFields:
+        col = box.column(align=True)
+
+        row = col.row(align=True)
+
+        row.prop(textField, 'autoFillText',
+                    text="", icon="FILE_TEXT")
+
+        if textField.autoFillText:
+            row.prop(textField, 'textSource', text="")
+        else:
+            row.prop(textField, 'text', text="")
+
+        if textField.textSource == 'RNAPROP' and textField.autoFillText:
+            row.prop(textField, 'rnaProp', text="")
+        
+        elif textField.textSource == 'TEXT_FILE' and textField.autoFillText:
+            row.prop_search(textField, 'textFile', bpy.data, 'texts', text="", icon='TEXT')
+
+        row.emboss = 'PULLDOWN_MENU'
+        op = row.operator('measureit_arch.moveitem', text="", icon='TRIA_DOWN')
+        op.propPath = prop_path
+        op.upDown = 1
+        op.idx = idx
+
+        op = row.operator(
+            'measureit_arch.moveitem', text="", icon='TRIA_UP')
+        op.propPath = prop_path
+        op.upDown = -1
+        op.idx = idx
+
+        
+        txtRemoveOp = row.operator(
+            "measureit_arch.addtextfield", text="", icon="X")
+        txtRemoveOp.propPath = prop_path
+        txtRemoveOp.idx = idx
+        txtRemoveOp.add = False
+
+
+        idx += 1
+
 class BaseWithText(BaseProp):
 
     text: StringProperty(name='legacy text')

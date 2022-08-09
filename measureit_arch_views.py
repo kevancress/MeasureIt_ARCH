@@ -18,7 +18,7 @@ from bpy.types import PropertyGroup, Panel, Operator, UIList
 from bpy.app.handlers import persistent
 
 from .measureit_arch_render import render_main, render_main_svg
-from .measureit_arch_baseclass import TextField
+from .measureit_arch_baseclass import TextField, draw_textfield_settings
 from . measureit_arch_utils import get_loaded_addons, get_view, _imp_scales_dict, _metric_scales_dict
 from .measureit_arch_units import BU_TO_INCHES
 
@@ -928,51 +928,8 @@ class SCENE_PT_Views(Panel):
             txtRemoveOp.add = False
 
             if ViewGen.show_text_fields:
-
-                col = box.column(align=True)
-                idx = 0
-                for textField in view.textFields:
-                    col = box.column(align=True)
-
-                    row = col.row(align=True)
-
-                    split = row.split(factor=0.2)
-                    split.label(text='Text Field ' + str(idx + 1))
-
-                    row = split.row(align=True)
-                    row.prop(textField, 'autoFillText',
-                             text="", icon="FILE_TEXT")
-
-                    if textField.autoFillText:
-                        row.prop(textField, 'textSource', text="")
-                    else:
-                        row.prop(textField, 'text', text="")
-
-                    if textField.textSource == 'RNAPROP' and textField.autoFillText:
-                        row.prop(textField, 'rnaProp', text="")
-
-                    row.emboss = 'PULLDOWN_MENU'
-                    op = row.operator(
-                        'measureit_arch.moveitem', text="", icon='TRIA_DOWN')
-                    op.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
-                    op.upDown = 1
-                    op.idx = idx
-
-                    op = row.operator(
-                        'measureit_arch.moveitem', text="", icon='TRIA_UP')
-                    op.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
-                    op.upDown = -1
-                    op.idx = idx
-
-
-                    txtRemoveOp = row.operator(
-                    "measureit_arch.addtextfield", text="", icon="X")
-                    txtRemoveOp.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
-                    txtRemoveOp.idx = idx
-                    txtRemoveOp.add = False
-
-                    # Increment Index
-                    idx += 1
+                prop_path = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
+                draw_textfield_settings(view, box, prop_path)
 
 
 class SCENE_MT_Views_menu(bpy.types.Menu):
