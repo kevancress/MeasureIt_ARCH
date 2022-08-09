@@ -162,12 +162,22 @@ def update_text(textobj, props, context, fields=[]):
             blf.size(font_id, size, resolution)
 
             text = textField.text
+            lines = text.split('\n')
+
 
             # Calculate Optimal Dimensions for Text Texture.
-            fheight = blf.dimensions(font_id, 'Tpg"')[1]
-            fwidth = blf.dimensions(font_id, text)[0]
+            line_height =  blf.dimensions(font_id, 'Tpg')[1] *1.2
+            
+            fheight = 0
+            fwidth = 0
+            for line in lines:
+                fheight += line_height
+                line_width = blf.dimensions(font_id, line + '  ')[0]
+                if line_width > fwidth:
+                    fwidth = line_width
+            
             width = math.ceil(fwidth)
-            height = math.ceil(fheight * 1.3)
+            height = math.ceil(fheight)
 
             # Save Texture size to textobj Properties
             textField.textHeight = height
@@ -191,9 +201,14 @@ def update_text(textobj, props, context, fields=[]):
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix)
                     gpu.matrix.load_projection_matrix(Matrix.Identity(4))
-
-                    blf.position(font_id, 0, height * 0.3, 0)
-                    blf.draw(font_id, text)
+                    
+                    idx = 1
+                    y_offset = height - line_height * 0.8
+                    for line in lines:
+                        blf.position(font_id, 0, y_offset, 0)
+                        blf.draw(font_id, line)
+                        idx += 1
+                        y_offset -= line_height * 1.1
 
                     # Read Offscreen To Texture Buffer
                     texture_buffer = bgl.Buffer(
@@ -2709,6 +2724,13 @@ def set_text(textField, obj, style=None, item=None):
                 textField.text = text
             else:
                 textField.text = "Not a Curve"
+
+        elif textField.textSource == 'TEXT_FILE':
+            textField.text = ''
+            for line in textField.textFile.lines:
+                textField.text += line.body
+                textField.text += '\n'
+            
 
         # CUSTOM PROP
         elif textField.textSource == 'RNAPROP':

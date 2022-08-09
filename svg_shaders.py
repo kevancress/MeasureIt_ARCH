@@ -294,10 +294,6 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
         text_position = rightVec
         text_anchor = 'end'
 
-    # Height Offset to match the raster texture shift
-    heightOffsetAmount = 0.3 * cardHeight
-    heightOffset = yDirVec.copy().normalized() * heightOffsetAmount
-    offset_text_position = text_position + heightOffset
     
     # Get resolution for text size
     view = get_view()
@@ -317,25 +313,39 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     #skewX = 90-math.degrees(yDirVec.angle_signed(xDirVec))
     #print("Skew: {}".format(skew))
 
+    lines = text.split('\n')
 
     # Draw the text
-    svg.add(svg.text(text, insert=tuple(offset_text_position), fill=svgColor, **{
-        #'transform-origin': '{}px {}px'.format(offset_text_position[0], offset_text_position[1]),
-        'transform': 'rotate({} {} {})'.format(
-            rotation,
-            offset_text_position[0],
-            offset_text_position[1]
-        ),
-        
+    line_height = cardHeight / len(lines)
+    
+    # Height Offset to match the raster texture shift
+    heightOffsetAmount = cardHeight - line_height * 0.8
+    heightOffset = yDirVec.copy().normalized() * heightOffsetAmount
+    offset_text_position = text_position + heightOffset
 
-        # I wish i could tell you why this fudge factor is necessary, but for some reason
-        # spec-ing svg units in inches and using this factor for text size is the only way to get
-        # sensible imports in both inkscape and illustrator
-        'font-size': round(style.fontSize * 4.166666667 / (300 / res), 2),
-        'font-family':  font_family,
-        'text-anchor': text_anchor,
-        'text-align': text_anchor
-    }))
+
+    idx = 0
+    for line in lines:
+        offset_line_position = offset_text_position + Vector((0,line_height * idx))
+        svg.add(svg.text(line, insert=tuple(offset_line_position), fill=svgColor, **{
+            #'transform-origin': '{}px {}px'.format(offset_text_position[0], offset_text_position[1]),
+            'transform': 'rotate({} {} {})'.format(
+                rotation,
+                offset_text_position[0],
+                offset_text_position[1]
+            ),
+            
+
+            # I wish i could tell you why this fudge factor is necessary, but for some reason
+            # spec-ing svg units in inches and using this factor for text size is the only way to get
+            # sensible imports in both inkscape and illustrator
+            'font-size': round(style.fontSize * 4.166666667 / (300 / res), 2),
+            'font-family':  font_family,
+            'text-anchor': text_anchor,
+            'text-align': text_anchor
+        }))
+
+        idx += 1
 
     ## Debug Draw Text Card for troubleshooting
     if bpy.context.scene.MeasureItArchProps.show_text_cards:

@@ -263,6 +263,7 @@ class TextField(PropertyGroup):
                ('SCALE', "Scale", "", 'SNAP_INCREMENT', 6),
                ('VIEWNUM', "Drawing Number", "", 'SORTALPHA', 8),
                ('LENGTH', "Dimension Length", "", 'DRIVER_DISTANCE', 9),
+               ('TEXT_FILE', "Text File", "", 'TEXT', 10),
                ('RNAPROP', "Custom Property", "", 'RNA', 99)),
         name="Text Source",
         default='RNAPROP',
@@ -273,6 +274,10 @@ class TextField(PropertyGroup):
         description="RNA Prop String",
         default="",
         update=update_flag)
+    
+    textFile: PointerProperty(
+        name="TextFile",
+        type = bpy.types.Text)
 
     textAlignment: EnumProperty(
         items=(('L', "Left", "", 'ALIGN_LEFT', 1),

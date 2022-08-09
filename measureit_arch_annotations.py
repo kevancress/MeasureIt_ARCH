@@ -431,6 +431,9 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                             if textField.textSource == 'RNAPROP' and textField.autoFillText:
                                 row.prop(textField, 'rnaProp', text="")
+                            
+                            elif textField.textSource == 'TEXT_FILE' and textField.autoFillText:
+                                row.prop_search(textField, 'textFile', bpy.data, 'texts', text="", icon='TEXT')
 
                             row.emboss = 'PULLDOWN_MENU'
                             op = row.operator(
