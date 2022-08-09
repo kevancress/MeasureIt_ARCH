@@ -342,7 +342,8 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
             'font-size': round(style.fontSize * 4.166666667 / (300 / res), 2),
             'font-family':  font_family,
             'text-anchor': text_anchor,
-            'text-align': text_anchor
+            'text-align': text_anchor,
+            'xml:space' : "preserve"
         }))
 
         idx += 1
