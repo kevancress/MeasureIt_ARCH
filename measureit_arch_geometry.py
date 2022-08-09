@@ -2618,35 +2618,25 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 if not annotationProps.draw_leader:
                     coords = []
 
+                
+
+                draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize)
+
+                # draw_secondary_leader
+                for leader in annotation.secondaryLeaders:
+                    obj = leader.anchor
+                    if obj == None:
+                        continue
+                    anchor_point = obj.location
+
+                    coords.append(anchor_point)
+                    coords.append(p2)
+
+                    draw_annotation_endcaps(annotationProps, endcap, anchor_point , p2, rgb, endcapSize)
+
                 draw_lines(lineWeight, rgb, coords,
                         twoPass=True, pointPass=True)
 
-            # Draw Line Endcaps
-            dotcoord = None
-            if endcap == 'D':
-                pointcoords = [p1]
-                size = endcapSize * get_scale() / 10
-                dotcoord = [p1,size]
-                draw_points(size, rgb, pointcoords, depthpass=True)
-
-
-            filledCoords = []
-            if endcap == 'T':
-                axis = Vector(p1) - Vector(p2)
-                line = interpolate3d(Vector((0, 0, 0)), axis, -0.1)
-                line = Vector(line) * endcapSize * get_scale() / 100
-                perp = line.orthogonal()
-                rotangle = annotationProps.endcapArrowAngle - radians(5)
-                line.rotate(Quaternion(perp, rotangle))
-
-                for idx in range(12):
-                    rotangle = radians(360 / 12)
-                    filledCoords.append(line.copy() + Vector(p1))
-                    filledCoords.append(Vector((0, 0, 0)) + Vector(p1))
-                    line.rotate(Quaternion(axis, rotangle))
-                    filledCoords.append(line.copy() + Vector(p1))
-
-                draw_filled_coords(filledCoords, rgb, polySmooth=False)
 
             if sceneProps.show_dim_text:
                 for textField in fields:
@@ -2673,6 +2663,34 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
             if sceneProps.is_dxf_draw:
                 dxf_shaders.dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf)
+
+def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
+    # Draw Line Endcaps
+    dotcoord = None
+    if endcap == 'D':
+        pointcoords = [p1]
+        size = endcapSize * get_scale() / 10
+        dotcoord = [p1,size]
+        draw_points(size, rgb, pointcoords, depthpass=True)
+
+
+    filledCoords = []
+    if endcap == 'T':
+        axis = Vector(p1) - Vector(p2)
+        line = interpolate3d(Vector((0, 0, 0)), axis, -0.1)
+        line = Vector(line) * endcapSize * get_scale() / 100
+        perp = line.orthogonal()
+        rotangle = annotationProps.endcapArrowAngle - radians(5)
+        line.rotate(Quaternion(perp, rotangle))
+
+        for idx in range(12):
+            rotangle = radians(360 / 12)
+            filledCoords.append(line.copy() + Vector(p1))
+            filledCoords.append(Vector((0, 0, 0)) + Vector(p1))
+            line.rotate(Quaternion(axis, rotangle))
+            filledCoords.append(line.copy() + Vector(p1))
+
+        draw_filled_coords(filledCoords, rgb, polySmooth=False)
 
 def set_text(textField, obj, style=None, item=None):
     

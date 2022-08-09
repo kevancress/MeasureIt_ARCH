@@ -105,6 +105,7 @@ classes = (
     # Annotations
     measureit_arch_annotations.OBJECT_PT_UIAnnotations,
     measureit_arch_annotations.CustomProperties,
+    measureit_arch_annotations.SecondaryLeader,
     measureit_arch_annotations.AnnotationProperties,
     measureit_arch_annotations.AnnotationContainer,
     measureit_arch_annotations.AddAnnotationButton,

@@ -88,9 +88,14 @@ def custom_shape_poll(self, collection):
     except:
         return collection
 
+class SecondaryLeader(PropertyGroup):
+    anchor: PointerProperty(type = Object)
+
 
 class AnnotationProperties(BaseWithText, PropertyGroup):
     customProperties: CollectionProperty(type=CustomProperties)
+
+    secondaryLeaders: CollectionProperty(type=SecondaryLeader)
 
     customShape: PointerProperty(
         name='Custom Annotation Shape', type=Collection, poll=custom_shape_poll)
@@ -417,6 +422,42 @@ class OBJECT_PT_UIAnnotations(Panel):
                     else:
                         settingsIcon = 'DISCLOSURE_TRI_RIGHT'
 
+                    # Leaders
+                    box = layout.box()
+                    col = box.column()
+                    row = col.row()
+                    row.label(text=annotation.name + ' Leader Anchors:')
+
+                    prop_path = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].secondaryLeaders'
+
+                    row.emboss = 'PULLDOWN_MENU'
+
+                    txtAddOp = row.operator(
+                        "measureit_arch.addtextfield", text="", icon="ADD")
+                    txtAddOp.propPath = prop_path
+                    txtAddOp.add = True
+                    
+                    idx = 0
+                    for leader in annotation.secondaryLeaders:
+                        
+                        col = box.column()
+                        row = col.row()
+                        row.prop_search(leader, 'anchor', bpy.data, 'objects', text = 'Leader Anchor')
+
+                        row.emboss = 'PULLDOWN_MENU'
+
+                        txtRemoveOp = row.operator(
+                            "measureit_arch.addtextfield", text="", icon="REMOVE")
+                        txtRemoveOp.propPath = prop_path
+                        txtRemoveOp.idx = idx
+                        txtRemoveOp.add = False
+
+                        idx += 1
+
+
+
+
+                    # Settings
                     box = layout.box()
                     col = box.column()
                     row = col.row()
