@@ -23,6 +23,7 @@
 #
 # ----------------------------------------------------------
 
+from textwrap import fill
 import bpy
 import gpu
 import bgl
@@ -2619,9 +2620,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                     coords = []
 
                 
-
-                draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize)
-
+                dotcoords = []
+                filledcoords = []
+                dot,fill = draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize)
+                dotcoords.append(dot)
+                filledcoords.append(fill)
                 # draw_secondary_leader
                 for leader in annotation.secondaryLeaders:
                     obj = leader.anchor
@@ -2632,7 +2635,9 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                     coords.append(anchor_point)
                     coords.append(p2)
 
-                    draw_annotation_endcaps(annotationProps, endcap, anchor_point , p2, rgb, endcapSize)
+                    dot,fill = draw_annotation_endcaps(annotationProps, endcap, anchor_point , p2, rgb, endcapSize)
+                    dotcoords.append(dot)
+                    filledcoords.append(fill)
 
                 draw_lines(lineWeight, rgb, coords,
                         twoPass=True, pointPass=True)
@@ -2652,10 +2657,12 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                         annotation, annotationProps, customCoords, lineWeight, rgb, svg, parent=svg_anno)
                     svg_shaders.svg_fill_shader(
                         annotation, customFilledCoords, rgb, svg, parent=svg_anno)
-                if dotcoord:
-                    svg_shaders.svg_circle_shader(annotation,dotcoord[0],dotcoord[1],rgb,svg,parent=svg_anno)
-                svg_shaders.svg_fill_shader(
-                    annotation, filledCoords, rgb, svg, parent=svg_anno)
+                for dotcoord in dotcoords:
+                    if dotcoord:
+                        svg_shaders.svg_circle_shader(annotation,dotcoord[0],dotcoord[1],rgb,svg,parent=svg_anno)
+                for fill in filledcoords:
+                    svg_shaders.svg_fill_shader(
+                        annotation, fill, rgb, svg, parent=svg_anno)
                 for textField in fields:
                     textcard = textField['textcard']
                     svg_shaders.svg_text_shader(
@@ -2691,6 +2698,8 @@ def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
             filledCoords.append(line.copy() + Vector(p1))
 
         draw_filled_coords(filledCoords, rgb, polySmooth=False)
+    
+    return dotcoord, filledCoords
 
 def set_text(textField, obj, style=None, item=None):
     
