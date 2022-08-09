@@ -2703,6 +2703,7 @@ def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
 
 def set_text(textField, obj, style=None, item=None):
     
+    old_text = textField.text
 
     if textField.autoFillText:
         # DATE
@@ -2781,7 +2782,8 @@ def set_text(textField, obj, style=None, item=None):
     if style != None and style.all_caps and (style.text_updated or bpy.context.scene.MeasureItArchProps.is_render_draw):
         textField.text = textField.text.upper()
 
-
+    if old_text == textField.text:
+        textField.text_updated = False
 # This is a one off for a project where I need to preview the
 # "create dual mesh" Operator from Alessandro Zomparelli's tissue addon.
 # Keeping it here untill I can create a pull request for tissue to discuss adding it in there.
