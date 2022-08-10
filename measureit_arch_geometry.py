@@ -2574,13 +2574,6 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             notesFlag = False
             for textField in annotation.textFields:
                 fields.append(textField)
-                if textField.autoFillText and textField.textSource == 'NOTES':
-                    notesFlag = True
-
-            if notesFlag:
-                view = get_view()
-                for textField in view.textFields:
-                    fields.append(textField)
 
             for textField in fields:
                 if instance is None:
@@ -2726,7 +2719,12 @@ def set_text(textField, obj, style=None, item=None):
 
         # NOTES, (actually we set this in the draw annotation code since it needs to spawn new texfields)
         elif textField.textSource == 'NOTES':
+            view = get_view()
             textField.text = ''
+            for viewField in view.textFields:
+                set_text(viewField, None)
+                textField.text += viewField.text
+                textField.text += '\n'
 
         elif textField.textSource == 'SCALE':
             view = get_view()
