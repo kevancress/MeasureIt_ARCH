@@ -2375,7 +2375,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
     gpu.shader.unbind()
 
 
-def get_color(rawRGB, myobj, is_active=True, only_active=True, cad_col_idx = 256):
+def get_color(rawRGB, myobj, is_active=True, only_active=False, cad_col_idx = 256):
     # undo blenders Default Gamma Correction
 
     context = bpy.context

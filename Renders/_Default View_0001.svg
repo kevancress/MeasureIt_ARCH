@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink" baseProfile="full" height="11.024in" id="root" version="1.1" viewBox="0 0 2539 1653" width="16.929in">
+  <defs/>
+  <g id="Cube"/>
+  <g fill="none" id="Line 1_dashed_lines" stroke="rgb(0%,0%,0%)" stroke-linecap="round" stroke-width="1.0">
+    <line stroke-linecap="round" x1="1030.0196302831173" x2="1110.7596836686134" y1="509.40415728092194" y2="926.5436870455742"/>
+    <line stroke-linecap="round" x1="1110.7596836686134" x2="756.1991866528988" y1="926.5436870455742" y2="845.8036523759365"/>
+    <line stroke-linecap="round" x1="756.1991866528988" x2="675.4591332674026" y1="845.8036523759365" y2="428.66407334804535"/>
+  </g>
+  <g fill="none" id="Line 1_dashed_lines" stroke="rgb(0%,0%,0%)" stroke-dasharray="5,5" stroke-linecap="butt" stroke-width="1.0"/>
+  <g id="Drawing"/>
+  <g id="Titleblock"/>
+</svg>
