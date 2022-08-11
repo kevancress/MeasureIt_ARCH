@@ -95,8 +95,8 @@ def createDimOffsetGiz(group, dim, objIndex, idx, dimStr):
     rot = k.rotation_difference(dim.gizRotDir)
     rotMatrix = rot.to_matrix()
     rotMatrix.resize_4x4()
-
-    basisMatrix.translation = Vector(dim.gizLoc) + (Vector(dim.gizRotDir) * -0.1)
+    
+    basisMatrix.translation = Vector(dim.gizLoc) + (Vector(dim.gizRotDir) * -0.1 * dim['lenght'])
     basisMatrix = basisMatrix @ rotMatrix
 
     # Offset Gizmo

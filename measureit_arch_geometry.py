@@ -583,6 +583,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
         # Set Gizmo Props
         dim.gizLoc = textLoc
         dim.gizRotDir = userOffsetVector
+        dim['lenght'] = dist
 
         origin = Vector(textLoc)
 
