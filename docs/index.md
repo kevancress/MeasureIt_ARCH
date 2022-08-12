@@ -2,39 +2,25 @@
 
 MeasureIt_ARCH is a fork of Antonio Vazquez's MeasureIt Addon.
 
-## Click the image below to watch the latest update video
-[![MeasureIt_ARCH Intro Video](docs/Title_card.png)](https://www.youtube.com/watch?v=MWo87QvcEPk)
+
 
 ## Installation
 
-There are two ways to install the add-on:
- * Stable release
- * Latest git master (recommended)
-
-### Stable release
-
  * [Install Blender 2.8 or higher](https://www.blender.org/download/)
- * Download the latest zip file from [the releases page](https://github.com/kevancress/MeasureIt_ARCH/releases)
+ * Download the latest zip file from https://github.com/kevancress/MeasureIt_ARCH
  * Open the __Add-on Preferences (Edit -> Preferences -> Add-ons)__ and click install.
 
-![image](docs/install-1.jpg)
+![image](images/install-1.jpg)
 
  * Navigate to and double click on the "MeasureIt_ARCH_VERSION.zip"
  * Click the Checkbox to enable the Add-on
-
-### Latest git master
-
- * [Install Blender 2.8 or higher](https://www.blender.org/download/)
- * Locate your platform and Blender installation specific Blender addons directory:
-   * On Windows, this is usually `/Program Files/Blender Foundation/Blender BLENDER_VERSION/BLENDER_VERSION/scripts/addons`
-   * On Mac, this is usually `/Applications/Blender.app/Contents/Resources/BLENDER_VERSION/scripts/addons`
 
 
 ## Features & User Interface
 
 ### Main Tool Panel
 
-![image](docs/__ui-main-tool-panel.jpg)
+![image](images/__ui-main-tool-panel.jpg)
 
 The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scene. This panel is located on the right of the __3D Viewport__. Tool panel visibility can be toggled by pressing the "n" key.
 
@@ -62,7 +48,7 @@ The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scen
    * Object Mode: Select two objects and then press the Aligned Button.
    * Edit Mode: Select two or more Vertices and press the Aligned Button.
 
-![image](docs/ui-aligned.jpg)
+![image](images/ui-aligned.jpg)
 
 ##### Axis
 
@@ -72,7 +58,7 @@ The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scen
 
  * __Axis Selection__: Picks the axes to be dimensioned on creation.
 
-![image](docs/ui-axis.jpg)
+![image](images/ui-axis.jpg)
 
 ##### Bounds (Object Mode Only)
 
@@ -84,13 +70,13 @@ The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scen
  * Adds an Angle Dimension for 3 selected vertices.
    * The 2nd vertex selected defines the corner of the angle.
 
-![image](docs/ui-angle.jpg)
+![image](images/ui-angle.jpg)
 
 ##### Arc (Edit Mode Only)
 
  * Adds an Arc Dimension circumscribing the 3 selected vertices.
 
-![image](docs/ui-arc.jpg)
+![image](images/ui-arc.jpg)
 
 ##### Area (Edit Mode Only)
 
@@ -115,7 +101,7 @@ The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scen
    * Creates a Line Group from selected edges. Select the desired edges in edit mode and press the Line button.
 ##### Line Group by Crease (Object Mode Only)
    * Creates a Line Group from any edges sharper than the specified crease angle.
-![image](docs/ui-line-crease.jpg)
+![image](images/ui-line-crease.jpg)
 
 ##### Dynamic Line Group(Object Mode Only)
   * Same behaviour as Line Group by Crease, but will refresh automatically when entering and leaving Edit Mode (**NOTE:** May be slow on large meshes)
@@ -127,7 +113,7 @@ The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scen
 
 ##### Annotation:
  * Adds an Annotation to the selected Object or Vertex.
- ![image](docs/ui-annotation-examples.jpg)
+ ![image](images/ui-annotation-examples.jpg)
 
 ##### Annotation Style (Color Swatch Icon):
   * Style to be assigned to new Annotation on creation.
@@ -135,11 +121,11 @@ The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scen
 ### MeasureIt_ARCH Scene Settings
 Found in the Scene Tab of the Properties Editor.
 
-![image](docs/__ui-scene.jpg)
+![image](images/__ui-scene.jpg)
 
 #### MeasureIt_ARCH Unit Settings
 
-![image](docs/__ui-units.jpg)
+![image](images/__ui-units.jpg)
 
 MeasureIt_ARCH Unit Settings can be found in Blender's Scene Settings under the Units panel.
 
@@ -160,14 +146,14 @@ MeasureIt_ARCH Unit Settings can be found in Blender's Scene Settings under the 
 
 Styles have a nearly identical user interface to their corresponding items. Style-able properties can be found in the item's settings.
 
-![image](docs/__ui-styles.jpg)
+![image](images/__ui-styles.jpg)
 
 Note that some settings, like an Annotations Offset, or a Dimensions Distance, are still set per item, even when using a style.
 
 #### Views
 Define Named Views.
 
-![image](docs/__ui-views.jpg)
+![image](images/__ui-views.jpg)
 * __Camera__: Sets View Camera
 * __Camera Type__: Sets the type of camera for this view (Orthographic or Perspective)
 * __View Layer__: Sets the View Layer to be used for this view
@@ -185,7 +171,7 @@ Define Named Views.
 #### Hatches
 Define Hatches to be used in Vector Exports.
 
-![image](docs/__ui-hatches.jpg)
+![image](images/__ui-hatches.jpg)
 * __Material__: The Material to apply this hatch to
 *  __Render Visibility__: Toggles if this hatch should be applied on vector export or not
 * __Fill Color__: Solid Fill color for this Hatch (Set Alpha to 0 for none)
@@ -203,7 +189,7 @@ Define Hatches to be used in Vector Exports.
 #### Schedules
 Create Schedules that can exported to a .csv spreadsheet
 
-![image](docs/__ui-schedules.jpg)
+![image](images/__ui-schedules.jpg)
 
 __General Settings__
 * __Generate Schedule__: Exports a .csv schedule to the output path
@@ -224,7 +210,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 
 ####  Settings
 
-![image](docs/__ui-settings.jpg)
+![image](images/__ui-settings.jpg)
 
 ##### Hide Units
 
@@ -255,7 +241,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
  * Will Enable Dimension Instancing.
    * __WARNING__: Text on instanced Dimensions will not account for changes in the instances local scale or rotation.
 
-![image](docs/ui-instance.jpg)
+![image](images/ui-instance.jpg)
 
 #### Object Settings
 
@@ -264,7 +250,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 
 #### Dimensions
 
-![image](docs/ui-dimensions.jpg)
+![image](images/ui-dimensions.jpg)
 
  * __Color__: Sets Dimension Color.
  * __Link Style (Link or Broken Link Icon)__: Toggles if this Dimension uses a Style.
@@ -278,7 +264,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 
 #### Dimension Settings
 
-![image](docs/ui-dimensions-settings.jpg)
+![image](images/ui-dimensions-settings.jpg)
 
  * __Font__: Lets you select a custom font for the Dimension.
  * __View Plane__: The preferred view plane for the Dimension.
@@ -298,7 +284,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
  * __Font Size__: The Dimension font size.
  * __Resolution__: The Dimension font resolution.
  * __Alignment__: The Dimension text alignment relative to the dimension line (Left, Center, Right).
- * __Arrow Start & End__: Set the style of the dimension terminations. ![image](docs/ui-arrowstyles.jpg)
+ * __Arrow Start & End__: Set the style of the dimension terminations. ![image](images/ui-arrowstyles.jpg)
  * __Arrow Size__: The size of the Dimension's terminations.
  * __Arrow Angle__: The angle of Dimension's triangle and arrow terminations.
  * __Draw In Front__: Makes this element Ignore Visibility tests.
@@ -306,7 +292,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 
 #### Line Groups
 
-![image](docs/ui-linegroups.jpg)
+![image](images/ui-linegroups.jpg)
 
  * __Color__: Sets Line Group Color.
  * __Draw Hidden Lines (Cube with Dashed Lines Icon)__: This Line Group will draw hidden lines as dashed lines.
@@ -319,14 +305,14 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 
 #### Line Group Settings
 
-![image](docs/ui-linegroups-settings.jpg)
+![image](images/ui-linegroups-settings.jpg)
  * __Line Weight__: Set the Line Group's line weight.
  * __Line Weight Group__: Use a vertex group's values to modify the line weight.
  * __Influence__: Adjust the influence of the Line Weight Group.
  * __Z Offset__: Tweaks the Line Group's Distance from the screen in Clip Space. Higher values move the Lines closer to the screen.
    * This is useful for adjusting Line Groups that don't appear to be drawing correctly (Jagged Edges, etc.).
-   * Making this value negative allows for the drawing of silhouettes. Higher values will move lines further backwards ![image](docs/ui-z-offset.jpg)
- * __Extension__: Adds a slight over-extension to each line segment in this Line Group. ![image](docs/ui-extension.jpg)
+   * Making this value negative allows for the drawing of silhouettes. Higher values will move lines further backwards ![image](images/ui-z-offset.jpg)
+ * __Extension__: Adds a slight over-extension to each line segment in this Line Group. ![image](images/ui-extension.jpg)
  * __Hidden Line Color (Only Available if Draw Hidden Lines is Enabled)__: Sets the color of hidden lines.
  * __Hidden Line Weight (Only Available if Draw Hidden Lines is Enabled)__: Sets the line weight of hidden lines.
  * __Dash Scale (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)__: Changes the dash size of dashed lines. Larger values make smaller dashes.
@@ -338,7 +324,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 
 #### Annotations
 
-![image](docs/ui-annotations.jpg)
+![image](images/ui-annotations.jpg)
 
  * __Color__: Sets Annotation Color.
  * __Link Style (Link or Broken Link Icon)__: Toggles if this Annotation uses a Style.
@@ -350,7 +336,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 
 #### Annotation Settings
 
-![image](docs/ui-annotation-settings.jpg)
+![image](images/ui-annotation-settings.jpg)
 
  * __Text Field__: Sets the text for the annotation.
    * Annotations can have multiple text fields, each new text field will display as a new line in the Annotation Text.
@@ -373,7 +359,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 
 #### Rendering
 
-![image](docs/__ui-render.jpg)
+![image](images/__ui-render.jpg)
 
 MeasureIt_ARCH Render Settings can be found in the Render Panel of the Properties Editor. Currently this renders all MeasureIt_ARCH items to an image file which can be layered over Blender's render in the compositor.
 
