@@ -3,18 +3,18 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/Report/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/linegroups/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>About - MeasureIt_ARCH Docs</title>
+    <title>Line Groups - MeasureIt_ARCH Docs</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "About";
-        var mkdocs_page_input_path = "Report.md";
-        var mkdocs_page_url = "/MeasureIt_ARCH/Report/";
+        var mkdocs_page_name = "Line Groups";
+        var mkdocs_page_input_path = "linegroups.md";
+        var mkdocs_page_url = "/MeasureIt_ARCH/linegroups/";
       </script>
     
     <script src="../js/jquery-3.6.0.min.js" defer></script>
@@ -44,8 +44,8 @@
                 <li class="toctree-l1"><a class="reference internal" href="../old_docs/">Home</a>
                 </li>
               </ul>
-              <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="./">About</a>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../Report/">About</a>
                 </li>
               </ul>
               <ul>
@@ -56,8 +56,12 @@
                 <li class="toctree-l1"><a class="reference internal" href="../dimensions/">Dimensions</a>
                 </li>
               </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../linegroups/">Line Groups</a>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Line Groups</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#line-group-settings">Line Group Settings</a>
+    </li>
+    </ul>
                 </li>
               </ul>
               <ul>
@@ -86,7 +90,7 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-      <li>About</li>
+      <li>Line Groups</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -95,14 +99,41 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>hello world</p>
-<p>this will be the issue reporting page</p>
+                <h1 id="line-groups">Line Groups</h1>
+<p><img alt="image" src="../images/ui-linegroups.jpg" /></p>
+<ul>
+<li><strong>Color</strong>: Sets Line Group Color.</li>
+<li><strong>Draw Hidden Lines (Cube with Dashed Lines Icon)</strong>: This Line Group will draw hidden lines as dashed lines.</li>
+<li><strong>Link Style (Link or Broken Link Icon)</strong>: Toggles if this Line Group uses a Style.</li>
+<li><strong>Visibility (Eye Icon)</strong>: Toggles visibility of the Line Group.</li>
+<li><strong>Delete (x Icon)</strong>: Deletes the Line Group.</li>
+<li><strong>Line Group Menu (Chevron Icon)</strong></li>
+<li><strong>Add to Line Group (Edit Mode Only)</strong>: Adds selected Edges to this Line Group.</li>
+<li><strong>Remove from Line Group (Edit Mode Only)</strong>: Removes selected Edges from this Line Group.</li>
+</ul>
+<h4 id="line-group-settings">Line Group Settings</h4>
+<p><img alt="image" src="../images/ui-linegroups-settings.jpg" />
+ * <strong>Line Weight</strong>: Set the Line Group's line weight.
+ * <strong>Line Weight Group</strong>: Use a vertex group's values to modify the line weight.
+ * <strong>Influence</strong>: Adjust the influence of the Line Weight Group.
+ * <strong>Z Offset</strong>: Tweaks the Line Group's Distance from the screen in Clip Space. Higher values move the Lines closer to the screen.
+   * This is useful for adjusting Line Groups that don't appear to be drawing correctly (Jagged Edges, etc.).
+   * Making this value negative allows for the drawing of silhouettes. Higher values will move lines further backwards <img alt="image" src="../images/ui-z-offset.jpg" />
+ * <strong>Extension</strong>: Adds a slight over-extension to each line segment in this Line Group. <img alt="image" src="../images/ui-extension.jpg" />
+ * <strong>Hidden Line Color (Only Available if Draw Hidden Lines is Enabled)</strong>: Sets the color of hidden lines.
+ * <strong>Hidden Line Weight (Only Available if Draw Hidden Lines is Enabled)</strong>: Sets the line weight of hidden lines.
+ * <strong>Dash Scale (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)</strong>: Changes the dash size of dashed lines. Larger values make smaller dashes.
+ * <strong>Dash Spacing (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)</strong>: Changes the dash spacing for dashed lines. 0.5 gives even spacing.
+ * <strong>Draw Dashed</strong>: Draws all lines in this Line Group as dashed lines, regardless of visibility.
+ * <strong>Screen Space Dashes</strong>: Calculates Dash Spacing in Screen Space. Useful to achieve more even dashes in still renders when some lines are nearly parallel to the view. Can cause dashes to appear to 'slide' along edges when used in animations.
+ * <strong>Draw In Front</strong>: Makes this element Ignore Visibility tests.
+ * <strong>Evaluate Depsgraph</strong>: Evaluate Blender's Dependency Graph before drawing this MeasureIt_ARCH element.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../old_docs/" class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../install/" class="btn btn-neutral float-right" title="Install">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../dimensions/" class="btn btn-neutral float-left" title="Dimensions"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../annotations/" class="btn btn-neutral float-right" title="Annotations">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -125,10 +156,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../old_docs/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../dimensions/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../install/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../annotations/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

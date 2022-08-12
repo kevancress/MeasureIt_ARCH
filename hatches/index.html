@@ -3,18 +3,18 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/Report/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/hatches/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>About - MeasureIt_ARCH Docs</title>
+    <title>Hatches - MeasureIt_ARCH Docs</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
     
       <script>
         // Current page data
-        var mkdocs_page_name = "About";
-        var mkdocs_page_input_path = "Report.md";
-        var mkdocs_page_url = "/MeasureIt_ARCH/Report/";
+        var mkdocs_page_name = "Hatches";
+        var mkdocs_page_input_path = "hatches.md";
+        var mkdocs_page_url = "/MeasureIt_ARCH/hatches/";
       </script>
     
     <script src="../js/jquery-3.6.0.min.js" defer></script>
@@ -44,8 +44,8 @@
                 <li class="toctree-l1"><a class="reference internal" href="../old_docs/">Home</a>
                 </li>
               </ul>
-              <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="./">About</a>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../Report/">About</a>
                 </li>
               </ul>
               <ul>
@@ -68,8 +68,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="../views/">Views</a>
                 </li>
               </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Hatches</a>
+    <ul class="current">
+    </ul>
                 </li>
               </ul>
       </div>
@@ -86,7 +88,7 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-      <li>About</li>
+      <li>Hatches</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -95,14 +97,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <p>hello world</p>
-<p>this will be the issue reporting page</p>
+                <h1 id="hatches">Hatches</h1>
+<p>Define Hatches to be used in Vector Exports.</p>
+<p><img alt="image" src="../images/__ui-hatches.jpg" />
+* <strong>Material</strong>: The Material to apply this hatch to
+*  <strong>Render Visibility</strong>: Toggles if this hatch should be applied on vector export or not
+* <strong>Fill Color</strong>: Solid Fill color for this Hatch (Set Alpha to 0 for none)
+* <strong>Line Color</strong>: Outline Line Color for this Hatch (Set Alpha to 0 for none)
+* <strong>Line Weight</strong>: Line Wight for the Outline Line of this Hatch
+*  <strong>Pattern</strong>: A collection to use as a custom pattern fill for this hatch.
+    *  Hatch Patterns can be defined in the 0 to 1 range on the x,y plane.
+    *  Hatch Patterns will draw all edges of objects in the hatch collection as the custom pattern
+*  <strong>Pattern Weight</strong>: Line Weight for the pattern fill
+*  <strong>Pattern Size</strong>: Scale factor for the pattern fill
+*  <strong>Pattern Rotation</strong>: Rotates the pattern fill for this hatch.
+*  <strong>Pattern Opacity</strong>: Sets the opacity for the pattern fill for this hatch.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../old_docs/" class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../install/" class="btn btn-neutral float-right" title="Install">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../views/" class="btn btn-neutral float-left" title="Views"><span class="icon icon-circle-arrow-left"></span> Previous</a>
     </div>
 
   <hr/>
@@ -125,10 +139,8 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../old_docs/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../views/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
-    
-      <span><a href="../install/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
