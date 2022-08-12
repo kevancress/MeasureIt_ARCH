@@ -1,4 +1,4 @@
-# MeasureIt_ARCH Dimension, Annotation and Linework tools for Blender 2.8
+# MeasureIt_ARCH Dimension, Annotation and Linework tools for Blender 3.0
 
 MeasureIt_ARCH is a fork of Antonio Vazquez's MeasureIt Addon.
 
