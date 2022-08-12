@@ -1,8 +1,16 @@
-site_name: My Docs
+site_name: MeasureIt_ARCH Docs
 site_url: https://kevancress.github.io/MeasureIt_ARCH/
+toc_depth: 2
 
 nav:
     - Home: old_docs.md
     - About: Report.md
+    - Install: install.md
+    - Dimensions: dimensions.md
+    - Line Groups: linegroups.md
+    - Annotations: annotations.md
+    - Views: views.md
+    - Hatches: hatches.md
+    - Rendering: render.md
 
 theme: readthedocs

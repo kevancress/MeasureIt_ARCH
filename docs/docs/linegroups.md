@@ -1,0 +1,49 @@
+
+# Line Groups
+
+## Add Lines
+
+##### Line Group (Edit Mode Only)
+   * Creates a Line Group from selected edges. Select the desired edges in edit mode and press the Line button.
+##### Line Group by Crease (Object Mode Only)
+   * Creates a Line Group from any edges sharper than the specified crease angle.
+![image](images/ui-line-crease.jpg)
+
+##### Dynamic Line Group(Object Mode Only)
+  * Same behaviour as Line Group by Crease, but will refresh automatically when entering and leaving Edit Mode (**NOTE:** May be slow on large meshes)
+
+##### Line Style (Color Swatch Icon):
+  * Style to be assigned to a new Line Group on creation.
+
+## Line Group List
+
+![image](images/ui-linegroups.jpg)
+
+ * __Color__: Sets Line Group Color.
+ * __Draw Hidden Lines (Cube with Dashed Lines Icon)__: This Line Group will draw hidden lines as dashed lines.
+ * __Link Style (Link or Broken Link Icon)__: Toggles if this Line Group uses a Style.
+ * __Visibility (Eye Icon)__: Toggles visibility of the Line Group.
+ * __Delete (x Icon)__: Deletes the Line Group.
+ * __Line Group Menu (Chevron Icon)__
+   * __Add to Line Group (Edit Mode Only)__: Adds selected Edges to this Line Group.
+   * __Remove from Line Group (Edit Mode Only)__: Removes selected Edges from this Line Group.
+
+## Line Group Settings
+
+![image](images/ui-linegroups-settings.jpg)
+
+ * __Line Weight__: Set the Line Group's line weight.
+ * __Line Weight Group__: Use a vertex group's values to modify the line weight.
+ * __Influence__: Adjust the influence of the Line Weight Group.
+ * __Z Offset__: Tweaks the Line Group's Distance from the screen in Clip Space. Higher values move the Lines closer to the screen.
+   * This is useful for adjusting Line Groups that don't appear to be drawing correctly (Jagged Edges, etc.).
+   * Making this value negative allows for the drawing of silhouettes. Higher values will move lines further backwards ![image](images/ui-z-offset.jpg)
+ * __Extension__: Adds a slight over-extension to each line segment in this Line Group. ![image](images/ui-extension.jpg)
+ * __Hidden Line Color (Only Available if Draw Hidden Lines is Enabled)__: Sets the color of hidden lines.
+ * __Hidden Line Weight (Only Available if Draw Hidden Lines is Enabled)__: Sets the line weight of hidden lines.
+ * __Dash Scale (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)__: Changes the dash size of dashed lines. Larger values make smaller dashes.
+ * __Dash Spacing (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)__: Changes the dash spacing for dashed lines. 0.5 gives even spacing.
+ * __Draw Dashed__: Draws all lines in this Line Group as dashed lines, regardless of visibility.
+ * __Screen Space Dashes__: Calculates Dash Spacing in Screen Space. Useful to achieve more even dashes in still renders when some lines are nearly parallel to the view. Can cause dashes to appear to 'slide' along edges when used in animations.
+ * __Draw In Front__: Makes this element Ignore Visibility tests.
+ * __Evaluate Depsgraph__: Evaluate Blender's Dependency Graph before drawing this MeasureIt_ARCH element.
