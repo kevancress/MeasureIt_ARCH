@@ -1,4 +1,5 @@
 site_name: My Docs
+site_url: https://kevancress.github.io/MeasureIt_ARCH/
 
 nav:
     - Home: old_docs.md
