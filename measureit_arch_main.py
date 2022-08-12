@@ -32,6 +32,7 @@ from mathutils import Vector, Matrix
 
 from .measureit_arch_geometry import clear_batches, update_text, draw3d_loop, preview_dual
 from .measureit_arch_utils import get_view, get_rv3d
+from .gitcommit import prev_commit,date
 
 
 @persistent
@@ -110,7 +111,7 @@ def save_handler(dummy):
 # ------------------------------------------------------------------
 class MEASUREIT_PT_main_panel(Panel):
     bl_idname = "MEASUREIT_PT_main_panel"
-    bl_label = "MeasureIt_ARCH v0.5.0(dev)"
+    bl_label = "MeasureIt_ARCH v0.5.0(dev-{})".format(prev_commit)
     bl_space_type = 'VIEW_3D'
     bl_region_type = "UI"
     bl_category = 'MeasureIt_ARCH'
@@ -286,6 +287,10 @@ class SCENE_PT_MARCH_Settings(Panel):
         if sceneProps.enable_experimental:
             col.prop(sceneProps, "instance_dims")
         # col.prop(sceneProps, "debug_flip_text")
+
+        col.label(text = "MeasureIt_ARCH Version Info:")
+        col.label(text = "Prev Commit Hash: {}".format(prev_commit))
+        col.label(text = "Prev Commit Date: {}".format(date))
 
 
 class ShowHideViewportButton(Operator):
