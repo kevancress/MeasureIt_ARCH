@@ -1,0 +1,7 @@
+site_name: My Docs
+
+nav:
+    - Home: old_docs.md
+    - About: Report.md
+
+theme: readthedocs
