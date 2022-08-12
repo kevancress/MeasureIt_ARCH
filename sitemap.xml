@@ -41,6 +41,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://kevancress.github.io/MeasureIt_ARCH/render/</loc>
+         <lastmod>2022-08-12</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://kevancress.github.io/MeasureIt_ARCH/views/</loc>
          <lastmod>2022-08-12</lastmod>
          <changefreq>daily</changefreq>

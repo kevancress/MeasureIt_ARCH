@@ -62,6 +62,22 @@
               </ul>
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="./">Annotations</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#add-annotations">Add Annotations</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#annotation">Annotation:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#annotation-style-color-swatch-icon">Annotation Style (Color Swatch Icon):</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#annotation-menu">Annotation Menu</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#annotation-settings">Annotation Settings</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
                 </li>
               </ul>
               <ul>
@@ -70,6 +86,10 @@
               </ul>
               <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../render/">Rendering</a>
                 </li>
               </ul>
       </div>
@@ -95,7 +115,50 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                
+                <h1 id="annotations">Annotations</h1>
+<h2 id="add-annotations">Add Annotations</h2>
+<h5 id="annotation">Annotation:</h5>
+<ul>
+<li>Adds an Annotation to the selected Object or Vertex.
+ <img alt="image" src="../images/ui-annotation-examples.jpg" /></li>
+</ul>
+<h5 id="annotation-style-color-swatch-icon">Annotation Style (Color Swatch Icon):</h5>
+<ul>
+<li>Style to be assigned to new Annotation on creation.</li>
+</ul>
+<h2 id="annotation-menu">Annotation Menu</h2>
+<p><img alt="image" src="../images/ui-annotations.jpg" /></p>
+<ul>
+<li><strong>Color</strong>: Sets Annotation Color.</li>
+<li><strong>Link Style (Link or Broken Link Icon)</strong>: Toggles if this Annotation uses a Style.</li>
+<li><strong>Visibility (Eye Icon)</strong>: Toggles the Annotations visibility.</li>
+<li><strong>Delete (x Icon)</strong>: Deletes the Annotation.</li>
+<li><strong>Annotation Menu (Chevron Icon)</strong></li>
+<li><strong>Add Text Field</strong>: Adds a text field to the selected Annotation.</li>
+<li><strong>Remove Text Field</strong>: Removes the last text field from the selected Annotation.</li>
+</ul>
+<h4 id="annotation-settings">Annotation Settings</h4>
+<p><img alt="image" src="../images/ui-annotation-settings.jpg" /></p>
+<ul>
+<li><strong>Text Field</strong>: Sets the text for the annotation.</li>
+<li>Annotations can have multiple text fields, each new text field will display as a new line in the Annotation Text.</li>
+<li><strong>Font</strong>: Lets you select a custom font for the Annotation from your system.</li>
+<li><strong>Text Source</strong>: MeasureIt_ARCH can pull annotation text from an objects Custom Properties metadata. This field defines the source custom property.</li>
+<li>If two text fields are available, MeasureIt_ARCH will use the first to display the custom properties name, and the second to display the value.</li>
+<li>If only one text field is available, only the value will be displayed.</li>
+<li><strong>Size</strong>: The Annotation font size.</li>
+<li><strong>Resolution</strong>: The Annotation font resolution.</li>
+<li><strong>Justification</strong>: Text Justification relative to the end of the Annotation leader line (Left, Center, Right).</li>
+<li><strong>Position</strong>: Text Position relative to the end of the Annotation leader line (Top, Middle, Bottom).</li>
+<li><strong>Endcap</strong></li>
+<li><strong>Dot</strong>: Adds a Circle to the end of the Annotation Leader.</li>
+<li><strong>Triangle</strong>: Adds an Arrow to the end of the Annotation Leader.</li>
+<li><strong>Endcap Size</strong>: Sets the size of the Dimension Leader Endcap.</li>
+<li><strong>Line Weight</strong>: Line Weight of the Annotation leader.</li>
+<li><strong>Offset</strong>: The XYZ offset from the object or vertex that the annotation is attached to.</li>
+<li><strong>Rotation</strong>: The XYZ rotation of the annotation text.</li>
+<li><strong>Draw In Front</strong>: Makes this element Ignore Visibility tests.</li>
+</ul>
               
             </div>
           </div><footer>

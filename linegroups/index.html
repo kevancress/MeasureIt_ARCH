@@ -59,6 +59,20 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="./">Line Groups</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#add-lines">Add Lines</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#line-group-edit-mode-only">Line Group (Edit Mode Only)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#line-group-by-crease-object-mode-only">Line Group by Crease (Object Mode Only)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#dynamic-line-groupobject-mode-only">Dynamic Line Group(Object Mode Only)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#line-style-color-swatch-icon">Line Style (Color Swatch Icon):</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#line-group-list">Line Group List</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#line-group-settings">Line Group Settings</a>
     </li>
     </ul>
@@ -74,6 +88,10 @@
               </ul>
               <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../render/">Rendering</a>
                 </li>
               </ul>
       </div>
@@ -100,6 +118,25 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="line-groups">Line Groups</h1>
+<h2 id="add-lines">Add Lines</h2>
+<h5 id="line-group-edit-mode-only">Line Group (Edit Mode Only)</h5>
+<ul>
+<li>Creates a Line Group from selected edges. Select the desired edges in edit mode and press the Line button.</li>
+</ul>
+<h5 id="line-group-by-crease-object-mode-only">Line Group by Crease (Object Mode Only)</h5>
+<ul>
+<li>Creates a Line Group from any edges sharper than the specified crease angle.
+<img alt="image" src="../images/ui-line-crease.jpg" /></li>
+</ul>
+<h5 id="dynamic-line-groupobject-mode-only">Dynamic Line Group(Object Mode Only)</h5>
+<ul>
+<li>Same behaviour as Line Group by Crease, but will refresh automatically when entering and leaving Edit Mode (<strong>NOTE:</strong> May be slow on large meshes)</li>
+</ul>
+<h5 id="line-style-color-swatch-icon">Line Style (Color Swatch Icon):</h5>
+<ul>
+<li>Style to be assigned to a new Line Group on creation.</li>
+</ul>
+<h2 id="line-group-list">Line Group List</h2>
 <p><img alt="image" src="../images/ui-linegroups.jpg" /></p>
 <ul>
 <li><strong>Color</strong>: Sets Line Group Color.</li>
@@ -111,23 +148,25 @@
 <li><strong>Add to Line Group (Edit Mode Only)</strong>: Adds selected Edges to this Line Group.</li>
 <li><strong>Remove from Line Group (Edit Mode Only)</strong>: Removes selected Edges from this Line Group.</li>
 </ul>
-<h4 id="line-group-settings">Line Group Settings</h4>
-<p><img alt="image" src="../images/ui-linegroups-settings.jpg" />
- * <strong>Line Weight</strong>: Set the Line Group's line weight.
- * <strong>Line Weight Group</strong>: Use a vertex group's values to modify the line weight.
- * <strong>Influence</strong>: Adjust the influence of the Line Weight Group.
- * <strong>Z Offset</strong>: Tweaks the Line Group's Distance from the screen in Clip Space. Higher values move the Lines closer to the screen.
-   * This is useful for adjusting Line Groups that don't appear to be drawing correctly (Jagged Edges, etc.).
-   * Making this value negative allows for the drawing of silhouettes. Higher values will move lines further backwards <img alt="image" src="../images/ui-z-offset.jpg" />
- * <strong>Extension</strong>: Adds a slight over-extension to each line segment in this Line Group. <img alt="image" src="../images/ui-extension.jpg" />
- * <strong>Hidden Line Color (Only Available if Draw Hidden Lines is Enabled)</strong>: Sets the color of hidden lines.
- * <strong>Hidden Line Weight (Only Available if Draw Hidden Lines is Enabled)</strong>: Sets the line weight of hidden lines.
- * <strong>Dash Scale (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)</strong>: Changes the dash size of dashed lines. Larger values make smaller dashes.
- * <strong>Dash Spacing (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)</strong>: Changes the dash spacing for dashed lines. 0.5 gives even spacing.
- * <strong>Draw Dashed</strong>: Draws all lines in this Line Group as dashed lines, regardless of visibility.
- * <strong>Screen Space Dashes</strong>: Calculates Dash Spacing in Screen Space. Useful to achieve more even dashes in still renders when some lines are nearly parallel to the view. Can cause dashes to appear to 'slide' along edges when used in animations.
- * <strong>Draw In Front</strong>: Makes this element Ignore Visibility tests.
- * <strong>Evaluate Depsgraph</strong>: Evaluate Blender's Dependency Graph before drawing this MeasureIt_ARCH element.</p>
+<h2 id="line-group-settings">Line Group Settings</h2>
+<p><img alt="image" src="../images/ui-linegroups-settings.jpg" /></p>
+<ul>
+<li><strong>Line Weight</strong>: Set the Line Group's line weight.</li>
+<li><strong>Line Weight Group</strong>: Use a vertex group's values to modify the line weight.</li>
+<li><strong>Influence</strong>: Adjust the influence of the Line Weight Group.</li>
+<li><strong>Z Offset</strong>: Tweaks the Line Group's Distance from the screen in Clip Space. Higher values move the Lines closer to the screen.</li>
+<li>This is useful for adjusting Line Groups that don't appear to be drawing correctly (Jagged Edges, etc.).</li>
+<li>Making this value negative allows for the drawing of silhouettes. Higher values will move lines further backwards <img alt="image" src="../images/ui-z-offset.jpg" /></li>
+<li><strong>Extension</strong>: Adds a slight over-extension to each line segment in this Line Group. <img alt="image" src="../images/ui-extension.jpg" /></li>
+<li><strong>Hidden Line Color (Only Available if Draw Hidden Lines is Enabled)</strong>: Sets the color of hidden lines.</li>
+<li><strong>Hidden Line Weight (Only Available if Draw Hidden Lines is Enabled)</strong>: Sets the line weight of hidden lines.</li>
+<li><strong>Dash Scale (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)</strong>: Changes the dash size of dashed lines. Larger values make smaller dashes.</li>
+<li><strong>Dash Spacing (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)</strong>: Changes the dash spacing for dashed lines. 0.5 gives even spacing.</li>
+<li><strong>Draw Dashed</strong>: Draws all lines in this Line Group as dashed lines, regardless of visibility.</li>
+<li><strong>Screen Space Dashes</strong>: Calculates Dash Spacing in Screen Space. Useful to achieve more even dashes in still renders when some lines are nearly parallel to the view. Can cause dashes to appear to 'slide' along edges when used in animations.</li>
+<li><strong>Draw In Front</strong>: Makes this element Ignore Visibility tests.</li>
+<li><strong>Evaluate Depsgraph</strong>: Evaluate Blender's Dependency Graph before drawing this MeasureIt_ARCH element.</li>
+</ul>
               
             </div>
           </div><footer>

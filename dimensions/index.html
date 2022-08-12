@@ -55,7 +55,31 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="./">Dimensions</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#dimension-menu-chevron-icon">Dimension Menu (Chevron Icon)</a>
+    <li class="toctree-l2"><a class="reference internal" href="#add-dimensions">Add Dimensions</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#aligned">Aligned</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#axis">Axis</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#bounds-object-mode-only">Bounds (Object Mode Only)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#angle-edit-mode-only">Angle (Edit Mode Only)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#arc-edit-mode-only">Arc (Edit Mode Only)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#area-edit-mode-only">Area (Edit Mode Only)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#dimension-style-color-swatch-icon">Dimension Style (Color Swatch Icon)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#view-plane-axis-icon">View Plane (Axis Icon)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#dimension-menu">Dimension Menu</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#dimension-sub-menu">Dimension Sub Menu</a>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#dimension-settings">Dimension Settings</a>
     </li>
@@ -76,6 +100,10 @@
               </ul>
               <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../render/">Rendering</a>
                 </li>
               </ul>
       </div>
@@ -102,6 +130,60 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="dimensions">Dimensions</h1>
+<h2 id="add-dimensions">Add Dimensions</h2>
+<h5 id="aligned">Aligned</h5>
+<ul>
+<li>Adds an Aligned Dimension between 2 Objects or Vertices.</li>
+<li>Object Mode: Select two objects and then press the Aligned Button.</li>
+<li>Edit Mode: Select two or more Vertices and press the Aligned Button.</li>
+</ul>
+<p><img alt="image" src="../images/ui-aligned.jpg" /></p>
+<h5 id="axis">Axis</h5>
+<ul>
+<li>Adds a Dimension that measures along a single Axis between 2 Objects or Vertices.</li>
+<li>Object Mode: Select two objects and then press the Aligned Button.</li>
+<li>
+<p>Edit Mode: Select two or more Vertices and press the Aligned Button.</p>
+</li>
+<li>
+<p><strong>Axis Selection</strong>: Picks the axes to be dimensioned on creation.</p>
+</li>
+</ul>
+<p><img alt="image" src="../images/ui-axis.jpg" /></p>
+<h5 id="bounds-object-mode-only">Bounds (Object Mode Only)</h5>
+<ul>
+<li>Adds a set of Dimensions that measure the Bounding Box of the selected object</li>
+<li><strong>Axis Selection</strong>: Picks the bounding box axis to be displayed on creation.</li>
+</ul>
+<h5 id="angle-edit-mode-only">Angle (Edit Mode Only)</h5>
+<ul>
+<li>Adds an Angle Dimension for 3 selected vertices.</li>
+<li>The 2nd vertex selected defines the corner of the angle.</li>
+</ul>
+<p><img alt="image" src="../images/ui-angle.jpg" /></p>
+<h5 id="arc-edit-mode-only">Arc (Edit Mode Only)</h5>
+<ul>
+<li>Adds an Arc Dimension circumscribing the 3 selected vertices.</li>
+</ul>
+<p><img alt="image" src="../images/ui-arc.jpg" /></p>
+<h5 id="area-edit-mode-only">Area (Edit Mode Only)</h5>
+<ul>
+<li>Adds an Area Dimension to the selected faces.</li>
+<li>The Area Dimension text will be placed at the center of the bounding box of the active face.</li>
+</ul>
+<h5 id="dimension-style-color-swatch-icon">Dimension Style (Color Swatch Icon)</h5>
+<ul>
+<li>Selects a Style to be assigned to new dimensions on creation.</li>
+</ul>
+<h5 id="view-plane-axis-icon">View Plane (Axis Icon)</h5>
+<ul>
+<li>Lets you select the preferred view plain for new dimensions (used to automatically place dimensions on creation).</li>
+<li><strong>XY Plane (Plan View)</strong>: Dimensions placed to be viewed from the top or bottom.</li>
+<li><strong>YZ Plane (Section/ Elevation View)</strong>: Dimensions placed to be viewed from the left or right.</li>
+<li><strong>XZ Plane (Section/ Elevation View)</strong>: Dimensions placed to be viewed from the front or back.</li>
+<li><strong>None</strong>: Dimensions placement will adjust automatically based on your viewpoint and the angles of the adjacent surfaces.</li>
+</ul>
+<h2 id="dimension-menu">Dimension Menu</h2>
 <p><img alt="image" src="../images/ui-dimensions.jpg" /></p>
 <ul>
 <li><strong>Color</strong>: Sets Dimension Color.</li>
@@ -109,13 +191,13 @@
 <li><strong>Visibility (Eye Icon)</strong>: Toggles the Dimension's visibility.</li>
 <li><strong>Delete (x Icon)</strong>: Deletes the Dimension.</li>
 </ul>
-<h4 id="dimension-menu-chevron-icon">Dimension Menu (Chevron Icon)</h4>
+<h3 id="dimension-sub-menu">Dimension Sub Menu</h3>
 <ul>
 <li><strong>Add to Area (Edit Mode Only)</strong>: Adds selected Faces to the active Area Dimension.</li>
 <li><strong>Remove from Area (Edit Mode Only)</strong>: Removes selected Faces from the active Area Dimension.</li>
 <li><strong>Cursor to Arc Origin</strong>: Snaps the 3D cursor to the center of the active Arc Dimension.</li>
 </ul>
-<h4 id="dimension-settings">Dimension Settings</h4>
+<h2 id="dimension-settings">Dimension Settings</h2>
 <p><img alt="image" src="../images/ui-dimensions-settings.jpg" /></p>
 <ul>
 <li><strong>Font</strong>: Lets you select a custom font for the Dimension.</li>

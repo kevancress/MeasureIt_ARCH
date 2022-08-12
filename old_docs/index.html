@@ -43,8 +43,6 @@
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="./">Home</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
-    </li>
     <li class="toctree-l2"><a class="reference internal" href="#features-user-interface">Features &amp; User Interface</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#main-tool-panel">Main Tool Panel</a>
@@ -57,10 +55,6 @@
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#show-gizmos-arrow-icon">Show Gizmos (Arrow Icon)</a>
     </li>
-    <li class="toctree-l4"><a class="reference internal" href="#add-dimensions">Add Dimensions</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#add-lines">Add Lines</a>
-    </li>
         </ul>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#measureit_arch-scene-settings">MeasureIt_ARCH Scene Settings</a>
@@ -69,37 +63,11 @@
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#styles">Styles</a>
     </li>
-    <li class="toctree-l4"><a class="reference internal" href="#views">Views</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#hatches">Hatches</a>
-    </li>
     <li class="toctree-l4"><a class="reference internal" href="#schedules">Schedules</a>
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#settings">Settings</a>
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#object-settings">Object Settings</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dimensions">Dimensions</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dimension-menu-chevron-icon">Dimension Menu (Chevron Icon)</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#dimension-settings">Dimension Settings</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#line-groups">Line Groups</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#line-group-settings">Line Group Settings</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#annotations">Annotations</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#annotation-settings">Annotation Settings</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#rendering">Rendering</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#measureit_arch-image">MeasureIt_ARCH Image</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#measureit_arch-animation">MeasureIt_ARCH Animation</a>
-    </li>
-    <li class="toctree-l4"><a class="reference internal" href="#measureit_arch-vector">MeasureIt_ARCH Vector</a>
     </li>
         </ul>
     </li>
@@ -136,6 +104,10 @@
                 <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
                 </li>
               </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../render/">Rendering</a>
+                </li>
+              </ul>
       </div>
     </div>
     </nav>
@@ -161,17 +133,6 @@
               
                 <h1 id="measureit_arch-dimension-annotation-and-linework-tools-for-blender-28">MeasureIt_ARCH Dimension, Annotation and Linework tools for Blender 2.8</h1>
 <p>MeasureIt_ARCH is a fork of Antonio Vazquez's MeasureIt Addon.</p>
-<h2 id="installation">Installation</h2>
-<ul>
-<li><a href="https://www.blender.org/download/">Install Blender 2.8 or higher</a></li>
-<li>Download the latest zip file from https://github.com/kevancress/MeasureIt_ARCH</li>
-<li>Open the <strong>Add-on Preferences (Edit -&gt; Preferences -&gt; Add-ons)</strong> and click install.</li>
-</ul>
-<p><img alt="image" src="../images/install-1.jpg" /></p>
-<ul>
-<li>Navigate to and double click on the "MeasureIt_ARCH_VERSION.zip"</li>
-<li>Click the Checkbox to enable the Add-on</li>
-</ul>
 <h2 id="features-user-interface">Features &amp; User Interface</h2>
 <h3 id="main-tool-panel">Main Tool Panel</h3>
 <p><img alt="image" src="../images/__ui-main-tool-panel.jpg" /></p>
@@ -191,87 +152,6 @@
 <h4 id="show-gizmos-arrow-icon">Show Gizmos (Arrow Icon)</h4>
 <ul>
 <li>When enabled MeasureIt_ARCH will show gizmos for all elements attached to the selected object.</li>
-</ul>
-<h4 id="add-dimensions">Add Dimensions</h4>
-<h5 id="aligned">Aligned</h5>
-<ul>
-<li>Adds an Aligned Dimension between 2 Objects or Vertices.</li>
-<li>Object Mode: Select two objects and then press the Aligned Button.</li>
-<li>Edit Mode: Select two or more Vertices and press the Aligned Button.</li>
-</ul>
-<p><img alt="image" src="../images/ui-aligned.jpg" /></p>
-<h5 id="axis">Axis</h5>
-<ul>
-<li>Adds a Dimension that measures along a single Axis between 2 Objects or Vertices.</li>
-<li>Object Mode: Select two objects and then press the Aligned Button.</li>
-<li>
-<p>Edit Mode: Select two or more Vertices and press the Aligned Button.</p>
-</li>
-<li>
-<p><strong>Axis Selection</strong>: Picks the axes to be dimensioned on creation.</p>
-</li>
-</ul>
-<p><img alt="image" src="../images/ui-axis.jpg" /></p>
-<h5 id="bounds-object-mode-only">Bounds (Object Mode Only)</h5>
-<ul>
-<li>Adds a set of Dimensions that measure the Bounding Box of the selected object</li>
-<li><strong>Axis Selection</strong>: Picks the bounding box axis to be displayed on creation.</li>
-</ul>
-<h5 id="angle-edit-mode-only">Angle (Edit Mode Only)</h5>
-<ul>
-<li>Adds an Angle Dimension for 3 selected vertices.</li>
-<li>The 2nd vertex selected defines the corner of the angle.</li>
-</ul>
-<p><img alt="image" src="../images/ui-angle.jpg" /></p>
-<h5 id="arc-edit-mode-only">Arc (Edit Mode Only)</h5>
-<ul>
-<li>Adds an Arc Dimension circumscribing the 3 selected vertices.</li>
-</ul>
-<p><img alt="image" src="../images/ui-arc.jpg" /></p>
-<h5 id="area-edit-mode-only">Area (Edit Mode Only)</h5>
-<ul>
-<li>Adds an Area Dimension to the selected faces.</li>
-<li>The Area Dimension text will be placed at the center of the bounding box of the active face.</li>
-</ul>
-<h5 id="dimension-style-color-swatch-icon">Dimension Style (Color Swatch Icon)</h5>
-<ul>
-<li>Selects a Style to be assigned to new dimensions on creation.</li>
-</ul>
-<h5 id="view-plane-axis-icon">View Plane (Axis Icon)</h5>
-<ul>
-<li>Lets you select the preferred view plain for new dimensions (used to automatically place dimensions on creation).</li>
-<li><strong>XY Plane (Plan View)</strong>: Dimensions placed to be viewed from the top or bottom.</li>
-<li><strong>YZ Plane (Section/ Elevation View)</strong>: Dimensions placed to be viewed from the left or right.</li>
-<li><strong>XZ Plane (Section/ Elevation View)</strong>: Dimensions placed to be viewed from the front or back.</li>
-<li><strong>None</strong>: Dimensions placement will adjust automatically based on your viewpoint and the angles of the adjacent surfaces.</li>
-</ul>
-<h4 id="add-lines">Add Lines</h4>
-<h5 id="line-group-edit-mode-only">Line Group (Edit Mode Only)</h5>
-<ul>
-<li>Creates a Line Group from selected edges. Select the desired edges in edit mode and press the Line button.</li>
-</ul>
-<h5 id="line-group-by-crease-object-mode-only">Line Group by Crease (Object Mode Only)</h5>
-<ul>
-<li>Creates a Line Group from any edges sharper than the specified crease angle.
-<img alt="image" src="../images/ui-line-crease.jpg" /></li>
-</ul>
-<h5 id="dynamic-line-groupobject-mode-only">Dynamic Line Group(Object Mode Only)</h5>
-<ul>
-<li>Same behaviour as Line Group by Crease, but will refresh automatically when entering and leaving Edit Mode (<strong>NOTE:</strong> May be slow on large meshes)</li>
-</ul>
-<h5 id="line-style-color-swatch-icon">Line Style (Color Swatch Icon):</h5>
-<ul>
-<li>Style to be assigned to a new Line Group on creation.</li>
-</ul>
-<h5 id="add-annotations">Add Annotations</h5>
-<h5 id="annotation">Annotation:</h5>
-<ul>
-<li>Adds an Annotation to the selected Object or Vertex.
- <img alt="image" src="../images/ui-annotation-examples.jpg" /></li>
-</ul>
-<h5 id="annotation-style-color-swatch-icon">Annotation Style (Color Swatch Icon):</h5>
-<ul>
-<li>Style to be assigned to new Annotation on creation.</li>
 </ul>
 <h3 id="measureit_arch-scene-settings">MeasureIt_ARCH Scene Settings</h3>
 <p>Found in the Scene Tab of the Properties Editor.</p>
@@ -297,37 +177,6 @@
 <p>Styles have a nearly identical user interface to their corresponding items. Style-able properties can be found in the item's settings.</p>
 <p><img alt="image" src="../images/__ui-styles.jpg" /></p>
 <p>Note that some settings, like an Annotations Offset, or a Dimensions Distance, are still set per item, even when using a style.</p>
-<h4 id="views">Views</h4>
-<p>Define Named Views.</p>
-<p><img alt="image" src="../images/__ui-views.jpg" />
-* <strong>Camera</strong>: Sets View Camera
-* <strong>Camera Type</strong>: Sets the type of camera for this view (Orthographic or Perspective)
-* <strong>View Layer</strong>: Sets the View Layer to be used for this view
-* <strong>Title Block</strong>: Sets the Title Block Scene to be used for this view
-*  <strong>Output Path</strong>: Sets Render Output Path for this view
-*  <strong>Date Folder</strong>: When enabled, a folder with todays date will be added to the Output Path
-*  <strong>Resolution Type</strong>: Pick Paper or Pixel based resolution settings for this view
-    *  Pixel resolution type is the same as Blenders default render resolution settings
-*  <strong>Width</strong>: Paper Width defined in scene units
-*  <strong>Height</strong>: Paper Height defined in scene units
-*  <strong>Resolution</strong>: Raster Resolution for this view
-*  <strong>Scale</strong>:  Defines the Orthographic Scale as a ratio between Model Units, and Paper Units.
-*  <strong>Frame Range</strong>: The frame range to render for this view.</p>
-<h4 id="hatches">Hatches</h4>
-<p>Define Hatches to be used in Vector Exports.</p>
-<p><img alt="image" src="../images/__ui-hatches.jpg" />
-* <strong>Material</strong>: The Material to apply this hatch to
-*  <strong>Render Visibility</strong>: Toggles if this hatch should be applied on vector export or not
-* <strong>Fill Color</strong>: Solid Fill color for this Hatch (Set Alpha to 0 for none)
-* <strong>Line Color</strong>: Outline Line Color for this Hatch (Set Alpha to 0 for none)
-* <strong>Line Weight</strong>: Line Wight for the Outline Line of this Hatch
-*  <strong>Pattern</strong>: A collection to use as a custom pattern fill for this hatch.
-    *  Hatch Patterns can be defined in the 0 to 1 range on the x,y plane.
-    *  Hatch Patterns will draw all edges of objects in the hatch collection as the custom pattern
-*  <strong>Pattern Weight</strong>: Line Weight for the pattern fill
-*  <strong>Pattern Size</strong>: Scale factor for the pattern fill
-*  <strong>Pattern Rotation</strong>: Rotates the pattern fill for this hatch.
-*  <strong>Pattern Opacity</strong>: Sets the opacity for the pattern fill for this hatch.</p>
 <h4 id="schedules">Schedules</h4>
 <p>Create Schedules that can exported to a .csv spreadsheet</p>
 <p><img alt="image" src="../images/__ui-schedules.jpg" /></p>
@@ -393,130 +242,6 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 <ul>
 <li>Dimension, Annotation, and Line Group settings can be found in Object Tab of the Properties Editor.</li>
 <li>To add dimensions, annotations or line groups use the main tool panel.</li>
-</ul>
-<h4 id="dimensions">Dimensions</h4>
-<p><img alt="image" src="../images/ui-dimensions.jpg" /></p>
-<ul>
-<li><strong>Color</strong>: Sets Dimension Color.</li>
-<li><strong>Link Style (Link or Broken Link Icon)</strong>: Toggles if this Dimension uses a Style.</li>
-<li><strong>Visibility (Eye Icon)</strong>: Toggles the Dimension's visibility.</li>
-<li><strong>Delete (x Icon)</strong>: Deletes the Dimension.</li>
-</ul>
-<h4 id="dimension-menu-chevron-icon">Dimension Menu (Chevron Icon)</h4>
-<ul>
-<li><strong>Add to Area (Edit Mode Only)</strong>: Adds selected Faces to the active Area Dimension.</li>
-<li><strong>Remove from Area (Edit Mode Only)</strong>: Removes selected Faces from the active Area Dimension.</li>
-<li><strong>Cursor to Arc Origin</strong>: Snaps the 3D cursor to the center of the active Arc Dimension.</li>
-</ul>
-<h4 id="dimension-settings">Dimension Settings</h4>
-<p><img alt="image" src="../images/ui-dimensions-settings.jpg" /></p>
-<ul>
-<li><strong>Font</strong>: Lets you select a custom font for the Dimension.</li>
-<li><strong>View Plane</strong>: The preferred view plane for the Dimension.</li>
-<li><strong>XY Plane (Plan View)</strong>: Dimension will be placed to be viewed from the top or bottom.</li>
-<li><strong>YZ Plane (Section/ Elevation View)</strong>: Dimension will be placed to be viewed from the left or right.</li>
-<li><strong>XZ Plane (Section/ Elevation View)</strong>: Dimension will be placed to be viewed from the front or back.</li>
-<li><strong>None</strong>: Dimension's placement will be based on the angles of the adjacent surfaces.</li>
-<li><strong>Measurement Axis (Axis &amp; Bounds Dimensions Only)</strong>: Select the Axis to Measure.</li>
-<li><strong>Visible In View</strong>: Limit the Dimension's visibility to a specific Camera in your scene.</li>
-<li>If no Camera is selected the Dimension will be visible in all Cameras.</li>
-<li>If a Camera is selected the Dimension will only be visible when that Camera is the Active Camera.</li>
-<li><strong>Line Weight</strong>: The Dimension's Line Weight.</li>
-<li><strong>Distance</strong>: The Distance of the Dimension Text from the Objects or Vertices it's attached to.</li>
-<li><strong>Radius (Arc and Angle Dimensions Only)</strong>: The Distance of the Dimension Text from the center of the Arc or Angle.</li>
-<li><strong>Offset</strong>: The offset distance from the ends of the Dimension line to the Vertex or Object it's attached to.</li>
-<li><strong>Rotation</strong>: Rotates the Dimension around the axis of its measurement.</li>
-<li><strong>Font Size</strong>: The Dimension font size.</li>
-<li><strong>Resolution</strong>: The Dimension font resolution.</li>
-<li><strong>Alignment</strong>: The Dimension text alignment relative to the dimension line (Left, Center, Right).</li>
-<li><strong>Arrow Start &amp; End</strong>: Set the style of the dimension terminations. <img alt="image" src="../images/ui-arrowstyles.jpg" /></li>
-<li><strong>Arrow Size</strong>: The size of the Dimension's terminations.</li>
-<li><strong>Arrow Angle</strong>: The angle of Dimension's triangle and arrow terminations.</li>
-<li><strong>Draw In Front</strong>: Makes this element Ignore Visibility tests.</li>
-<li><strong>Evaluate Depsgraph</strong>: Evaluate Blender's Dependency Graph before drawing this MeasureIt_ARCH element.</li>
-</ul>
-<h4 id="line-groups">Line Groups</h4>
-<p><img alt="image" src="../images/ui-linegroups.jpg" /></p>
-<ul>
-<li><strong>Color</strong>: Sets Line Group Color.</li>
-<li><strong>Draw Hidden Lines (Cube with Dashed Lines Icon)</strong>: This Line Group will draw hidden lines as dashed lines.</li>
-<li><strong>Link Style (Link or Broken Link Icon)</strong>: Toggles if this Line Group uses a Style.</li>
-<li><strong>Visibility (Eye Icon)</strong>: Toggles visibility of the Line Group.</li>
-<li><strong>Delete (x Icon)</strong>: Deletes the Line Group.</li>
-<li><strong>Line Group Menu (Chevron Icon)</strong></li>
-<li><strong>Add to Line Group (Edit Mode Only)</strong>: Adds selected Edges to this Line Group.</li>
-<li><strong>Remove from Line Group (Edit Mode Only)</strong>: Removes selected Edges from this Line Group.</li>
-</ul>
-<h4 id="line-group-settings">Line Group Settings</h4>
-<p><img alt="image" src="../images/ui-linegroups-settings.jpg" />
- * <strong>Line Weight</strong>: Set the Line Group's line weight.
- * <strong>Line Weight Group</strong>: Use a vertex group's values to modify the line weight.
- * <strong>Influence</strong>: Adjust the influence of the Line Weight Group.
- * <strong>Z Offset</strong>: Tweaks the Line Group's Distance from the screen in Clip Space. Higher values move the Lines closer to the screen.
-   * This is useful for adjusting Line Groups that don't appear to be drawing correctly (Jagged Edges, etc.).
-   * Making this value negative allows for the drawing of silhouettes. Higher values will move lines further backwards <img alt="image" src="../images/ui-z-offset.jpg" />
- * <strong>Extension</strong>: Adds a slight over-extension to each line segment in this Line Group. <img alt="image" src="../images/ui-extension.jpg" />
- * <strong>Hidden Line Color (Only Available if Draw Hidden Lines is Enabled)</strong>: Sets the color of hidden lines.
- * <strong>Hidden Line Weight (Only Available if Draw Hidden Lines is Enabled)</strong>: Sets the line weight of hidden lines.
- * <strong>Dash Scale (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)</strong>: Changes the dash size of dashed lines. Larger values make smaller dashes.
- * <strong>Dash Spacing (Only Available if Draw Hidden Lines or Draw Dashed is Enabled)</strong>: Changes the dash spacing for dashed lines. 0.5 gives even spacing.
- * <strong>Draw Dashed</strong>: Draws all lines in this Line Group as dashed lines, regardless of visibility.
- * <strong>Screen Space Dashes</strong>: Calculates Dash Spacing in Screen Space. Useful to achieve more even dashes in still renders when some lines are nearly parallel to the view. Can cause dashes to appear to 'slide' along edges when used in animations.
- * <strong>Draw In Front</strong>: Makes this element Ignore Visibility tests.
- * <strong>Evaluate Depsgraph</strong>: Evaluate Blender's Dependency Graph before drawing this MeasureIt_ARCH element.</p>
-<h4 id="annotations">Annotations</h4>
-<p><img alt="image" src="../images/ui-annotations.jpg" /></p>
-<ul>
-<li><strong>Color</strong>: Sets Annotation Color.</li>
-<li><strong>Link Style (Link or Broken Link Icon)</strong>: Toggles if this Annotation uses a Style.</li>
-<li><strong>Visibility (Eye Icon)</strong>: Toggles the Annotations visibility.</li>
-<li><strong>Delete (x Icon)</strong>: Deletes the Annotation.</li>
-<li><strong>Annotation Menu (Chevron Icon)</strong></li>
-<li><strong>Add Text Field</strong>: Adds a text field to the selected Annotation.</li>
-<li><strong>Remove Text Field</strong>: Removes the last text field from the selected Annotation.</li>
-</ul>
-<h4 id="annotation-settings">Annotation Settings</h4>
-<p><img alt="image" src="../images/ui-annotation-settings.jpg" /></p>
-<ul>
-<li><strong>Text Field</strong>: Sets the text for the annotation.</li>
-<li>Annotations can have multiple text fields, each new text field will display as a new line in the Annotation Text.</li>
-<li><strong>Font</strong>: Lets you select a custom font for the Annotation from your system.</li>
-<li><strong>Text Source</strong>: MeasureIt_ARCH can pull annotation text from an objects Custom Properties metadata. This field defines the source custom property.</li>
-<li>If two text fields are available, MeasureIt_ARCH will use the first to display the custom properties name, and the second to display the value.</li>
-<li>If only one text field is available, only the value will be displayed.</li>
-<li><strong>Size</strong>: The Annotation font size.</li>
-<li><strong>Resolution</strong>: The Annotation font resolution.</li>
-<li><strong>Justification</strong>: Text Justification relative to the end of the Annotation leader line (Left, Center, Right).</li>
-<li><strong>Position</strong>: Text Position relative to the end of the Annotation leader line (Top, Middle, Bottom).</li>
-<li><strong>Endcap</strong></li>
-<li><strong>Dot</strong>: Adds a Circle to the end of the Annotation Leader.</li>
-<li><strong>Triangle</strong>: Adds an Arrow to the end of the Annotation Leader.</li>
-<li><strong>Endcap Size</strong>: Sets the size of the Dimension Leader Endcap.</li>
-<li><strong>Line Weight</strong>: Line Weight of the Annotation leader.</li>
-<li><strong>Offset</strong>: The XYZ offset from the object or vertex that the annotation is attached to.</li>
-<li><strong>Rotation</strong>: The XYZ rotation of the annotation text.</li>
-<li><strong>Draw In Front</strong>: Makes this element Ignore Visibility tests.</li>
-</ul>
-<h4 id="rendering">Rendering</h4>
-<p><img alt="image" src="../images/__ui-render.jpg" /></p>
-<p>MeasureIt_ARCH Render Settings can be found in the Render Panel of the Properties Editor. Currently this renders all MeasureIt_ARCH items to an image file which can be layered over Blender's render in the compositor.</p>
-<h4 id="measureit_arch-image">MeasureIt_ARCH Image</h4>
-<ul>
-<li>Renders a Still Image.</li>
-<li><strong>WARNING</strong>: If 'Save Render to Output' is not enabled the rendered image will only be stored in an image data-block within Blender.</li>
-</ul>
-<h4 id="measureit_arch-animation">MeasureIt_ARCH Animation</h4>
-<ul>
-<li>Renders the full frame range of the current scene.</li>
-<li>Animation Renders can be Cancelled with the Esc key, or by Right Clicking in the 3D View.</li>
-<li>A 3D Viewport window must be open for MeasureIt_ARCH to render animations.</li>
-<li>Animation frames will be saved to the Output path defined in the Render Panel.</li>
-</ul>
-<h4 id="measureit_arch-vector">MeasureIt_ARCH Vector</h4>
-<ul>
-<li>Renders an SVG drawing of the current view.</li>
-<li><strong>Embed Scene Render:</strong> embeds a raster rendering of the scene as the background of the SVG</li>
-<li><strong>Vector Z Order:</strong> Orders the drawing of vector elements by the object origin's Z height. Useful for plan drawings.</li>
 </ul>
               
             </div>
