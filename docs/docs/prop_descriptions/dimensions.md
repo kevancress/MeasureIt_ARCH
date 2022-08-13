@@ -4,10 +4,10 @@
 ## Add Dimensions
 
 ##### Aligned
+Adds an Aligned Dimension between 2 Objects or Vertices.
 
- * Adds an Aligned Dimension between 2 Objects or Vertices.
-   * Object Mode: Select two objects and then press the Aligned Button.
-   * Edit Mode: Select two or more Vertices and press the Aligned Button.
+   * In Object Mode: Select two objects and then press the Aligned Button.
+   * In Edit Mode: Select two or more Vertices and press the Aligned Button.
 
 ![image](images/ui-aligned.jpg)
 

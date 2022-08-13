@@ -32,5 +32,8 @@ nav:
         - Rendering: prop_descriptions/render.md
 
     - Contributions:
-        - Reporting Issues: Report.md
+        - Reporting Issues: contributions/issue_reports.md
+        - Requesting Features: contributions/feature_requests.md
+        - Contributing Code: contributions/contributing_code.md
+        
 theme: readthedocs

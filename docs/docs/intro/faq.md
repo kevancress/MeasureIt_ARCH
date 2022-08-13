@@ -1,5 +1,12 @@
 # Frequently Asked Questions
 
+!!! Disclaimer
+    No one has actually asked me these questions, but I do ask them to myself. Frequently. 
+    
+    _(or they're just things I wanted to comment on)_
+
+    If you have questions about MeasureIt_ARCH that you think should be answered here, make a pull request for this page with the "Edit on GitHub" button above.
+
 #### What should I use MeasureIt_ARCH for?
 MeasureIt_ARCH is meant for producing Design Documentation and Technical Drawings in Blender. If you've been using Sketch-Up, AutoCAD, Rhino or a similar software for design drawings and documentation, on relativly small scale projects, then MeasureIt_ARCH & Blender could be a good tool for you.
 
@@ -23,7 +30,7 @@ A PDF exporter is a high priority for future development. In the meantime Measur
 
 A reality of the Architecture Engineering and Construction (AEC) industry is that we need to share information quickly, often, and in the formats that the rest of the industry expects. Unfortunaly if you're working on a project with many consultants that need to exchange tightly co-ordinated CAD files (or work with centralized BIM information), then MeasureIt_ARCH is likely not a good fit for your project right now.
 
-That said, MeasureIt_ARCH does have a (partially) functioning .dxf exporter, along with some options for configuring CAD layer setting. This is a work in progress, but does allow for drawings to be exported to AutoCAD. 
+That said, MeasureIt_ARCH does have a (partially) functioning .dxf exporter, along with some options for configuring CAD layer setting. This is a work in progress, but does allow for drawings to be exported to AutoCAD when needed, although this process is currently far from seamless.
 
 #### MeasureIt_ARCH, is that related to MeasureIt?
 
