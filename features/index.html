@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/render/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/features/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Rendering - MeasureIt_ARCH Docs</title>
+    <title>Features & UI - MeasureIt_ARCH Docs</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Rendering";
-        var mkdocs_page_input_path = "render.md";
-        var mkdocs_page_url = "/MeasureIt_ARCH/render/";
+        var mkdocs_page_name = "Features \u0026 UI";
+        var mkdocs_page_input_path = "features.md";
+        var mkdocs_page_url = "/MeasureIt_ARCH/features/";
       </script>
     
     <script src="../js/jquery-3.6.0.min.js" defer></script>
@@ -46,8 +46,10 @@
                 </li>
               </ul>
               <p class="caption"><span class="caption-text">Introduction</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../features/">Features & UI</a>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Features & UI</a>
+    <ul class="current">
+    </ul>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Tutorials</span></p>
@@ -56,7 +58,7 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Features</span></p>
-              <ul class="current">
+              <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../dimensions/">Dimensions</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../linegroups/">Line Groups</a>
@@ -67,15 +69,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Rendering</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#measureit_arch-image">MeasureIt_ARCH Image</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#measureit_arch-animation">MeasureIt_ARCH Animation</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#measureit_arch-vector">MeasureIt_ARCH Vector</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../render/">Rendering</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Issues</span></p>
@@ -97,8 +91,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
-          <li>Features &raquo;</li>
-      <li>Rendering</li>
+          <li>Introduction &raquo;</li>
+      <li>Features & UI</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -107,33 +101,34 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="rendering">Rendering</h1>
-<p><img alt="image" src="../images/__ui-render.jpg" /></p>
-<p>MeasureIt_ARCH Render Settings can be found in the Render Panel of the Properties Editor. Currently this renders all MeasureIt_ARCH items to an image file which can be layered over Blender's render in the compositor.</p>
-<h2 id="measureit_arch-image">MeasureIt_ARCH Image</h2>
+                <hr />
+<h2 id="toc_depth-0">toc_depth: 0</h2>
+<h2 id="features-user-interface">Features &amp; User Interface</h2>
+<h3 id="main-tool-panel">Main Tool Panel</h3>
+<p><img alt="image" src="../images/__ui-main-tool-panel.jpg" /></p>
+<p>The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scene. This panel is located on the right of the <strong>3D Viewport</strong>. Tool panel visibility can be toggled by pressing the "n" key.</p>
+<h4 id="show-hide-measureit_arch-toggle">Show / Hide MeasureIt_ARCH Toggle</h4>
 <ul>
-<li>Renders a Still Image.</li>
-<li><strong>WARNING</strong>: If 'Save Render to Output' is not enabled the rendered image will only be stored in an image data-block within Blender.</li>
+<li>Shows and hides all items created by MeasureIt_ARCH.</li>
 </ul>
-<h2 id="measureit_arch-animation">MeasureIt_ARCH Animation</h2>
+<h4 id="selected-object-only-toggle-ghost-icon">Selected Object Only Toggle (Ghost Icon)</h4>
 <ul>
-<li>Renders the full frame range of the current scene.</li>
-<li>Animation Renders can be Cancelled with the Esc key, or by Right Clicking in the 3D View.</li>
-<li>A 3D Viewport window must be open for MeasureIt_ARCH to render animations.</li>
-<li>Animation frames will be saved to the Output path defined in the Render Panel.</li>
+<li>When disabled, MeasureIt_ARCH will only show elements attached to the currently selected objects.</li>
 </ul>
-<h2 id="measureit_arch-vector">MeasureIt_ARCH Vector</h2>
+<h4 id="highlight-active-cursor-eye-icon">Highlight Active (Cursor &amp; Eye Icon)</h4>
 <ul>
-<li>Renders an SVG drawing of the current view.</li>
-<li><strong>Embed Scene Render:</strong> embeds a raster rendering of the scene as the background of the SVG</li>
-<li><strong>Vector Z Order:</strong> Orders the drawing of vector elements by the object origin's Z height. Useful for plan drawings.</li>
+<li>When enabled, the active MeasureIt_ARCH element will be highlighted in Blender's selection color.</li>
+</ul>
+<h4 id="show-gizmos-arrow-icon">Show Gizmos (Arrow Icon)</h4>
+<ul>
+<li>When enabled MeasureIt_ARCH will show gizmos for all elements attached to the selected object.</li>
 </ul>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../hatches/" class="btn btn-neutral float-left" title="Hatches"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../Report/" class="btn btn-neutral float-right" title="How to Report">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../install/" class="btn btn-neutral float-right" title="Install">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -156,10 +151,10 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../hatches/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../Report/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../install/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
