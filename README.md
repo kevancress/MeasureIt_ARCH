@@ -12,4 +12,4 @@ MeasureIt_ARCH is an addon for Blender, that adds tools to create design documen
 - [**Property Descriptions:**](https://kevancress.github.io/MeasureIt_ARCH/intro/features/) Detailed descriptions of each of MeasureIt_ARCH's features and properties.
 - [**Issue Report Guidelines:**](https://kevancress.github.io/MeasureIt_ARCH/contributions/issue_reports/)
 
- ![image](images/Title_card.png)
+ ![image](docs/docs/images/Title_card.png)
