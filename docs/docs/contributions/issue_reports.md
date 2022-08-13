@@ -22,7 +22,7 @@ For MeasureIt_ARCH I consider all of the following to be bugs that should be rep
 
 Essentially if there's anything that makes you think **_"huh thats not what I expected would happen"_** then I'd like to hear about it.
 
-Anything that make you think **_'I really wish it did <Somthing new\>'_** is a feature request, and I'd like to hear those too, but check out the "Requesting Features" page for Feature Request Guidelines. 
+Anything that make you think **_'I really wish it did <Somthing new\>'_** is a feature request, and I'd like to hear those too, but check out the ["Requesting Features"](feature_requests.md) page for Feature Request Guidelines. 
 
 ## Where to Report Issues
 
