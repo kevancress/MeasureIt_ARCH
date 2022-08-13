@@ -1,5 +1,5 @@
 
-# Views
+# ![image](../icons/bi__views.png) Views
 Define Named Views.
 
 ![image](images/__ui-views.jpg)

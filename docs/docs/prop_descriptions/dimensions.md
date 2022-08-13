@@ -1,17 +1,44 @@
 # Dimensions
 
+MeasureIt_ARCH dimensions display a measurement.
 
-## Add Dimensions
+## Dimension Types
+MeasureIt_ARCH offers the following Dimension Types:
 
-##### Aligned
+- **Aligned:** A straight line measurement between two points.
+
+<img src="../images/ui-aligned.jpg" width="450" />
+
+- **Axis:** A straight line measurement between two points, along a specified axis.
+
+<img src="../images/ui-axis.jpg" width="450" />
+
+- **Bounds:** Measurements along the X,Y,Z axes of an object's (or collection of object's) bounding box.
+- **Angle:** Measures the angle between two lines.
+
+<img src="../images/ui-angle.jpg" width="450" />
+
+- **Arc:** Measures the radius and arc length along an arc defined by 3 points.
+
+<img src="../images/ui-arc.jpg" width="450" />
+
+- **Area:** Measures the Area of defined by a selection of object faces.
+
+___
+
+## Adding Dimensions (MeasureIt_ARCH Main Panel)
+
+Buttons for adding each of the dimension types can be found in the MeasureIt_ARCH main panel, in the 3D viewport. You can also access these operators by search for their name in Blender's the [Operator Search menu (F3)](https://docs.blender.org/manual/en/2.82/interface/controls/templates/operator_search.html).
+
+##### ![image](../icons/bi__aligned.png) Aligned
 Adds an Aligned Dimension between 2 Objects or Vertices.
 
    * In Object Mode: Select two objects and then press the Aligned Button.
    * In Edit Mode: Select two or more Vertices and press the Aligned Button.
 
-![image](images/ui-aligned.jpg)
 
-##### Axis
+
+##### ![image](../icons/bi__axis.png) Axis
 
  * Adds a Dimension that measures along a single Axis between 2 Objects or Vertices.
    * Object Mode: Select two objects and then press the Aligned Button.
@@ -19,32 +46,29 @@ Adds an Aligned Dimension between 2 Objects or Vertices.
 
  * __Axis Selection__: Picks the axes to be dimensioned on creation.
 
-![image](images/ui-axis.jpg)
 
 ##### Bounds (Object Mode Only)
 
  * Adds a set of Dimensions that measure the Bounding Box of the selected object
  * __Axis Selection__: Picks the bounding box axis to be displayed on creation.
 
-##### Angle (Edit Mode Only)
+##### ![image](../icons/bi__angle.png)Angle (Edit Mode Only)
 
  * Adds an Angle Dimension for 3 selected vertices.
    * The 2nd vertex selected defines the corner of the angle.
 
-![image](images/ui-angle.jpg)
-
-##### Arc (Edit Mode Only)
+##### ![image](../icons/bi__arc.png) Arc (Edit Mode Only)
 
  * Adds an Arc Dimension circumscribing the 3 selected vertices.
 
-![image](images/ui-arc.jpg)
+
 
 ##### Area (Edit Mode Only)
 
  * Adds an Area Dimension to the selected faces.
    * The Area Dimension text will be placed at the center of the bounding box of the active face.
 
-##### Dimension Style (Color Swatch Icon)
+##### ![image](../icons/bi__styles.png) Dimension Style (Color Swatch Icon)
 
  * Selects a Style to be assigned to new dimensions on creation.
 
@@ -56,7 +80,12 @@ Adds an Aligned Dimension between 2 Objects or Vertices.
    * __XZ Plane (Section/ Elevation View)__: Dimensions placed to be viewed from the front or back.
    * __None__: Dimensions placement will adjust automatically based on your viewpoint and the angles of the adjacent surfaces.
 
-## Dimension Menu
+
+---
+
+## Dimension List (Object Settings)
+
+The Dimension List lets you select and edit the properties of the dimensions attached to the actively selected object.
 
 ![image](images/ui-dimensions.jpg)
 
@@ -65,13 +94,15 @@ Adds an Aligned Dimension between 2 Objects or Vertices.
  * __Visibility (Eye Icon)__: Toggles the Dimension's visibility.
  * __Delete (x Icon)__: Deletes the Dimension.
 
-### Dimension Sub Menu
+### Dimension Sub Menu (Chevron Icon)
 
  * __Add to Area (Edit Mode Only)__: Adds selected Faces to the active Area Dimension.
  * __Remove from Area (Edit Mode Only)__: Removes selected Faces from the active Area Dimension.
  * __Cursor to Arc Origin__: Snaps the 3D cursor to the center of the active Arc Dimension.
 
-## Dimension Settings
+---
+
+## Dimension Settings (Object Settings)
 
 ![image](images/ui-dimensions-settings.jpg)
 

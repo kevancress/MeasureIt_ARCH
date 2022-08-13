@@ -11,7 +11,7 @@ The main tool panel is where you can add MeasureIt_ARCH elements to your 3D scen
 
  * Shows and hides all items created by MeasureIt_ARCH.
 
-#### Selected Object Only Toggle (Ghost Icon)
+#### ![image](../icons/bi__show_all.png) Selected Object Only Toggle 
 
  * When disabled, MeasureIt_ARCH will only show elements attached to the currently selected objects.
 

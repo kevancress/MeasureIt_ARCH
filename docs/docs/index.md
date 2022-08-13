@@ -15,7 +15,7 @@ Welcome to the documentation for MeasureIt_ARCH.
 
 ## What is MeasureIt_ARCH?
 
-MeasureIt_ARCH is an addon for Blender, that adds tools to create design documentation and technical drawings that can be previewed within Blenders 3D viewport, and exported as images, vector graphics or .dxf files.
+MeasureIt_ARCH is an addon for Blender, that adds tools to create design documentation and technical drawings that can be previewed within Blender's 3D viewport, and exported as images, vector graphics or .dxf files.
 
 ## What's in the Docs?
 
@@ -23,7 +23,7 @@ This Documentation Covers:
 
 - **Introduction:** An overview of MeasureIt_ARCH, it's Features and UI, and an FAQ
 - **Tutorials:** a few sample workflows for creating and documenting models with Blender and MeasureIt_ARCH.
-- **Features:** Detailed descriptions of each of MeasureIt_ARCH's features and properties.
+- **Property Descriptions:** Detailed descriptions of each of MeasureIt_ARCH's features and properties.
 - **Contributions:** Guidlines for reporting issues and contributing to MeasurIt_ARCH development.
 
  ![image](images/Title_card.png)
