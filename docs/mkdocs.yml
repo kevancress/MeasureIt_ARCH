@@ -1,16 +1,36 @@
 site_name: MeasureIt_ARCH Docs
 site_url: https://kevancress.github.io/MeasureIt_ARCH/
-toc_depth: 2
+extra_css: [extra.css]
+repo_url: https://github.com/kevancress/MeasureIt_ARCH
+edit_uri: edit/development/docs/docs/
+
+plugins:
+  - git-revision-date-localized:
+      enable_creation_date: true
+      type: date
+
+markdown_extensions:
+  - admonition
 
 nav:
-    - Home: old_docs.md
-    - About: Report.md
-    - Install: install.md
-    - Dimensions: dimensions.md
-    - Line Groups: linegroups.md
-    - Annotations: annotations.md
-    - Views: views.md
-    - Hatches: hatches.md
-    - Rendering: render.md
+    - Home: index.md
+    - Introduction:
+        - Features & UI: intro/features.md
+        - FAQ: intro/faq.md
 
+    - Tutorials:
+        - Installing MeasureIt_ARCH: tutorials/install.md
+        - Creating a drawing set with MeasureIt_ARCH: tutorials/drawing_set.md
+        - Batch convert .svg's to .pdf's: tutorials/svg_to_pdf.md
+
+    - Property Descriptions:
+        - Dimensions: prop_descriptions/dimensions.md
+        - Line Groups: prop_descriptions/linegroups.md
+        - Annotations: prop_descriptions/annotations.md
+        - Views: prop_descriptions/views.md
+        - Hatches: prop_descriptions/hatches.md
+        - Rendering: prop_descriptions/render.md
+
+    - Contributions:
+        - Reporting Issues: Report.md
 theme: readthedocs
