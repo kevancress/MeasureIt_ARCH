@@ -31,6 +31,28 @@ Issues should be reported in the [GitHub Issue Tracker](https://github.com/kevan
 !!! Warning
     MeasureIt_ARCH does have a [Youtube page](https://www.youtube.com/c/MeasureItARCH) and a [Twitter account](https://twitter.com/measureit_arch), but the GitHub issue tracker is the only source that I regularly check when working on Issues. If you report an issue to my youtube or twitter account it will likely be lost and forgotten.
 
+## What to Include in an Issue Report
 
+A usefull error report should contain the following:
 
+- A descriptive Title
+- A brief description of what you were doing when the error occured
+- **The Version of Blender you are using**
+- The Operating system you are using
+- **The Version of MeasureIt_ARCH you are using**
 
+    !!! Info
+        MeasureIt_ARCH now displays detailed version info at the bottom of the "MeasureIt_ARCH Settings" Panel in Blender's Scene Properties. Please include the values for the:
+
+        - "Previous Commit Hash:", and
+        - "Previous Commit Date:"
+
+        as listed there when reporting an issue. 
+
+- The severity of the issue (is this an annoyance, or is it preventing you from using the addon)
+- **Any error messages that occur with the issue.**
+
+    !!! Info
+        Errors should show up in Blender's [Info Editor](https://docs.blender.org/manual/en/latest/editors/info_editor.html) or in the Blender System Console which can be toggled by going to "Window" -> "Toggle System Console"
+
+For issues specifically related to how graphics are drawn in the 3D view the model of your graphics card can also be useful information.
