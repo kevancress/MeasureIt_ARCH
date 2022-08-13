@@ -2,6 +2,8 @@ h1 {
     color: #ff5254;
 }
 
-a code {
+
+strong {
+    font-weight: bold;
     color: #ff5254;
-}
+  }

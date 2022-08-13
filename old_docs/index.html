@@ -33,11 +33,7 @@
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
           <a href=".." class="icon icon-home"> MeasureIt_ARCH Docs
-        </a><div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
-      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
-  </form>
-</div>
+        </a>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -47,32 +43,38 @@
               </ul>
               <p class="caption"><span class="caption-text">Introduction</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../features/">Features & UI</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../intro/features/">Features & UI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../intro/faq/">FAQ</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Tutorials</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../install/">Install</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorials/install/">Installing MeasureIt_ARCH</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorials/drawing_set/">Creating a drawing set with MeasureIt_ARCH</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorials/svg_to_pdf/">Batch convert .svg's to .pdf's</a>
                   </li>
               </ul>
-              <p class="caption"><span class="caption-text">Features</span></p>
+              <p class="caption"><span class="caption-text">Property Descriptions</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../dimensions/">Dimensions</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/dimensions/">Dimensions</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../linegroups/">Line Groups</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/linegroups/">Line Groups</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../annotations/">Annotations</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/annotations/">Annotations</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../views/">Views</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/views/">Views</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/hatches/">Hatches</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../render/">Rendering</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/render/">Rendering</a>
                   </li>
               </ul>
-              <p class="caption"><span class="caption-text">Issues</span></p>
+              <p class="caption"><span class="caption-text">Contributions</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../Report/">How to Report</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../Report/">Reporting Issues</a>
                   </li>
               </ul>
       </div>
@@ -91,6 +93,8 @@
     <li><a href=".." class="icon icon-home" alt="Docs"></a> &raquo;</li>
       <li>MeasureIt_ARCH Dimension, Annotation and Linework tools for Blender 2.8</li>
     <li class="wy-breadcrumbs-aside">
+        <a href="https://github.com/kevancress/MeasureIt_ARCH/edit/development/docs/docs/old_docs.md"
+          class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -102,9 +106,9 @@
 <p>MeasureIt_ARCH is a fork of Antonio Vazquez's MeasureIt Addon.</p>
 <h3 id="measureit_arch-scene-settings">MeasureIt_ARCH Scene Settings</h3>
 <p>Found in the Scene Tab of the Properties Editor.</p>
-<p><img alt="image" src="../images/__ui-scene.jpg" /></p>
+<p><img alt="image" src="images/__ui-scene.jpg" /></p>
 <h4 id="measureit_arch-unit-settings">MeasureIt_ARCH Unit Settings</h4>
-<p><img alt="image" src="../images/__ui-units.jpg" /></p>
+<p><img alt="image" src="images/__ui-units.jpg" /></p>
 <p>MeasureIt_ARCH Unit Settings can be found in Blender's Scene Settings under the Units panel.</p>
 <h5 id="metric-precision">Metric Precision</h5>
 <ul>
@@ -122,11 +126,11 @@
   * Scale used for text and other scale-dependant elements if no view has been defined.</p>
 <h4 id="styles">Styles</h4>
 <p>Styles have a nearly identical user interface to their corresponding items. Style-able properties can be found in the item's settings.</p>
-<p><img alt="image" src="../images/__ui-styles.jpg" /></p>
+<p><img alt="image" src="images/__ui-styles.jpg" /></p>
 <p>Note that some settings, like an Annotations Offset, or a Dimensions Distance, are still set per item, even when using a style.</p>
 <h4 id="schedules">Schedules</h4>
 <p>Create Schedules that can exported to a .csv spreadsheet</p>
-<p><img alt="image" src="../images/__ui-schedules.jpg" /></p>
+<p><img alt="image" src="images/__ui-schedules.jpg" /></p>
 <p><strong>General Settings</strong>
 * <strong>Generate Schedule</strong>: Exports a .csv schedule to the output path
 * <strong>Collection</strong>: The collection of objects to include in this schedule
@@ -148,7 +152,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 </li>
 </ul>
 <h4 id="settings">Settings</h4>
-<p><img alt="image" src="../images/__ui-settings.jpg" /></p>
+<p><img alt="image" src="images/__ui-settings.jpg" /></p>
 <h5 id="hide-units">Hide Units</h5>
 <ul>
 <li>Show or hide the unit text on Metric Dimension elements.</li>
@@ -184,7 +188,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
 <li>Will Enable Dimension Instancing.</li>
 <li><strong>WARNING</strong>: Text on instanced Dimensions will not account for changes in the instances local scale or rotation.</li>
 </ul>
-<p><img alt="image" src="../images/ui-instance.jpg" /></p>
+<p><img alt="image" src="images/ui-instance.jpg" /></p>
 <h4 id="object-settings">Object Settings</h4>
 <ul>
 <li>Dimension, Annotation, and Line Group settings can be found in Object Tab of the Properties Editor.</li>
@@ -213,6 +217,10 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
   <div class="rst-versions" role="note" aria-label="Versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
     
+        <span>
+          <a href="https://github.com/kevancress/MeasureIt_ARCH" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
     
     
   </span>
@@ -220,7 +228,6 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
     <script>var base_url = '..';</script>
     <script src="../js/theme_extra.js" defer></script>
     <script src="../js/theme.js" defer></script>
-      <script src="../search/main.js" defer></script>
     <script defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(true);
