@@ -61,6 +61,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://kevancress.github.io/MeasureIt_ARCH/prop_descriptions/textfields/</loc>
+         <lastmod>2022-08-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://kevancress.github.io/MeasureIt_ARCH/prop_descriptions/views/</loc>
          <lastmod>2022-08-14</lastmod>
          <changefreq>daily</changefreq>
@@ -76,7 +81,22 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://kevancress.github.io/MeasureIt_ARCH/tutorials/line_group_tut/</loc>
+         <lastmod>2022-08-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://kevancress.github.io/MeasureIt_ARCH/tutorials/section_hatches/</loc>
+         <lastmod>2022-08-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://kevancress.github.io/MeasureIt_ARCH/tutorials/svg_to_pdf/</loc>
+         <lastmod>2022-08-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://kevancress.github.io/MeasureIt_ARCH/tutorials/titleblock_setup/</loc>
          <lastmod>2022-08-14</lastmod>
          <changefreq>daily</changefreq>
     </url>

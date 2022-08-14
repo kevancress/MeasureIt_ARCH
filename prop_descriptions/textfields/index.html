@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/prop_descriptions/textfields/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Text Fields - MeasureIt_ARCH Docs</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+        <link href="../../extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Text Fields";
+        var mkdocs_page_input_path = "prop_descriptions\\textfields.md";
+        var mkdocs_page_url = "/MeasureIt_ARCH/prop_descriptions/textfields/";
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> MeasureIt_ARCH Docs
+        </a>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../intro/features/">Features & UI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../intro/faq/">FAQ</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/install/">Installing MeasureIt_ARCH</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/drawing_set/">Creating a drawing set with MeasureIt_ARCH</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/titleblock_setup/">Set up a Titleblock with MeasureIt_ARCH</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/line_group_tut/">Draw a Wall assembly with Dynamic Line Groups</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/section_hatches/">Section Drawing with MeasureIt_ARCH Hatches</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/svg_to_pdf/">Batch convert .svg's to .pdf's</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Property Descriptions</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../dimensions/">Dimensions</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../linegroups/">Line Groups</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../annotations/">Annotations</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../views/">Views</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Text Fields</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#where-to-find-text-fields">Where to find Text Fields</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#text-field-ui">Text Field UI</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#auto-fill-sources">Auto Fill Sources</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#text-file">Text File:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#custom-property">Custom Property:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#view">View:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#date">Date:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#notes">Notes:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#curve-lenth">Curve Lenth:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#elvation">Elvation:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#scale">Scale:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#drawing-number">Drawing Number:</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../render/">Rendering</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contributions</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contributions/issue_reports/">Reporting Issues</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contributions/feature_requests/">Requesting Features</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contributions/contributing_code/">Contributing Code</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">MeasureIt_ARCH Docs</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>Property Descriptions &raquo;</li>
+      <li>Text Fields</li>
+    <li class="wy-breadcrumbs-aside">
+        <a href="https://github.com/kevancress/MeasureIt_ARCH/edit/development/docs/docs/prop_descriptions/textfields.md"
+          class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="text-fields">Text Fields</h1>
+<p>Anything in MeasureIt_ARCH that displays text (Dimensions, Annotations etc.) uses Text Fields. At their simplest Textfields display user authored text, or measurements generated by the add-on, but Text Fields also have a variety of auto fill options.</p>
+<h2 id="where-to-find-text-fields">Where to find Text Fields</h2>
+<p>The Text Field UI can be found below the List menus for Annotations, Dimensions and Views. It displays the text fields associated with the activly selected item in the list.</p>
+<h2 id="text-field-ui">Text Field UI</h2>
+<p>The Text Field UI has the following options:</p>
+<ul>
+<li><strong>Add Text Field:</strong> Adds a Text Field</li>
+<li><strong>Remove Text Field:</strong> Removes the last Text Field in the list</li>
+</ul>
+<p>For each text field available, the following properties will be displayed:</p>
+<ul>
+<li><strong><img alt="image" src="../../icons/bi__autofill.png" /> AutoFill:</strong> Enables or disables AutoFill</li>
+<li><strong>Text:</strong> User authored text for this Text Field</li>
+<li><strong>Move Up:</strong> Moves this Text Field up the list</li>
+<li><strong>Move Down:</strong> Moves this Text Field down the list</li>
+</ul>
+<hr />
+<h2 id="auto-fill-sources"><img alt="image" src="../../icons/bi__autofill.png" />  Auto Fill Sources</h2>
+<p>If AutoFill is selected enabled, then a dropdown of autofill sources will become available. Autofill can automaticall populate text from the folowing sources:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>AutoFill is particularly usefull for setting up Titleblocks. Check out the <a href="../../tutorials/titleblock_setup/">Titleblock Tutorial</a> for an example</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Not all AutoFill sources work in all text field contexts, we're working on a way to hide sources in the dropdown that won't work in that context, but for now, the suitable contexts are noted in each sources description below.</p>
+</div>
+<h3 id="text-file"><img alt="image" src="../../icons/bi__text_file.png" /> Text File:</h3>
+<p>The Text File source allows you to fill the text field from any plain text files loaded in Blender. Text files can be created in <a href="https://docs.blender.org/manual/en/latest/editors/text_editor.html">Blender's Text Editor</a> or loaded from an external .txt file using the "Text" -&gt; "Open" menu in the Text Editor.</p>
+<p>This is particularly usefull for longer text that requires multiple lines, like specifications or general notes.</p>
+<h3 id="custom-property"><img alt="image" src="../../icons/bi__custom_prop.png" /> Custom Property:</h3>
+<p>The Custom Property Autofill option allows you to fill the text field from any property of the object this text field is associate with, using Blender's scripting API. Enter the data path of the property you want to access in the textbox next to the dropdown.</p>
+<p>A common use for this is accessing the Blender's <a href="https://docs.blender.org/manual/en/3.0/files/data_blocks.html#files-data-blocks-custom-properties">Custom Object Propeties</a>. For example, if I added a "Manufacturer" Property to an object then I could auto fill the value of that property by entering <code>[Manufacturer]</code> as the data path.</p>
+<p>Other example include:</p>
+<ul>
+<li><code>[&lt;Property Name]</code> would autofill the value of the custom property with matching <code>&lt;Property Name&gt;</code></li>
+<li><code>.name</code> would autofill the name of the object</li>
+<li><code>.location[0]</code> would autofill the X location of the object</li>
+<li><code>.material_slots[0].name</code> would autofill the name of the first material on the object</li>
+</ul>
+<h3 id="view"><img alt="image" src="../../icons/bi__views.png" /> View:</h3>
+<p>Displays the current views name.</p>
+<h3 id="date"><img alt="image" src="../../icons/bi__date.png" /> Date:</h3>
+<p>Displays the current date.</p>
+<h3 id="notes"><img alt="image" src="../../icons/bi__notes.png" /> Notes:</h3>
+<p>Displays the notes from the current view.</p>
+<h3 id="curve-lenth"><img alt="image" src="../../icons/bi__curve.png" /> Curve Lenth:</h3>
+<p>If this textfield belongs to an annotation attached to a Curve object, then this autofill will display the Curve's length.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This will likely be removed when we add a Curve Dimension type.</p>
+</div>
+<h3 id="elvation"><img alt="image" src="../../icons/bi__elevation.png" /> Elvation:</h3>
+<p>If this textfield belongs to an annotation, then this will display the Z height of the annotations main anchor point.</p>
+<h3 id="scale"><img alt="image" src="../../icons/bi__scale.png" /> Scale:</h3>
+<p>Displays the Scale defined in the current view.</p>
+<h3 id="drawing-number"><img alt="image" src="../../icons/bi__drawing_number.png" /> Drawing Number:</h3>
+<p>Displays the Drawing Number defined in the current view.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../hatches/" class="btn btn-neutral float-left" title="Hatches"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../render/" class="btn btn-neutral float-right" title="Rendering">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/kevancress/MeasureIt_ARCH" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../hatches/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../render/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
+    <script src="../../js/theme.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
