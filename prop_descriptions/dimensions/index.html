@@ -61,7 +61,9 @@
               <ul class="current">
                   <li class="toctree-l1 current"><a class="reference internal current" href="./">Dimensions</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#add-dimensions">Add Dimensions</a>
+    <li class="toctree-l2"><a class="reference internal" href="#dimension-types">Dimension Types</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#adding-dimensions-measureit_arch-main-panel">Adding Dimensions (MeasureIt_ARCH Main Panel)</a>
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#aligned">Aligned</a>
     </li>
@@ -81,13 +83,13 @@
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#dimension-menu">Dimension Menu</a>
+    <li class="toctree-l2"><a class="reference internal" href="#dimension-list-object-settings">Dimension List (Object Settings)</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#dimension-sub-menu">Dimension Sub Menu</a>
+    <li class="toctree-l3"><a class="reference internal" href="#dimension-sub-menu-chevron-icon">Dimension Sub Menu (Chevron Icon)</a>
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#dimension-settings">Dimension Settings</a>
+    <li class="toctree-l2"><a class="reference internal" href="#dimension-settings-object-settings">Dimension Settings (Object Settings)</a>
     </li>
     </ul>
                   </li>
@@ -138,15 +140,39 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="dimensions">Dimensions</h1>
-<h2 id="add-dimensions">Add Dimensions</h2>
-<h5 id="aligned">Aligned</h5>
+<p>MeasureIt_ARCH dimensions display a measurement.</p>
+<h2 id="dimension-types">Dimension Types</h2>
+<p>MeasureIt_ARCH offers the following Dimension Types:</p>
+<ul>
+<li><strong>Aligned:</strong> A straight line measurement between two points.</li>
+</ul>
+<p><img src="../images/ui-aligned.jpg" width="450" /></p>
+<ul>
+<li><strong>Axis:</strong> A straight line measurement between two points, along a specified axis.</li>
+</ul>
+<p><img src="../images/ui-axis.jpg" width="450" /></p>
+<ul>
+<li><strong>Bounds:</strong> Measurements along the X,Y,Z axes of an object's (or collection of object's) bounding box.</li>
+<li><strong>Angle:</strong> Measures the angle between two lines.</li>
+</ul>
+<p><img src="../images/ui-angle.jpg" width="450" /></p>
+<ul>
+<li><strong>Arc:</strong> Measures the radius and arc length along an arc defined by 3 points.</li>
+</ul>
+<p><img src="../images/ui-arc.jpg" width="450" /></p>
+<ul>
+<li><strong>Area:</strong> Measures the Area of defined by a selection of object faces.</li>
+</ul>
+<hr />
+<h2 id="adding-dimensions-measureit_arch-main-panel">Adding Dimensions (MeasureIt_ARCH Main Panel)</h2>
+<p>Buttons for adding each of the dimension types can be found in the MeasureIt_ARCH main panel, in the 3D viewport. You can also access these operators by search for their name in Blender's the <a href="https://docs.blender.org/manual/en/2.82/interface/controls/templates/operator_search.html">Operator Search menu (F3)</a>.</p>
+<h5 id="aligned"><img alt="image" src="../../icons/bi__aligned.png" /> Aligned</h5>
 <p>Adds an Aligned Dimension between 2 Objects or Vertices.</p>
 <ul>
 <li>In Object Mode: Select two objects and then press the Aligned Button.</li>
 <li>In Edit Mode: Select two or more Vertices and press the Aligned Button.</li>
 </ul>
-<p><img alt="image" src="../images/ui-aligned.jpg" /></p>
-<h5 id="axis">Axis</h5>
+<h5 id="axis"><img alt="image" src="../../icons/bi__axis.png" /> Axis</h5>
 <ul>
 <li>Adds a Dimension that measures along a single Axis between 2 Objects or Vertices.</li>
 <li>Object Mode: Select two objects and then press the Aligned Button.</li>
@@ -157,29 +183,26 @@
 <p><strong>Axis Selection</strong>: Picks the axes to be dimensioned on creation.</p>
 </li>
 </ul>
-<p><img alt="image" src="../images/ui-axis.jpg" /></p>
 <h5 id="bounds-object-mode-only">Bounds (Object Mode Only)</h5>
 <ul>
 <li>Adds a set of Dimensions that measure the Bounding Box of the selected object</li>
 <li><strong>Axis Selection</strong>: Picks the bounding box axis to be displayed on creation.</li>
 </ul>
-<h5 id="angle-edit-mode-only">Angle (Edit Mode Only)</h5>
+<h5 id="angle-edit-mode-only"><img alt="image" src="../../icons/bi__angle.png" />Angle (Edit Mode Only)</h5>
 <ul>
 <li>Adds an Angle Dimension for 3 selected vertices.</li>
 <li>The 2nd vertex selected defines the corner of the angle.</li>
 </ul>
-<p><img alt="image" src="../images/ui-angle.jpg" /></p>
-<h5 id="arc-edit-mode-only">Arc (Edit Mode Only)</h5>
+<h5 id="arc-edit-mode-only"><img alt="image" src="../../icons/bi__arc.png" /> Arc (Edit Mode Only)</h5>
 <ul>
 <li>Adds an Arc Dimension circumscribing the 3 selected vertices.</li>
 </ul>
-<p><img alt="image" src="../images/ui-arc.jpg" /></p>
 <h5 id="area-edit-mode-only">Area (Edit Mode Only)</h5>
 <ul>
 <li>Adds an Area Dimension to the selected faces.</li>
 <li>The Area Dimension text will be placed at the center of the bounding box of the active face.</li>
 </ul>
-<h5 id="dimension-style-color-swatch-icon">Dimension Style (Color Swatch Icon)</h5>
+<h5 id="dimension-style-color-swatch-icon"><img alt="image" src="../../icons/bi__styles.png" /> Dimension Style (Color Swatch Icon)</h5>
 <ul>
 <li>Selects a Style to be assigned to new dimensions on creation.</li>
 </ul>
@@ -191,7 +214,9 @@
 <li><strong>XZ Plane (Section/ Elevation View)</strong>: Dimensions placed to be viewed from the front or back.</li>
 <li><strong>None</strong>: Dimensions placement will adjust automatically based on your viewpoint and the angles of the adjacent surfaces.</li>
 </ul>
-<h2 id="dimension-menu">Dimension Menu</h2>
+<hr />
+<h2 id="dimension-list-object-settings">Dimension List (Object Settings)</h2>
+<p>The Dimension List lets you select and edit the properties of the dimensions attached to the actively selected object.</p>
 <p><img alt="image" src="../images/ui-dimensions.jpg" /></p>
 <ul>
 <li><strong>Color</strong>: Sets Dimension Color.</li>
@@ -199,13 +224,14 @@
 <li><strong>Visibility (Eye Icon)</strong>: Toggles the Dimension's visibility.</li>
 <li><strong>Delete (x Icon)</strong>: Deletes the Dimension.</li>
 </ul>
-<h3 id="dimension-sub-menu">Dimension Sub Menu</h3>
+<h3 id="dimension-sub-menu-chevron-icon">Dimension Sub Menu (Chevron Icon)</h3>
 <ul>
 <li><strong>Add to Area (Edit Mode Only)</strong>: Adds selected Faces to the active Area Dimension.</li>
 <li><strong>Remove from Area (Edit Mode Only)</strong>: Removes selected Faces from the active Area Dimension.</li>
 <li><strong>Cursor to Arc Origin</strong>: Snaps the 3D cursor to the center of the active Arc Dimension.</li>
 </ul>
-<h2 id="dimension-settings">Dimension Settings</h2>
+<hr />
+<h2 id="dimension-settings-object-settings">Dimension Settings (Object Settings)</h2>
 <p><img alt="image" src="../images/ui-dimensions-settings.jpg" /></p>
 <ul>
 <li><strong>Font</strong>: Lets you select a custom font for the Dimension.</li>
