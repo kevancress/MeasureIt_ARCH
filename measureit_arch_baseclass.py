@@ -343,7 +343,7 @@ def draw_textfield_settings(item, box, prop_path):
 
         
         txtRemoveOp = row.operator(
-            "measureit_arch.addtextfield", text="", icon="X")
+            "measureit_arch.additem", text="", icon="X")
         txtRemoveOp.propPath = prop_path
         txtRemoveOp.idx = idx
         txtRemoveOp.add = False
@@ -805,8 +805,8 @@ class DeletePropButton(Operator):
 
 class MovePropButton(Operator):
     bl_idname = "measureit_arch.movepropbutton"
-    bl_label = "Move View"
-    bl_description = "Move a View up or down"
+    bl_label = "Move List Item"
+    bl_description = "Move a list item up or down"
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'}
     genPath: StringProperty()
@@ -842,10 +842,10 @@ class HideAllButton(Operator):
 
         return {'FINISHED'}
 
-class AddTextField(Operator):
-    bl_idname = "measureit_arch.addtextfield"
-    bl_label = "Add Text Field"
-    bl_description = "Add or Remove a new field"
+class AddItem(Operator):
+    bl_idname = "measureit_arch.additem"
+    bl_label = "Add Item"
+    bl_description = "Add or Removes an item from a collection property"
     bl_category = 'MeasureitArch'
 
     propPath: StringProperty()

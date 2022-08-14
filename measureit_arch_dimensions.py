@@ -1146,13 +1146,13 @@ class OBJECT_PT_UIDimensions(Panel):
 
                     row.emboss = 'PULLDOWN_MENU'
                     txtAddOp = row.operator(
-                        "measureit_arch.addtextfield", text="", icon="ADD")
+                        "measureit_arch.additem", text="", icon="ADD")
                     txtAddOp.propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType,idxString)
                     txtAddOp.idx = dimGen.active_index
                     txtAddOp.add = True
 
                     txtRemoveOp = row.operator(
-                        "measureit_arch.addtextfield", text="", icon="REMOVE")
+                        "measureit_arch.additem", text="", icon="REMOVE")
                     txtAddOp.propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType,idxString)
                     txtRemoveOp.idx = activeWrapperItem.itemIndex
                     txtRemoveOp.add = False

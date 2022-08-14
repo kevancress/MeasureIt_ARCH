@@ -194,14 +194,18 @@ class MEASUREIT_PT_main_panel(Panel):
         box.label(text="Add Lines")
 
         col = box.column(align=True)
-        col.operator("measureit_arch.addlinebutton",
-                     text="Line Group", icon="MESH_CUBE")
-        op = col.operator("measureit_arch.addlinebyproperty",
-                          text="Line Group by Crease", icon="MESH_CUBE")
-        op.calledFromGroup = False
-
         col.operator("measureit_arch.adddynamiclinebutton",
-                     text="Dynamic Line Group", icon="MESH_CUBE")
+            text="Dynamic Line Group", icon="MESH_CUBE")
+
+        col.operator("measureit_arch.addlinebutton",
+                     text="Line Group by Selection", icon="MESH_CUBE")
+        
+        # Dynamic line  group is fast enough to replace this now
+        #op = col.operator("measureit_arch.addlinebyproperty",
+        #                  text="Line Group by Crease", icon="MESH_CUBE")
+        #op.calledFromGroup = False
+
+
        
         col = box.column(align=True)
         if hasGen:

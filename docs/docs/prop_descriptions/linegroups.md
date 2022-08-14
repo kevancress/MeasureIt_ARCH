@@ -38,9 +38,12 @@ The Line Group List lets you select and edit the properties of the line groups a
  * __Link Style (Link or Broken Link Icon)__: Toggles if this Line Group uses a Style.
  * __Visibility (Eye Icon)__: Toggles visibility of the Line Group.
  * __Delete (x Icon)__: Deletes the Line Group.
- * __Line Group Menu (Chevron Icon)__
+
+### Line Group Sub Menu (Chevron Icon)
+ 
    * __Add to Line Group (Edit Mode Only)__: Adds selected Edges to this Line Group.
    * __Remove from Line Group (Edit Mode Only)__: Removes selected Edges from this Line Group.
+   * __Delete All Line Groups__: Deletes all Line Groups on the active object
 
 ---
 

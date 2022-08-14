@@ -404,12 +404,12 @@ class OBJECT_PT_UIAnnotations(Panel):
 
                     row.emboss = 'PULLDOWN_MENU'
                     txtAddOp = row.operator(
-                        "measureit_arch.addtextfield", text="", icon="ADD")
+                        "measureit_arch.additem", text="", icon="ADD")
                     txtAddOp.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
                     txtAddOp.add = True
 
                     txtRemoveOp = row.operator(
-                        "measureit_arch.addtextfield", text="", icon="REMOVE")
+                        "measureit_arch.additem", text="", icon="REMOVE")
                     txtRemoveOp.propPath = 'bpy.context.active_object.AnnotationGenerator.annotations[bpy.context.active_object.AnnotationGenerator.active_index].textFields'
                     txtRemoveOp.add = False
 
@@ -433,7 +433,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                     row.emboss = 'PULLDOWN_MENU'
 
                     txtAddOp = row.operator(
-                        "measureit_arch.addtextfield", text="", icon="ADD")
+                        "measureit_arch.additem", text="", icon="ADD")
                     txtAddOp.propPath = prop_path
                     txtAddOp.add = True
                     
@@ -447,7 +447,7 @@ class OBJECT_PT_UIAnnotations(Panel):
                         row.emboss = 'PULLDOWN_MENU'
 
                         txtRemoveOp = row.operator(
-                            "measureit_arch.addtextfield", text="", icon="REMOVE")
+                            "measureit_arch.additem", text="", icon="REMOVE")
                         txtRemoveOp.propPath = prop_path
                         txtRemoveOp.idx = idx
                         txtRemoveOp.add = False

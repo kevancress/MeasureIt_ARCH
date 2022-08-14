@@ -96,7 +96,7 @@ classes = (
     measureit_arch_baseclass.ObjProps,
     measureit_arch_baseclass.MeasureItARCHSceneProps,
     measureit_arch_baseclass.DeletePropButton,
-    measureit_arch_baseclass.AddTextField,
+    measureit_arch_baseclass.AddItem,
     measureit_arch_baseclass.MoveItem,
     measureit_arch_baseclass.DeleteAllItemsButton,
     measureit_arch_baseclass.MovePropButton,

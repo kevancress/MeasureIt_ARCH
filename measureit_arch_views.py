@@ -916,13 +916,13 @@ class SCENE_PT_Views(Panel):
 
             row.emboss = 'PULLDOWN_MENU'
             txtAddOp = row.operator(
-                "measureit_arch.addtextfield", text="", icon="ADD")
+                "measureit_arch.additem", text="", icon="ADD")
             txtAddOp.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
             txtAddOp.idx = ViewGen.active_index
             txtAddOp.add = True
 
             txtRemoveOp = row.operator(
-                "measureit_arch.addtextfield", text="", icon="REMOVE")
+                "measureit_arch.additem", text="", icon="REMOVE")
             txtRemoveOp.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
             txtRemoveOp.idx = ViewGen.active_index
             txtRemoveOp.add = False
