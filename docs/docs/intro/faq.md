@@ -8,10 +8,10 @@
     If you have questions about MeasureIt_ARCH that you think should be answered here, make a pull request for this page with the "Edit on GitHub" button above.
 
 #### What should I use MeasureIt_ARCH for?
-MeasureIt_ARCH is meant for producing Design Documentation and Technical Drawings in Blender. If you've been using Sketch-Up, AutoCAD, Rhino or a similar software for design drawings and documentation, on relativly small scale projects, then MeasureIt_ARCH & Blender could be a good tool for you.
+
+MeasureIt_ARCH is meant for producing Design Documentation and Technical Drawings in Blender. If you've been using Sketch-Up, AutoCAD, Rhino or somthing similar for design drawings and documentation, on relativly small scale projects, then MeasureIt_ARCH & Blender could be a good tool for you.
 
 #### Why should I use MeasureIt_ARCH?
-
 
 
 

@@ -21,6 +21,9 @@ nav:
     - Tutorials:
         - Installing MeasureIt_ARCH: tutorials/install.md
         - Creating a drawing set with MeasureIt_ARCH: tutorials/drawing_set.md
+        - Set up a Titleblock with MeasureIt_ARCH: tutorials/titleblock_setup.md
+        - Draw a Wall assembly with Dynamic Line Groups: tutorials/line_group_tut.md
+        - Section Drawing with MeasureIt_ARCH Hatches: tutorials/section_hatches.md
         - Batch convert .svg's to .pdf's: tutorials/svg_to_pdf.md
 
     - Property Descriptions:
@@ -29,6 +32,7 @@ nav:
         - Annotations: prop_descriptions/annotations.md
         - Views: prop_descriptions/views.md
         - Hatches: prop_descriptions/hatches.md
+        - Text Fields: prop_descriptions/textfields.md
         - Rendering: prop_descriptions/render.md
 
     - Contributions:
