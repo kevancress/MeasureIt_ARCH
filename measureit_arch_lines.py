@@ -487,7 +487,8 @@ class OBJECT_PT_UILines(Panel):
                         col = box.column(align=True)
                         StyleGen = context.scene.StyleGenerator
                         #col.prop_search(line, 'style_pointer', StyleGen, 'line_groups', text="", icon='COLOR')
-                        col.prop(line, 'cad_col_idx')
+                        if bpy.context.scene.MeasureItArchProps.show_dxf_props:
+                            col.prop(line, 'cad_col_idx')
                         
                         col.prop(line, 'useDynamicCrease',
                                  text="Dynamic Crease")

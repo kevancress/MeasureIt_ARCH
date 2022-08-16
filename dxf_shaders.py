@@ -130,7 +130,7 @@ def dxf_axis_dimension(dim, dimProps, p1, p2, origin, dxf):
 
     dist = -(dimProps.dimOffset + dim.tweakOffset) # Dimension distance needs to be flipped for some reason
 
-    ssp1 = vector_utils.get_worldscale_projection(Vector(p1)) 
+    ssp1 = vector_utils.get_worldscale_projection(Vector(p1))
     ssp2 = vector_utils.get_worldscale_projection(Vector(p2))
     ssOrigin = vector_utils.get_worldscale_projection(Vector(origin))
 
@@ -160,7 +160,7 @@ def dxf_hatch_shader(hatch,coords,dxf,material):
 
     path = []
     for coord in coords:
-        ssPoint = vector_utils.get_worldscale_projection(Vector(coord)*10)
+        ssPoint = vector_utils.get_worldscale_projection(Vector(coord))
         path.append(ssPoint)
 
     hatch.paths.add_polyline_path(path,is_closed=True)

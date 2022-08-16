@@ -68,7 +68,8 @@ def get_worldscale_projection_ndc(mypoint):
     return [(ndc.x * world_width), (ndc.y * world_height)]
 
 # Gets 2d worldscale projection using camera matrix. falls back to ndc if camera is using perspective projection
-def get_worldscale_projection(mypoint):
+# Because dxf's allways seem to import in mm, we'll use this as the default scale factor
+def get_worldscale_projection(mypoint, units = 'M'):
     scene = bpy.context.scene
     camera = scene.camera
 
@@ -83,6 +84,14 @@ def get_worldscale_projection(mypoint):
     camera_basis.rotate(camera_rot)
 
     proj_point = (v1 - camera.location) @ camera_basis
+    
+    if units == 'MM':
+        proj_point *= 1000
+    elif units == 'CM':
+        proj_point *= 100
+    elif units == 'M':
+        pass
+
     return [proj_point.x, proj_point.y]
     
 

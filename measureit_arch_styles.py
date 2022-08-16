@@ -406,7 +406,8 @@ def draw_line_style_settings(line, layout):
         text='Visible In View')
 
     col.prop(line, 'color', text="Color")
-    col.prop(line, 'cad_col_idx')
+    if bpy.context.scene.MeasureItArchProps.show_dxf_props:
+        col.prop(line, 'cad_col_idx')
     col.prop(line, 'lineWeight', text="Lineweight")
     col.prop(line, 'lineDepthOffset', text="Z Offset")
 
