@@ -7,6 +7,7 @@ from bpy.types import PropertyGroup, Operator
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
+
 def recalc_index(self, context):
     # ensure index's are accurate
     StyleGen = context.scene.StyleGenerator

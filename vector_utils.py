@@ -54,7 +54,8 @@ def get_render_location(mypoint, svg_flip_y = True):
 
     return [(co_2d.x * width), height - (co_2d.y * height)]
 
-def get_worldscale_projection(mypoint):
+# Gets 2d worldscale projection using normalized device co-ordinates... loss of precision but handles perspective
+def get_worldscale_projection_ndc(mypoint):
     view = get_view()
     scene = bpy.context.scene
     v1 = Vector(mypoint)
@@ -65,6 +66,26 @@ def get_worldscale_projection(mypoint):
     world_height = view.height * camera_scale
 
     return [(ndc.x * world_width), (ndc.y * world_height)]
+
+# Gets 2d worldscale projection using camera matrix. falls back to ndc if camera is using perspective projection
+def get_worldscale_projection(mypoint):
+    scene = bpy.context.scene
+    camera = scene.camera
+
+    # Fall back to ndc for perspective
+    if camera.data.type == 'PERSPECTIVE':
+        return get_worldscale_projection_ndc(mypoint)
+
+    v1 = Vector(mypoint)
+    camera_matrix = camera.matrix_world
+    camera_rot = camera_matrix.to_quaternion()
+    camera_basis = Matrix.Identity(3) 
+    camera_basis.rotate(camera_rot)
+
+    proj_point = (v1 - camera.location) @ camera_basis
+    return [proj_point.x, proj_point.y]
+    
+
 
 def polygon_occlusion(coords):
     polygon = coords

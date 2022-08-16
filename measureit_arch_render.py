@@ -664,10 +664,19 @@ def render_main_dxf(self, context):
 
         # Setup basic dxf
         doc = ezdxf.new(dxfversion="AC1032", setup=True, units = 6)
+        doc.modelspace()
         doc.units = ezdxf.units.M
         doc.header['$LUNITS'] = 2 # For Decimal
-        doc.header['$INSUNITS'] = 14 # For Decimeters, I have no idea why this works best for CAD but it does... AutoCADs unit system is a mess
+        doc.header['$INSUNITS'] = ezdxf.units.M
         doc.header['$MEASUREMENT'] = 1 #for Metric
+
+        # Create the MeasureIt_ARCH dim style
+        
+        #m_arch_style = doc.dimstyles.new(name='MeasureIt_ARCH')
+        #m_arch_style.dimscale = 1
+        #m_arch_style.dimtxt = 100
+
+
 
         # Setup Layers based on styles 
         recalc_index(self, context)

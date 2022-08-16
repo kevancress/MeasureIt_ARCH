@@ -59,7 +59,11 @@ _cad_col_dict = {
     255: (0,0,0,1)
 }
 
-def safe_name(name):
+def safe_name(name, is_dxf = False):
+
+    if is_dxf:
+        pass
+
     try:
         ascii_name = name.encode('ascii','strict')
         safe_name = ascii_name.decode()

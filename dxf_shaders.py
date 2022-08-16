@@ -33,7 +33,7 @@ import bpy_extras.object_utils as object_utils
 from math import degrees
 import bpy
 import ezdxf
-from .measureit_arch_utils import get_view
+from .measureit_arch_utils import get_view, safe_name
 from . import vector_utils
 
 from mathutils import Vector, Matrix
@@ -49,12 +49,15 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
     model_space = dxf.modelspace()
     ss_origin = vector_utils.get_worldscale_projection(myobj.location)
     block = None
+
+    dxf_name = safe_name(myobj.name, is_dxf=True)
+
     try:
-        dxf.blocks.get(myobj.name)
-        block = dxf.blocks[myobj.name]
+        dxf.blocks.get(dxf_name)
+        block = dxf.blocks[dxf_name]
     except ezdxf.DXFKeyError:
-        block = dxf.blocks.new(name = myobj.name)  
-        model_space.add_blockref(myobj.name, (0,0), dxfattribs={"layer": itemProps.name})
+        block = dxf.blocks.new(name = dxf_name)  
+        model_space.add_blockref(dxf_name, (0,0), dxfattribs={"layer": itemProps.name})
 
     
 
@@ -72,8 +75,8 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
                 continue
 
             if vis or draw_hidden:
-                p1ss = vector_utils.get_worldscale_projection(mat @ Vector(p1)*10) 
-                p2ss = vector_utils.get_worldscale_projection(mat @ Vector(p2)*10)
+                p1ss = vector_utils.get_worldscale_projection(mat @ Vector(p1)) 
+                p2ss = vector_utils.get_worldscale_projection(mat @ Vector(p2))
                 #line = model_space.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
                 block.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
 
@@ -84,11 +87,11 @@ def dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf):
     
     layer = dimProps.name
 
-    dist = -(dimProps.dimOffset + dim.tweakOffset) * 10 # Dimension distance needs to be flipped for some reason
+    dist = -(dimProps.dimOffset + dim.tweakOffset) # Dimension distance needs to be flipped for some reason
 
-    ssp1 = vector_utils.get_worldscale_projection(Vector(p1)*10) 
-    ssp2 = vector_utils.get_worldscale_projection(Vector(p2)*10)
-    ssOrigin = vector_utils.get_worldscale_projection(Vector(origin)*10)
+    ssp1 = vector_utils.get_worldscale_projection(Vector(p1)) 
+    ssp2 = vector_utils.get_worldscale_projection(Vector(p2))
+    ssOrigin = vector_utils.get_worldscale_projection(Vector(origin))
 
     if (Vector(ssp1) - Vector(ssp2)).length == 0:
         print('zero length ss dim vector, returning')
@@ -99,7 +102,7 @@ def dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf):
         distance = dist,  # location of the dimension line
         p1=ssp1,  # 1st measurement point
         p2=ssp2,  # 2nd measurement point
-        dimstyle="EZDXF",  # default dimension style
+        dimstyle="MeasureIt_ARCH",  # Custom MeasureIt_ARCH dim style defined in renderdxf
         dxfattribs={"layer": layer}
     )
 
@@ -125,18 +128,18 @@ def dxf_axis_dimension(dim, dimProps, p1, p2, origin, dxf):
     if dim.dimAxis == 'Y':
         rot -= 90
 
-    dist = -(dimProps.dimOffset + dim.tweakOffset) * 10 # Dimension distance needs to be flipped for some reason
+    dist = -(dimProps.dimOffset + dim.tweakOffset) # Dimension distance needs to be flipped for some reason
 
-    ssp1 = vector_utils.get_worldscale_projection(Vector(p1)*10) 
-    ssp2 = vector_utils.get_worldscale_projection(Vector(p2)*10)
-    ssOrigin = vector_utils.get_worldscale_projection(Vector(origin)*10)
+    ssp1 = vector_utils.get_worldscale_projection(Vector(p1)) 
+    ssp2 = vector_utils.get_worldscale_projection(Vector(p2))
+    ssOrigin = vector_utils.get_worldscale_projection(Vector(origin))
 
     dim = model_space.add_linear_dim(
         base = ssOrigin,  # location of the dimension line
         p1=ssp1,  # 1st measurement point
         p2=ssp2,  # 2nd measurement point
         angle = rot,
-        dimstyle="EZDXF",  # default dimension style
+        dimstyle="MeasureIt_ARCH",  # Custom MeasureIt_ARCH dim style defined in renderdxf
         dxfattribs={"layer": layer}
     )
 
@@ -168,10 +171,10 @@ def dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf):
 
     ssLeaderCoords = []
     for coord in coords:
-        ssPoint = vector_utils.get_worldscale_projection(coord*10)
+        ssPoint = vector_utils.get_worldscale_projection(coord)
         ssLeaderCoords.append(ssPoint)
 
-    ssOrigin = vector_utils.get_worldscale_projection(origin*10)
+    ssOrigin = vector_utils.get_worldscale_projection(origin)
 
     leader = model_space.add_leader(ssLeaderCoords,dxfattribs={"layer": annotationProps.name})
 
