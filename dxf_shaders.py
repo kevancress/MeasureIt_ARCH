@@ -48,6 +48,11 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
     dashed = False
     model_space = dxf.modelspace()
     ss_origin = vector_utils.get_worldscale_projection(myobj.location)
+
+    #if ss_origin.z < 0:
+        #print('Object Origin behind Camera. Skipping')
+        #return
+
     block = None
 
     dxf_name = safe_name(myobj.name, is_dxf=True)

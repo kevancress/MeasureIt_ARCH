@@ -92,7 +92,7 @@ def get_worldscale_projection(mypoint, units = 'M'):
     elif units == 'M':
         pass
 
-    return [proj_point.x, proj_point.y]
+    return proj_point
     
 
 
