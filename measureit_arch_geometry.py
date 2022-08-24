@@ -354,6 +354,8 @@ def get_hatch_name(mat_name, hatch_name):
 
 def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_draw = False):
     sceneProps = context.scene.MeasureItArchProps
+    view = get_view()
+    scale = get_scale()
 
     if sceneProps.is_vector_draw:
         try:
@@ -417,12 +419,16 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 name = get_hatch_name(slot.material.name, hatch.pattern.name)
                 objs = hatch.pattern.objects
                 weight = hatch.patternWeight
-                size = hatch.patternSize
+                scale = get_scale()
+                print(scale)
+                ortho_scale = view.camera.data.ortho_scale
+                size = hatch.patternSize * ( (1/get_scale()) * BU_TO_INCHES * get_resolution())
+                print(size)
                 color = hatch.line_color
                 rotation = math.degrees(hatch.patternRot)
 
                 if sceneProps.is_vector_draw:
-                    pattern = svgwrite.pattern.Pattern(width=size, height=size, id=name, patternUnits="userSpaceOnUse", **{
+                    pattern = svgwrite.pattern.Pattern(width="{}px".format(size), height="{}px".format(size), id=name, patternUnits="userSpaceOnUse", **{
                         'patternTransform': 'rotate({} {} {})'.format(
                             rotation, 0, 0
                         )})
