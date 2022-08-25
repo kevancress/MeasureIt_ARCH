@@ -49,10 +49,13 @@ A usefull error report should contain the following:
 
         as listed there when reporting an issue. 
 
-- The severity of the issue (is this an annoyance, or is it preventing you from using the addon)
+- The severity of the issue (is this an annoyance, somthing that is preventing you from using the addon, a crash)
 - **Any error messages that occur with the issue.**
 
     !!! Info
         Errors should show up in Blender's [Info Editor](https://docs.blender.org/manual/en/latest/editors/info_editor.html) or in the Blender System Console which can be toggled by going to "Window" -> "Toggle System Console"
+
+    !!! Info
+        For more detailed loging of errors and crash reports, try [running MeasureIt_ARCH from Visual Studio Code](../tutorials/install.md):
 
 For issues specifically related to how graphics are drawn in the 3D view the model of your graphics card can also be useful information.

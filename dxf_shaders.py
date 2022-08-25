@@ -46,6 +46,7 @@ hatch_col_dict = {}
 
 def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, mat=Matrix.Identity(4)):
     dashed = False
+    line_buffer = []
     model_space = dxf.modelspace()
     ss_origin = vector_utils.get_worldscale_projection(myobj.location)
 
@@ -82,8 +83,16 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
             if vis or draw_hidden:
                 p1ss = vector_utils.get_worldscale_projection(mat @ Vector(p1)) 
                 p2ss = vector_utils.get_worldscale_projection(mat @ Vector(p2))
-                #line = model_space.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
-                block.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
+                
+                # Check if we've drawn this line before
+                check_string_1 = "{}:{}".format(p1ss,p2ss)
+                check_string_2 = "{}:{}".format(p2ss,p1ss)
+                if check_string_1 in line_buffer or check_string_2 in line_buffer:
+                    continue
+                else:
+                    line_buffer.append(check_string_1)
+                    #line = model_space.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
+                    block.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
 
 
 # From https://ezdxf.readthedocs.io/en/stable/tutorials/linear_dimension.html
