@@ -712,6 +712,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                         dim[boundsStr] = [maxX, minX, maxY, minY, maxZ, minZ]
                         dim[rotStr] = myobj.matrix_world.to_quaternion()
                         dim[locStr] = myobj.location
+                        
                         dim[scaleStr] = myobj.scale
 
                     coords.append(Vector((maxX, maxY, maxZ)))
