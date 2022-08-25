@@ -672,9 +672,9 @@ def render_main_dxf(self, context):
 
         # Create the MeasureIt_ARCH dim style
         
-        #m_arch_style = doc.dimstyles.new(name='MeasureIt_ARCH')
-        #m_arch_style.dimscale = 1
-        #m_arch_style.dimtxt = 100
+        m_arch_style = doc.dimstyles.new(name='MeasureIt_ARCH')
+        m_arch_style.dimscale = 1
+        m_arch_style.dimtxt = 100
 
 
 
