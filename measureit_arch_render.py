@@ -42,7 +42,7 @@ from datetime import datetime
 from . import svg_shaders
 from . import vector_utils
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
-from .measureit_arch_main import draw_main, draw_titleblock, text_update_loop
+from .measureit_arch_main import draw_main, draw_titleblock, draw_viewport, text_update_loop
 from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render
 from .measureit_arch_units import BU_TO_INCHES
 from .shaders import Base_Shader_3D, DepthOnlyFrag
@@ -577,7 +577,7 @@ def render_main_svg(self, context):
         svg.add(drawing_group)
         
         tb_group = svg.g(id="Titleblock")
-        draw_titleblock(context, svg=svg)
+        draw_viewport(context, svg=svg)
         svg.add(tb_group)
 
         svg.save(pretty=True)
