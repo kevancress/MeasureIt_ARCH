@@ -603,7 +603,7 @@ def draw_main_3d(context):
 
 ### Revised version of draw Titleblock, to draw any view in any scene, in paperspace
 ### A way to use views similar to AutoCAD "viewports" or Rhino "DetailViews"
-def draw_viewport(context, svg=None, dxf = None):
+def draw_viewport(context, svg=None, dxf = None, obj= None):
     view = get_view()
     rv3d = get_rv3d()
     sceneProps = context.scene.MeasureItArchProps
@@ -616,18 +616,22 @@ def draw_viewport(context, svg=None, dxf = None):
             if rv3d.view_perspective != 'CAMERA':
                 return
 
-        camera = view.camera
+                
+        offsetVec = Vector((0, 0, 0))
+        
+        if obj == None:
+            obj = view.camera
+            offsetVec = Vector((0, 0, -1.2))
+            offsetVec *= obj.data.clip_start
 
         viewportScene = bpy.data.scenes[view.titleBlock]
         viewport= viewportScene.ViewGenerator.views[0]
         viewportCamera = viewport.camera
-        viewportMat = viewportCamera.matrix_world.inverted()
+        viewportMat = viewportCamera.matrix_world.inverted_safe()
 
         objlist = viewportScene.objects
 
-        cameraMat = camera.matrix_world
-        offsetVec = Vector((0, 0, -10))
-        offsetVec *= camera.data.clip_start
+        objMat = obj.matrix_world
 
         transMat = Matrix.Translation(offsetVec)
 
@@ -635,7 +639,7 @@ def draw_viewport(context, svg=None, dxf = None):
         scaleMat *= (view.model_scale / view.paper_scale) / (viewport.model_scale / viewport.paper_scale)
         scaleMat.resize_4x4()
 
-        extMat = cameraMat @ transMat @ scaleMat @ viewportMat
+        extMat = objMat @ transMat @ scaleMat @ viewportMat
         sceneProps.source_scene = viewportScene
 
         if sceneProps.is_render_draw:
