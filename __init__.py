@@ -174,7 +174,7 @@ classes = (
     measureit_arch_schedules.AddScheduleButton,
 
     # Sheets
-    measureit_arch_viewports.SCENE_PT_Sheet,
+
     measureit_arch_viewports.Viewport,
     measureit_arch_viewports.ViewportContainer,
     measureit_arch_viewports.M_ARCH_UL_Sheets_list,
@@ -200,6 +200,7 @@ classes = (
     measureit_arch_views.SCENE_PT_Views,
     measureit_arch_views.M_ARCH_UL_Views_list,
     measureit_arch_views.SCENE_MT_Views_menu,
+    measureit_arch_viewports.SCENE_PT_Viewport,
     measureit_arch_styles.SCENE_PT_UIStyles,
     measureit_arch_styles.M_ARCH_UL_styles_list,
     measureit_arch_styles.SCENE_MT_styles_menu,
@@ -235,7 +236,7 @@ def register():
         type=measureit_arch_styles.StyleContainer)
     Scene.ViewGenerator = bpy.props.PointerProperty(
         type=measureit_arch_views.ViewContainer)
-    Scene.SheetGenerator = bpy.props.PointerProperty(
+    Scene.ViewportGenerator = bpy.props.PointerProperty(
         type=measureit_arch_viewports.ViewportContainer)
 
     # Register collection properties

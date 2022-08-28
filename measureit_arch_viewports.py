@@ -68,11 +68,11 @@ class M_ARCH_UL_Sheets_list(UIList):
             layout.label(text="", icon='MESH_CUBE')
 
 
-class SCENE_PT_Sheet(Panel):
-    """ A panel in the Object properties window """
+class SCENE_PT_Viewport(Panel):
+    """ A panel in the Scene properties window """
 
-    bl_parent_id = 'OBJECT_PT_Panel'
-    bl_label = "MeasureIt_ARCH Sheet"
+    bl_parent_id = 'SCENE_PT_Panel'
+    bl_label = "Viewports"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
@@ -93,7 +93,7 @@ class SCENE_PT_Sheet(Panel):
 
         # Draw The UI List
         row.template_list(
-            "M_ARCH_UL_Sheets_list", "", ViewportGen, "sheet_views", ViewportGen,
+            "M_ARCH_UL_Sheets_list", "", ViewportGen, "viewports", ViewportGen,
             "active_index", rows=2, type='DEFAULT')
 
     
