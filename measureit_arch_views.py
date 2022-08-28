@@ -782,8 +782,10 @@ class SCENE_PT_Views(Panel):
 
             if ViewGen.show_settings:
                 col = box.column()
+                box = box.column()
                 if view.camera is None:
-                    col.lable(text="Please set a Camera for this View")
+                    col.label(text="Please set a Camera for this View")
+                    box.enabled = False
 
                 col = box.column(align=True)
                 col.prop(view, "render_engine")
