@@ -29,9 +29,9 @@ import bpy
 from bpy.types import PropertyGroup, Panel, Operator, UIList, Scene, Object
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, PointerProperty
+from .measureit_arch_utils import get_view
 
-
-class Viewport(PropertyGroup):
+class Viewport(PropertyGroup,):
     view: StringProperty(name="View Name")
 
     scene: PointerProperty(type=Scene)
@@ -49,9 +49,6 @@ class ViewportContainer(PropertyGroup):
     active_index: IntProperty(name='Active Sheet View Index')
 
     show_settings: BoolProperty(name='Show Sheet View Settings', default=False)
-
-    # Array of segments
-    viewports: CollectionProperty(type=Viewport)
 
 
 class M_ARCH_UL_Sheets_list(UIList):
@@ -91,9 +88,54 @@ class SCENE_PT_Viewport(Panel):
 
         row = layout.row()
 
+        # Get Active View.
+        active_view = get_view()
+
         # Draw The UI List
         row.template_list(
-            "M_ARCH_UL_Sheets_list", "", ViewportGen, "viewports", ViewportGen,
+            "M_ARCH_UL_Sheets_list", "", active_view, "viewports", ViewportGen,
             "active_index", rows=2, type='DEFAULT')
 
+        col = row.column(align=True)
+
+        AddOp = col.operator(
+            "measureit_arch.additem", text="", icon="ADD")
+        AddOp.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].viewports'
+        AddOp.idx = ViewportGen.active_index
+        AddOp.add = True
+        AddOp.name = "Viewport"
+        
+        RemoveOp = col.operator(
+            "measureit_arch.additem", text="", icon="REMOVE")
+        RemoveOp.propPath = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].viewports'
+        RemoveOp.idx = ViewportGen.active_index
+        RemoveOp.add = False
+
+        if len(active_view.viewports) > 0 and ViewportGen.active_index < len(active_view.viewports):
+            viewport = active_view.viewports[ViewportGen.active_index]
+
+            # Settings Below List
+            if ViewportGen.show_settings:
+                settingsIcon = 'DISCLOSURE_TRI_DOWN'
+            else:
+                settingsIcon = 'DISCLOSURE_TRI_RIGHT'
+
+            box = layout.box()
+            col = box.column()
+            row = col.row()
+            row.prop(ViewportGen, 'show_settings', text="",
+                     icon=settingsIcon, emboss=False)
+
+            row.label(text=viewport.name + ' Settings:')
+
+            if ViewportGen.show_settings:
+                col = box.column()
+                col.prop(viewport, 'scene', text="Scene")
+                if viewport.scene is not None:
+                    viewGen = viewport.scene.ViewGenerator
+                    col.prop_search(viewport, 'view', viewGen, 'views',
+                                        text="View", icon='CAMERA_DATA')
+
+                col.prop(viewport, 'anchor', text='Anchor Object')
+                col.prop(viewport,'draw_border')
     

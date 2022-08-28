@@ -782,124 +782,126 @@ class SCENE_PT_Views(Panel):
 
             if ViewGen.show_settings:
                 col = box.column()
-                if view.camera is not None:
+                if view.camera is None:
+                    col.lable(text="Please set a Camera for this View")
+
+                col = box.column(align=True)
+                col.prop(view, "render_engine")
+                col.prop(view, "world")
+                col.prop(view, "view_transform")
+                col.prop(view, "film_transparent")
+                col = box.column(align=True)
+                col.prop(view, "view_num")
+                col.prop(view, "name")
+                col.prop_search(view, 'titleBlock', bpy.data,
+                                'scenes', text='Title Block')
+
+                col = box.column(align=True)
+                col.prop(view, "cameraType", text="Camera Type")
+                col.prop_search(view, 'view_layer', context.scene,
+                                'view_layers', text='View Layer')
+
+                col = box.column(align=True)
+                row = col.row(align=True)
+                row.prop(view, "output_path")
+                row.operator("measureit_arch.openinbrowser",text="",icon="WINDOW")
+                col.prop(view, "date_folder", text="Date Folder")
+
+                col = box.column(align=True)
+                col.row().prop(view, 'res_type', expand=True)
+                if view.res_type == 'res_type_paper':
+                    split = box.split(factor=0.4)
+                    col = split.column()
+                    col.alignment = 'RIGHT'
+                    row = split.row(align=True)
+
+                    custom_paper_size = view.paper_size == 'CUSTOM'
                     col = box.column(align=True)
-                    col.prop(view, "render_engine")
-                    col.prop(view, "world")
-                    col.prop(view, "view_transform")
-                    col.prop(view, "film_transparent")
-                    col = box.column(align=True)
-                    col.prop(view, "view_num")
-                    col.prop(view, "name")
-                    col.prop_search(view, 'titleBlock', bpy.data,
-                                    'scenes', text='Title Block')
+                    col.enabled = True
+                    col.prop(view, 'paper_size', text='Paper size:')
 
                     col = box.column(align=True)
-                    col.prop(view, "cameraType", text="Camera Type")
-                    col.prop_search(view, 'view_layer', context.scene,
-                                    'view_layers', text='View Layer')
+                    col.enabled = not custom_paper_size
+                    col.row().prop(view, 'paper_orientation', expand=True)
 
                     col = box.column(align=True)
-                    row = col.row(align=True)
-                    row.prop(view, "output_path")
-                    row.operator("measureit_arch.openinbrowser",text="",icon="WINDOW")
-                    col.prop(view, "date_folder", text="Date Folder")
+                    col.enabled = custom_paper_size
+                    col.prop(view, 'width', text='Width:')
+                    col.prop(view, 'height', text='Height:')
 
                     col = box.column(align=True)
-                    col.row().prop(view, 'res_type', expand=True)
-                    if view.res_type == 'res_type_paper':
-                        split = box.split(factor=0.4)
-                        col = split.column()
-                        col.alignment = 'RIGHT'
-                        row = split.row(align=True)
+                    col.enabled = True
+                    col.prop(view, 'res', text='Resolution (PPI):')
 
-                        custom_paper_size = view.paper_size == 'CUSTOM'
-                        col = box.column(align=True)
-                        col.enabled = True
-                        col.prop(view, 'paper_size', text='Paper size:')
+                else:
+                    split = box.split(factor=0.4)
+                    col = split.column()
+                    col.alignment = 'RIGHT'
+                    row = split.row(align=True)
 
-                        col = box.column(align=True)
-                        col.enabled = not custom_paper_size
-                        col.row().prop(view, 'paper_orientation', expand=True)
+                    # row.menu(CAMERA_PX_Presets.__name__, text=CAMERA_PX_Presets.bl_label)
+                    # row.operator(AddPixelResPreset.bl_idname, text="", icon='ADD')
+                    # row.operator(AddPixelResPreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
-                        col = box.column(align=True)
-                        col.enabled = custom_paper_size
-                        col.prop(view, 'width', text='Width:')
-                        col.prop(view, 'height', text='Height:')
-
-                        col = box.column(align=True)
-                        col.enabled = True
-                        col.prop(view, 'res', text='Resolution (PPI):')
-
-                    else:
-                        split = box.split(factor=0.4)
-                        col = split.column()
-                        col.alignment = 'RIGHT'
-                        row = split.row(align=True)
-
-                        # row.menu(CAMERA_PX_Presets.__name__, text=CAMERA_PX_Presets.bl_label)
-                        # row.operator(AddPixelResPreset.bl_idname, text="", icon='ADD')
-                        # row.operator(AddPixelResPreset.bl_idname, text="", icon='REMOVE').remove_active = True
-
-                        col = box.column(align=True)
-                        col.prop(view, 'width_px', text="Resolution X")
-                        col.prop(view, 'height_px')
-                        col.prop(view, 'percent_scale', text="%")
-
-                    # Scale Settings
                     col = box.column(align=True)
-                    col.active = view.camera.data.type == 'ORTHO'
-                    if view.res_type == 'res_type_paper':
-                        # row = col.row(align=True)
-                        # row.menu(CAMERA_PAPER_SCALE_Presets.__name__, text=CAMERA_PAPER_SCALE_Presets.bl_label)
-                        # row.operator(AddPaperScalePreset.bl_idname, text="", icon='ADD')
-                        # row.operator(AddPaperScalePreset.bl_idname, text="", icon='REMOVE').remove_active = True
+                    col.prop(view, 'width_px', text="Resolution X")
+                    col.prop(view, 'height_px')
+                    col.prop(view, 'percent_scale', text="%")
 
-                        col.row().prop(view, 'paper_scale_mode', expand=True)
-                        if view.paper_scale_mode == 'CUSTOM':
-                            row = col.row(align=True)
-                            row.prop(view, 'paper_scale', text="Scale")
-                            row.prop(view, 'model_scale', text=":")
-                        
-                        if view.paper_scale_mode == 'METRIC':
-                            col.prop(view, 'metric_scale')
-                        
-                        if view.paper_scale_mode == 'IMPERIAL':
-                            col.prop(view, 'imp_scale')
+                # Scale Settings
+                col = box.column(align=True)
+                col.active = view.camera.data.type == 'ORTHO'
+                if view.res_type == 'res_type_paper':
+                    # row = col.row(align=True)
+                    # row.menu(CAMERA_PAPER_SCALE_Presets.__name__, text=CAMERA_PAPER_SCALE_Presets.bl_label)
+                    # row.operator(AddPaperScalePreset.bl_idname, text="", icon='ADD')
+                    # row.operator(AddPaperScalePreset.bl_idname, text="", icon='REMOVE').remove_active = True
 
-                    else:
-
-                        # row = col.row(align=True)
-                        # row.menu(CAMERA_PX_SCALE_Presets.__name__, text=CAMERA_PX_SCALE_Presets.bl_label)
-                        # row.operator(AddPixelScalePreset.bl_idname, text="", icon='ADD')
-                        # row.operator(AddPixelScalePreset.bl_idname, text="", icon='REMOVE').remove_active = True
-
+                    col.row().prop(view, 'paper_scale_mode', expand=True)
+                    if view.paper_scale_mode == 'CUSTOM':
                         row = col.row(align=True)
-                        row.prop(view, 'pixel_scale', text="Scale")
+                        row.prop(view, 'paper_scale', text="Scale")
                         row.prop(view, 'model_scale', text=":")
+                    
+                    if view.paper_scale_mode == 'METRIC':
+                        col.prop(view, 'metric_scale')
+                    
+                    if view.paper_scale_mode == 'IMPERIAL':
+                        col.prop(view, 'imp_scale')
 
-                    # A quick Test, If BlenderBIM is available, add its view specific properties here too
-                    # try:
-                    #    col = box.column(align=True)
-                    #    col.prop(camera.BIMCameraProperties,'diagram_scale', text= 'BlenderBIM Scale')
-                    #    col.operator('bim.cut_section')
-                    # except:
-                    #    pass
+                else:
 
-                    col = box.column(align=True)
+                    # row = col.row(align=True)
+                    # row.menu(CAMERA_PX_SCALE_Presets.__name__, text=CAMERA_PX_SCALE_Presets.bl_label)
+                    # row.operator(AddPixelScalePreset.bl_idname, text="", icon='ADD')
+                    # row.operator(AddPixelScalePreset.bl_idname, text="", icon='REMOVE').remove_active = True
+
                     row = col.row(align=True)
-                    row.prop(view, 'start_frame', text="Frame Range")
-                    row.prop(view, 'end_frame', text="")
+                    row.prop(view, 'pixel_scale', text="Scale")
+                    row.prop(view, 'model_scale', text=":")
 
-                    col.prop(view, "embed_scene_render", text="Embed Scene Render")
-                    col.prop(view, "embed_greasepencil_svg", text="Embed Grease Pencil SVG")
-                    col.prop(view, "vector_depthtest", text="Use Vector Depth Test")
-                    col.prop(view, "skip_instances",)
+                # A quick Test, If BlenderBIM is available, add its view specific properties here too
+                # try:
+                #    col = box.column(align=True)
+                #    col.prop(camera.BIMCameraProperties,'diagram_scale', text= 'BlenderBIM Scale')
+                #    col.operator('bim.cut_section')
+                # except:
+                #    pass
 
-                    col = box.column(align=True)
-                    freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
-                    col.active = freestyle_svg_export
-                    col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
+                col = box.column(align=True)
+                row = col.row(align=True)
+                row.prop(view, 'start_frame', text="Frame Range")
+                row.prop(view, 'end_frame', text="")
+
+                col.prop(view, "embed_scene_render", text="Embed Scene Render")
+                col.prop(view, "embed_greasepencil_svg", text="Embed Grease Pencil SVG")
+                col.prop(view, "vector_depthtest", text="Use Vector Depth Test")
+                col.prop(view, "skip_instances",)
+
+                col = box.column(align=True)
+                freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
+                col.active = freestyle_svg_export
+                col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
                     
                     
 

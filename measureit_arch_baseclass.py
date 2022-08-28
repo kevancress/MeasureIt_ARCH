@@ -853,17 +853,20 @@ class AddItem(Operator):
     propPath: StringProperty()
     idx: IntProperty(default = -1)
     add: BoolProperty()
+    name: StringProperty(default="")
 
     def execute(self, context):
         mainobject = context.object
-        textFields = eval(self.propPath)
+        container = eval(self.propPath)
         if self.add:
-            textFields.add()
+            new_item = container.add()
+            if self.name != "":
+                new_item.name = "{} {}".format(self.name, len(container))
         else:
             if self.idx == -1:
-                textFields.remove(len(textFields) - 1)
+                container.remove(len(container) - 1)
             else:
-                textFields.remove(self.idx)
+                container.remove(self.idx)
         return {'FINISHED'}
 
 class MoveItem(Operator):
