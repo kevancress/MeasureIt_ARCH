@@ -618,7 +618,8 @@ def draw_viewport(context, svg=None, dxf = None, obj= None):
 
                 
         offsetVec = Vector((0, 0, 0))
-        
+
+
         if obj == None:
             obj = view.camera
             offsetVec = Vector((0, 0, -1.2))

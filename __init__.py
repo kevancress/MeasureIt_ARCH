@@ -59,7 +59,7 @@ if "measureit_arch_main" in locals():
     importlib.reload(measureit_arch_main)
     importlib.reload(measureit_arch_render)
     importlib.reload(measureit_arch_schedules)
-    importlib.reload(measureit_arch_sheets)
+    importlib.reload(measureit_arch_viewports)
     importlib.reload(measureit_arch_styles)
     importlib.reload(measureit_arch_views)
     importlib.reload(measureit_arch_units)
@@ -76,7 +76,7 @@ else:
     from . import measureit_arch_main
     from . import measureit_arch_render
     from . import measureit_arch_schedules
-    from . import measureit_arch_sheets
+    from . import measureit_arch_viewports
     from . import measureit_arch_styles
     from . import measureit_arch_views
     from . import measureit_arch_object
@@ -174,12 +174,10 @@ classes = (
     measureit_arch_schedules.AddScheduleButton,
 
     # Sheets
-    measureit_arch_sheets.SCENE_PT_Sheet,
-    measureit_arch_sheets.SheetViewProperties,
-    measureit_arch_sheets.SheetViewContainer,
-    measureit_arch_sheets.AddSheetViewButton,
-    measureit_arch_sheets.DeleteSheetViewButton,
-    measureit_arch_sheets.M_ARCH_UL_Sheets_list,
+    measureit_arch_viewports.SCENE_PT_Sheet,
+    measureit_arch_viewports.Viewport,
+    measureit_arch_viewports.ViewportContainer,
+    measureit_arch_viewports.M_ARCH_UL_Sheets_list,
 
     # Styles
     measureit_arch_styles.StyleContainer,
@@ -193,7 +191,6 @@ classes = (
     measureit_arch_views.DuplicateViewButton,
     measureit_arch_views.DuplicateViewWithLayerButton,
     measureit_arch_views.AddViewButton,
-    measureit_arch_views.M_ARCH_OP_Render_Preview,
     measureit_arch_views.BatchViewRender,
     measureit_arch_views.OpenInBrowser,
 
@@ -238,8 +235,8 @@ def register():
         type=measureit_arch_styles.StyleContainer)
     Scene.ViewGenerator = bpy.props.PointerProperty(
         type=measureit_arch_views.ViewContainer)
-    Object.SheetGenerator = bpy.props.PointerProperty(
-        type=measureit_arch_sheets.SheetViewContainer)
+    Scene.SheetGenerator = bpy.props.PointerProperty(
+        type=measureit_arch_viewports.ViewportContainer)
 
     # Register collection properties
     Object.MeasureItArchProps = bpy.props.PointerProperty(

@@ -167,7 +167,8 @@ class BaseProp:
         update=update_flag)
 
     style_pointer: PointerProperty(
-        type = StyleWrapper
+        type = StyleWrapper,
+        update = update_flag
     )
 
     itemType: StringProperty(

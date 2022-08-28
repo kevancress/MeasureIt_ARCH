@@ -244,103 +244,7 @@ def update_text(textobj, props, context, fields=[]):
 
 def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None, dxf=None):
 
-    if sheet_view.scene is None:
-        return
-
-    if sheet_view.view == "":
-        return
-
-    refScene = sheet_view.scene
-    refView = None
-    for view in refScene.ViewGenerator.views:
-        if view.name == sheet_view.view:
-            refView = view
-
-    card = [(0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 0.0, 0.0)]
-
-    normalizedDeviceUVs = [(-1.3, -1.3), (-1.3, 1.3), (1.3, 1.3), (1.3, -1.3)]
-    uvs = []
-    for normUV in normalizedDeviceUVs:
-        uv = (Vector(normUV) + Vector((1, 1))) * 0.5
-        uvs.append(uv)
-
-    # Scale Card
-    scaled_card = []
-    if refView.res_type == 'res_type_paper':
-        sx = refView.width
-        sy = refView.height
-    else:
-        percentScale = refView.percent_scale / 100
-        sx = (refView.width_px * percentScale) / 1200
-        sy = (refView.height_px * percentScale) / 1200
-    scaleMatrix = Matrix([
-        [sx, 0, 0, 0],
-        [0, sy, 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-    ])
-
-    loc = mat.to_translation()
-    loc.z = 0.0
-    locMatrix = Matrix.Translation(loc)
-
-    for coord in card:
-        sCoord = scaleMatrix @ Vector(coord)
-        sCoord += sheet_view.location
-        sCoord = locMatrix @ sCoord
-        scaled_card.append(sCoord)
-    card = scaled_card
-
-    # Gets Texture from Object
-    if refView.res_type == 'res_type_paper':
-        paperWidth = refView.width
-        paperHeight = refView.height
-        ppi = refView.res
-
-        width = int(paperWidth * ppi * BU_TO_INCHES)
-        height = int(paperHeight * ppi * BU_TO_INCHES)
-    else:
-        percentScale = refView.percent_scale / 100
-        width = int(refView.width_px * percentScale)
-        height = int(refView.height_px * percentScale)
-
-    dim = int(width) * int(height) * 4
-
-    if 'preview' in refView:
-        # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
-        texArray = bgl.Buffer(bgl.GL_INT, [1])
-        bgl.glGenTextures(1, texArray)
-
-        bgl.glActiveTexture(bgl.GL_TEXTURE0)
-        bgl.glBindTexture(bgl.GL_TEXTURE_2D, texArray[0])
-
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
-                            bgl.GL_TEXTURE_WRAP_S, bgl.GL_CLAMP_TO_BORDER)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
-                            bgl.GL_TEXTURE_WRAP_T, bgl.GL_CLAMP_TO_BORDER)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
-                            bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-
-        tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(
-            refView['preview'], dtype=np.uint8))
-        bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width,
-                         height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
-
-        # Batch Geometry
-        batch = batch_for_shader(
-            textShader, 'TRI_FAN',
-            {
-                "pos": card,
-                "uv": uvs,
-            },
-        )
-
-        # Draw Shader
-        textShader.bind()
-        textShader.uniform_float("image", 0)
-        batch.draw(textShader)
-        bgl.glDeleteTextures(1, texArray)
-    gpu.shader.unbind()
+    pass
 
 def get_hatch_name(mat_name, hatch_name):
     name = mat_name + '_' + hatch_name
@@ -3675,11 +3579,11 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
             if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                 draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf)
 
-            # SHEETS
-            sheetGen = myobj.SheetGenerator
-            for sheet_view in sheetGen.sheet_views:
-                draw_sheet_views(context, myobj, sheetGen,
-                                 sheet_view, mat, svg=svg, dxf=dxf)
+            # VIEWPORTS
+            viewportGen = scene.ViewportGenerator
+            for viewport in viewportGen.viewports:
+                draw_sheet_views(context, myobj, viewportGen,
+                                 viewport, mat, svg=svg, dxf=dxf)
 
             # DIMS ANNO LINES
             if 'LineGenerator' in myobj:

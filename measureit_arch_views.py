@@ -14,11 +14,12 @@ from bpy.props import (
     EnumProperty,
     PointerProperty
 )
-from bpy.types import PropertyGroup, Panel, Operator, UIList
+from bpy.types import PropertyGroup, Panel, Operator, UIList, Scene, Object
 from bpy.app.handlers import persistent
 
 from .measureit_arch_render import render_main, render_main_svg
 from .measureit_arch_baseclass import TextField, draw_textfield_settings
+from .measureit_arch_viewports import Viewport
 from . measureit_arch_utils import get_loaded_addons, get_view, _imp_scales_dict, _metric_scales_dict
 from .measureit_arch_units import BU_TO_INCHES
 
@@ -194,9 +195,12 @@ def create_preset_view(dummy):
     if len(ViewGen.views)<1:
         add_view(context)
 
+
 class ViewProperties(PropertyGroup):
 
     textFields: CollectionProperty(type=TextField)
+
+    viewports: CollectionProperty(type=Viewport)
 
     render_engine: EnumProperty(
         items=(
@@ -931,7 +935,6 @@ class SCENE_PT_Views(Panel):
                 prop_path = 'bpy.context.scene.ViewGenerator.views[bpy.context.scene.ViewGenerator.active_index].textFields'
                 draw_textfield_settings(view, box, prop_path)
 
-
 class SCENE_MT_Views_menu(bpy.types.Menu):
     bl_label = "Custom Menu"
 
@@ -986,36 +989,3 @@ def add_view(context):
     newView = ViewGen.views.add()
     newView.name = 'View {}'.format(len(ViewGen.views))
 
-class M_ARCH_OP_Render_Preview(Operator):
-    bl_idname = "measureit_arch.renderpreviewbutton"
-    bl_label = "Render Preview"
-    bl_description = "Create A Preview Render of this view to be used in sheet layouts.\n" \
-                     "The Results can also be accessed in the Image Editor"
-    bl_category = 'MeasureitArch'
-    tag: IntProperty()
-
-    def execute(self, context):
-        scene = context.scene
-        ViewGen = scene.ViewGenerator
-        view = ViewGen.views[ViewGen.active_index]
-
-        msg = "New image created with measures. Open it in UV/image editor"
-        camera_msg = "Unable to render. No camera found"
-
-        # Check camera
-        if scene.camera is None:
-            self.report({'ERROR'}, camera_msg)
-            return {'FINISHED'}
-
-        # Use default render
-        print("MeasureIt_ARCH: Rendering image")
-        # bpy.ops.render.render()
-        render_results = render_main(self, context)
-        if render_results[0]:
-            self.report({'INFO'}, msg)
-            if 'preview' in view:
-                del view['preview']
-            view['preview'] = render_results[1]
-        del render_results
-
-        return {'FINISHED'}
