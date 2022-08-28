@@ -579,6 +579,8 @@ def text_update_loop(context, objlist):
                                 context=context)
 
 
+
+
 def draw_main_3d(context):
 
     scene = context.scene
@@ -593,6 +595,12 @@ def draw_main_3d(context):
     sceneProps.source_scene = scene
     draw3d_loop(context, objlist)
     #preview_dual(context)
+    
+    # VIEWPORTS
+    viewportGen = scene.ViewportGenerator
+    for viewport in get_view().viewports:
+        draw_viewport(context,viewport=viewport)
+
 
     # Draw TitleBlock
 
@@ -601,9 +609,10 @@ def draw_main_3d(context):
     
     scene.ViewGenerator.view_changed = False
 
+
 ### Revised version of draw Titleblock, to draw any view in any scene, in paperspace
 ### A way to use views similar to AutoCAD "viewports" or Rhino "DetailViews"
-def draw_viewport(context, svg=None, dxf = None, obj= None):
+def draw_viewport(context, viewport=None, svg=None, dxf = None):
     view = get_view()
     rv3d = get_rv3d()
     sceneProps = context.scene.MeasureItArchProps
@@ -611,45 +620,51 @@ def draw_viewport(context, svg=None, dxf = None, obj= None):
     if sceneProps.is_vector_draw:
         titleblock = svg.g(id='TitleBlock')
 
-    if view is not None and view.titleBlock != "":
-        if not sceneProps.is_render_draw:
-            if rv3d.view_perspective != 'CAMERA':
-                return
-
-                
-        offsetVec = Vector((0, 0, 0))
-
-
-        if obj == None:
-            obj = view.camera
-            offsetVec = Vector((0, 0, -1.2))
-            offsetVec *= obj.data.clip_start
-
+    
+    # titleblock call
+    if viewport is None:
+        if view.titleBlock == "":
+            return
         viewportScene = bpy.data.scenes[view.titleBlock]
-        viewport= viewportScene.ViewGenerator.views[0]
-        viewportCamera = viewport.camera
-        viewportMat = viewportCamera.matrix_world.inverted_safe()
+        viewportView = viewportScene.ViewGenerator.views[0]
+        obj = view.camera
+        offsetVec = Vector((0, 0, -1.2))
+        offsetVec *= obj.data.clip_start
 
-        objlist = viewportScene.objects
+    else: #normal call
+        viewportScene = viewport.scene
+        viewportView = viewportScene.ViewGenerator.views[viewport.view]
+        offsetVec = Vector((0, 0, 0))
+        obj = viewport.anchor
 
-        objMat = obj.matrix_world
+    ## Only draw in camera view
+    #if not sceneProps.is_render_draw:
+    #    if rv3d.view_perspective != 'CAMERA':
+    #        return
+     
+    viewportCamera = viewportView.camera
+    viewportMat = viewportCamera.matrix_world.inverted_safe()
 
-        transMat = Matrix.Translation(offsetVec)
+    objlist = viewportScene.objects
 
-        scaleMat = Matrix.Identity(3)
-        scaleMat *= (view.model_scale / view.paper_scale) / (viewport.model_scale / viewport.paper_scale)
-        scaleMat.resize_4x4()
+    anchorObjMat = obj.matrix_world
 
-        extMat = objMat @ transMat @ scaleMat @ viewportMat
-        sceneProps.source_scene = viewportScene
+    transMat = Matrix.Translation(offsetVec)
 
-        if sceneProps.is_render_draw:
-             text_update_loop(context, objlist)
+    scaleMat = Matrix.Identity(3)
+    scaleMat *= (view.model_scale / view.paper_scale) / (viewportView.model_scale / viewportView.paper_scale)
+    scaleMat.resize_4x4()
 
-        draw3d_loop(context, objlist, extMat=extMat, svg=svg, dxf = dxf, multMat=True, custom_call=True)
-        
-        # Return Source scene to the current scene
-        sceneProps.source_scene = context.scene
+    extMat = anchorObjMat @ transMat @ scaleMat @ viewportMat
+    sceneProps.source_scene = viewportScene
+
+    if sceneProps.is_render_draw:
+            text_update_loop(context, objlist)
+
+    draw3d_loop(context, objlist, extMat=extMat, svg=svg, dxf = dxf, multMat=True, custom_call=True)
+    
+    # Return Source scene to the current scene
+    sceneProps.source_scene = context.scene
 
 def draw_titleblock(context, svg=None, dxf = None):
     view = get_view()

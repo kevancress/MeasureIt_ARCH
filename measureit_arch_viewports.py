@@ -29,7 +29,10 @@ import bpy
 from bpy.types import PropertyGroup, Panel, Operator, UIList, Scene, Object
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, PointerProperty
-from .measureit_arch_utils import get_view
+
+from mathutils import Vector, Matrix, Euler, Quaternion
+
+from .measureit_arch_utils import get_view, get_rv3d
 
 class Viewport(PropertyGroup,):
     view: StringProperty(name="View Name")

@@ -3546,6 +3546,8 @@ def check_obj_vis(myobj,custom_call):
     else:
         return custom_call or not myobj.hide_render
 
+
+
 def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=False,custom_call=False):
     """
     Generate all OpenGL calls
@@ -3578,12 +3580,6 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
             # HATCHES
             if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                 draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf)
-
-            # VIEWPORTS
-            viewportGen = scene.ViewportGenerator
-            for viewport in viewportGen.viewports:
-                draw_sheet_views(context, myobj, viewportGen,
-                                 viewport, mat, svg=svg, dxf=dxf)
 
             # DIMS ANNO LINES
             if 'LineGenerator' in myobj:
