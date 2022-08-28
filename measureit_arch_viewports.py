@@ -71,7 +71,7 @@ class M_ARCH_UL_Sheets_list(UIList):
 class SCENE_PT_Viewport(Panel):
     """ A panel in the Scene properties window """
 
-    bl_parent_id = 'SCENE_PT_Panel'
+    bl_parent_id = 'SCENE_PT_Views'
     bl_label = "Viewports"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
