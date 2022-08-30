@@ -93,6 +93,8 @@ class SCENE_PT_Viewport(Panel):
 
         # Get Active View.
         active_view = get_view()
+        if active_view is None:
+            return
 
         # Draw The UI List
         row.template_list(

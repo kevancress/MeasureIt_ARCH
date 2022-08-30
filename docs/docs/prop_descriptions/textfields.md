@@ -78,3 +78,15 @@ Displays the Scale defined in the current view.
 
 Displays the Drawing Number defined in the current view.
 
+### ![image](../icons/bi__text_file.png) Project Name:
+
+Displays the Project Name, as defined in the MeasureIt_ARCH scene tab
+
+### ![image](../icons/bi__text_file.png) Project Address:
+
+Displays the Project Address, as defined in the MeasureIt_ARCH scene tab
+
+### ![image](../icons/bi__text_file.png) Project Number:
+
+Displays the Project Number, as defined in the MeasureIt_ARCH scene tab
+

@@ -266,6 +266,9 @@ class TextField(PropertyGroup):
                ('VIEWNUM', "Drawing Number", "", 'SORTALPHA', 8),
                ('LENGTH', "Dimension Length", "", 'DRIVER_DISTANCE', 9),
                ('TEXT_FILE', "Text File", "", 'TEXT', 10),
+               ('PROJECT_NAME', "Project Name", "", 'TEXT', 11),
+               ('PROJECT_NUMBER', "Project Number", "", 'TEXT', 12),
+               ('PROJECT_ADDRESS', "Project Address", "", 'TEXT', 13),
                ('RNAPROP', "Custom Property", "", 'RNA', 99)),
         name="Text Source",
         default='RNAPROP',
@@ -546,6 +549,18 @@ class MeasureItARCHSceneProps(PropertyGroup):
     bound_x: BoolProperty()
     bound_y: BoolProperty()
     bound_z: BoolProperty()
+
+    project_name: StringProperty(
+        name="Project Name",
+        description="Name of this Project")
+
+    project_number: StringProperty(
+        name="Project Number",
+        description="Number of this Project")
+    
+    project_address: StringProperty(
+        name="Project Address",
+        description="Address for this Project")
 
     depth_samples: EnumProperty(
         items=(

@@ -324,10 +324,8 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 objs = hatch.pattern.objects
                 weight = hatch.patternWeight
                 scale = get_scale()
-                print(scale)
                 ortho_scale = view.camera.data.ortho_scale
                 size = hatch.patternSize * ( (1/get_scale()) * BU_TO_INCHES * get_resolution())
-                print(size)
                 color = hatch.line_color
                 rotation = math.degrees(hatch.patternRot)
 
@@ -1630,8 +1628,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         origin = center
         normal = rotMatrix @ originFace.normal
         
-        print(dim.originFaceIdx)
-
         origin += dim.dimTextPos + normal * 0.01
 
 
@@ -2619,82 +2615,95 @@ def set_text(textField, obj, style=None, item=None):
 
     if textField.autoFillText:
         textField.text_updated = True
-        # DATE
-        if textField.textSource == 'DATE':
-            textField.text = datetime.now().strftime('%y/%m/%d')
-
-        # VIEW
-        elif textField.textSource == 'VIEW':
-            view = get_view()
-            if view is not None:
-                textField.text = view.name
-
-        # NOTES, (actually we set this in the draw annotation code since it needs to spawn new texfields)
-        elif textField.textSource == 'NOTES':
-            view = get_view()
-            textField.text = ''
-            for viewField in view.textFields:
-                set_text(viewField, None)
-                textField.text += viewField.text
-                textField.text += '\n'
-
-        elif textField.textSource == 'SCALE':
-            view = get_view()
-            scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
-            textField.text = scaleStr
-
-            if view.paper_scale_mode == 'IMPERIAL':
-                textField.text = view.imp_scale
-
-        elif textField.textSource == 'VIEWNUM':
-            view = get_view()
-            textField.text = view.view_num
-            
         
-        elif textField.textSource == 'ELEVATION':
-            if item == None: 
-                textField.text = ""
-            elif "p1anchorCoord" in item:
-                textField.text = format_distance(item['p1anchorCoord'][2])
+        match textField.textSource:
+            case 'DATE':
+                textField.text = datetime.now().strftime('%y/%m/%d')
 
-                
-        elif textField.textSource == 'C_LENGTH':
-            if obj.type == 'CURVE':
-                if len(obj.data.splines) > 1:
-                    text = "USE ON SINGLE SPLINE CURVE"
-                elif obj.scale[0] != 1.0 or obj.scale[1] != 1.0 or obj.scale[1] != 1.0:
-                    text = "APPLY SCALE"
-                else:
-                    length = obj.data.splines[0].calc_length()
-                    text = format_distance(length)
-                textField.text = text
-            else:
-                textField.text = "Not a Curve"
+            case 'VIEW':
+                view = get_view()
+                if view is not None:
+                    textField.text = view.name
 
-        elif textField.textSource == 'TEXT_FILE':
-            textField.text = ''
-            try:
-                for line in textField.textFile.lines:
-                    textField.text += line.body
+            case 'NOTES':
+                view = get_view()
+                textField.text = ''
+                for viewField in view.textFields:
+                    set_text(viewField, None)
+                    textField.text += viewField.text
                     textField.text += '\n'
-            except AttributeError:
-                pass
+
+            case 'SCALE':
+                view = get_view()
+                scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
+                textField.text = scaleStr
+
+                if view.paper_scale_mode == 'IMPERIAL':
+                    textField.text = view.imp_scale
+
+            case 'VIEWNUM':
+                view = get_view()
+                textField.text = view.view_num
+                
             
+            case 'ELEVATION':
+                if item == None: 
+                    textField.text = ""
+                elif "p1anchorCoord" in item:
+                    textField.text = format_distance(item['p1anchorCoord'][2])
 
-        # CUSTOM PROP
-        elif textField.textSource == 'RNAPROP':
-            if textField.rnaProp != '':
-                try:
-                    # TODO: `eval` is evil
-                    data = eval(
-                        'bpy.data.objects[\'' + obj.name + '\']' + textField.rnaProp)
-                    text = str(data)
-                    if "location" in textField.rnaProp:
-                        text = format_distance(data)
-
+                    
+            case 'C_LENGTH': ## TODO: Remove this when I add a curve dimension
+                if obj.type == 'CURVE':
+                    if len(obj.data.splines) > 1:
+                        text = "USE ON SINGLE SPLINE CURVE"
+                    elif obj.scale[0] != 1.0 or obj.scale[1] != 1.0 or obj.scale[1] != 1.0:
+                        text = "APPLY SCALE"
+                    else:
+                        length = obj.data.splines[0].calc_length()
+                        text = format_distance(length)
                     textField.text = text
-                except:
-                    textField.text = 'Bad Data Path'
+                else:
+                    textField.text = "Not a Curve"
+
+            case 'TEXT_FILE':
+                textField.text = ''
+                try:
+                    for line in textField.textFile.lines:
+                        textField.text += line.body
+                        textField.text += '\n'
+                except AttributeError:
+                    pass
+            
+            case 'PROJECT_NAME':
+                textField.text = ''
+                sceneProps = bpy.context.scene.MeasureItArchProps
+                textField.text = sceneProps.project_name
+            
+            case 'PROJECT_NUMBER':
+                textField.text = ''
+                sceneProps = bpy.context.scene.MeasureItArchProps
+                textField.text = sceneProps.project_number
+            
+            case 'PROJECT_ADDRESS':
+                textField.text = ''
+                sceneProps = bpy.context.scene.MeasureItArchProps
+                textField.text = sceneProps.project_address
+
+            # CUSTOM PROP
+            case 'RNAPROP':
+                if textField.rnaProp != '':
+                    try:
+                        # TODO: `eval` is evil
+                        data = eval(
+                            'bpy.data.objects[\'' + obj.name + '\']' + textField.rnaProp)
+                        text = str(data)
+                        if "location" in textField.rnaProp:
+                            text = format_distance(data)
+
+                        textField.text = text
+                    except:
+                        textField.text = 'Bad Data Path'
 
         if old_text == textField.text:
             textField.text_updated = False

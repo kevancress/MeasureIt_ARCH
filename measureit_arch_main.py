@@ -239,6 +239,12 @@ class SCENE_PT_Panel(bpy.types.Panel):
     bl_context = 'scene'
 
     def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        sceneProps = context.scene.MeasureItArchProps
+        col.prop(sceneProps,"project_name")
+        col.prop(sceneProps,"project_address")
+        col.prop(sceneProps,"project_number")
         pass
 
 

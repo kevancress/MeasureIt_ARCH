@@ -149,11 +149,13 @@ def get_view():
         view = ViewGen.views[ViewGen.active_index]
     except:
         print('MeasureIt_ARCH View Required, Creating A Placeholder')
-        view = ViewGen.views.add()
-        view.name = 'Default View'
-        if scene.camera != None:
-            view.camera = scene.camera
-
+        try:
+            view = ViewGen.views.add()
+            view.name = 'Default View'
+            if scene.camera != None:
+                view.camera = scene.camera
+        except AttributeError:
+            print('Could not create view in get_view()')
     return view
 
 def get_camera_z():
