@@ -5,6 +5,7 @@ repo_url: https://github.com/kevancress/MeasureIt_ARCH
 edit_uri: edit/development/docs/docs/
 
 plugins:
+  - search
   - git-revision-date-localized:
       enable_creation_date: true
       type: date
@@ -52,4 +53,6 @@ nav:
         - Requesting Features: contributions/feature_requests.md
         - Contributing Code: contributions/contributing_code.md
         
-theme: readthedocs
+theme: 
+    name: readthedocs
+    custom_dir: docs\overrides\

@@ -59,7 +59,7 @@ The Line Group List lets you select and edit the properties of the line groups a
 
   ![image](images/ui-line-crease.jpg)
 
- * __Z Offset__: Tweaks the Line Group's Distance from the screen in Clip Space. Higher values move the Lines closer to the screen.
+ * __Z Offset__: Tweaks the Line Group's Distance from the camera in Clip Space. Higher values move the Lines closer to the camera.
    * This is useful for adjusting Line Groups that don't appear to be drawing correctly (Jagged Edges, etc.).
    * Making this value negative allows for the drawing of silhouettes. Higher values will move lines further backwards ![image](images/ui-z-offset.jpg)
  * __Extension__: Adds a slight over-extension to each line segment in this Line Group. ![image](images/ui-extension.jpg)
