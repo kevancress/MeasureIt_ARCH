@@ -5,6 +5,7 @@ repo_url: https://github.com/kevancress/MeasureIt_ARCH
 edit_uri: edit/development/docs/docs/
 
 plugins:
+  - search
   - git-revision-date-localized:
       enable_creation_date: true
       type: date
@@ -28,17 +29,30 @@ nav:
         - Exporting to .DXF: tutorials/export_dxf.md
 
     - Property Descriptions:
-        - Dimensions: prop_descriptions/dimensions.md
-        - Line Groups: prop_descriptions/linegroups.md
-        - Annotations: prop_descriptions/annotations.md
-        - Views: prop_descriptions/views.md
-        - Hatches: prop_descriptions/hatches.md
-        - Text Fields: prop_descriptions/textfields.md
+        - Object Properties:
+            - Dimensions: prop_descriptions/dimensions.md
+            - Line Groups: prop_descriptions/linegroups.md
+            - Annotations: prop_descriptions/annotations.md
+            - Hatches: prop_descriptions/hatches.md
+            - Text Fields: prop_descriptions/textfields.md
+
+        - Scene Properties:
+            - Styles: prop_descriptions/styles.md
+            - Units: prop_descriptions/units.md
+            - Views: prop_descriptions/views.md
+            - Viewports: prop_descriptions/viewports.md
+            - Schedules: prop_descriptions/schedules.md
+            - Settings: prop_descriptions/settings.md
+        
         - Rendering: prop_descriptions/render.md
+            
+
 
     - Contributions:
         - Reporting Issues: contributions/issue_reports.md
         - Requesting Features: contributions/feature_requests.md
         - Contributing Code: contributions/contributing_code.md
         
-theme: readthedocs
+theme: 
+    name: readthedocs
+    custom_dir: docs\overrides\

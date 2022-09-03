@@ -95,6 +95,8 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         svg.add(dashed_lines)
 
     # Get Depth Buffer as list and also other common props 
+    if dashed:
+        lines = dashed_lines
 
     for x in range(0, len(coords) - 1, 2):
         line_segs = vector_utils.depth_test(coords[x], coords[x + 1], mat, itemProps, vector_utils.depthbuffer)
@@ -109,10 +111,8 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
                 p1ss = vector_utils.get_render_location(mat @ Vector(p1))
                 p2ss = vector_utils.get_render_location(mat @ Vector(p2))
                 line_draw = svg.line(start=tuple(p1ss), end=tuple(p2ss),stroke_linecap=cap)
-                if vis and not dashed:
+                if vis:
                     lines.add(line_draw)
-                elif vis and dashed:
-                    dashed_lines.add(line_draw)
                 elif not vis and draw_hidden:
                     dashed_lines.add(line_draw)
 
