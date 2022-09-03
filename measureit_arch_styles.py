@@ -448,7 +448,6 @@ def draw_line_style_settings(line, layout):
     col.prop(line, 'pointPass', text="Round Caps")
     col.prop(line, 'chain', text="Chain Lines")
     col.prop(line, 'evalMods')
-    col.prop(line, 'pointPass', text="Round Caps")
 
 
 def draw_annotation_style_row(annotation, layout):
