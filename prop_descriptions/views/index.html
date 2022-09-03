@@ -33,7 +33,11 @@
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
           <a href="../.." class="icon icon-home"> MeasureIt_ARCH Docs
-        </a>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -62,22 +66,42 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../tutorials/svg_to_pdf/">Batch convert .svg's to .pdf's</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/export_dxf/">Exporting to .DXF</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Property Descriptions</span></p>
               <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../dimensions/">Dimensions</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../linegroups/">Line Groups</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../annotations/">Annotations</a>
-                  </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Views</a>
-    <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="#">Object Properties</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../dimensions/">Dimensions</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../linegroups/">Line Groups</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../annotations/">Annotations</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../hatches/">Hatches</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../textfields/">Text Fields</a>
+                </li>
     </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../textfields/">Text Fields</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Scene Properties</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../styles/">Styles</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../units/">Units</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="./">Views</a>
+    <ul class="current">
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../viewports/">Viewports</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../schedules/">Schedules</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../settings/">Settings</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../render/">Rendering</a>
                   </li>
@@ -106,6 +130,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
           <li>Property Descriptions &raquo;</li>
+          <li>Scene Properties &raquo;</li>
       <li>Views</li>
     <li class="wy-breadcrumbs-aside">
         <a href="https://github.com/kevancress/MeasureIt_ARCH/edit/development/docs/docs/prop_descriptions/views.md"
@@ -140,19 +165,25 @@
               
             </div>
           </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../annotations/" class="btn btn-neutral float-left" title="Annotations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../hatches/" class="btn btn-neutral float-right" title="Hatches">Next <span class="icon icon-circle-arrow-right"></span></a>
+      <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+          <a href="../units/" class="btn btn-neutral float-left" title="Units"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+          <a href="../viewports/" class="btn btn-neutral float-right" title="Viewports">Next <span class="icon icon-circle-arrow-right"></span></a>
+      </div>
+  
+    <hr/>
+  
+    <div role="contentinfo">
+      <!-- Copyright etc -->
     </div>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-  </div>
-
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+    Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    
+    
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 13, 2022</span></small></p>
+    
+    
 </footer>
+  
           
         </div>
       </div>
@@ -169,16 +200,17 @@
         </span>
     
     
-      <span><a href="../annotations/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../units/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../hatches/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../viewports/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
     <script>var base_url = '../..';</script>
     <script src="../../js/theme_extra.js" defer></script>
     <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
     <script defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(true);

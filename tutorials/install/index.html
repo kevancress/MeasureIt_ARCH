@@ -33,7 +33,11 @@
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
           <a href="../.." class="icon icon-home"> MeasureIt_ARCH Docs
-        </a>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -54,7 +58,9 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#basic-installation">Basic Installation</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#cloned-installation">Cloned Installation</a>
+    <li class="toctree-l2"><a class="reference internal" href="#cloned-installation-scripts-folder">Cloned Installation (Scripts Folder)</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#cloned-installation-for-development-appdata">Cloned Installation - For Development (APPDATA)</a>
     </li>
     </ul>
                   </li>
@@ -68,20 +74,40 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../svg_to_pdf/">Batch convert .svg's to .pdf's</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../export_dxf/">Exporting to .DXF</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Property Descriptions</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../prop_descriptions/dimensions/">Dimensions</a>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Object Properties</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/dimensions/">Dimensions</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/linegroups/">Line Groups</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/annotations/">Annotations</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/hatches/">Hatches</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/textfields/">Text Fields</a>
+                </li>
+    </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../prop_descriptions/linegroups/">Line Groups</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../prop_descriptions/annotations/">Annotations</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../prop_descriptions/views/">Views</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../prop_descriptions/hatches/">Hatches</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../prop_descriptions/textfields/">Text Fields</a>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Scene Properties</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/styles/">Styles</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/units/">Units</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/views/">Views</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/viewports/">Viewports</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/schedules/">Schedules</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../prop_descriptions/settings/">Settings</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../prop_descriptions/render/">Rendering</a>
                   </li>
@@ -130,26 +156,61 @@
 </ul>
 <p><img alt="image" src="../images/install-1.jpg" /></p>
 <ul>
-<li>Navigate to and double click on the "MeasureIt_ARCH_VERSION.zip"</li>
+<li>Navigate to and double click on the "MeasureIt_ARCH.zip" file you downloaded</li>
+<li>Search for the MeasureIt_ARCH addon</li>
+<li>Click the Checkbox to enable the addon</li>
+</ul>
+<hr />
+<h2 id="cloned-installation-scripts-folder">Cloned Installation (Scripts Folder)</h2>
+<p>This method is recomended if you'd like to easily keep MeasureIt_ARCH up to date with the development branch of the repository and get easy access to new features and bug fixes. These instructions use GitHub Desktop to manage the repo, but any git client, (or command line git) will work.</p>
+<ul>
+<li><a href="https://www.blender.org/download/">Install the latest stable version of Blender</a></li>
+<li>Install GitHub Desktop and create a GitHub account (if you haven't already)</li>
+<li>Create and assign a custom scripts folder in Blenders User Preferences (Edit -&gt; Preferences -&gt; File Paths -&gt; Scripts)</li>
+<li>Ensure that the Scripts folder has <code>addons</code>, <code>modules</code>, and <code>startup</code> subdirectories.</li>
+<li>Use GitHub Desktop to Clone the MeasureIt_ARCH repositiory from GitHub to the "addons" subdirectory of the scripts folder.</li>
+<li>Restart Blender</li>
+<li>Search for MeasureIt_ARCH in the add-ons menu</li>
 <li>Click the Checkbox to enable the Add-on</li>
 </ul>
-<h2 id="cloned-installation">Cloned Installation</h2>
+<p>With this setup, you can open GitHub Desktop and use the "Fetch" and "Pull Origin" buttons to update to the latest version of MeasureIt_ARCH</p>
+<hr />
+<h2 id="cloned-installation-for-development-appdata">Cloned Installation - For Development (APPDATA)</h2>
+<p>This method is recomended if you'd like to develop or make changes to MeasureIt_ARCH. These instructions use GitHub Desktop to manage the repo, but any git client, (or command line git) will work.</p>
+<ul>
+<li><a href="https://www.blender.org/download/">Install the latest stable version of Blender</a></li>
+<li>Install GitHub Desktop and create a GitHub account (if you haven't already)</li>
+<li>Download and install Visual Studio Code.</li>
+<li>Install the Blender Development Extension for Visual Studio Code.</li>
+<li>Clone the MeasureIt_ARCH repositiory from GitHub to a directory of your choice.</li>
+<li>Open the MeasureIt_ARCH repository in Visual Studio Code</li>
+<li>Use <code>Ctrl+Shift+P</code> to open the Command Palette in Visual Studio Code</li>
+<li>Search for the <code>Blender: Start</code> command.</li>
+<li>Navigate to your Blender executable when prompted.</li>
+</ul>
+<p>This will create a symbolic link to the MeasureIt_ARCH repository in Blenders app data. Using MeasureIt_ARCH this way allows you to make use of VSCode's debugging tools. You can edit the addon code in VSCode and use the <code>Blender: Reload Addons</code> command from the Command Palette to reload the addon.</p>
               
             </div>
           </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../../intro/faq/" class="btn btn-neutral float-left" title="FAQ"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../drawing_set/" class="btn btn-neutral float-right" title="Creating a drawing set with MeasureIt_ARCH">Next <span class="icon icon-circle-arrow-right"></span></a>
+      <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+          <a href="../../intro/faq/" class="btn btn-neutral float-left" title="FAQ"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+          <a href="../drawing_set/" class="btn btn-neutral float-right" title="Creating a drawing set with MeasureIt_ARCH">Next <span class="icon icon-circle-arrow-right"></span></a>
+      </div>
+  
+    <hr/>
+  
+    <div role="contentinfo">
+      <!-- Copyright etc -->
     </div>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-  </div>
-
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+    Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    
+    
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 20, 2022</span></small></p>
+    
+    
 </footer>
+  
           
         </div>
       </div>
@@ -176,6 +237,7 @@
     <script>var base_url = '../..';</script>
     <script src="../../js/theme_extra.js" defer></script>
     <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
     <script defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(true);

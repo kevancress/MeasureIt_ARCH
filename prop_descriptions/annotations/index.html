@@ -33,7 +33,11 @@
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
           <a href="../.." class="icon icon-home"> MeasureIt_ARCH Docs
-        </a>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -62,36 +66,62 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../tutorials/svg_to_pdf/">Batch convert .svg's to .pdf's</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/export_dxf/">Exporting to .DXF</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Property Descriptions</span></p>
               <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../dimensions/">Dimensions</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../linegroups/">Line Groups</a>
-                  </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Annotations</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Object Properties</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#add-annotations">Add Annotations</a>
+                <li class="toctree-l2"><a class="reference internal" href="../dimensions/">Dimensions</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../linegroups/">Line Groups</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="./">Annotations</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#adding-annotations-measureit_arch-main-panel">Adding Annotations (MeasureIt_ARCH Main Panel)</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#annotation">Annotation:</a>
+    <li class="toctree-l4"><a class="reference internal" href="#annotation">Annotation:</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#annotation-style-color-swatch-icon">Annotation Style (Color Swatch Icon):</a>
+    <li class="toctree-l4"><a class="reference internal" href="#annotation-style">Annotation Style:</a>
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#annotation-menu">Annotation Menu</a>
+    <li class="toctree-l3"><a class="reference internal" href="#annotation-list-object-settings">Annotation List (Object Settings)</a>
         <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#annotation-sub-menu-chevron-icon">Annotation Sub Menu (Chevron Icon)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#annotation-text-fields">Annotation Text Fields:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#annotation-leader-anchors">Annotation Leader Anchors:</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#annotation-settings">Annotation Settings</a>
     </li>
-        </ul>
-    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../hatches/">Hatches</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../textfields/">Text Fields</a>
+                </li>
     </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../views/">Views</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../textfields/">Text Fields</a>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Scene Properties</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../styles/">Styles</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../units/">Units</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../views/">Views</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../viewports/">Viewports</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../schedules/">Schedules</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../settings/">Settings</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../render/">Rendering</a>
                   </li>
@@ -120,6 +150,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
           <li>Property Descriptions &raquo;</li>
+          <li>Object Properties &raquo;</li>
       <li>Annotations</li>
     <li class="wy-breadcrumbs-aside">
         <a href="https://github.com/kevancress/MeasureIt_ARCH/edit/development/docs/docs/prop_descriptions/annotations.md"
@@ -132,38 +163,44 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="annotations">Annotations</h1>
-<h2 id="add-annotations">Add Annotations</h2>
-<h5 id="annotation">Annotation:</h5>
+<p>MeasureIt_ARCH uses annotation to add notes and descriptions. Annotation text can be user authored, or auto generated by using one of the <a href="../textfields/">Text Auto Fill options</a></p>
+<h2 id="adding-annotations-measureit_arch-main-panel">Adding Annotations (MeasureIt_ARCH Main Panel)</h2>
+<h5 id="annotation"><img alt="image" src="../../icons/bi__annotation.png" /> Annotation:</h5>
 <ul>
 <li>Adds an Annotation to the selected Object or Vertex.
  <img alt="image" src="../images/ui-annotation-examples.jpg" /></li>
 </ul>
-<h5 id="annotation-style-color-swatch-icon">Annotation Style (Color Swatch Icon):</h5>
+<h5 id="annotation-style"><img alt="image" src="../../icons/bi__styles.png" /> Annotation Style:</h5>
 <ul>
 <li>Style to be assigned to new Annotation on creation.</li>
 </ul>
-<h2 id="annotation-menu">Annotation Menu</h2>
+<hr />
+<h2 id="annotation-list-object-settings">Annotation List (Object Settings)</h2>
+<p>The Annotation List lets you select and edit the properties of the annotations attached to the actively selected object.</p>
 <p><img alt="image" src="../images/ui-annotations.jpg" /></p>
 <ul>
 <li><strong>Color</strong>: Sets Annotation Color.</li>
 <li><strong>Link Style (Link or Broken Link Icon)</strong>: Toggles if this Annotation uses a Style.</li>
 <li><strong>Visibility (Eye Icon)</strong>: Toggles the Annotations visibility.</li>
 <li><strong>Delete (x Icon)</strong>: Deletes the Annotation.</li>
-<li><strong>Annotation Menu (Chevron Icon)</strong></li>
-<li><strong>Add Text Field</strong>: Adds a text field to the selected Annotation.</li>
-<li><strong>Remove Text Field</strong>: Removes the last text field from the selected Annotation.</li>
 </ul>
-<h4 id="annotation-settings">Annotation Settings</h4>
+<h3 id="annotation-sub-menu-chevron-icon">Annotation Sub Menu (Chevron Icon)</h3>
+<ul>
+<li><strong>Delete All Annotations</strong>: Deletes all annotations from the active object.</li>
+</ul>
+<hr />
+<h2 id="annotation-text-fields">Annotation Text Fields:</h2>
+<p>Displays a list of the Text Fields for the selected Annotation. <a href="../textfields/">(See TextFields Documentation)</a>
+Annotations can have multiple text fields, each new text field will display as a new line in the Annotation Text.</p>
+<hr />
+<h2 id="annotation-leader-anchors">Annotation Leader Anchors:</h2>
+<p>Displays a list of leader line anchors associated with the active annotation. The plus and minus buttons will add or remove a leader line anchor.</p>
+<hr />
+<h2 id="annotation-settings">Annotation Settings</h2>
 <p><img alt="image" src="../images/ui-annotation-settings.jpg" /></p>
 <ul>
-<li><strong>Text Field</strong>: Sets the text for the annotation.</li>
-<li>Annotations can have multiple text fields, each new text field will display as a new line in the Annotation Text.</li>
 <li><strong>Font</strong>: Lets you select a custom font for the Annotation from your system.</li>
-<li><strong>Text Source</strong>: MeasureIt_ARCH can pull annotation text from an objects Custom Properties metadata. This field defines the source custom property.</li>
-<li>If two text fields are available, MeasureIt_ARCH will use the first to display the custom properties name, and the second to display the value.</li>
-<li>If only one text field is available, only the value will be displayed.</li>
 <li><strong>Size</strong>: The Annotation font size.</li>
-<li><strong>Resolution</strong>: The Annotation font resolution.</li>
 <li><strong>Justification</strong>: Text Justification relative to the end of the Annotation leader line (Left, Center, Right).</li>
 <li><strong>Position</strong>: Text Position relative to the end of the Annotation leader line (Top, Middle, Bottom).</li>
 <li><strong>Endcap</strong></li>
@@ -178,19 +215,25 @@
               
             </div>
           </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../linegroups/" class="btn btn-neutral float-left" title="Line Groups"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../views/" class="btn btn-neutral float-right" title="Views">Next <span class="icon icon-circle-arrow-right"></span></a>
+      <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+          <a href="../linegroups/" class="btn btn-neutral float-left" title="Line Groups"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+          <a href="../hatches/" class="btn btn-neutral float-right" title="Hatches">Next <span class="icon icon-circle-arrow-right"></span></a>
+      </div>
+  
+    <hr/>
+  
+    <div role="contentinfo">
+      <!-- Copyright etc -->
     </div>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-  </div>
-
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+    Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    
+    
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 20, 2022</span></small></p>
+    
+    
 </footer>
+  
           
         </div>
       </div>
@@ -210,13 +253,14 @@
       <span><a href="../linegroups/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../views/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../hatches/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
     <script>var base_url = '../..';</script>
     <script src="../../js/theme_extra.js" defer></script>
     <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
     <script defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(true);

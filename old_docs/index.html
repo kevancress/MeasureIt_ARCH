@@ -33,7 +33,11 @@
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
           <a href=".." class="icon icon-home"> MeasureIt_ARCH Docs
-        </a>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -62,20 +66,40 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../tutorials/svg_to_pdf/">Batch convert .svg's to .pdf's</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../tutorials/export_dxf/">Exporting to .DXF</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Property Descriptions</span></p>
               <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/dimensions/">Dimensions</a>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Object Properties</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/dimensions/">Dimensions</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/linegroups/">Line Groups</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/annotations/">Annotations</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/hatches/">Hatches</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/textfields/">Text Fields</a>
+                </li>
+    </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/linegroups/">Line Groups</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/annotations/">Annotations</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/views/">Views</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/hatches/">Hatches</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/textfields/">Text Fields</a>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Scene Properties</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/styles/">Styles</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/units/">Units</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/views/">Views</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/viewports/">Viewports</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/schedules/">Schedules</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../prop_descriptions/settings/">Settings</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../prop_descriptions/render/">Rendering</a>
                   </li>
@@ -119,88 +143,6 @@
 <h3 id="measureit_arch-scene-settings">MeasureIt_ARCH Scene Settings</h3>
 <p>Found in the Scene Tab of the Properties Editor.</p>
 <p><img alt="image" src="images/__ui-scene.jpg" /></p>
-<h4 id="measureit_arch-unit-settings">MeasureIt_ARCH Unit Settings</h4>
-<p><img alt="image" src="images/__ui-units.jpg" /></p>
-<p>MeasureIt_ARCH Unit Settings can be found in Blender's Scene Settings under the Units panel.</p>
-<h5 id="metric-precision">Metric Precision</h5>
-<ul>
-<li>Defines the number of decimal places included in dimensions when using the Metric Unit System.</li>
-</ul>
-<h5 id="angle-precision">Angle Precision</h5>
-<ul>
-<li>Defines the number of decimal places included in angle dimensions.</li>
-</ul>
-<h5 id="imperial-precision">Imperial Precision</h5>
-<ul>
-<li>Fractional Precision to be used when using the Imperial Unit System.</li>
-</ul>
-<p>##### Default Scale
-  * Scale used for text and other scale-dependant elements if no view has been defined.</p>
-<h4 id="styles">Styles</h4>
-<p>Styles have a nearly identical user interface to their corresponding items. Style-able properties can be found in the item's settings.</p>
-<p><img alt="image" src="images/__ui-styles.jpg" /></p>
-<p>Note that some settings, like an Annotations Offset, or a Dimensions Distance, are still set per item, even when using a style.</p>
-<h4 id="schedules">Schedules</h4>
-<p>Create Schedules that can exported to a .csv spreadsheet</p>
-<p><img alt="image" src="images/__ui-schedules.jpg" /></p>
-<p><strong>General Settings</strong>
-* <strong>Generate Schedule</strong>: Exports a .csv schedule to the output path
-* <strong>Collection</strong>: The collection of objects to include in this schedule
-* <strong>Output Path</strong>: The path to export the schedule to
-* <strong>Date Folder</strong>: Adds a folder with todays date to the output path
-* <strong>Sort Subcollections</strong>: Will Create Categories for subcollection in the exported .csv
-* <strong>Group Rows</strong>: Will group and count identical rows when creating the schedule</p>
-<p><strong>Column Settings</strong>
-Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons to re-order columns</p>
-<ul>
-<li><strong>Name</strong>: The name for this column</li>
-<li><strong>Column Data Type</strong>: Sets the type of data to be displayed in this column<ul>
-<li><strong>RNA Prop</strong>: Display a user specified RNA Property in this column<ul>
-<li><strong>NOTE</strong>: This functions similarly to Blender's Driver definitions.</li>
-</ul>
-</li>
-<li><strong>Dimension</strong>: Display the objects X, Y, or Z bounding box dimension in this column.</li>
-</ul>
-</li>
-</ul>
-<h4 id="settings">Settings</h4>
-<p><img alt="image" src="images/__ui-settings.jpg" /></p>
-<h5 id="hide-units">Hide Units</h5>
-<ul>
-<li>Show or hide the unit text on Metric Dimension elements.</li>
-</ul>
-<h5 id="evaluate-depsgraph">Evaluate Depsgraph</h5>
-<ul>
-<li>Evaluate Blender's Dependency Graph before drawing MeasureIt_ARCH elements.</li>
-<li><strong>WARNING</strong>: By default, MeasureIt_ARCH does not evaluate the Dependency Graph to improve performance and because some generative modifiers can give unpredictable results. Enabling this setting will make MeasureIt_ARCH attempt to evaluate these modifiers during its calculations. It can be slow and give unexpected results.</li>
-<li>This can be enabled for individual elements as well, please only enable this for the whole scene if absolutely necessary</li>
-</ul>
-<h5 id="use-text-autoplacement">Use Text Autoplacement</h5>
-<ul>
-<li>Automatically move dimension text to the outside of the dimension line if it is too large to fit within.</li>
-</ul>
-<h5 id="default-resolution">Default Resolution</h5>
-<ul>
-<li>Resolution to use for text rendering if no view resolution has been defined</li>
-</ul>
-<h5 id="debug-text">Debug Text</h5>
-<ul>
-<li>Writes Dimension Text to an image for Debug</li>
-</ul>
-<h5 id="debug-text-cards">Debug Text Cards</h5>
-<ul>
-<li>Draw Dimension Text Cards for Debug</li>
-</ul>
-<h5 id="enable-experimental">Enable Experimental</h5>
-<ul>
-<li>Enable Experimental Features in MeasureIt_ARCH</li>
-</ul>
-<h5 id="instance-dimensions">Instance Dimensions</h5>
-<ul>
-<li>Will Enable Dimension Instancing.</li>
-<li><strong>WARNING</strong>: Text on instanced Dimensions will not account for changes in the instances local scale or rotation.</li>
-</ul>
-<p><img alt="image" src="images/ui-instance.jpg" /></p>
 <h4 id="object-settings">Object Settings</h4>
 <ul>
 <li>Dimension, Annotation, and Line Group settings can be found in Object Tab of the Properties Editor.</li>
@@ -209,15 +151,21 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
               
             </div>
           </div><footer>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-  </div>
-
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+    <hr/>
+  
+    <div role="contentinfo">
+      <!-- Copyright etc -->
+    </div>
+  
+    Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    
+    
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 2, 2022</span></small></p>
+    
+    
 </footer>
+  
           
         </div>
       </div>
@@ -240,6 +188,7 @@ Use the Plus and Minus buttons to add and remove Columns, and the arrow buttons 
     <script>var base_url = '..';</script>
     <script src="../js/theme_extra.js" defer></script>
     <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
     <script defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(true);

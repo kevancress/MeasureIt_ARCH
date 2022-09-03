@@ -33,7 +33,11 @@
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
           <a href="../.." class="icon icon-home"> MeasureIt_ARCH Docs
-        </a>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -62,20 +66,40 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../tutorials/svg_to_pdf/">Batch convert .svg's to .pdf's</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/export_dxf/">Exporting to .DXF</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Property Descriptions</span></p>
               <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../dimensions/">Dimensions</a>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Object Properties</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../dimensions/">Dimensions</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../linegroups/">Line Groups</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../annotations/">Annotations</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../hatches/">Hatches</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../textfields/">Text Fields</a>
+                </li>
+    </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../linegroups/">Line Groups</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../annotations/">Annotations</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../views/">Views</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../hatches/">Hatches</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../textfields/">Text Fields</a>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Scene Properties</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../styles/">Styles</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../units/">Units</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../views/">Views</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../viewports/">Viewports</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../schedules/">Schedules</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../settings/">Settings</a>
+                </li>
+    </ul>
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="./">Rendering</a>
     <ul class="current">
@@ -125,41 +149,43 @@
               
                 <h1 id="rendering">Rendering</h1>
 <p><img alt="image" src="../images/__ui-render.jpg" /></p>
-<p>MeasureIt_ARCH Render Settings can be found in the Render Panel of the Properties Editor. Currently this renders all MeasureIt_ARCH items to an image file which can be layered over Blender's render in the compositor.</p>
+<p>MeasureIt_ARCH Render Settings can be found in the Render Panel of the Properties Editor. MeasureIt_ARCH Renders will automatically be saved to the Output Path defined in the active View.</p>
 <h2 id="measureit_arch-image">MeasureIt_ARCH Image</h2>
 <ul>
 <li>Renders a Still Image.</li>
-<li><strong>WARNING</strong>: If 'Save Render to Output' is not enabled the rendered image will only be stored in an image data-block within Blender.</li>
 </ul>
 <h2 id="measureit_arch-animation">MeasureIt_ARCH Animation</h2>
 <ul>
 <li>Renders the full frame range of the current scene.</li>
 <li>Animation Renders can be Cancelled with the Esc key, or by Right Clicking in the 3D View.</li>
 <li>A 3D Viewport window must be open for MeasureIt_ARCH to render animations.</li>
-<li>Animation frames will be saved to the Output path defined in the Render Panel.</li>
 </ul>
 <h2 id="measureit_arch-vector">MeasureIt_ARCH Vector</h2>
 <ul>
 <li>Renders an SVG drawing of the current view.</li>
-<li><strong>Embed Scene Render:</strong> embeds a raster rendering of the scene as the background of the SVG</li>
-<li><strong>Vector Z Order:</strong> Orders the drawing of vector elements by the object origin's Z height. Useful for plan drawings.</li>
 </ul>
               
             </div>
           </div><footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../textfields/" class="btn btn-neutral float-left" title="Text Fields"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../../contributions/issue_reports/" class="btn btn-neutral float-right" title="Reporting Issues">Next <span class="icon icon-circle-arrow-right"></span></a>
+      <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+          <a href="../settings/" class="btn btn-neutral float-left" title="Settings"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+          <a href="../../contributions/issue_reports/" class="btn btn-neutral float-right" title="Reporting Issues">Next <span class="icon icon-circle-arrow-right"></span></a>
+      </div>
+  
+    <hr/>
+  
+    <div role="contentinfo">
+      <!-- Copyright etc -->
     </div>
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-  </div>
-
-  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+    Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    
+    
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 2, 2022</span></small></p>
+    
+    
 </footer>
+  
           
         </div>
       </div>
@@ -176,7 +202,7 @@
         </span>
     
     
-      <span><a href="../textfields/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../settings/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
       <span><a href="../../contributions/issue_reports/" style="color: #fcfcfc">Next &raquo;</a></span>
@@ -186,6 +212,7 @@
     <script>var base_url = '../..';</script>
     <script src="../../js/theme_extra.js" defer></script>
     <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
     <script defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(true);

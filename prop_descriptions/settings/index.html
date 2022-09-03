@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/prop_descriptions/hatches/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/prop_descriptions/settings/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Hatches - MeasureIt_ARCH Docs</title>
+    <title>Settings - MeasureIt_ARCH Docs</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Hatches";
-        var mkdocs_page_input_path = "prop_descriptions\\hatches.md";
-        var mkdocs_page_url = "/MeasureIt_ARCH/prop_descriptions/hatches/";
+        var mkdocs_page_name = "Settings";
+        var mkdocs_page_input_path = "prop_descriptions\\settings.md";
+        var mkdocs_page_url = "/MeasureIt_ARCH/prop_descriptions/settings/";
       </script>
     
     <script src="../../js/jquery-3.6.0.min.js" defer></script>
@@ -71,24 +71,22 @@
               </ul>
               <p class="caption"><span class="caption-text">Property Descriptions</span></p>
               <ul class="current">
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Object Properties</a>
-    <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="#">Object Properties</a>
+    <ul>
                 <li class="toctree-l2"><a class="reference internal" href="../dimensions/">Dimensions</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../linegroups/">Line Groups</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../annotations/">Annotations</a>
                 </li>
-                <li class="toctree-l2 current"><a class="reference internal current" href="./">Hatches</a>
-    <ul class="current">
-    </ul>
+                <li class="toctree-l2"><a class="reference internal" href="../hatches/">Hatches</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../textfields/">Text Fields</a>
                 </li>
     </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="#">Scene Properties</a>
-    <ul>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Scene Properties</a>
+    <ul class="current">
                 <li class="toctree-l2"><a class="reference internal" href="../styles/">Styles</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../units/">Units</a>
@@ -99,7 +97,25 @@
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../schedules/">Schedules</a>
                 </li>
-                <li class="toctree-l2"><a class="reference internal" href="../settings/">Settings</a>
+                <li class="toctree-l2 current"><a class="reference internal current" href="./">Settings</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#hide-units">Hide Units</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#evaluate-depsgraph">Evaluate Depsgraph</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#use-text-autoplacement">Use Text Autoplacement</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#default-resolution">Default Resolution</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#debug-text">Debug Text</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#debug-text-cards">Debug Text Cards</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#enable-experimental">Enable Experimental</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#instance-dimensions">Instance Dimensions</a>
+    </li>
+    </ul>
                 </li>
     </ul>
                   </li>
@@ -130,10 +146,10 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
           <li>Property Descriptions &raquo;</li>
-          <li>Object Properties &raquo;</li>
-      <li>Hatches</li>
+          <li>Scene Properties &raquo;</li>
+      <li>Settings</li>
     <li class="wy-breadcrumbs-aside">
-        <a href="https://github.com/kevancress/MeasureIt_ARCH/edit/development/docs/docs/prop_descriptions/hatches.md"
+        <a href="https://github.com/kevancress/MeasureIt_ARCH/edit/development/docs/docs/prop_descriptions/settings.md"
           class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
@@ -142,31 +158,56 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="hatches">Hatches</h1>
-<p>Define Hatches to be used in Vector Exports.</p>
-<p><img alt="image" src="../images/__ui-hatches.jpg" /></p>
+                <h1 id="settings">Settings</h1>
+<p><img alt="image" src="../images/__ui-settings.jpg" /></p>
+<h5 id="hide-units">Hide Units</h5>
 <ul>
-<li><strong>Material</strong>: The Material to apply this hatch to</li>
-<li><strong>Render Visibility</strong>: Toggles if this hatch should be applied on vector export or not</li>
-<li><strong>Fill Color</strong>: Solid Fill color for this Hatch (Set Alpha to 0 for none)</li>
-<li><strong>Line Color</strong>: Outline Line Color for this Hatch (Set Alpha to 0 for none)</li>
-<li><strong>Line Weight</strong>: Line Wight for the Outline Line of this Hatch</li>
-<li><strong>Pattern</strong>: A collection to use as a custom pattern fill for this hatch.<ul>
-<li>Hatch Patterns can be defined in the 0 to 1 range on the x,y plane.</li>
-<li>Hatch Patterns will draw all edges of objects in the hatch collection as the custom pattern</li>
+<li>Show or hide the unit text on Metric Dimension elements.</li>
 </ul>
-</li>
-<li><strong>Pattern Weight</strong>: Line Weight for the pattern fill</li>
-<li><strong>Pattern Size</strong>: Scale factor for the pattern fill</li>
-<li><strong>Pattern Rotation</strong>: Rotates the pattern fill for this hatch.</li>
-<li><strong>Pattern Opacity</strong>: Sets the opacity for the pattern fill for this hatch.</li>
+<h5 id="evaluate-depsgraph">Evaluate Depsgraph</h5>
+<ul>
+<li>Evaluate Blender's Dependency Graph before drawing MeasureIt_ARCH elements.</li>
 </ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>By default, MeasureIt_ARCH only evaluates the Dependency Graph for an object when exiting edit mode to improve drawing performance. Enabling this setting will make MeasureIt_ARCH attempt to evaluate the dependency graph every time the scene draws, this can be very slow.</p>
+<p>Depsgraph Evaluation can be enabled per element as well, please only enable it for the whole scene if absolutely necessary</p>
+</div>
+<h5 id="use-text-autoplacement">Use Text Autoplacement</h5>
+<ul>
+<li>Automatically move dimension text to the outside of the dimension line if it is too large to fit within.</li>
+</ul>
+<h5 id="default-resolution">Default Resolution</h5>
+<ul>
+<li>Resolution to use for text rendering if no view resolution has been defined</li>
+</ul>
+<h5 id="debug-text">Debug Text</h5>
+<ul>
+<li>Writes Dimension Text to an image for Debug</li>
+</ul>
+<h5 id="debug-text-cards">Debug Text Cards</h5>
+<ul>
+<li>Draw Dimension Text Cards for Debug</li>
+</ul>
+<h5 id="enable-experimental">Enable Experimental</h5>
+<ul>
+<li>Enable Experimental Features in MeasureIt_ARCH</li>
+</ul>
+<h5 id="instance-dimensions">Instance Dimensions</h5>
+<ul>
+<li>Will Enable Dimension Instancing.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Text on instanced Dimensions will not account for changes in the instances scale or rotation.</p>
+</div>
+<p><img alt="image" src="../images/ui-instance.jpg" /></p>
               
             </div>
           </div><footer>
       <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-          <a href="../annotations/" class="btn btn-neutral float-left" title="Annotations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-          <a href="../textfields/" class="btn btn-neutral float-right" title="Text Fields">Next <span class="icon icon-circle-arrow-right"></span></a>
+          <a href="../schedules/" class="btn btn-neutral float-left" title="Schedules"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+          <a href="../render/" class="btn btn-neutral float-right" title="Rendering">Next <span class="icon icon-circle-arrow-right"></span></a>
       </div>
   
     <hr/>
@@ -178,7 +219,7 @@
     Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     
     
-    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 13, 2022</span></small></p>
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 2, 2022</span></small></p>
     
     
 </footer>
@@ -199,10 +240,10 @@
         </span>
     
     
-      <span><a href="../annotations/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../schedules/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../textfields/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../render/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
