@@ -611,7 +611,7 @@ def draw_main_3d(context):
     # Draw TitleBlock
 
     if not sceneProps.hide_titleblock:
-        draw_viewport(context)
+        draw_titleblock(context)
     
     scene.ViewGenerator.view_changed = False
 
