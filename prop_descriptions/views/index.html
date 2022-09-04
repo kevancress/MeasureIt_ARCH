@@ -93,6 +93,16 @@
                 </li>
                 <li class="toctree-l2 current"><a class="reference internal current" href="./">Views</a>
     <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#views-list-scene-settings">Views List (Scene Settings)</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#view-side-buttons">View Side Buttons</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#view-sub-menu-chevron-icon">View Sub Menu (Chevron Icon)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#view-settings-scene-settings">View Settings (Scene Settings)</a>
+    </li>
     </ul>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../viewports/">Viewports</a>
@@ -143,24 +153,90 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="views"><img alt="image" src="../../icons/bi__views.png" /> Views</h1>
-<p>Define Named Views.</p>
+<p>MeasureIt_ARCH Views allow you to store, and quickly switch between different scene set-ups with unique Camera, Viewlayer, World, and Scale settings. Views can be thought of as serving a similar purpose as Paper Space Layouts in other CAD software.</p>
+<h2 id="views-list-scene-settings">Views List (Scene Settings)</h2>
+<p>The Views List lets you switch between Views and edit the properties of the actively selected view.</p>
 <p><img alt="image" src="../images/__ui-views.jpg" /></p>
 <ul>
+<li><strong>Drawing Number:</strong> Defines a Drawing Number for this View (To be used in titleblock for example)</li>
+<li><strong>Name:</strong> Defines a name for this View (To be used in titleblock for example)</li>
 <li><strong>Camera</strong>: Sets View Camera</li>
+<li><strong>Include in Batch Render (Camera Icon):</strong> If enabled this view will be included in batch renders</li>
+</ul>
+<h3 id="view-side-buttons">View Side Buttons</h3>
+<ul>
+<li><strong>Add (+ Icon)</strong>: Adds a new View.</li>
+<li>
+<p><strong>Delete (x Icon)</strong>: Deletes the active View.</p>
+</li>
+<li>
+<p><strong>Move Up (Up Arrow Icon)</strong>: Moves the active View up the list.</p>
+</li>
+<li><strong>Move Down (Down Arrow Icon)</strong>: Moves the active View down the list.</li>
+</ul>
+<h3 id="view-sub-menu-chevron-icon">View Sub Menu (Chevron Icon)</h3>
+<ul>
+<li><strong>Duplicate Selected View</strong>: Creates a copy of the active view with the same settings</li>
+<li><strong>Duplicate View With Layer</strong>: Duplicates the Active view with an option to define a new View Layer, and Create a new Camera for the new view</li>
+<li><strong>Batch Render Views</strong>: Starts a Vector Render for all Views with "Include in Batch Render" Enabled.</li>
+</ul>
+<hr />
+<h2 id="view-settings-scene-settings">View Settings (Scene Settings)</h2>
+<p><img alt="image" src="../images/__ui-view-settings.jpg" /></p>
+<ul>
+<li><strong>Render Engine:</strong> Sets the render engine for this view</li>
+<li><strong>View World:</strong> Sets the World for this view</li>
+<li><strong>View Transform:</strong> Sets the color transform for renders from this view</li>
+<li><strong>Film Transparent:</strong> Enables or disables a transparent background for renders from this view</li>
+<li><strong>Drawing Number:</strong> Defines a Drawing Number for this View (To be used in titleblock for example)</li>
+<li><strong>Name:</strong> Defines a name for this View (To be used in titleblock for example)</li>
+<li><strong>Title Block:</strong> Sets a scene to be used as the titleblock for this View</li>
 <li><strong>Camera Type</strong>: Sets the type of camera for this view (Orthographic or Perspective)</li>
 <li><strong>View Layer</strong>: Sets the View Layer to be used for this view</li>
-<li><strong>Title Block</strong>: Sets the Title Block Scene to be used for this view</li>
 <li><strong>Output Path</strong>: Sets Render Output Path for this view</li>
 <li><strong>Date Folder</strong>: When enabled, a folder with todays date will be added to the Output Path</li>
-<li><strong>Resolution Type</strong>: Pick Paper or Pixel based resolution settings for this view<ul>
-<li>Pixel resolution type is the same as Blenders default render resolution settings</li>
-</ul>
+<li>
+<p><strong>Resolution Type</strong>: Pick Paper or Pixel based resolution settings for this view</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Pixel resolution type is the same as Blenders default render resolution settings</p>
+</div>
 </li>
-<li><strong>Width</strong>: Paper Width defined in scene units</li>
-<li><strong>Height</strong>: Paper Height defined in scene units</li>
-<li><strong>Resolution</strong>: Raster Resolution for this view</li>
+<li>
+<p><strong>Paper Size:</strong> Picks a preset paper size to use for this View</p>
+</li>
+<li><strong>Width</strong>: Paper Width defined in scene units (if custom paper size is selected)</li>
+<li>
+<p><strong>Height</strong>: Paper Height defined in scene units (if custom paper size is selected)</p>
+</li>
+<li>
+<p><strong>Resolution</strong>: Resolution for this view </p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This also effects the resolution of the depth buffer used for vector depth testing, if you find you having issues with lines over or under extending in vector renders, try increasing the resolution.</p>
+</div>
+</li>
+<li>
+<p><strong>Scale Mode:</strong> Selects whether scale is selected from a dropdown of common Metric or Imperial Scales, or defined using the scale ratio setting below</p>
+</li>
 <li><strong>Scale</strong>:  Defines the Orthographic Scale as a ratio between Model Units, and Paper Units.</li>
-<li><strong>Frame Range</strong>: The frame range to render for this view.</li>
+<li>
+<p><strong>Frame Range</strong>: The frame range to render for this view.</p>
+</li>
+<li>
+<p><strong>Embed Scene Render:</strong> When enabled, a regular Blender render of the view will be saved and embeded in Vector Renders</p>
+</li>
+<li><strong>Embed Grease Pencil SVG:</strong> When enabled, an svg export of grease pencil object (including lineart) will be saved and embeded in Vector Renders</li>
+<li>
+<p><strong>Use Vector Depth Test:</strong> When enabled, line groups will be depth tested against a raster depth buffer of the scene to remove (or draw dashed) hidden lines.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The accuracy of depth testing is heavily resolution dependant.</p>
+</div>
+</li>
+<li>
+<p><strong>Embed Freestyle SVG:</strong> When enabled, a freestyle rendering will be done, saved and embeded in Vector Renders. (Requires the Freestyle SVG addon be enabled)</p>
+</li>
 </ul>
               
             </div>
@@ -179,7 +255,7 @@
     Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     
     
-    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 13, 2022</span></small></p>
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 4, 2022</span></small></p>
     
     
 </footer>
