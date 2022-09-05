@@ -87,6 +87,7 @@ class SCENE_PT_MARCH_units(Panel):
         col.label(text='Areas:')
         col.prop(sceneProps, 'imperial_area_units')
         col.prop(sceneProps, 'metric_area_units')
+        col.prop(sceneProps, 'area_precision')
         col.label(text='Scale:')
         col.prop(sceneProps, 'use_unit_scale')
 
@@ -173,7 +174,7 @@ def format_area(area: float, dim) -> str:
     unit_system, unit_length = get_dim_unit_override(dim,unit_system,unit_length)
 
     if unit_system == 'METRIC':
-        precision = scene.MeasureItArchProps.metric_precision
+        precision = scene.MeasureItArchProps.area_precision
         if not separate_units and not unit_length == 'ADAPTIVE':
             return _format_metric_area(
                 area, precision, unit_length, hide_units)
@@ -183,8 +184,9 @@ def format_area(area: float, dim) -> str:
         return bpy.utils.units.to_string(
             'METRIC', 'AREA', area, precision=precision,
             split_unit=separate_units, compatible_unit=False)
+    
     elif unit_system == 'IMPERIAL':
-        precision = scene.MeasureItArchProps.metric_precision
+        precision = scene.MeasureItArchProps.area_precision
         return _format_imperial_area(area, precision, unit_length)
 
     return bpy.utils.units.to_string(
@@ -317,6 +319,7 @@ def _format_imperial_area(value, precision, unit_length='FEET', hide_units=False
     value *= areaToInches
     value /= inPerFoot
 
+    unit = " ft²"
     if unit_length == 'FEET':
         unit = " ft²"
     elif unit_length == 'ACRE':
