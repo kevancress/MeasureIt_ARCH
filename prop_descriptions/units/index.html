@@ -91,11 +91,11 @@
                 </li>
                 <li class="toctree-l2 current"><a class="reference internal current" href="./">Units</a>
     <ul class="current">
-    <li class="toctree-l3"><a class="reference internal" href="#metric-precision">Metric Precision</a>
+    <li class="toctree-l3"><a class="reference internal" href="#precision">Precision</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#angle-precision">Angle Precision</a>
+    <li class="toctree-l3"><a class="reference internal" href="#areas">Areas</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#imperial-precision">Imperial Precision</a>
+    <li class="toctree-l3"><a class="reference internal" href="#scale">Scale</a>
     </li>
     </ul>
                 </li>
@@ -149,22 +149,45 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="measureit_arch-unit-settings">MeasureIt_ARCH Unit Settings</h1>
+<p>MeasureIt_ARCH unit settings are found in the scene properties panel, under the Blender's normal units panel. MeasureIt_ARCH uses Blender's unit setting by default, but adds a few additional formating options.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Unit Overrides can also be specified per dimension for Aligned, Axis, and Area Dimensions if you want to mix unit systems in the same file. Mixing unit systems is generally not reccomended, but for some countries (Looking at you Canada) where building codes use metric and construction standards use imperial, having both available can be handy.</p>
+</div>
 <p><img alt="image" src="../images/__ui-units.jpg" /></p>
-<p>MeasureIt_ARCH Unit Settings can be found in Blender's Scene Settings under the Units panel.</p>
-<h5 id="metric-precision">Metric Precision</h5>
+<h4 id="precision">Precision</h4>
 <ul>
-<li>Defines the number of decimal places included in dimensions when using the Metric Unit System.</li>
+<li>
+<p><strong>Metric Precision:</strong> Defines the number of decimal places included in dimensions when using the Metric Unit System.</p>
+</li>
+<li>
+<p><strong>Angle Precision:</strong> Defines the number of decimal places included in angle dimensions.</p>
+</li>
+<li>
+<p><strong>Imperial Precision:</strong> Fractional Precision to be used when using the Imperial Unit System.</p>
+</li>
 </ul>
-<h5 id="angle-precision">Angle Precision</h5>
+<h4 id="areas">Areas</h4>
 <ul>
-<li>Defines the number of decimal places included in angle dimensions.</li>
+<li>
+<p><strong>Imperial Area Units:</strong> Units to use for Imperial Areas (sq ft, acres, hectares)</p>
+</li>
+<li>
+<p><strong>Metric Area Units:</strong> Units to use for Metric Areas</p>
+</li>
+<li>
+<p><strong>Metric Area Precision:</strong> Units to use for Metric Areas</p>
+</li>
 </ul>
-<h5 id="imperial-precision">Imperial Precision</h5>
+<h4 id="scale">Scale</h4>
 <ul>
-<li>Fractional Precision to be used when using the Imperial Unit System.</li>
+<li>
+<p><strong>Use Unit Scale:</strong> If enabled, dimensions will account for the Unit Scale factor set in Blender's unit panel</p>
+</li>
+<li>
+<p><strong>Default Scale:</strong> Scale used for text size if no view has been defined.</p>
+</li>
 </ul>
-<p>##### Default Scale
-  * Scale used for text and other scale-dependant elements if no view has been defined.</p>
               
             </div>
           </div><footer>
@@ -182,7 +205,7 @@
     Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     
     
-    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 2, 2022</span></small></p>
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 5, 2022</span></small></p>
     
     
 </footer>
