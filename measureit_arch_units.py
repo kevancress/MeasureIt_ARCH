@@ -162,6 +162,10 @@ def format_area(area: float, dim) -> str:
     """
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps
+    unit_scale = scene.unit_settings.scale_length
+
+    if scene.MeasureItArchProps.use_unit_scale:
+        area *= unit_scale
 
     unit_system = scene.unit_settings.system
     if unit_system == 'METRIC':
