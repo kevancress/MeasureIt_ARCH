@@ -491,7 +491,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
         # Set Gizmo Props
         dim.gizLoc = textLoc
         dim.gizRotDir = userOffsetVector
-        dim['lenght'] = dist
+        dim['length'] = dist
 
         origin = Vector(textLoc)
 
@@ -1063,6 +1063,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
         origin = Vector(textLoc)
 
         dim.gizLoc = textLoc
+        dim['length'] = dist
 
         # Setup Text Fields
         placementResults = setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance)

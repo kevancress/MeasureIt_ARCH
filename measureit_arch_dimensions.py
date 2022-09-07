@@ -1402,6 +1402,13 @@ def draw_axisDimensions_settings(dim, layout):
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
         col.prop(dim, 'textAlignment', text='Alignment')
 
+       # Unit Overrides
+    col = layout.column(align=True)
+    col.prop(dim, 'override_unit_system', text='Unit Override')
+    if dim.override_unit_system == 'METRIC':
+        col.prop(dim, 'override_metric_length', text='Metric Length Override')
+    elif dim.override_unit_system == 'IMPERIAL':
+        col.prop(dim, 'override_imperial_length', text='Imperial Length Override')
 
 def draw_angleDimensions_settings(dim, layout):
     col = layout.column()
@@ -1508,6 +1515,14 @@ def draw_areaDimensions_settings(dim, layout):
     col = layout.column(align=True)
     col.prop(dim, 'dimTextPos', text='Text Position')
     col.prop(dim, 'dimRotation', text='Text Rotation')
+
+    # Unit Overrides
+    col = layout.column(align=True)
+    col.prop(dim, 'override_unit_system', text='Unit Override')
+    if dim.override_unit_system == 'METRIC':
+        col.prop(dim, 'override_metric_length', text='Metric Length Override')
+    elif dim.override_unit_system == 'IMPERIAL':
+        col.prop(dim, 'override_imperial_length', text='Imperial Length Override')
 
     if not dim.uses_style:
         col = layout.column(align=True)

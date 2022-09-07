@@ -361,13 +361,6 @@ def draw_scene(self, context, projection_matrix):
                 vertices = [mat @ vert.co for vert in mesh.vertices]
                 indices = [[tri.vertices[0],tri.vertices[1],tri.vertices[2]] for tri in tris]
 
-                #for vert in mesh.vertices:
-                    # Multipy vertex Position by Object Transform Matrix
-                #    vertices.append(mat @ vert.co)
-
-                #for tri in tris:
-                #    indices.append([tri.vertices[0],tri.vertices[1],tri.vertices[2]])
-
                 obj_eval.to_mesh_clear()
 
             batch = batch_for_shader(depthOnlyshader, 'TRIS', {
@@ -377,7 +370,7 @@ def draw_scene(self, context, projection_matrix):
             gpu.shader.unbind()
 
         # Write to Image for Debug
-        debug = False
+        debug = True
         if debug:
             print("Reading Buffer to Image")
             scene = context.scene
@@ -577,7 +570,7 @@ def render_main_svg(self, context):
         svg.add(drawing_group)
         
         tb_group = svg.g(id="Titleblock")
-        draw_viewport(context, svg=svg)
+        draw_titleblock(context, svg=svg)
         svg.add(tb_group)
 
         svg.save(pretty=True)
