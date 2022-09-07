@@ -369,28 +369,6 @@ def draw_scene(self, context, projection_matrix):
             batch.draw()
             gpu.shader.unbind()
 
-        # Write to Image for Debug
-        debug = True
-        if debug:
-            print("Reading Buffer to Image")
-            scene = context.scene
-            render_scale = scene.render.resolution_percentage / 100
-            width = int(scene.render.resolution_x * render_scale)
-            height = int(scene.render.resolution_y * render_scale)
-
-            buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-            bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
-            bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
-                            bgl.GL_UNSIGNED_BYTE, buffer)
-
-            image_name = "measureit_arch_depth"
-            if image_name not in bpy.data.images:
-                bpy.data.images.new(image_name, width, height)
-
-            image = bpy.data.images[image_name]
-            image.scale(width, height)
-            image.pixels = [v / 255 for v in buffer]
-
 
 def render_main_svg(self, context):
     startTime = time.time()
@@ -444,15 +422,33 @@ def render_main_svg(self, context):
                         del sceneProps['depthbuffer']
                     sceneProps['depthbuffer'] = texture_buffer
 
-        vector_utils.set_globals()
-            # imageName = 'depthBufferTest'
-            # if imageName not in bpy.data.images:
-            #     bpy.data.images.new(imageName, width, height,
-            #                         alpha=False, float_buffer=True, is_data=True)
-            # image = bpy.data.images[imageName]
+                    debug = True
+                    if debug:
+                        print("Reading Buffer to Image")
+                        scene = context.scene
 
-            # image.scale(width, height)
-            # image.pixels = [v for v in texture_buffer]
+                        buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
+                        bgl.glReadBuffer(bgl.GL_BACK)
+                        bgl.glReadPixels(0, 0, width, height, bgl.GL_DEPTH_COMPONENT,
+                                        bgl.GL_FLOAT, buffer)
+
+                        image_name = "measureit_arch_depth"
+                        if image_name not in bpy.data.images:
+                            bpy.data.images.new(image_name, width, height)
+
+                        image = bpy.data.images[image_name]
+                        image.scale(width, height)
+                        pixel_array = []
+                        for v in buffer:
+                            pixel_array.append(v)
+                            pixel_array.append(v)
+                            pixel_array.append(v)
+                            pixel_array.append(1)
+                        image.pixels = pixel_array
+
+        vector_utils.set_globals()
+        
+        
 
         # Setup Output Path
         view = get_view()
