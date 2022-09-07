@@ -10,7 +10,7 @@ Define Hatches to be used in Vector Exports.
 * __Line Weight__: Line Wight for the Outline Line of this Hatch
 *  __Pattern__: A collection to use as a custom pattern fill for this hatch.
     *  Hatch Patterns can be defined in the 0 to 1 range on the x,y plane.
-    *  Hatch Patterns will draw all edges of objects in the hatch collection as the custom pattern
+    *  Hatch Patterns will draw all edges of the objects in the hatch collection as the custom pattern
 *  __Pattern Weight__: Line Weight for the pattern fill
 *  __Pattern Size__: Scale factor for the pattern fill
 *  __Pattern Rotation__: Rotates the pattern fill for this hatch.
