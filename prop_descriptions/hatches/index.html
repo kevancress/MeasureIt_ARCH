@@ -60,6 +60,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../tutorials/titleblock_setup/">Set up a Titleblock with MeasureIt_ARCH</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../tutorials/sections/">Cutting Sections with MeasureIt_ARCH</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../tutorials/line_group_tut/">Draw a Wall assembly with Dynamic Line Groups</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../tutorials/section_hatches/">Section Drawing with MeasureIt_ARCH Hatches</a>
@@ -81,6 +83,8 @@
                 </li>
                 <li class="toctree-l2 current"><a class="reference internal current" href="./">Hatches</a>
     <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#hatch-settings">Hatch Settings</a>
+    </li>
     </ul>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../textfields/">Text Fields</a>
@@ -143,23 +147,44 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="hatches">Hatches</h1>
-<p>Define Hatches to be used in Vector Exports.</p>
+<p>MeasureIt_ARCH Hatches create areas of solid or patterned fill in Vector Renders. Hatches are defined per material and can be found under the material settings panel.</p>
+<h3 id="hatch-settings">Hatch Settings</h3>
 <p><img alt="image" src="../images/__ui-hatches.jpg" /></p>
 <ul>
-<li><strong>Material</strong>: The Material to apply this hatch to</li>
-<li><strong>Render Visibility</strong>: Toggles if this hatch should be applied on vector export or not</li>
-<li><strong>Fill Color</strong>: Solid Fill color for this Hatch (Set Alpha to 0 for none)</li>
+<li><strong>Use Object Color</strong>: If enabled this hatch will use the object color, rather than the hatches fill color</li>
+<li>
+<p><strong>Use Object Pattern</strong>: If enabled this hatch will use a per object pattern setting, rather than a single pattern for instance of this hatch.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This can be especially usefull for sections if you want to use a general "Cut" Material that gets applied by a boolean modifier, with a variety of different hatch patterns to denote differnt surface properties.</p>
+<p>For more detail on this workflow see the <a href="../../tutorials/sections/">"Cutting Sections with MeasureIt_ARCH" Tutorial</a></p>
+</div>
+</li>
+<li>
+<p><strong>Fill Color</strong>: Solid Fill color for this Hatch (Set Alpha to 0 for none)</p>
+</li>
 <li><strong>Line Color</strong>: Outline Line Color for this Hatch (Set Alpha to 0 for none)</li>
 <li><strong>Line Weight</strong>: Line Wight for the Outline Line of this Hatch</li>
-<li><strong>Pattern</strong>: A collection to use as a custom pattern fill for this hatch.<ul>
-<li>Hatch Patterns can be defined in the 0 to 1 range on the x,y plane.</li>
-<li>Hatch Patterns will draw all edges of objects in the hatch collection as the custom pattern</li>
+<li>
+<p><strong>Pattern</strong>: A collection to use as a custom pattern fill for this hatch.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li>Hatch Patterns need to be drawn at the origin in the 0 to 1 range on the x,y plane.</li>
+<li>Hatch Patterns will draw all edges of the objects in the hatch collection as the custom pattern</li>
+<li>Be sure to "Apply All Transforms" (ctrl-A) to objects in the Hatch pattern collection</li>
 </ul>
+</div>
 </li>
-<li><strong>Pattern Weight</strong>: Line Weight for the pattern fill</li>
+<li>
+<p><strong>Pattern Weight</strong>: Line Weight for the pattern fill</p>
+</li>
 <li><strong>Pattern Size</strong>: Scale factor for the pattern fill</li>
 <li><strong>Pattern Rotation</strong>: Rotates the pattern fill for this hatch.</li>
 <li><strong>Pattern Opacity</strong>: Sets the opacity for the pattern fill for this hatch.</li>
+<li><strong>Draw Dashed</strong>: The outline of this hatch will draw dashed</li>
+<li><strong>Dash Size</strong>: Dash size for dashed outlines</li>
+<li><strong>Gap Size</strong>: Gap size for dashed outlines</li>
 </ul>
               
             </div>
@@ -178,7 +203,7 @@
     Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     
     
-    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">August 13, 2022</span></small></p>
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 10, 2022</span></small></p>
     
     
 </footer>
