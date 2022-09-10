@@ -246,7 +246,12 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None, dxf=No
 
     pass
 
-def get_hatch_name(mat_name, hatch_name):
+def get_hatch_name(mat_name, hatch, obj):
+    if hatch.use_object_pattern:
+        hatch_name = obj.MeasureItArchProps.obj_hatch_pattern.name
+    else:
+        hatch_name = hatch.pattern.name
+
     name = mat_name + '_' + hatch_name
 
     #Check valid name
@@ -319,9 +324,13 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
 
             objMaterials.append(slot.material)
 
-            if hatch.pattern is not None:
-                name = get_hatch_name(slot.material.name, hatch.pattern.name)
-                objs = hatch.pattern.objects
+            pattern = hatch.pattern
+            if hatch.use_object_pattern:
+                pattern = myobj.MeasureItArchProps.obj_hatch_pattern
+
+            if pattern is not None:
+                name = get_hatch_name(slot.material.name, hatch, myobj)
+                objs = pattern.objects
                 weight = hatch.patternWeight
                 scale = get_scale()
                 ortho_scale = view.camera.data.ortho_scale
@@ -352,6 +361,9 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 print('HAS OVERRIDE')
                 hatch = context.view_layer.material_override.Hatch
 
+            pattern = hatch.pattern
+            if hatch.use_object_pattern:
+                pattern = myobj.MeasureItArchProps.obj_hatch_pattern
 
             if hatch.visible :
 
@@ -362,8 +374,8 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 lineRGB = rgb_gamma_correct(hatch.line_color)
                 weight = hatch.lineWeight
                 fillURL = ''
-                if hatch.pattern is not None:
-                    name = get_hatch_name(faceMat.name,hatch.pattern.name)
+                if pattern is not None:
+                    name = get_hatch_name(faceMat.name,hatch,myobj)
                     fillURL = 'url(#{})'.format(name)
 
                 coords = []

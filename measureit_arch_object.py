@@ -75,4 +75,4 @@ class OBJECT_PT_UIObjSettings(Panel):
 
         col = layout.column(align=True)
         col.prop(obj_props, "ignore_in_depth_test", text = "Ignore in Vector Depthtest")
-        col.prop(obj_props, "object_hatch_pattern")
+        col.prop(obj_props, 'obj_hatch_pattern', text="Object Pattern",)
