@@ -49,7 +49,7 @@ class OBJECT_PT_Panel(Panel):
     bl_context = "object"
 
     def draw(self, context):
- 
+
         pass
 
 
@@ -75,3 +75,4 @@ class OBJECT_PT_UIObjSettings(Panel):
 
         col = layout.column(align=True)
         col.prop(obj_props, "ignore_in_depth_test", text = "Ignore in Vector Depthtest")
+        col.prop(obj_props, "object_hatch_pattern")

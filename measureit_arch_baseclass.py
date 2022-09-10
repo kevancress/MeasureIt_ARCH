@@ -3,7 +3,7 @@ import bpy
 import math
 
 
-from bpy.types import PropertyGroup, Operator
+from bpy.types import PropertyGroup, Operator, Collection
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
@@ -185,7 +185,7 @@ class BaseProp:
         subtype='COLOR',
         size=4,
         update=update_flag)
-    
+
     cad_col_idx: IntProperty(
         name="CAD Color Index",
         description="Autocad Color Index, for .dxf export or high contrast preview",
@@ -238,6 +238,8 @@ class ObjProps(PropertyGroup):
         description='Ignore this object in Vector Depth Tests',
         default=False)
 
+    obj_hatch_pattern: PointerProperty(name='Object Hatch Pattern', type=Collection)
+
 
 class TextField(PropertyGroup):
     text_updated: BoolProperty(
@@ -279,7 +281,7 @@ class TextField(PropertyGroup):
         description="RNA Prop String",
         default="",
         update=update_flag)
-    
+
     textFile: PointerProperty(
         name="TextFile",
         type = bpy.types.Text)
@@ -330,7 +332,7 @@ def draw_textfield_settings(item, box, prop_path):
 
         if textField.textSource == 'RNAPROP' and textField.autoFillText:
             row.prop(textField, 'rnaProp', text="")
-        
+
         elif textField.textSource == 'TEXT_FILE' and textField.autoFillText:
             row.prop_search(textField, 'textFile', bpy.data, 'texts', text="", icon='TEXT')
 
@@ -346,7 +348,7 @@ def draw_textfield_settings(item, box, prop_path):
         op.upDown = -1
         op.idx = idx
 
-        
+
         txtRemoveOp = row.operator(
             "measureit_arch.additem", text="", icon="X")
         txtRemoveOp.propPath = prop_path
@@ -418,7 +420,7 @@ class BaseWithText(BaseProp):
                ('1', "Line", "The point of the arrow are lines")),
         name="B end",
         description="Add arrows to point A")
-    
+
     all_caps: BoolProperty(
         name='All Caps',
         description='Make Text All Caps',
@@ -557,7 +559,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
     project_number: StringProperty(
         name="Project Number",
         description="Number of this Project")
-    
+
     project_address: StringProperty(
         name="Project Address",
         description="Address for this Project")
@@ -674,7 +676,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="Is Vector Render",
         description="Flag to use svg draw code",
         default=False)
-    
+
     is_dxf_draw: BoolProperty(
         name="Is dxf Render",
         description="Flag to use dxf draw code",
@@ -684,7 +686,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="show dxf props",
         description="Show Dxf Export Property & Render Button",
         default=False)
-    
+
     use_cad_col: BoolProperty(
         name="Use CAD Colors",
         description="Use CAD Color Idx when drawing",

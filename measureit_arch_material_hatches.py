@@ -56,7 +56,12 @@ class HatchProperties(PropertyGroup):
         name="Use Object Color",
         description="Use Object Color for Fill Color",
         default=False)
-    
+
+    use_object_pattern: BoolProperty(
+        name="Use Object Pattern",
+        description="Use Object Pattern for Fill Patern",
+        default=False)
+
     use_material_offset: BoolProperty(
         name="Use Material Offset",
         description="Use the next material in the Stack for Hatch Settings",
@@ -87,12 +92,12 @@ class HatchProperties(PropertyGroup):
         soft_min=1.0,
         step=25,
         min=0)
-    
+
     lineDrawDashed: BoolProperty(
         name="Draw Dashed",
         description="Force Line Group to Draw Dashed",
         default=False)
-    
+
     dash_size: IntProperty(
         name="Dash Size",
         description ="Dash Size",
@@ -133,9 +138,10 @@ class MATERIAL_PT_UIHatch(Panel):
             return
         layout = self.layout
         row = layout.row()
-        
+
         hatch = context.material.Hatch
         row.prop(hatch, "visible", text="",)
+        row.label(text="", icon = "FILE_VOLUME")
 
     def draw(self, context):
         layout = self.layout
@@ -151,6 +157,7 @@ class MATERIAL_PT_UIHatch(Panel):
         main_col.enabled = hatch.visible
         col = main_col.column()
         col.prop(hatch, 'use_object_color',)
+        col.prop(hatch, 'use_object_pattern',)
         if hatch.use_object_color:
             col.prop(obj, 'color', text="Object Color")
         else:
@@ -158,7 +165,14 @@ class MATERIAL_PT_UIHatch(Panel):
         col.prop(hatch, 'line_color', text="Line Color",)
         col.prop(hatch, 'lineWeight', text="Line Weight",)
         col = main_col.column()
-        col.prop(hatch, 'pattern', text="Pattern",)
+
+        if hatch.use_object_pattern:
+            obj_props = obj.MeasureItArchProps
+            col.prop(obj_props, 'obj_hatch_pattern', text="Object Pattern",)
+        else:
+            col.prop(hatch, 'pattern', text="Hatch Pattern",)
+
+
         col.prop(hatch, 'patternWeight', text="Pattern Weight",)
         col.prop(hatch, 'patternSize', text="Pattern Size",)
         col.prop(hatch, 'patternRot', text="Pattern Rotation",)
