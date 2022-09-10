@@ -23,6 +23,7 @@ nav:
         - Installing MeasureIt_ARCH: tutorials/install.md
         - Creating a drawing set with MeasureIt_ARCH: tutorials/drawing_set.md
         - Set up a Titleblock with MeasureIt_ARCH: tutorials/titleblock_setup.md
+        - Cutting Sections with MeasureIt_ARCH: tutorials/sections.md
         - Draw a Wall assembly with Dynamic Line Groups: tutorials/line_group_tut.md
         - Section Drawing with MeasureIt_ARCH Hatches: tutorials/section_hatches.md
         - Batch convert .svg's to .pdf's: tutorials/svg_to_pdf.md
@@ -43,16 +44,16 @@ nav:
             - Viewports: prop_descriptions/viewports.md
             - Schedules: prop_descriptions/schedules.md
             - Settings: prop_descriptions/settings.md
-        
+
         - Rendering: prop_descriptions/render.md
-            
+
 
 
     - Contributions:
         - Reporting Issues: contributions/issue_reports.md
         - Requesting Features: contributions/feature_requests.md
         - Contributing Code: contributions/contributing_code.md
-        
-theme: 
+
+theme:
     name: readthedocs
     custom_dir: docs\overrides\
