@@ -1,5 +1,5 @@
 # Hatches
-Define Hatches to be used in Vector Exports.
+MeasureIt_ARCH Hatches create areas of solid or patterned fill in Vector Renders. Hatches are defined per material and can be found under the material settings panel
 
 ![image](images/__ui-hatches.jpg)
 

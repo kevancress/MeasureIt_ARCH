@@ -168,7 +168,7 @@ def update_text(textobj, props, context, fields=[]):
 
             # Calculate Optimal Dimensions for Text Texture.
             line_height =  blf.dimensions(font_id, 'Tpg')[1] *1.2
-            
+
             fheight = 0
             fwidth = 0
             for line in lines:
@@ -179,7 +179,7 @@ def update_text(textobj, props, context, fields=[]):
                 line_width = blf.dimensions(font_id, text + '  ')[0]
                 if line_width > fwidth:
                     fwidth = line_width
-            
+
             width = math.ceil(fwidth)
             height = math.ceil(fheight)
 
@@ -205,7 +205,7 @@ def update_text(textobj, props, context, fields=[]):
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix)
                     gpu.matrix.load_projection_matrix(Matrix.Identity(4))
-                    
+
                     idx = 1
                     y_offset = height - line_height * 0.8
                     for line in lines:
@@ -248,11 +248,11 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None, dxf=No
 
 def get_hatch_name(mat_name, hatch_name):
     name = mat_name + '_' + hatch_name
-    
+
     #Check valid name
     if " " in name:
         name = name.replace(" ", "_")
-    
+
     return name
 
 
@@ -290,14 +290,14 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
         if myobj.type == 'CURVE':
             depsgraph = bpy.context.evaluated_depsgraph_get()
             eval_obj = myobj.evaluated_get(depsgraph)
-            
+
             mesh =  bpy.data.meshes.new_from_object(eval_obj, depsgraph =  bpy.context.evaluated_depsgraph_get())
 
             try:
                 bm.from_mesh(mesh)
             except AttributeError:
                 print('No Mesh Data for Obj: {}'.format(myobj.name))
-            
+
             #bpy.data.meshes.remove(mesh)
 
 
@@ -316,7 +316,7 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
             if slot.material is None:
                 continue
             hatch = slot.material.Hatch
-            
+
             objMaterials.append(slot.material)
 
             if hatch.pattern is not None:
@@ -345,16 +345,16 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 faceMat = objMaterials[matIdx]
             except:
                 continue
-            
+
             # Check For Material Override
             hatch = faceMat.Hatch
             if context.view_layer.material_override != None:
                 print('HAS OVERRIDE')
                 hatch = context.view_layer.material_override.Hatch
-            
+
 
             if hatch.visible :
-               
+
                 if hatch.use_object_color:
                     fillRGB = rgb_gamma_correct(myobj.color)
                 else:
@@ -473,7 +473,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
         if offsetDistance < geoOffsetDistance:
             offsetDistance = geoOffsetDistance
 
-       
+
 
         # Define Lines
         leadStartA = Vector(p1) + geoOffsetDistance
@@ -537,7 +537,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
                 textcard = textField['textcard']
                 svg_shaders.svg_text_shader(
                     dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
-        
+
         if sceneProps.is_dxf_draw:
             dxf_shaders.dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf)
 
@@ -547,7 +547,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
     sceneProps = context.scene.MeasureItArchProps
 
     dimProps = get_style(dim,'alignedDimensions')
-    
+
 
     with OpenGL_Settings(dimProps):
 
@@ -614,7 +614,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                         dim[boundsStr] = [maxX, minX, maxY, minY, maxZ, minZ]
                         dim[rotStr] = myobj.matrix_world.to_quaternion()
                         dim[locStr] = myobj.location
-                        
+
                         dim[scaleStr] = myobj.scale
 
                     coords.append(Vector((maxX, maxY, maxZ)))
@@ -1007,7 +1007,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
             offsetDistance = geoOffsetDistance
 
         # Set Gizmo Props
-  
+
         dim.gizRotDir = userOffsetVector
 
         # Define Lines
@@ -1107,7 +1107,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
                 textcard = textField['textcard']
                 svg_shaders.svg_text_shader(
                     dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
-        
+
         if sceneProps.is_dxf_draw:
             dxf_shaders.dxf_axis_dimension(dim, dimProps, p1, p2, origin, dxf)
 
@@ -1197,7 +1197,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         square = generate_text_card(
             context, dim.textFields[0], dimProps, basePoint=midPoint, xDir=vecX, yDir=midVec)
 
-        
+
         if sceneProps.show_dim_text:
             draw_text_3D(context, dim.textFields[0], dimProps, myobj, square)
 
@@ -1256,7 +1256,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
     dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
-    
+
 
     with OpenGL_Settings(dimProps):
 
@@ -1533,7 +1533,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
     dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
 
-    
+
 
     with OpenGL_Settings(dimProps):
 
@@ -1542,7 +1542,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             return
 
         lineWeight = dimProps.lineWeight
-        
+
         rgb = get_color(dim.fillColor, myobj, is_active=dim.is_active)
         fillRGB = (rgb[0], rgb[1], rgb[2], dim.fillAlpha)
 
@@ -1609,13 +1609,13 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             v1 = bm.verts[vert_idx]
             polyfillCoords.append(mat @ v1.co)
             perimeterCoords.append(mat @ v1.co)
-            
+
             if idx < len(buffer_list):
                 v2 = bm.verts[buffer_list[idx]]
                 perimeterCoords.append(mat @ v2.co)
 
         #print(dim['perimeterEdgeBuffer'].to_list())
-        
+
         # Get local Rotation and Translation
         rot = mat.to_quaternion()
 
@@ -1628,7 +1628,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         #origin = originFace.calc_center_bounds()
         origin = center
         normal = rotMatrix @ originFace.normal
-        
+
         origin += dim.dimTextPos + normal * 0.01
 
 
@@ -1683,9 +1683,9 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         # format text and update if necessary
         if not dim.use_custom_text:
 
-           
+
             distanceText = format_area(sumArea, dim=dim)
-            
+
             if dimText.text != distanceText:
                 dimText.text = distanceText
                 dimText.text_updated = True
@@ -1693,7 +1693,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         idx = 0
         for textField in dim.textFields:
             set_text(textField, myobj)
-            
+
             textcard = generate_text_card(context, textField, dim, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
             textField['textcard'] = textcard
 
@@ -1704,7 +1704,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         # Draw Fill
         draw_filled_coords(filledCoords, fillRGB, polySmooth=False)
 
-            
+
 
         # Draw Perimeter
         draw_lines(lineWeight, rgb, perimeterCoords,
@@ -1715,14 +1715,14 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_poly_fill_shader( dim, polyfillCoords,(0,0,0,0),svg, line_color = rgb, lineWeight= lineWeight, itemProps=dimProps)
-              
+
             svg_shaders.svg_poly_fill_shader(
                 dim, polyfillCoords, fillRGB, svg, parent=svg_dim)
             for textField in dim.textFields:
                 textcard = textField['textcard']
                 svg_shaders.svg_text_shader(
                     dim, dimProps, textField.text, origin, textcard, textRGB, svg, parent=svg_dim)
-            
+
 # takes a set of co-ordinates returns the min and max value for each axis
 def get_axis_aligned_bounds(coords):
     """
@@ -1764,7 +1764,7 @@ def get_view_plane(dim,dimProps):
         viewPlane = dimProps.dimViewPlane
     else:
         viewPlane = dim.dimViewPlane
-    
+
     return viewPlane
 
 def get_view_axis(context, dim, dimProps):
@@ -1791,7 +1791,7 @@ def get_view_axis(context, dim, dimProps):
             viewVec = -k.copy()
             viewVec.rotate(cameraRot)
             viewAxis = viewVec
-            
+
         elif context.scene.camera == None:
             space3D = None
             for space in context.area.spaces:
@@ -1816,7 +1816,7 @@ def get_view_axis(context, dim, dimProps):
             viewAxis = j
         if viewAxis[2] > basicThreshold or viewAxis[2] < -basicThreshold:
             viewAxis = k
-    
+
     return viewAxis
 
 def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
@@ -1909,7 +1909,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
     viewport = get_viewport()
 
     #print('Drawing Line group on {}, is instance: {}'.format(myobj.name, is_instance_draw))
-  
+
     # Check for object mode changes, outside of line group loop
     global lastMode
     mode_change_flag = False
@@ -1975,16 +1975,16 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 recoord_flag = True
             else:
                 recoord_flag = False
-            
+
             if is_instance_draw: recoord_flag = False
-            
+
             if recoord_flag and check_mods(myobj) and not is_instance_draw:
                 if myobj.type == 'MESH':
                     deps = bpy.context.view_layer.depsgraph
                     obj_eval = myobj.evaluated_get(deps)
                     mesh = obj_eval.data
                     verts = mesh.vertices
-            
+
 
             # Get Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
@@ -1996,7 +1996,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                         toLineBuffer.append(line['pointA'])
                         toLineBuffer.append(line['pointB'])
                     lineGroup['lineBuffer'] = toLineBuffer
-                
+
                 # Get Coords From non Dynamic Lines
                 if 'lineBuffer' in lineGroup:
                     tempCoords = [get_line_vertex(
@@ -2017,15 +2017,15 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     rot = mat.to_quaternion()
 
                     if myobj.mode != 'OBJECT':
-                        return    
-                    
+                        return
+
                     if myobj.type == 'MESH':
                         depsgraph = bpy.context.view_layer.depsgraph
                         eval_obj = myobj.evaluated_get(depsgraph)
                         temp_mesh = eval_obj.data
                         bm.from_mesh(temp_mesh)
                         #bm.from_object(myobj, bpy.context.view_layer.depsgraph)
-                    
+
                     if myobj.type == 'CURVE':
                         depsgraph = bpy.context.view_layer.depsgraph
                         eval_obj = myobj.evaluated_get(depsgraph)
@@ -2054,12 +2054,12 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                             for item in v2_groups:
                                 id2.append(item.group)
                                 #print('v2 in group: {} looking for group: {}'.format(item.group,group_idx))
-                            
-                            
-                                
+
+
+
                             if lineGroup.invertGroupFilter - (group_idx not in id1 or group_idx not in id2):
                                 #print('skipping line segment')
-                                continue  
+                                continue
 
 
                         if len(linked_faces) == 2:
@@ -2067,7 +2067,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                                 linked_faces[0].normal).normalized()
                             normalB = Vector(
                                 linked_faces[1].normal).normalized()
-                            dotProd = (normalA.dot(normalB))      
+                            dotProd = (normalA.dot(normalB))
 
                             #Check angle of adjacent faces
                             if dotProd >= -1 and dotProd <= 1 and not lineGroup.dynamic_sil:
@@ -2100,11 +2100,11 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                                 tempCoords.append(pointB)
 
 
-                      
 
-    
+
+
                     lineGroup['coordBuffer'] = tempCoords.copy()
-                    lineGroup['lineBuffer'] = tempIdxs.copy()   
+                    lineGroup['lineBuffer'] = tempIdxs.copy()
                     if len(tempCoords) == 0:
                         lineGroup['coordBuffer'] = []
                         return
@@ -2138,15 +2138,15 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 weights = lineGroup['weightBuffer']
             except KeyError:
                 tempWeights = [1.0] * len(lineGroup['coordBuffer'])
-                lineGroup['weightBuffer'] = tempWeights      
-                weights = lineGroup['weightBuffer'] 
+                lineGroup['weightBuffer'] = tempWeights
+                weights = lineGroup['weightBuffer']
 
-            lineGroup.weightGroupInfluence = 0.0 
+            lineGroup.weightGroupInfluence = 0.0
 
             if len(coords) == 0:
-                #print("No Coords") 
+                #print("No Coords")
                 return
-            
+
 
             if drawHidden:
                 # Invert The Depth test for hidden lines
@@ -2278,7 +2278,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                         lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat)
                 else:
                     svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False, mat=mat)
-            
+
             if sceneProps.is_dxf_draw:
                 dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf,myobj, mat=mat, )
     gpu.shader.unbind()
@@ -2335,7 +2335,7 @@ def get_style(item, type_str):
             if style_item.previous_name == item.style:
                 item.style = style_item.name
                 itemProps = style_item
-    
+
     return itemProps
 
 def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, instance = None):
@@ -2345,7 +2345,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
     customFilledCoords = []
     for annotation in annotationGen.annotations:
         annotationProps = get_style(annotation,"annotations")
-        
+
 
         with OpenGL_Settings(annotationProps):
 
@@ -2497,7 +2497,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 yDir = fullRotMat @ Vector((0, 1, 0))
 
                 # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
-                
+
                 textcard = generate_text_card(
                     context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
                 textField['textcard'] = textcard
@@ -2527,7 +2527,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 if not annotationProps.draw_leader:
                     coords = []
 
-                
+
                 dotcoords = []
                 filledcoords = []
                 dot,fill = draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize)
@@ -2553,7 +2553,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
             if sceneProps.show_dim_text:
                 for textField in fields:
-                    textcard = textField['textcard']    
+                    textcard = textField['textcard']
                     draw_text_3D(context, textField, annotationProps, myobj, textcard)
 
             if sceneProps.is_vector_draw:
@@ -2606,105 +2606,105 @@ def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
             filledCoords.append(line.copy() + Vector(p1))
 
         draw_filled_coords(filledCoords, rgb, polySmooth=False)
-    
+
     return dotcoord, filledCoords
 
 def set_text(textField, obj, style=None, item=None):
-    
+
     old_text = textField.text
-    
+
 
     if textField.autoFillText:
         textField.text_updated = True
-        
-        match textField.textSource:
-            case 'DATE':
-                textField.text = datetime.now().strftime('%y/%m/%d')
+        text_source = textField.textSource
 
-            case 'VIEW':
-                view = get_view()
-                if view is not None:
-                    textField.text = view.name
+        if text_source == 'DATE':
+            textField.text = datetime.now().strftime('%y/%m/%d')
 
-            case 'NOTES':
-                view = get_view()
-                textField.text = ''
-                for viewField in view.textFields:
-                    set_text(viewField, None)
-                    textField.text += viewField.text
-                    textField.text += '\n'
+        elif text_source == 'VIEW':
+            view = get_view()
+            if view is not None:
+                textField.text = view.name
 
-            case 'SCALE':
-                view = get_view()
-                scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
-                textField.text = scaleStr
+        elif text_source == 'NOTES':
+            view = get_view()
+            textField.text = ''
+            for viewField in view.textFields:
+                set_text(viewField, None)
+                textField.text += viewField.text
+                textField.text += '\n'
 
-                if view.paper_scale_mode == 'IMPERIAL':
-                    textField.text = view.imp_scale
+        elif text_source == 'SCALE':
+            view = get_view()
+            scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
+            textField.text = scaleStr
 
-            case 'VIEWNUM':
-                view = get_view()
-                textField.text = view.view_num
-                
-            
-            case 'ELEVATION':
-                if item == None: 
-                    textField.text = ""
-                elif "p1anchorCoord" in item:
-                    textField.text = format_distance(item['p1anchorCoord'][2])
+            if view.paper_scale_mode == 'IMPERIAL':
+                textField.text = view.imp_scale
 
-                    
-            case 'C_LENGTH': ## TODO: Remove this when I add a curve dimension
-                if obj.type == 'CURVE':
-                    if len(obj.data.splines) > 1:
-                        text = "USE ON SINGLE SPLINE CURVE"
-                    elif obj.scale[0] != 1.0 or obj.scale[1] != 1.0 or obj.scale[1] != 1.0:
-                        text = "APPLY SCALE"
-                    else:
-                        length = obj.data.splines[0].calc_length()
-                        text = format_distance(length)
-                    textField.text = text
+        elif text_source == 'VIEWNUM':
+            view = get_view()
+            textField.text = view.view_num
+
+
+        elif text_source == 'ELEVATION':
+            if item == None:
+                textField.text = ""
+            elif "p1anchorCoord" in item:
+                textField.text = format_distance(item['p1anchorCoord'][2])
+
+
+        elif text_source == 'C_LENGTH': ## TODO: Remove this when I add a curve dimension
+            if obj.type == 'CURVE':
+                if len(obj.data.splines) > 1:
+                    text = "USE ON SINGLE SPLINE CURVE"
+                elif obj.scale[0] != 1.0 or obj.scale[1] != 1.0 or obj.scale[1] != 1.0:
+                    text = "APPLY SCALE"
                 else:
-                    textField.text = "Not a Curve"
+                    length = obj.data.splines[0].calc_length()
+                    text = format_distance(length)
+                textField.text = text
+            else:
+                textField.text = "Not a Curve"
 
-            case 'TEXT_FILE':
-                textField.text = ''
+        elif text_source == 'TEXT_FILE':
+            textField.text = ''
+            try:
+                for line in textField.textFile.lines:
+                    textField.text += line.body
+                    textField.text += '\n'
+            except AttributeError:
+                pass
+
+        elif text_source == 'PROJECT_NAME':
+            textField.text = ''
+            sceneProps = bpy.context.scene.MeasureItArchProps
+            textField.text = sceneProps.project_name
+
+        elif text_source == 'PROJECT_NUMBER':
+            textField.text = ''
+            sceneProps = bpy.context.scene.MeasureItArchProps
+            textField.text = sceneProps.project_number
+
+        elif text_source == 'PROJECT_ADDRESS':
+            textField.text = ''
+            sceneProps = bpy.context.scene.MeasureItArchProps
+            textField.text = sceneProps.project_address
+
+        # CUSTOM PROP
+        elif text_source == 'RNAPROP':
+            if textField.rnaProp != '':
                 try:
-                    for line in textField.textFile.lines:
-                        textField.text += line.body
-                        textField.text += '\n'
-                except AttributeError:
-                    pass
-            
-            case 'PROJECT_NAME':
-                textField.text = ''
-                sceneProps = bpy.context.scene.MeasureItArchProps
-                textField.text = sceneProps.project_name
-            
-            case 'PROJECT_NUMBER':
-                textField.text = ''
-                sceneProps = bpy.context.scene.MeasureItArchProps
-                textField.text = sceneProps.project_number
-            
-            case 'PROJECT_ADDRESS':
-                textField.text = ''
-                sceneProps = bpy.context.scene.MeasureItArchProps
-                textField.text = sceneProps.project_address
+                    # TODO: `eval` is evil
+                    data = eval(
+                        'bpy.data.objects[\'' + obj.name + '\']' + textField.rnaProp)
+                    text = str(data)
+                    if "location" in textField.rnaProp:
+                        text = format_distance(data)
 
-            # CUSTOM PROP
-            case 'RNAPROP':
-                if textField.rnaProp != '':
-                    try:
-                        # TODO: `eval` is evil
-                        data = eval(
-                            'bpy.data.objects[\'' + obj.name + '\']' + textField.rnaProp)
-                        text = str(data)
-                        if "location" in textField.rnaProp:
-                            text = format_distance(data)
-
-                        textField.text = text
-                    except:
-                        textField.text = 'Bad Data Path'
+                    textField.text = text
+                except:
+                    textField.text = 'Bad Data Path'
 
         if old_text == textField.text:
             textField.text_updated = False
@@ -2712,7 +2712,7 @@ def set_text(textField, obj, style=None, item=None):
     if style != None and style.all_caps and (style.text_updated or bpy.context.scene.MeasureItArchProps.is_render_draw):
         textField.text = textField.text.upper()
 
-    
+
 # This is a one off for a project where I need to preview the
 # "create dual mesh" Operator from Alessandro Zomparelli's tissue addon.
 # Keeping it here untill I can create a pull request for tissue to discuss adding it in there.
@@ -3227,10 +3227,10 @@ def get_mesh_vertex(myobj, idx, evalMods, spline_idx=-1):
             if idx != 9999999:
                 raise IndexError
             coord = Vector((0,0,0))
-        
+
     if myobj.type == 'CURVE':
         coord = myobj.data.splines[spline_idx].bezier_points[idx].co
-    
+
 
 
     return coord
@@ -3465,7 +3465,7 @@ def z_order_objs(obj_list, extMat, multMat):
     to_sort = []
 
     for obj in obj_list:
-        if type(obj) is bpy.types.DepsgraphObjectInstance: 
+        if type(obj) is bpy.types.DepsgraphObjectInstance:
             obj = obj.object
         bound_box = obj.bound_box
         point_in_camera = False
@@ -3480,10 +3480,10 @@ def z_order_objs(obj_list, extMat, multMat):
 
             point_dist = get_camera_z_dist(loc)
             dist_sum += point_dist
-            
+
             # is this point in front of the camera?
             if point_dist > 0:
-                point_in_camera = True       
+                point_in_camera = True
 
         # If object has no bounds infront of the camera ignore it
         if point_in_camera:
@@ -3565,12 +3565,12 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-    
+
     totalobjs = len(objlist)
     #preview_dual(context)
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
-    
+
     if sceneProps.is_render_draw:
         startTime = time.time()
 
@@ -3578,7 +3578,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
         if sceneProps. is_render_draw:
             print("Rendering Object: " + str(idx) + " of: " +
                   str(totalobjs) + " Name: " + safe_name(myobj.name))
-        
+
         if check_obj_vis(myobj,custom_call):
             mat = myobj.matrix_world
             if extMat is not None:
@@ -3634,10 +3634,10 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     if not custom_call and not view.skip_instances:
 
         deps = bpy.context.view_layer.depsgraph
-        
+
         objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
         #obj_inst_list = deps.object_instances
-         
+
         #if sceneProps.is_vector_draw:
         #    objlist = z_order_objs(objlist, extMat, multMat)
         num_instances = len(objlist)
@@ -3666,7 +3666,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                         print("UNICODE ERROR ON OBJECT NAME")
 
                 if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
-                    draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=True)                   
+                    draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=True)
 
                 if 'LineGenerator' in myobj:
                     lineGen = myobj.LineGenerator
