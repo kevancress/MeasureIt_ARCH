@@ -78,6 +78,8 @@
         <ul>
     <li class="toctree-l3"><a class="reference internal" href="#scale-issues">Scale Issues:</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#naming-issues">Naming Issues:</a>
+    </li>
         </ul>
     </li>
     </ul>
@@ -178,6 +180,12 @@
 <p>When opening a .dxf file directly, AutoCAD will ignore the units specified in the .dxf header, and use whatever the users default unit settings happen to be set to. </p>
 <p>I recomend <strong>never opening a .dxf file directly</strong>, but instead using the <code>CLASSICINSERT</code> command in AutoCAD. <code>CLASSICINSERT</code> does respect the .dxf Unit header, and can be used to insert the .dxf correctly scaled either as a block or exploded.</p>
 <p>By default MeasureIt_ARCH currently exports all .dxf files in Meters.</p>
+<h4 id="naming-issues">Naming Issues:</h4>
+<p>The following characters are not allowed in dxf file definitions <code>"'[]{}()!@#$%^&amp;*</code>. Some of these will throw an error on export, others will not, but will still result in a corrupt .dxf file that will not import into AutoCAD. Ensure that none of your object or style names have any of these characters when exporting.</p>
+<div class="admonition danger">
+<p class="admonition-title">Danger</p>
+<p>Other special characters may cause issues as well. It's generally best to avoid any and all non-alphanumeric characters in names when exporting to .dxf</p>
+</div>
               
             </div>
           </div><footer>
