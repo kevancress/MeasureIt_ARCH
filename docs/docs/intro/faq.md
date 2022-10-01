@@ -1,12 +1,5 @@
 # Frequently Asked Questions
 
-!!! Disclaimer
-    No one has actually asked me these questions, but I do ask them to myself. Frequently. 
-    
-    _(or they're just things I wanted to comment on)_
-
-    If you have questions about MeasureIt_ARCH that you think should be answered here, make a pull request for this page with the "Edit on GitHub" button above.
-
 #### What should I use MeasureIt_ARCH for?
 
 MeasureIt_ARCH is meant for producing Design Documentation and Technical Drawings in Blender. If you've been using Sketch-Up, AutoCAD, Rhino or somthing similar for design drawings and documentation, on relativly small scale projects, then MeasureIt_ARCH & Blender could be a good tool for you.
@@ -39,4 +32,10 @@ That said, MeasureIt_ARCH does have a (partially) functioning .dxf exporter, alo
 Indeed it is! MeasureIt is an addon that is included as part of blender, originally developed by Antonio Vazquez, who is now developing Blender's Grease Pencil tools. MeasureIt_ARCH started off as a fork of the MeasureIt addon in 2019. While the original intent was simply to add an option for line drawings to MeasureIt, MeasureIt_ARCH has since developed into a suite of tools for Dimensioning, Line Drawing, Annotations, View Management, Styles, and Vector Graphics, with a redesigned UI as well.
 
 
+!!! Disclaimer
+    No one has actually asked me these questions, but I do ask them to myself. Frequently. 
+    
+    _(or they're just things I wanted to comment on)_
+
+    If you have questions about MeasureIt_ARCH that you think should be answered here, make a pull request for this page with the "Edit on GitHub" button above.
 

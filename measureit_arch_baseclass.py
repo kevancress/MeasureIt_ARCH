@@ -724,7 +724,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
                ('32', "1/32\"", "1/32th Inch"),
                ('64', "1/64\"", "1/64th Inch")),
         name="Imperial Precision",
-        description="Measurement Precision for Imperial Units")
+        description="Measurement Precision for Imperial Units",
+        default = '16')
 
     metric_area_units: EnumProperty(
         items = (('KILOMETERS', 'Kilometers', 'Kilometers'),

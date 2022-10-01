@@ -7,7 +7,7 @@ To support exchange with AutoCAD, MeasureIt_ARCH includes an option to render vi
     
     Until Autodesk decides to meaningfully impliment open exchange file formats and well documented open standards, propper interoperability is nearly impossible to achieve...
 
-    <sub> ...but Autodesk will never do this because their business model relies on monopolistic practices that keep users dependant on their software ecosystem... </sub>
+    <sub> ...but Autodesk will never do this because their business model relies on monopolistic practices that keep users and entire industries dependant on their software ecosystem... </sub>
 
 ## Enabling DXF options:
 DXF options can be enabled in the MeasureIt_ARCH settings panel of blender's Scene settings, by ticking the box labled "Show DXF Options"
@@ -31,3 +31,10 @@ When opening a .dxf file directly, AutoCAD will ignore the units specified in th
 I recomend **never opening a .dxf file directly**, but instead using the `CLASSICINSERT` command in AutoCAD. `CLASSICINSERT` does respect the .dxf Unit header, and can be used to insert the .dxf correctly scaled either as a block or exploded.
 
 By default MeasureIt_ARCH currently exports all .dxf files in Meters.
+
+#### Naming Issues:
+
+The following characters are not allowed in dxf file definitions `"'[]{}()!@#$%^&*`. Some of these will throw an error on export, others will not, but will still result in a corrupt .dxf file that will not import into AutoCAD. Ensure that none of your object or style names have any of these characters when exporting.
+
+!!! Danger
+    Other special characters may cause issues as well. It's generally best to avoid any and all non-alphanumeric characters in names when exporting to .dxf

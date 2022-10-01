@@ -326,7 +326,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
     idx = 0
     for line in lines:
-        offset_line_position = offset_text_position + Vector((0,line_height * idx))
+        offset_line_position = offset_text_position + Vector((0,line_height*1.1 * idx))
         svg.add(svg.text(line, insert=tuple(offset_line_position), fill=svgColor, **{
             #'transform-origin': '{}px {}px'.format(offset_text_position[0], offset_text_position[1]),
             'transform': 'rotate({} {} {})'.format(
