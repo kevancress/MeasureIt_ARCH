@@ -69,7 +69,7 @@ def update(self, context):
     camera = view.camera.data
     if camera is not None:
         camera.type = view.cameraType
-    
+
     if view.world is not None:
         context.scene.world = view.world
 
@@ -344,13 +344,13 @@ class ViewProperties(PropertyGroup):
         name="Paper size",
         description="Paper size used for rendering",
         update=update_paper_size)
-    
+
     metric_scale: EnumProperty(
         items=metric_scale_items,
         name="Scale",
         description="Metric Scale",
         update=update_scale)
-    
+
     imp_scale: EnumProperty(
         items=imperial_scale_items,
         name="Scale",
@@ -446,7 +446,7 @@ class ViewProperties(PropertyGroup):
         description="View (Color) Transform used for rendering",
         default='Filmic',
         update=update)
-    
+
     film_transparent: BoolProperty(
         name="Film Transparent",
         description="Film Transparent",
@@ -515,7 +515,7 @@ class DuplicateViewButton(Operator):
         ActiveView = Generator.views[Generator.active_index]
         newView = Generator.views.add()
         newView.name = ActiveView.name + ' copy'
-        
+
         # Get props to loop through
         for key in Generator.views[Generator.active_index].__annotations__.keys():
             try:
@@ -555,7 +555,7 @@ class DuplicateViewWithLayerButton(Operator):
         ActiveView = Generator.views[Generator.active_index]
         newView = Generator.views.add()
         newView.name = self.new_name
-        
+
         # Get props to loop through
         for key in Generator.views[Generator.active_index].__annotations__.keys():
             try:
@@ -599,9 +599,9 @@ class DuplicateViewWithLayerButton(Operator):
             if new_collection != None:
                 new_collection.objects.link(new_camera)
                 #context.scene.collection.objects.unlink(new_camera)
-        
-        
-                
+
+
+
 
 
         return {'FINISHED'}
@@ -617,7 +617,7 @@ class DuplicateViewWithLayerButton(Operator):
         col.prop(self, "new_name", text = "View Layer Name")
         col.prop(self, "new_camera",text = "Create New Camera")
         col.prop(self, "new_collection",text = "Create View Collection")
-   
+
 class BatchViewRender(Operator):
     bl_idname = "measureit_arch.batchviewrender"
     bl_label = "Render All Views"
@@ -864,10 +864,10 @@ class SCENE_PT_Views(Panel):
                         row = col.row(align=True)
                         row.prop(view, 'paper_scale', text="Scale")
                         row.prop(view, 'model_scale', text=":")
-                    
+
                     if view.paper_scale_mode == 'METRIC':
                         col.prop(view, 'metric_scale')
-                    
+
                     if view.paper_scale_mode == 'IMPERIAL':
                         col.prop(view, 'imp_scale')
 
@@ -904,8 +904,8 @@ class SCENE_PT_Views(Panel):
                 freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
                 col.active = freestyle_svg_export
                 col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
-                    
-                    
+
+
 
 
 
@@ -947,10 +947,10 @@ class SCENE_MT_Views_menu(bpy.types.Menu):
         layout.operator(
             'measureit_arch.duplicateviewbutton',
             text="Duplicate Selected View", icon='DUPLICATE')
-        
+
         layout.operator('measureit_arch.duplicateviewlayerbutton',
-            text="Duplicate View & Layer", icon='RENDERLAYERS')
-        
+            text="Duplicate View with new Layer", icon='RENDERLAYERS')
+
         layout.operator('measureit_arch.batchviewrender',
             text = "Batch Render Views", icon = "DOCUMENTS")
 
