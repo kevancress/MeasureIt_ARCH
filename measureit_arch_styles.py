@@ -217,7 +217,7 @@ class SCENE_MT_styles_menu(bpy.types.Menu):
         delOp.genPath = 'bpy.context.scene.StyleGenerator'
         delOp.is_style = True
 
-        op = layout.operator("measureit_arch.duplicatestylebutton", text="Duplicate Style")
+        op = layout.operator("measureit_arch.duplicatestylebutton", text="Duplicate Style", icon="DUPLICATE")
 
 
 class DuplicateStyleButton(Operator):
