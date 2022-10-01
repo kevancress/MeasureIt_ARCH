@@ -87,7 +87,7 @@ classes = (
     measureit_arch_object.OBJECT_PT_Panel,
 
     #measureit_arch_main.MeasureIt_nav_button,
-    
+
     measureit_arch_units.SCENE_PT_MARCH_units,
 
 
@@ -182,6 +182,7 @@ classes = (
     # Styles
     measureit_arch_styles.StyleContainer,
     measureit_arch_styles.ListDeletePropButton,
+    measureit_arch_styles.DuplicateStyleButton,
     measureit_arch_styles.AddStyleButton,
 
     # Views

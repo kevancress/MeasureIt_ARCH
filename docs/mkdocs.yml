@@ -25,7 +25,6 @@ nav:
         - Set up a Titleblock with MeasureIt_ARCH: tutorials/titleblock_setup.md
         - Cutting Sections with MeasureIt_ARCH: tutorials/sections.md
         - Draw a Wall assembly with Dynamic Line Groups: tutorials/line_group_tut.md
-        - Section Drawing with MeasureIt_ARCH Hatches: tutorials/section_hatches.md
         - Batch convert .svg's to .pdf's: tutorials/svg_to_pdf.md
         - Exporting to .DXF: tutorials/export_dxf.md
 

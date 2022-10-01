@@ -41,7 +41,7 @@ from bpy.props import (
     EnumProperty
 )
 
-from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index, StyleWrapper, recalc_index
+from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index, StyleWrapper, recalc_index, BaseProp, BaseWithText, BaseDim
 from .measureit_arch_dimensions import AlignedDimensionProperties, \
     draw_alignedDimensions_settings
 from .measureit_arch_annotations import AnnotationProperties
@@ -217,6 +217,72 @@ class SCENE_MT_styles_menu(bpy.types.Menu):
         delOp.genPath = 'bpy.context.scene.StyleGenerator'
         delOp.is_style = True
 
+        op = layout.operator("measureit_arch.duplicatestylebutton", text="Duplicate Style")
+
+
+class DuplicateStyleButton(Operator):
+    bl_idname = "measureit_arch.duplicatestylebutton"
+    bl_label = "Duplicate Style"
+    bl_description = "Duplicate a Style"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'}
+    tag: IntProperty()
+
+    @classmethod
+    def poll(cls, context):
+        Generator = context.scene.StyleGenerator
+        try:
+            Generator.wrapper[Generator.active_index]
+        except:
+            return False
+        return True
+
+    def execute(self, context):
+        # Add properties
+
+        StyleGen = context.scene.StyleGenerator
+        activeWrapper = StyleGen.wrapper[StyleGen.active_index]
+        #newView = Generator.views.add()
+        #newView.name = ActiveView.name + ' copy'
+
+
+
+        item = None
+        new_item = None
+        new_wrapper = StyleGen.wrapper.add()
+
+        if activeWrapper.itemType == 'line_groups':
+            item = StyleGen.line_groups[activeWrapper.itemIndex]
+            new_item = StyleGen.line_groups.add()
+            new_wrapper.itemType = 'line_groups'
+
+        if activeWrapper.itemType == 'annotations':
+            item = StyleGen.annotations[activeWrapper.itemIndex]
+            new_item = StyleGen.annotations.add()
+            new_wrapper.itemType = 'annotations'
+
+        if activeWrapper.itemType == 'alignedDimensions':
+            item = StyleGen.alignedDimensions[activeWrapper.itemIndex]
+            new_item = StyleGen.alignedDimensions.add()
+            new_wrapper.itemType = 'alignedDimensions'
+
+        # Get props to loop through
+        k1 = BaseProp.__annotations__.keys()
+        k2 = BaseWithText.__annotations__.keys()
+        k3 = BaseDim.__annotations__.keys()
+        k4 = item.__annotations__.keys()
+
+        keys = k1 | k2 | k3 | k4 # merges the dicts
+        for key in keys:
+            try:
+                print(f"{key} : has value :{item[key]}")
+                new_item[key] = item[key]
+            except:
+                pass
+        new_item.name = item.name + "_Copy"
+        recalc_index(None, context)
+
+        return {'FINISHED'}
 
 # The Way this Operator handles style & dimension wrappers is
 # Super Messy -- Clean this up later
