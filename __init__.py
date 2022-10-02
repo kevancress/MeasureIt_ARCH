@@ -64,6 +64,7 @@ if "measureit_arch_main" in locals():
     importlib.reload(measureit_arch_views)
     importlib.reload(measureit_arch_units)
     importlib.reload(measureit_arch_object)
+    importlib.reload(measureit_arch_orientations)
 else:
     print("M_ARCH import modules")
     from . import measureit_arch_baseclass
@@ -80,6 +81,7 @@ else:
     from . import measureit_arch_styles
     from . import measureit_arch_views
     from . import measureit_arch_object
+    from . import measureit_arch_orientations
 
 classes = (
     measureit_arch_main.ShowHideViewportButton,
@@ -195,12 +197,17 @@ classes = (
     measureit_arch_views.BatchViewRender,
     measureit_arch_views.OpenInBrowser,
 
+    # Orientations
+    measureit_arch_orientations.TransformOrientationProperties,
+    measureit_arch_orientations.TransformOrientationContainer,
 
     # Scene UI Panels
     measureit_arch_main.SCENE_PT_Panel,
     measureit_arch_views.SCENE_PT_Views,
     measureit_arch_views.M_ARCH_UL_Views_list,
     measureit_arch_views.SCENE_MT_Views_menu,
+    measureit_arch_orientations.SCENE_PT_Transform,
+    measureit_arch_orientations.M_ARCH_UL_Transform_Orientation_list,
     measureit_arch_viewports.SCENE_PT_Viewport,
     measureit_arch_styles.SCENE_PT_UIStyles,
     measureit_arch_styles.M_ARCH_UL_styles_list,
@@ -237,6 +244,8 @@ def register():
         type=measureit_arch_styles.StyleContainer)
     Scene.ViewGenerator = bpy.props.PointerProperty(
         type=measureit_arch_views.ViewContainer)
+    Scene.TransformGenerator = bpy.props.PointerProperty(
+        type=measureit_arch_orientations.TransformOrientationContainer)
     Scene.ViewportGenerator = bpy.props.PointerProperty(
         type=measureit_arch_viewports.ViewportContainer)
 

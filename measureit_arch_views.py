@@ -1,4 +1,3 @@
-from typing import DefaultDict
 import bpy
 import os
 import copy
