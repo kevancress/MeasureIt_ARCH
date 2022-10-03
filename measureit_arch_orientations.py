@@ -32,6 +32,20 @@ def main_update(self,context):
         update_transform_orientation(self,context)
 
 def update_basis_by_rotation(self,context):
+    scene = bpy.context.scene
+    TransGen = scene.TransformGenerator
+    transform = TransGen.transform_orientations[TransGen.active_index]
+
+    rot_mat = Matrix.Identity(3)
+    rot_mat.rotate(transform.basis_euler_rotation)
+    transform.basisX = rot_mat.col[0]
+    transform.basisY = rot_mat.col[1]
+    transform.basisZ = rot_mat.col[2]
+
+    print(rot_mat)
+
+    update_transform_orientation(self,context)
+
     pass
 
 def update_basis_by_object(self,context):
@@ -147,7 +161,7 @@ class TransformOrientationProperties(PropertyGroup):
         unit='ROTATION',
         subtype = 'EULER',
         default=Vector((0.0,0.0,0.0)),
-        update = update_basis_vectors)
+        update = update_basis_by_rotation)
     
     is_default: BoolProperty(
         name="Is Default",
