@@ -233,6 +233,7 @@ def register():
     bpy.app.handlers.load_post.append(measureit_arch_main.load_handler)
     bpy.app.handlers.load_post.append(measureit_arch_styles.create_preset_styles)
     bpy.app.handlers.load_post.append(measureit_arch_views.create_preset_view)
+    bpy.app.handlers.load_post.append(measureit_arch_orientations.create_preset_transforms)
     bpy.app.handlers.save_pre.append(measureit_arch_main.save_handler)
 
     # Register pointer properties

@@ -876,6 +876,8 @@ class AddItem(Operator):
     idx: IntProperty(default = -1)
     add: BoolProperty()
     name: StringProperty(default="")
+    can_delete: BoolProperty(default=True)
+    cant_delete_msg: StringProperty(default="")
 
     def execute(self, context):
         mainobject = context.object
@@ -885,6 +887,9 @@ class AddItem(Operator):
             if self.name != "":
                 new_item.name = "{} {}".format(self.name, len(container))
         else:
+            if not self.can_delete:
+                self.report({'ERROR'}, self.cant_delete_msg)
+                return
             if self.idx == -1:
                 container.remove(len(container) - 1)
             else:
