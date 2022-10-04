@@ -96,7 +96,7 @@ class SCENE_PT_MARCH_units(Panel):
 
 
 
-def format_distance(distance: float, dim = None) -> str:
+def format_distance(distance: float, dim = None, allow_negative = False) -> str:
     """
     Format a distance (length) for display
 
@@ -277,6 +277,10 @@ def _format_imperial_length(value, precision, unit_length='INCH') -> str:
     :param unit_length: one of 'INCHES', 'FEET', 'MILES' or 'THOU'
     :param type: str
     """
+    neg_str = ""
+    if value < 0:
+        neg_str = "-"
+        value = abs(value)
 
     if unit_length in ('INCHES', 'FEET'):
         value *= BU_TO_INCHES
@@ -286,13 +290,13 @@ def _format_imperial_length(value, precision, unit_length='INCH') -> str:
         else:
             feet = 0
         if feet > 0 and num > 0:
-            return "{}′ {}-{}⁄{}″".format(feet, inches, num, denom)
+            return "{}{}′ {}-{}⁄{}″".format(neg_str,feet, inches, num, denom)
         elif feet > 0:
-            return "{}′ {}″".format(feet, inches)
+            return "{}{}′ {}″".format(neg_str,feet, inches)
         elif num > 0:
-            return "{}-{}⁄{}″".format(inches, num, denom)
+            return "{}{}-{}⁄{}″".format(neg_str,inches, num, denom)
         else:
-            return "{}″".format(inches)
+            return "{}{}″".format(neg_str,inches)
     elif unit_length == 'MILES':
         pass
     elif unit_length == 'THOU':
