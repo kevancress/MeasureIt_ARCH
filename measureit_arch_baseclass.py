@@ -572,7 +572,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
         ),
         name="Depth Test",
         description="Number and Shape of Samples for Vector Depth Testing",
-        default='CROSS')
+        default='POINT')
 
     viewPlane: EnumProperty(
         items=(('99', "None", "No View Plane Selected", 'EMPTY_AXIS', 0),

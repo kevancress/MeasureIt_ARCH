@@ -469,8 +469,10 @@ def render_main_svg(self, context):
             debug=False,
             size=('{}in'.format(paperWidth), '{}in'.format(paperHeight)),
             viewBox=('0 0 {} {}'.format(width, height)),
-            id='root',
+            id='root'
         )
+
+        svg['image-rendering'] = 'pixelated'
 
         view = get_view()
         if view.embed_scene_render:

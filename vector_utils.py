@@ -262,8 +262,10 @@ def depth_test(p1, p2, mat, item, depthbuffer):
 
     # Length in ss is ~number of pixels. use for num of visibility samples
     ss_length_vec = p1ss-p2ss
-    ss_samples = math.ceil(ss_length_vec.length/2)
+    ss_samples = math.floor(ss_length_vec.length)
     if ss_samples < 1: ss_samples = 1
+
+    #print(f"P1 SS: {p1ss} P2 SS: {p2ss} Samples:{ss_samples}")
 
     last_vis_state = check_visible(item, p1Local)
     line_segs = []
@@ -323,11 +325,10 @@ def check_visible(item, point):
     point_clip = get_clip_space_coord(point)
 
     # Get Depth buffer Pixel Index based on SS Point
-
+    #print(f"Sample Point SS {point_ss}")
     if scene.MeasureItArchProps.depth_samples == 'POINT':
-        pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)
-        pxIdx2 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1)
-        samples = [pxIdx1,pxIdx2]
+        pxIdx1 = int(((width * math.floor(point_ss[1]))+1 + math.floor(point_ss[0])) -1)
+        samples = [pxIdx1]
 
     if scene.MeasureItArchProps.depth_samples == 'CROSS':
         pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)

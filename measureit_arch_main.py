@@ -275,7 +275,7 @@ class SCENE_PT_MARCH_Settings(Panel):
 
         col = layout.column(align=True, heading='Settings')
         # col.prop(sceneProps, 'show_dim_text',) I Dont Know why this would be usefull
-        col.prop(sceneProps, 'depth_samples')
+        #col.prop(sceneProps, 'depth_samples')
         col.prop(sceneProps, 'hide_units')
         col.prop(sceneProps, 'hide_titleblock')
         col.prop(sceneProps, 'hide_linework')
