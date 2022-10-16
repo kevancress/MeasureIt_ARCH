@@ -49,7 +49,7 @@ from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit,\
-    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict
+    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution
 
 lastMode = {}
 lineBatch3D = {}
@@ -3456,20 +3456,6 @@ def get_scale():
     return scale
 
 
-def get_resolution():
-    scene = bpy.context.scene
-    sceneProps = scene.MeasureItArchProps
-    view = get_view()
-
-    if sceneProps.use_default_res and not (sceneProps.is_render_draw or sceneProps.is_vector_draw):
-        return sceneProps.default_resolution
-
-    if (view is not None and view.camera is not None and view.res_type == 'res_type_paper'):
-        return view.res
-
-    return sceneProps.default_resolution
-
-
 def z_order_objs(obj_list, extMat, multMat):
     scene = bpy.context.scene
     camera = scene.camera.data
@@ -3577,14 +3563,15 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
+    if sceneProps.is_render_draw:
+        startTime = time.time()
 
     totalobjs = len(objlist)
     #preview_dual(context)
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
 
-    if sceneProps.is_render_draw:
-        startTime = time.time()
+
 
     for idx, myobj in enumerate(objlist, start=1):
         if sceneProps. is_render_draw:
@@ -3704,7 +3691,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                                 context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
     if sceneProps.is_render_draw:
         endTime = time.time()
-        print("Time: " + str(endTime - startTime))
+        print("Draw 3D Loop Time: " + str(endTime - startTime))
 
 def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):
     context =bpy.context

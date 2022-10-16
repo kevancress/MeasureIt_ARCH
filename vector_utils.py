@@ -34,6 +34,7 @@ import math
 from math import fabs, sqrt
 from mathutils import Vector, Matrix
 from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist
+from threading import Thread
 
 depthbuffer = None
 facemap = []
@@ -134,8 +135,11 @@ def set_globals():
     global camera_type
     global width
     global height
+    start_time = time.time()
     if 'depthbuffer' in sceneProps and depthbuffer is None and view.vector_depthtest:
-        depthbuffer = sceneProps['depthbuffer'].to_list()
+        depthbuffer = sceneProps['depthbuffer'].to_list()    
+        end_time = time.time()
+        print("Reading Depthbuffer to list took: " + str(end_time - start_time))
     
     scene = bpy.context.scene
     camera = bpy.context.scene.camera.data
@@ -241,7 +245,7 @@ def true_z_buffer(zValue):
     else:
         return zValue
 
-def depth_test(p1, p2, mat, item, depthbuffer):
+def depth_test(p1, p2, mat, item):
     scene = bpy.context.scene
 
     # Don't depth test if out of culling
@@ -253,6 +257,11 @@ def depth_test(p1, p2, mat, item, depthbuffer):
     if not view.vector_depthtest or item.inFront:
         return [[True, p1, p2]]
 
+    line_segs = vis_sampling(p1, p2, mat, item,)
+
+    return line_segs
+
+def vis_sampling(p1, p2, mat, item,):
     p1Local = mat @ Vector(p1)
     p2Local = mat @ Vector(p2)
 
@@ -265,8 +274,6 @@ def depth_test(p1, p2, mat, item, depthbuffer):
     ss_samples = math.floor(ss_length_vec.length)
     if ss_samples < 1: ss_samples = 1
 
-    #print(f"P1 SS: {p1ss} P2 SS: {p2ss} Samples:{ss_samples}")
-
     last_vis_state = check_visible(item, p1Local)
     line_segs = []
     seg_start = p1
@@ -275,19 +282,20 @@ def depth_test(p1, p2, mat, item, depthbuffer):
     iter_dist = fabs((dist / ss_samples))
 
     for i in range(1,ss_samples):
-        p_check = interpolate3d(Vector(p1), Vector(p2), iter_dist * i)
-        p_check_vis = check_visible(item, mat @ Vector(p_check))
-
-        line = [last_vis_state, seg_start, p_check]
+        p_check = interpolate3d(Vector(p1), Vector(p2), iter_dist * i) # interpolate line to get point to check
+        p_check_vis = check_visible(item, mat @ Vector(p_check)) # Check the visibility of that point
 
         if last_vis_state is not p_check_vis:
+            line = [last_vis_state, seg_start, p_check] 
             line_segs.append(line)
             seg_start = p_check
             last_vis_state = p_check_vis
 
     line_segs.append([last_vis_state, seg_start, p2])
 
+
     return line_segs
+
 
 def clamp(minimum, x, maximum):
     return max(minimum, min(x, maximum))

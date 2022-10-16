@@ -158,6 +158,21 @@ def get_view():
             print('Could not create view in get_view()')
     return view
 
+
+def get_resolution():
+    scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
+    view = get_view()
+
+    if sceneProps.use_preview_res and not (sceneProps.is_render_draw or sceneProps.is_vector_draw):
+        return sceneProps.preview_resolution
+
+    if view.use_resolution_override:
+        if (view is not None and view.camera is not None and view.res_type == 'res_type_paper'):
+            return view.res
+
+    return sceneProps.render_resolution
+
 def get_camera_z():
     camera = bpy.context.scene.camera
     mat = camera.matrix_world

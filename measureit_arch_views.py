@@ -429,6 +429,7 @@ class ViewProperties(PropertyGroup):
         default=False,
         update=freestyle_update_flag)
 
+
     embed_greasepencil_svg: BoolProperty(
         name="Embed Grease Pencil SVG",
         description="Export a Grease Pencil SVG and automatically combine the rendered "
@@ -467,6 +468,12 @@ class ViewProperties(PropertyGroup):
         description="Will skip drawing Measureit_ARCH elements from instanced Collections",
         default=False)
 
+    use_resolution_override: BoolProperty(
+        name="Use Resolution Override",
+        description="When enabled, this view can specify its own resolution rather than"
+                    " using the scene render resolution",
+        default=False,
+        update= update)
 
 class ViewContainer(PropertyGroup):
     active_index: IntProperty(
@@ -744,6 +751,7 @@ class SCENE_PT_Views(Panel):
 
         scene = context.scene
         ViewGen = scene.ViewGenerator
+        SceneProps = scene.MeasureItArchProps
 
         row = layout.row()
 
@@ -842,7 +850,12 @@ class SCENE_PT_Views(Panel):
 
                     col = box.column(align=True)
                     col.enabled = True
-                    col.prop(view, 'res', text='Resolution (PPI):')
+                    col.prop(view, 'use_resolution_override')
+                    col = box.column(align=True)
+                    if view.use_resolution_override:
+                        col.prop(view, 'res', text='Resolution (PPI):')
+                    else:
+                        col.prop(SceneProps, 'render_resolution', text='Scene Resolution (PPI):')
 
                 else:
                     split = box.split(factor=0.4)

@@ -38,9 +38,7 @@ from mathutils import Vector, Matrix
 from sys import getrecursionlimit, setrecursionlimit
 from . import vector_utils
 
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit
-
-
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit, get_resolution
 
 def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
@@ -97,24 +95,28 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     # Get Depth Buffer as list and also other common props 
     if dashed:
         lines = dashed_lines
-
+        
     for x in range(0, len(coords) - 1, 2):
-        line_segs = vector_utils.depth_test(coords[x], coords[x + 1], mat, itemProps, vector_utils.depthbuffer)
-        for line in line_segs:
-            vis = line[0]
-            p1 = line[1]
-            p2 = line[2]
-            if vis == -1:
-                continue
+        draw_single_line(coords[x],coords[x+1],mat,itemProps,svg,lines,dashed_lines,cap,draw_hidden)
+ 
+ 
+def draw_single_line(p1,p2,mat,itemProps,svg,lines,dashed_lines,cap,draw_hidden):
+    line_segs = vector_utils.depth_test(p1, p2, mat, itemProps)
+    for line in line_segs:
+        vis = line[0]
+        p1 = line[1]
+        p2 = line[2]
+        if vis == -1:
+            continue
 
-            if vis or draw_hidden:
-                p1ss = vector_utils.get_render_location(mat @ Vector(p1))
-                p2ss = vector_utils.get_render_location(mat @ Vector(p2))
-                line_draw = svg.line(start=tuple(p1ss), end=tuple(p2ss),stroke_linecap=cap)
-                if vis:
-                    lines.add(line_draw)
-                elif not vis and draw_hidden:
-                    dashed_lines.add(line_draw)
+        if vis or draw_hidden:
+            p1ss = vector_utils.get_render_location(mat @ Vector(p1))
+            p2ss = vector_utils.get_render_location(mat @ Vector(p2))
+            line_draw = svg.line(start=tuple(p1ss), end=tuple(p2ss),stroke_linecap=cap)
+            if vis:
+                lines.add(line_draw)
+            elif not vis and draw_hidden:
+                dashed_lines.add(line_draw)
 
 def svg_fill_shader(item, coords, color, svg, parent=None):
     if vector_utils.camera_cull(coords):
@@ -297,9 +299,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     
     # Get resolution for text size
     view = get_view()
-    res = bpy.context.scene.MeasureItArchProps.default_resolution
-    if view is not None:
-        res = view.res
+    res = get_resolution()
 
     # Try to get font
     try:

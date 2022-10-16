@@ -43,7 +43,7 @@ from . import svg_shaders
 from . import vector_utils
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_main, draw_titleblock, text_update_loop,draw_viewport
-from .measureit_arch_utils import get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render
+from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render
 from .measureit_arch_units import BU_TO_INCHES
 from .shaders import Base_Shader_3D, DepthOnlyFrag
 
@@ -393,7 +393,7 @@ def render_main_svg(self, context):
         # Render Depth Buffer
 
         if view.vector_depthtest:
-            print("Rendering Depth Buffer")
+            render_start_time = time.time()
             offscreen = gpu.types.GPUOffScreen(width, height)
             with offscreen.bind():
                 # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
@@ -410,19 +410,23 @@ def render_main_svg(self, context):
                     gpu.matrix.load_projection_matrix(projection_matrix)
 
                     texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
-                    print("Drawing Scene")
                     draw_scene(self, context, projection_matrix)
                     
-                    print("Reading to Buffer")
                     bgl.glReadBuffer(bgl.GL_BACK)
                     bgl.glReadPixels(
                         0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
 
+                    buffer_start_time = time.time()
                     if 'depthbuffer' in sceneProps:
                         del sceneProps['depthbuffer']
                     sceneProps['depthbuffer'] = texture_buffer
-
-                    debug = True
+                                        
+                    render_end_time = time.time()
+                    print("Reading Depth Buffer to SceneProps took: " + str(render_end_time - buffer_start_time))
+                    print("Rendering Scene To Depth Buffer took: " + str(render_end_time - render_start_time))
+                    print("")
+                    
+                    debug = False
                     if debug:
                         print("Reading Buffer to Image")
                         scene = context.scene
@@ -454,14 +458,16 @@ def render_main_svg(self, context):
         view = get_view()
         outpath = get_view_outpath(
             scene, view, "{:04d}.svg".format(scene.frame_current))
+        
+        res = get_resolution()
 
         if view and view.res_type == 'res_type_paper':
             paperWidth = round(view.width * BU_TO_INCHES, 3)
             paperHeight = round(view.height * BU_TO_INCHES, 3)
         else:
             print('No View Present, using default resolution')
-            paperWidth = width / sceneProps.default_resolution
-            paperHeight = height / sceneProps.default_resolution
+            paperWidth = width / res
+            paperHeight = height / res
 
         # Setup basic svg
         svg = svgwrite.Drawing(
@@ -579,7 +585,7 @@ def render_main_svg(self, context):
         sceneProps.text_updated = True
         
         endTime = time.time()
-        print("Time: " + str(endTime - startTime))
+        print("Full Render SVG Time: " + str(endTime - startTime))
 
     return outpath
 
@@ -644,15 +650,15 @@ def render_main_dxf(self, context):
         view = get_view()
         outpath = get_view_outpath(
             scene, view, "{:04d}.dxf".format(scene.frame_current))
+        res = get_resolution()
 
         if view and view.res_type == 'res_type_paper':
             paperWidth = round(view.width * BU_TO_INCHES, 3)
             paperHeight = round(view.height * BU_TO_INCHES, 3)
         else:
             print('No View Present, using default resolution')
-            paperWidth = width / sceneProps.default_resolution
-            paperHeight = height / sceneProps.default_resolution
-
+            paperWidth = width / res
+            paperHeight = height / res
         # Setup basic dxf
         doc = ezdxf.new(dxfversion="AC1032", setup=True, units = 6)
         doc.modelspace()
@@ -705,7 +711,7 @@ def render_main_dxf(self, context):
         sceneProps.is_vector_draw = False
 
         endTime = time.time()
-        print("Time: " + str(endTime - startTime))
+        print("Full Render DXF Time: " + str(endTime - startTime))
 
     return outpath
 
