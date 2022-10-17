@@ -2938,7 +2938,7 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
 
     scale = get_scale()
 
-    size = capSize * scale / 1574.804
+    size = capSize * scale / 1574.804 #FUDGE FACTOR WHYYYY
 
     distVector = Vector(pos - Vector(midpoint)).normalized()
     norm = distVector.cross(userOffsetVector).normalized()
@@ -2975,7 +2975,7 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
     elif capType == 'D':
         rotangle = radians(-90)
         line = userOffsetVector.copy()
-        line *= 0.0070
+        line *= 0.014
         line.rotate(Quaternion(norm, rotangle))
         p1 = (pos - line)
         p2 = (pos + line)
@@ -2987,8 +2987,8 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
         # Define Square
         x = distVector.normalized() * capSize
         y = userOffsetVector.normalized() * capSize
-        a = 0.0035
-        b = 0.0045
+        a = 0.035/3
+        b = 0.045/3
 
         s1 = (a * x) + (b * y)
         s2 = (b * x) + (a * y)
