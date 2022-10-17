@@ -84,12 +84,13 @@ def update(self, context):
 
     #Update Compositior Render Layer if it exists
     tree = bpy.context.scene.node_tree
-    try:
-        render_node = tree.nodes['Render Layers']
-        render_node.layer = view.view_layer
-    except KeyError:
-        print('No Render Layers Node in Compositor')
-        pass
+    if tree != None:
+        try:
+            render_node = tree.nodes['Render Layers']
+            render_node.layer = view.view_layer
+        except KeyError:
+            print('No Render Layers Node in Compositor')
+            pass
 
 
     if view.res_type == 'res_type_paper':

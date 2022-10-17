@@ -2975,20 +2975,17 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
     elif capType == 'D':
         rotangle = radians(-90)
         line = userOffsetVector.copy()
-        line *= 0.014
         line.rotate(Quaternion(norm, rotangle))
-        p1 = (pos - line)
-        p2 = (pos + line)
 
         # Define Overextension
         capCoords.append(pos)
-        capCoords.append(line * capSize + pos)
+        capCoords.append(line * size + pos)
 
         # Define Square
-        x = distVector.normalized() * capSize
-        y = userOffsetVector.normalized() * capSize
-        a = 0.035/3
-        b = 0.045/3
+        x = distVector.normalized() * size
+        y = userOffsetVector.normalized() * size
+        a = 0.35
+        b = 0.45
 
         s1 = (a * x) + (b * y)
         s2 = (b * x) + (a * y)
@@ -3381,7 +3378,7 @@ def draw_dim_leaders(myobj, dim, dimProps, points, rotationMatrix, normal):
 
 def dim_line_extension(capSize):
     scale = get_scale()
-    return (capSize / 750) * scale
+    return (capSize / 1000 * scale)
 
 
 def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize=0, cardIdx = 0, textField=None):
