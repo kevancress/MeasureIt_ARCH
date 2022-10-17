@@ -369,7 +369,10 @@ def get_smart_selected(filterObj=None, forceEdges=False, usePairs=True):
             pointData = {}
             pointData['vert'] = 9999999
             pointData['obj'] = obj
-            pointList.append(pointData)
+            if obj == bpy.context.active_object:
+                pointList.insert(0,pointData)
+            else:
+                pointList.append(pointData)
 
             if usePairs:
                 try:
