@@ -119,21 +119,21 @@ class TransformOrientationProperties(PropertyGroup):
     basisX: FloatVectorProperty(
         name="Transform Orientation X Basis",
         description="X Basis Vector for this transform orientation",
-        unit='LENGTH',
+        #unit='LENGTH',
         default=Vector((1.0,0.0,0.0)),
         update = update_basis_vectors)
 
     basisY: FloatVectorProperty(
         name="Transform Orientation Y Basis",
         description="Y Basis Vector for this transform orientation",
-        unit='LENGTH',
+        #unit='LENGTH',
         default=Vector((0.0,1.0,0.0)),
         update = update_basis_vectors)
 
     basisZ: FloatVectorProperty(
         name="Transform Orientation Z Basis",
         description="Z Basis Vector for this transform orientation",
-        unit='LENGTH',
+        #unit='LENGTH',
         default=Vector((0.0,0.0,1.0)),
         update = update_basis_vectors)
 
