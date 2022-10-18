@@ -45,6 +45,7 @@ hatch_col_id = 10
 hatch_col_dict = {}
 
 def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, mat=Matrix.Identity(4)):
+    view = get_view()
     dashed = False
     line_buffer = []
     model_space = dxf.modelspace()
@@ -56,7 +57,7 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
 
     block = None
 
-    dxf_name = safe_name(myobj.name, is_dxf=True)
+    dxf_name = safe_name(view.name + '-' + myobj.name, is_dxf=True)
 
     try:
         dxf.blocks.get(dxf_name)
@@ -72,7 +73,7 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
 
    
     for x in range(0, len(coords) - 1, 2):
-        line_segs = vector_utils.depth_test(coords[x], coords[x + 1], mat, itemProps, vector_utils.depthbuffer)
+        line_segs = vector_utils.depth_test(coords[x], coords[x + 1], mat, itemProps)
         for line in line_segs:
             vis = line[0]
             p1 = line[1]
