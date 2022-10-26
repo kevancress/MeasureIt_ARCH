@@ -57,7 +57,7 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
 
     block = None
 
-    dxf_name = safe_name(view.name + '-' + myobj.name, is_dxf=True)
+    dxf_name = safe_name(view.name + '-' + myobj.data.name, is_dxf=True)
 
     try:
         dxf.blocks.get(dxf_name)

@@ -2159,7 +2159,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 #print("No Coords")
                 return
 
-
+            res = get_resolution()
             if drawHidden:
                 # Invert The Depth test for hidden lines
                 bgl.glDepthFunc(bgl.GL_GREATER)
@@ -2168,7 +2168,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 view = get_view()
                 dashedLineShader.bind()
 
-                dashedLineShader.uniform_float("resolution",  view.res)
+                dashedLineShader.uniform_float("resolution",  res)
                 dashedLineShader.uniform_float("u_dashSize",  lineProps.d1_length)
                 dashedLineShader.uniform_float("u_gapSize", lineProps.g1_length)
                 dashedLineShader.uniform_float("Viewport", viewport)
@@ -2201,7 +2201,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             if lineProps.lineDrawDashed:
                 dashedLineShader.bind()
                 view = get_view()
-                dashedLineShader.uniform_float("resolution",  view.res)
+                dashedLineShader.uniform_float("resolution",  res)
                 dashedLineShader.uniform_float("u_dashSize",  lineProps.d1_length)
                 dashedLineShader.uniform_float("u_gapSize", lineProps.g1_length)
                 dashedLineShader.uniform_float("Viewport", viewport)

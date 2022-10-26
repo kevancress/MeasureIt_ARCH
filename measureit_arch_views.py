@@ -19,7 +19,7 @@ from bpy.app.handlers import persistent
 from .measureit_arch_render import render_main, render_main_svg
 from .measureit_arch_baseclass import TextField, draw_textfield_settings
 from .measureit_arch_viewports import Viewport
-from . measureit_arch_utils import get_loaded_addons, get_view, _imp_scales_dict, _metric_scales_dict
+from . measureit_arch_utils import get_loaded_addons, get_resolution, get_view, _imp_scales_dict, _metric_scales_dict
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -145,7 +145,7 @@ def update_camera(scene, camera):
     modelScale = view.model_scale
     paperScale = view.paper_scale
 
-    ppi = view.res
+    ppi = get_resolution(update_flag=True)
 
     render.resolution_percentage = 100
     render.resolution_x = int(width * ppi * BU_TO_INCHES)
@@ -601,9 +601,10 @@ class DuplicateViewWithLayerButton(Operator):
 
             # Exclude our new View Collection from all other view Layers
             for layer in context.scene.view_layers:
-                for col in layer.layer_collection.children['VIEWS'].children:
-                    col.exclude = col.name != layer.name
-
+                for collection in layer.layer_collection.children['VIEWS'].children:
+                    #col.exclude = col.name != layer.name
+                    if collection.name == self.new_name:
+                        collection.exclude = True
 
         if self.new_camera:
             bpy.ops.object.camera_add(enter_editmode=False, align='VIEW', location=(0, 0, 0), rotation=(1.10871, 0.0132652, 1.14827), scale=(1, 1, 1))

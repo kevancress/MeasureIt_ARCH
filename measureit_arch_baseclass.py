@@ -8,6 +8,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
 
+
 def recalc_index(self, context):
     # ensure index's are accurate
     StyleGen = context.scene.StyleGenerator
@@ -314,10 +315,14 @@ class TextField(PropertyGroup):
         description='flag when text texture need to be redrawn',
         default=False)
 
-def draw_textfield_settings(item, box, prop_path):
+def draw_textfield_settings(item, box, prop_path, dim_skip_length = False):
     col = box.column(align=True)
     idx = 0
     for textField in item.textFields:
+        if idx == 0 and dim_skip_length:
+            idx += 1
+            continue
+
         col = box.column(align=True)
 
         row = col.row(align=True)

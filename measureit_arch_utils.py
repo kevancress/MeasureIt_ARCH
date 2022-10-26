@@ -159,12 +159,12 @@ def get_view():
     return view
 
 
-def get_resolution():
+def get_resolution(update_flag = False):
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps
     view = get_view()
 
-    if sceneProps.use_preview_res and not (sceneProps.is_render_draw or sceneProps.is_vector_draw):
+    if sceneProps.use_preview_res and not (sceneProps.is_render_draw or sceneProps.is_vector_draw or update_flag):
         return sceneProps.preview_resolution
 
     if view.use_resolution_override:

@@ -34,7 +34,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     PointerProperty, BoolVectorProperty
 from mathutils import Vector
 
-from .measureit_arch_baseclass import BaseDim, recalc_dimWrapper_index
+from .measureit_arch_baseclass import BaseDim, recalc_dimWrapper_index, draw_textfield_settings
 from .measureit_arch_utils import get_smart_selected, \
     get_selected_vertex_history, get_selected_faces
 from .measureit_arch_units import BU_TO_FEET
@@ -1162,30 +1162,9 @@ class OBJECT_PT_UIDimensions(Panel):
                         idx = 0
 
                         col.prop(item,"use_custom_text",text="Use Custom Dimension Text")
-                        for textField in item.textFields:
-                            if idx == 0 and not item.use_custom_text:
-                                idx += 1
-                                continue
-
-                            col = box.column(align=True)
-
-                            row = col.row(align=True)
-
-                            split = row.split(factor=0.2)
-                            split.label(text='Text Field ' + str(idx + 1))
-
-                            row = split.row(align=True)
-                            row.prop(textField, 'autoFillText',
-                                        text="", icon="FILE_TEXT")
-
-                            if textField.autoFillText:
-                                row.prop(textField, 'textSource', text="")
-                            else:
-                                row.prop(textField, 'text', text="")
-
-                            if textField.textSource == 'RNAPROP' and textField.autoFillText:
-                                row.prop(textField, 'rnaProp', text="")
-                            idx += 1
+                        propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType,idxString)
+                        draw_textfield_settings(item, box, propPath, dim_skip_length= not item.use_custom_text)
+                    
 
 
 
