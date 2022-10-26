@@ -302,12 +302,18 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     res = get_resolution()
 
     # Try to get font
-    try:
+    font_family = "Open Sans"
+    if style.font != None:
         font_file = style.font.filepath
-        tt = ttLib.TTFont(font_file, verbose=1)
-        font_family = shortName(tt)[0]
-    except:
-        font_family = "Open Sans"
+        try:
+            tt = ttLib.TTFont(font_file, verbose=1)
+            font_family = shortName(tt)[0]
+        except Exception as e:
+            font_family = style.font.name
+            print(e)
+            print(font_file)
+
+    print(font_family)
 
     # Get Skew
     #skewX = 90-math.degrees(yDirVec.angle_signed(xDirVec))
