@@ -2159,11 +2159,18 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 #print("No Coords")
                 return
 
+            dotcoords = []
+            filledcoords = []
+              
             if lineGroup.endcapA != 'NONE':
-                draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[1])  , mat@Vector(coords[0]) , rgb, lineGroup.endcapSize)
-            
+                dot,fill =  draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[0])  , mat@Vector(coords[-1]) , rgb, lineGroup.endcapSize)
+                dotcoords.append(dot)
+                filledcoords.append(fill)
+
             if lineGroup.endcapB != 'NONE':
-                draw_annotation_endcaps(lineGroup, lineGroup.endcapB, mat@Vector(coords[-2]) , mat@Vector(coords[-1]) , rgb, lineGroup.endcapSize)
+                dot,fill =  draw_annotation_endcaps(lineGroup, lineGroup.endcapB, mat@Vector(coords[-1]) , mat@Vector(coords[-2]) , rgb, lineGroup.endcapSize)
+                dotcoords.append(dot)
+                filledcoords.append(fill)
 
             res = get_resolution()
             if drawHidden:
@@ -2297,6 +2304,13 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                         lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat)
                 else:
                     svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False, mat=mat)
+
+                for dotcoord in dotcoords:
+                    if dotcoord:
+                        svg_shaders.svg_circle_shader(lineGroup,dotcoord[0],dotcoord[1],rgb,svg,parent=svg)
+                for fill in filledcoords:
+                    svg_shaders.svg_fill_shader(
+                        lineGroup, fill, rgb, svg, parent=svg)
 
             if sceneProps.is_dxf_draw:
                 dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf,myobj, mat=mat, )
