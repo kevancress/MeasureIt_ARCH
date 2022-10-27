@@ -222,6 +222,33 @@ class BaseProp:
         name="Visibility",
         description="how/hide",
         default=True)
+    
+    # Endcap properties are defined here to ensure compatiblity but the
+    # enumProps are overwritten in child property groups
+    endcapSize: FloatProperty(
+        name="dimEndcapSize",
+        description="End Cap size",
+        default=4, min=0, max=500,step=100,precision=0)
+
+    endcapArrowAngle: FloatProperty(
+        name="endcapArrowAngle",
+        description="End Cap Arrow Angle",
+        default=math.radians(15),
+        soft_min=math.radians(15),
+        soft_max=math.radians(45),
+        subtype='ANGLE')
+
+    endcapA: EnumProperty(
+        items=(('99', "--", "No arrow"),
+               ('1', "Line", "The point of the arrow are lines")),
+        name="A end",
+        description="Add arrows to point A")
+
+    endcapB: EnumProperty(
+        items=(('99', "--", "No arrow"),
+               ('1', "Line", "The point of the arrow are lines")),
+        name="B end",
+        description="Add arrows to point A")
 
     gizLoc: FloatVectorProperty(
         name="Gizmo Location",
@@ -398,33 +425,6 @@ class BaseWithText(BaseProp):
     font: PointerProperty(
         type=bpy.types.VectorFont,
         update=update_flag)
-
-    # Endcap properties are defined here to ensure compatiblity but the
-    # enumProps are overwritten in child property groups
-    endcapSize: FloatProperty(
-        name="dimEndcapSize",
-        description="End Cap size",
-        default=4, min=0, max=500,step=100,precision=0)
-
-    endcapArrowAngle: FloatProperty(
-        name="endcapArrowAngle",
-        description="End Cap Arrow Angle",
-        default=math.radians(15),
-        soft_min=math.radians(15),
-        soft_max=math.radians(45),
-        subtype='ANGLE')
-
-    endcapA: EnumProperty(
-        items=(('99', "--", "No arrow"),
-               ('1', "Line", "The point of the arrow are lines")),
-        name="A end",
-        description="Add arrows to point A")
-
-    endcapB: EnumProperty(
-        items=(('99', "--", "No arrow"),
-               ('1', "Line", "The point of the arrow are lines")),
-        name="B end",
-        description="Add arrows to point A")
 
     all_caps: BoolProperty(
         name='All Caps',

@@ -24,13 +24,14 @@
 #
 # ----------------------------------------------------------
 
+from email.policy import default
 import bpy
 import bmesh
 import math
 
 from bpy.types import PropertyGroup, Panel, Operator, UIList
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
-    BoolProperty, StringProperty, FloatProperty, PointerProperty
+    BoolProperty, StringProperty, FloatProperty, PointerProperty, EnumProperty
 from mathutils import Vector
 
 from datetime import datetime
@@ -146,6 +147,21 @@ class LineProperties(BaseProp, PropertyGroup):
         description='Try to draw a line chain rather than line segments \n'
         'WARNING: EXPERIMENTAL, will likely break things, works best on single spline curves',
         default=False)
+
+    endcapA: EnumProperty(
+        items=(('NONE', "--", "No Cap"),
+               ('D', "Dot", "Dot"),
+               ('T', "Triangle", "Triangle")),
+        name="A end",
+        description="Add arrows to point A")
+    
+    endcapB: EnumProperty(
+        items=(('NONE', "--", "No Cap"),
+               ('D', "Dot", "Dot"),
+               ('T', "Triangle", "Triangle")),
+        name="B end",
+        description="Add arrows to point B",
+        default = 'NONE')
 
     num_dashes: IntProperty(
         name= "Num Dashes",
@@ -558,6 +574,10 @@ class OBJECT_PT_UILines(Panel):
                             col.prop(line, 'evalMods')
                         col.prop(line, 'pointPass', text="Round Caps")
                         col.prop(line, 'chain', text="Chain line")
+
+                        col.prop(line, 'endcapA', text='Start Marker')
+                        col.prop(line, 'endcapB', text='End Marker')
+                        col.prop(line, 'endcapSize', text='End Marker')
 
 
 class OBJECT_MT_lines_menu(bpy.types.Menu):

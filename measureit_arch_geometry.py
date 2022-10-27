@@ -2159,6 +2159,12 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 #print("No Coords")
                 return
 
+            if lineGroup.endcapA != 'NONE':
+                draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[1])  , mat@Vector(coords[0]) , rgb, lineGroup.endcapSize)
+            
+            if lineGroup.endcapB != 'NONE':
+                draw_annotation_endcaps(lineGroup, lineGroup.endcapB, mat@Vector(coords[-2]) , mat@Vector(coords[-1]) , rgb, lineGroup.endcapSize)
+
             res = get_resolution()
             if drawHidden:
                 # Invert The Depth test for hidden lines
@@ -2197,6 +2203,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
                 bgl.glDepthFunc(bgl.GL_LESS)
                 gpu.shader.unbind()
+
 
             if lineProps.lineDrawDashed:
                 dashedLineShader.bind()
