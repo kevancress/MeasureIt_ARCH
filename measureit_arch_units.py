@@ -118,7 +118,7 @@ def format_distance(distance: float, dim = None, allow_negative = False) -> str:
         distance *= unit_scale
     if unit_system == 'METRIC':
         precision = scene.MeasureItArchProps.metric_precision
-        if not separate_units and not unit_length == 'ADAPTIVE':
+        if not unit_length == 'ADAPTIVE':
             return _format_metric_length(
                 distance, precision, unit_length, hide_units)
         # If unit_length is 'Adaptive' or `separate_units` is True, use Blender
