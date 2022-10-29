@@ -82,6 +82,7 @@ class SCENE_PT_MARCH_units(Panel):
         col = layout.column()
         col.label(text='Precision:')
         col.prop(sceneProps, 'metric_precision', text="Metric Precision")
+        col.prop(sceneProps, 'mm_precision', text="Milimeter Precision")
         col.prop(sceneProps, 'angle_precision', text="Angle Precision")
         col.prop(sceneProps, 'imperial_precision', text="Imperial Precision")
         col.label(text='Areas:')
@@ -230,6 +231,7 @@ def _format_metric_length(
         value *= 100
         unit = " cm"
     elif unit_length == 'MILLIMETERS':
+        precision = bpy.context.scene.MeasureItArchProps.mm_precision
         value *= 1000
         unit = " mm"
     elif unit_length == 'MICROMETERS':
