@@ -1706,7 +1706,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         for textField in dim.textFields:
             set_text(textField, myobj)
 
-            textcard = generate_text_card(context, textField, dim, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
+            textcard = generate_text_card(context, textField, dimProps, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
             textField['textcard'] = textcard
 
             if sceneProps.show_dim_text:
@@ -2161,7 +2161,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             dotcoords = []
             filledcoords = []
-              
+
             if lineGroup.endcapA != 'NONE':
                 dot,fill =  draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[0])  , mat@Vector(coords[-1]) , rgb, lineGroup.endcapSize)
                 dotcoords.append(dot)
