@@ -66,6 +66,8 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#creating-a-titleblock-in-measureit_arch">Creating a Titleblock in MeasureIt_ARCH</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#using-a-titleblock">Using a Titleblock</a>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../sections/">Cutting Sections with MeasureIt_ARCH</a>
@@ -164,6 +166,12 @@
 <p>In the titleblock scene, draw your titleblock using MeasureIt_ARCH Element. The titleblock must be drawn at 1:1 Scale, on the XY plane centered at the scene origin, to work correctly.</p>
 <p>It's not necessary, but it can be helpful to create a View with a down facing camera in the titleblock scene, with the Paper Size and 1:1 Scale set so you can preview your titleblock from this camera view.</p>
 <p><img alt="image" src="../images/titleblock_img/titleblock_scene.PNG" /></p>
+<h3 id="using-a-titleblock">Using a Titleblock</h3>
+<p>Once you've created a titleblock, you can set it in the Titleblock property in a View in your main scene. The Titleblock you specifiy will be instanced, aligned to the views camera, at the cameras near clipping plane.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Cameras with a very small near clipping value, or a very large far clipping value, sometimes won't draw titleblocks properly. If you don't see your titleblock try increasing the camera's near clipping, or decreasing it's far clipping, value.</p>
+</div>
               
             </div>
           </div><footer>
