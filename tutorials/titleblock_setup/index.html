@@ -60,6 +60,12 @@
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="./">Set up a Titleblock with MeasureIt_ARCH</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#what-is-a-titleblock">What is a Titleblock?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#how-do-measureit_arch-titleblocks-work">How do MeasureIt_ARCH Titleblocks Work?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#creating-a-titleblock-in-measureit_arch">Creating a Titleblock in MeasureIt_ARCH</a>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../sections/">Cutting Sections with MeasureIt_ARCH</a>
@@ -143,6 +149,20 @@
               
                 <h1 id="set-up-a-titleblock">Set up a Titleblock</h1>
 <p><a href="../demo_files/Titleblock.blend" download>Download The Titleblock Demo File</a></p>
+<h3 id="what-is-a-titleblock">What is a Titleblock?</h3>
+<p>Titleblocks can be used to set common elements that are present in multiple views. Typically Titleblocks contain a page border, project name, revision history, and other relevent information, as well as the designers information.</p>
+<h3 id="how-do-measureit_arch-titleblocks-work">How do MeasureIt_ARCH Titleblocks Work?</h3>
+<p>MeasureIt_ARCH Titleblocks are defined in a titleblock scene (a new Blender scene that only contains the titleblock).</p>
+<p>Once a Titleblock has been defined, any view in the main scene can reference the Titleblock scene (set in the views Titleblock property) and will draw that Titleblock scene in the Views Camera Space.</p>
+<p>A MeasureIt_ARCH Titleblock can contain any MeasureIt_ARCH element, but Annotations with AutoFill Text setup can be particularly usefull. With AutoFill Text, the same titleblock can be used for many views, but text for view specific properties (Drawing Number, Drawing Name, Scale etc.) will be automattically updated to be correct for the current view.</p>
+<h3 id="creating-a-titleblock-in-measureit_arch">Creating a Titleblock in MeasureIt_ARCH</h3>
+<p>To set up a titleblock in MeasureIt_ARCH, create a new scene, and name it somthing recongnizable and descriptive.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Titleblocks ususally correspond to a particular designer and page size, it's helpful to indicate both of these in the Scene name, so it can be easily located later</p>
+</div>
+<p>In the titleblock scene, draw your titleblock using MeasureIt_ARCH Element. The titleblock must be drawn at 1:1 Scale, on the XY plane centered at the scene origin, to work correctly.</p>
+<p>It's not necessary, but it can be helpful to create a View with a down facing camera in the titleblock scene, with the Paper Size and 1:1 Scale set so you can preview your titleblock from this camera view.</p>
               
             </div>
           </div><footer>
@@ -160,7 +180,7 @@
     Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     
     
-    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 10, 2022</span></small></p>
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 13, 2022</span></small></p>
     
     
 </footer>
