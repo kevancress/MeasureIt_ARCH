@@ -26,3 +26,5 @@ In the titleblock scene, draw your titleblock using MeasureIt_ARCH Element. The 
 
 It's not necessary, but it can be helpful to create a View with a down facing camera in the titleblock scene, with the Paper Size and 1:1 Scale set so you can preview your titleblock from this camera view.
 
+![image](images/titleblock_img/titleblock_scene.PNG)
+
