@@ -28,3 +28,10 @@ It's not necessary, but it can be helpful to create a View with a down facing ca
 
 ![image](images/titleblock_img/titleblock_scene.PNG)
 
+
+### Using a Titleblock
+
+Once you've created a titleblock, you can set it in the Titleblock property in a View in your main scene. The Titleblock you specifiy will be instanced, aligned to the views camera, at the cameras near clipping plane.
+
+!!! Warning
+    Cameras with a very small near clipping value, or a very large far clipping value, sometimes won't draw titleblocks properly. If you don't see your titleblock try increasing the camera's near clipping, or decreasing it's far clipping, value.
