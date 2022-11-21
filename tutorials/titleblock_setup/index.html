@@ -164,6 +164,10 @@
 <p>Titleblocks ususally correspond to a particular designer and page size, it's helpful to indicate both of these in the Scene name, so it can be easily located later</p>
 </div>
 <p>In the titleblock scene, draw your titleblock using MeasureIt_ARCH Element. The titleblock must be drawn at 1:1 Scale, on the XY plane centered at the scene origin, to work correctly.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The titleblock scene will be drawn in the view camera's local space, aligned to the near clipping plane, this means that any objects placed above the origin (Positive on the Z axis) will clipped. Be sure to locate all titleblock elements with a Z height of 0 or less.</p>
+</div>
 <p>It's not necessary, but it can be helpful to create a View with a down facing camera in the titleblock scene, with the Paper Size and 1:1 Scale set so you can preview your titleblock from this camera view.</p>
 <p><img alt="image" src="../images/titleblock_img/titleblock_scene.PNG" /></p>
 <h3 id="using-a-titleblock">Using a Titleblock</h3>
@@ -189,7 +193,7 @@
     Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     
     
-    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 13, 2022</span></small></p>
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">November 21, 2022</span></small></p>
     
     
 </footer>
