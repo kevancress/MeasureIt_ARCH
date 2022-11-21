@@ -24,6 +24,9 @@ To set up a titleblock in MeasureIt_ARCH, create a new scene, and name it somthi
 
 In the titleblock scene, draw your titleblock using MeasureIt_ARCH Element. The titleblock must be drawn at 1:1 Scale, on the XY plane centered at the scene origin, to work correctly.
 
+!!! Note
+    The titleblock scene will be drawn in the view camera's local space, aligned to the near clipping plane, this means that any objects placed above the origin (Positive on the Z axis) will clipped. Be sure to locate all titleblock elements with a Z height of 0 or less.
+
 It's not necessary, but it can be helpful to create a View with a down facing camera in the titleblock scene, with the Paper Size and 1:1 Scale set so you can preview your titleblock from this camera view.
 
 ![image](images/titleblock_img/titleblock_scene.PNG)

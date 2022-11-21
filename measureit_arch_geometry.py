@@ -1051,20 +1051,21 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
             viewAxis = Vector(viewSector)
             if viewAxis[0] < 0 or viewAxis[1] < 0 or viewAxis[2] < 0:
                 viewAxis *= -1
+        
+        vec = -axisVec.cross(dirVector).normalized()
         viewAxisDiff = Vector((
-            alignedDistVector[0] * viewAxis[0],
-            alignedDistVector[1] * viewAxis[1],
-            alignedDistVector[2] * viewAxis[2]))
+            alignedDistVector[0] * vec[0],
+            alignedDistVector[1] * vec[1],
+            alignedDistVector[2] * vec[2]))
 
         dim.gizRotAxis = alignedDistVector
 
         # Lines
         leadStartA = Vector(basePoint) + geoOffsetDistance
-        leadEndA = Vector(basePoint) + offsetDistance + \
-            cap_extension(offsetDistance, dimProps.endcapSize, dimProps.endcapArrowAngle)
+        leadEndA = Vector(basePoint) + offsetDistance + cap_extension(offsetDistance, dimProps.endcapSize, dimProps.endcapArrowAngle)
 
         leadEndB = leadEndA - Vector(secondPointAxis)
-        leadStartB = Vector(secondPoint) - viewAxisDiff + geoOffsetDistance
+        leadStartB = Vector(secondPoint) -viewAxisDiff  + geoOffsetDistance
 
         viewDiffStartB = leadStartB
         viewDiffEndB = leadStartB + viewAxisDiff

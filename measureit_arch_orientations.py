@@ -348,6 +348,9 @@ class SCENE_PT_Transform(Panel):
 
                     col.enabled = False
                     obj = transform.orientation_basis_object
+                    if obj == None:
+                        return
+
                     basis = obj.matrix_basis.to_3x3()
                     col.emboss = 'NORMAL'
                     
