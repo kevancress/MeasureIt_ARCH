@@ -65,6 +65,7 @@ if "measureit_arch_main" in locals():
     importlib.reload(measureit_arch_units)
     importlib.reload(measureit_arch_object)
     importlib.reload(measureit_arch_orientations)
+    importlib.reload(measureit_arch_tables)
 else:
     print("M_ARCH import modules")
     from . import measureit_arch_baseclass
@@ -82,6 +83,7 @@ else:
     from . import measureit_arch_views
     from . import measureit_arch_object
     from . import measureit_arch_orientations
+    from . import measureit_arch_tables
 
 classes = (
     measureit_arch_main.ShowHideViewportButton,
@@ -115,6 +117,15 @@ classes = (
     measureit_arch_annotations.RotateAnnotationOp,
     measureit_arch_annotations.M_ARCH_UL_annotations_list,
     measureit_arch_annotations.OBJECT_MT_annotation_menu,
+
+    # Tables
+    measureit_arch_tables.OBJECT_PT_Tables,
+    measureit_arch_tables.M_ARCH_UL_Tables_List,
+    measureit_arch_tables.ColumnProperties,
+    measureit_arch_tables.RowProperties,
+    measureit_arch_tables.TableProperties,
+    measureit_arch_tables.TableContainer,
+    measureit_arch_tables.AddTableButton,
 
     # Dimensions
     measureit_arch_dimensions.OBJECT_PT_UIDimensions,
@@ -260,6 +271,8 @@ def register():
         type=measureit_arch_lines.LineContainer)
     Object.AnnotationGenerator = bpy.props.PointerProperty(
         type=measureit_arch_annotations.AnnotationContainer)
+    Object.TableGenerator = bpy.props.PointerProperty(
+        type=measureit_arch_tables.TableContainer)
     Material.Hatch = bpy.props.PointerProperty(
         type=measureit_arch_material_hatches.HatchProperties)
 

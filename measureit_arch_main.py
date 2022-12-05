@@ -227,6 +227,17 @@ class MEASUREIT_PT_main_panel(Panel):
             col.prop_search(sceneProps, 'default_annotation_style',
                             StyleGen, 'annotations', text="", icon='COLOR')
 
+        # ------------------------------
+        # Table Tools
+        # ------------------------------
+        box = layout.box()
+        box.label(text="Add Tables")
+
+        col = box.column(align=True)
+        col.operator("measureit_arch.addtablebutton",
+                     text="Table", icon="SPREADSHEET")
+
+
 
 
 

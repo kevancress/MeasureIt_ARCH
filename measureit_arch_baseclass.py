@@ -268,6 +268,15 @@ class ObjProps(PropertyGroup):
 
     obj_hatch_pattern: PointerProperty(name='Object Hatch Pattern', type=Collection)
 
+    obj_patternSize: FloatProperty(
+        name='Object Hatch Size',
+        description="Object Hatch Size",
+        default=1.0, min=0.0,)
+
+    obj_patternRot: FloatProperty(
+        name='Object Hatch Rotation',
+        description="Object Hatch Rotation",
+        default=0.0, min=0.0,subtype='ANGLE')
 
 class TextField(PropertyGroup):
     text_updated: BoolProperty(

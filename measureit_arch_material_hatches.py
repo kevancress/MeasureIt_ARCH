@@ -169,13 +169,15 @@ class MATERIAL_PT_UIHatch(Panel):
         if hatch.use_object_pattern:
             obj_props = obj.MeasureItArchProps
             col.prop(obj_props, 'obj_hatch_pattern', text="Object Pattern",)
+            col.prop(obj_props, 'obj_patternSize', text="Object Pattern Size",)
+            col.prop(obj_props, 'obj_patternRot', text="Object Pattern Size",)
         else:
             col.prop(hatch, 'pattern', text="Hatch Pattern",)
+            col.prop(hatch, 'patternSize', text="Pattern Size",)
+            col.prop(hatch, 'patternRot', text="Pattern Rotation",)
 
 
         col.prop(hatch, 'patternWeight', text="Pattern Weight",)
-        col.prop(hatch, 'patternSize', text="Pattern Size",)
-        col.prop(hatch, 'patternRot', text="Pattern Rotation",)
         col.prop(hatch, 'patternOpacity', text="Pattern Opacity",)
 
         col = main_col.column()

@@ -76,3 +76,5 @@ class OBJECT_PT_UIObjSettings(Panel):
         col = layout.column(align=True)
         col.prop(obj_props, "ignore_in_depth_test", text = "Ignore in Vector Depthtest")
         col.prop(obj_props, 'obj_hatch_pattern', text="Object Pattern",)
+        col.prop(obj_props, 'obj_patternSize', text="Object Hatch Size",)
+        col.prop(obj_props, 'obj_patternRot', text="Object Pattern Rotation",)
