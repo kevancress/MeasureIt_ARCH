@@ -231,7 +231,7 @@ class MEASUREIT_PT_main_panel(Panel):
         # Table Tools
         # ------------------------------
         box = layout.box()
-        box.label(text="Add Tables")
+        box.label(text="Add Tables (IN DEVELOPMENT)")
 
         col = box.column(align=True)
         col.operator("measureit_arch.addtablebutton",
@@ -509,9 +509,17 @@ def text_update_loop(context, objlist):
                         for textField in view.textFields:
                             fields.append(textField)
 
-                    update_text(
-                        textobj=annotation, props=annotationProps,
-                        context=context, fields=fields)
+                    update_text(textobj=annotation, props=annotationProps, context=context, fields=fields)
+
+            if 'TableGenerator' in myobj:
+                tableGen = myobj.TableGenerator
+                for table in tableGen.tables:
+                    fields = []
+                    for row in table.rows:
+                        for textField in row.textFields:
+                            fields.append(textField)
+                
+                    update_text(textobj=table, props=table, context=context, fields=fields)
 
                 # Draw Instanced Objects
 

@@ -2618,6 +2618,158 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             if sceneProps.is_dxf_draw:
                 dxf_shaders.dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf)
 
+
+def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = None):
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps 
+
+    # Get Camera Aligned Rot Mats
+  
+    
+    # Get local Rotation and Translation
+    rot = mat.to_quaternion()
+    loc = mat.to_translation()
+    scale = mat.to_scale()
+
+    # Only use the z rot of the annotation rotation
+    locMatrix = Matrix.Translation(loc)
+    annoMat = Matrix.Identity(3).copy()
+    annoEuler = Euler((0, 0, 0), 'XYZ')
+    annoMat.rotate(annoEuler)
+    annoMat = annoMat.to_4x4()
+
+    # use Camera rot for the rest
+    camera = context.scene.camera
+    cameraMat = camera.matrix_world
+    cameraRot = cameraMat.decompose()[1]
+    cameraRotMat = Matrix.Identity(3)
+    cameraRotMat.rotate(cameraRot)
+    cameraRotMat = cameraRotMat.to_4x4()
+
+    fullRotMat = annoMat @ cameraRotMat
+    extMat = locMatrix @ fullRotMat 
+
+    cameraX = cameraRotMat @ Vector((1, 0, 0))
+
+    for table in tableGen.tables:
+
+        # Populate Text Fields from source file
+        if table.textFile == None:
+            continue
+        text_string = table.textFile.as_string()
+        text_lines = text_string.splitlines()
+
+        #check that we have enough rows
+        row_idx = 0
+        for line in text_lines:
+            try: row = table.rows[row_idx]
+            except IndexError: 
+                table.rows.add()
+                row = table.rows[row_idx]
+            row_idx += 1
+
+        # Set text Fields
+        row_idx = 0
+        for row in table.rows:
+            # Remove extra rows
+            if row_idx >= len(text_lines):
+                table.rows.remove(row_idx)
+                continue
+
+            line = text_lines[row_idx]
+            text_list = line.split(',')
+
+            idx = 0
+            for item in text_list:
+                try:
+                    row.textFields[idx].text = item
+                except IndexError:
+                    row.textFields.add()
+                    row.textFields[idx].text = item
+                idx += 1
+            
+            idx = 0
+            for textField in row.textFields:
+                if idx >= len(text_list):
+                    row.textFields.remove(idx)
+                idx += 1
+                
+              
+            
+            row_idx += 1
+
+
+
+        # Fit Card Width & height
+        tallest = 0
+        widest = 0
+
+        for row in table.rows:
+            for textField in row.textFields:
+                if textField.textWidth > widest: widest = textField.textWidth
+                if textField.textHeight > tallest: tallest = textField.textHeight
+
+        # Scale by res
+        res = get_resolution()
+        scale = get_scale()
+        tallest *= scale / res / 20
+        widest *= scale / res / 20
+
+
+        origin = loc
+        col_idx = 0
+        header_drawn = False
+
+        row_idx = 0
+        for row in table.rows:
+
+            for textField in row.textFields:
+                        # Draw the table
+            
+                textField.textAlignment = 'C'
+                textField.textPosition = 'M'
+                xDir = fullRotMat @ Vector((1, 0, 0)) * widest
+                yDir = fullRotMat @ Vector((0, 1, 0)) * tallest
+
+                if table.use_header and (not header_drawn):
+                    xDir *= table.num_columns
+
+                field_origin = origin + xDir * col_idx - yDir * row_idx
+
+                c1 = field_origin
+                c2 = field_origin + xDir
+                c3 = field_origin + xDir + yDir
+                c4 = field_origin + yDir
+
+                coords = [c1,c2,c2,c3,c3,c4,c4,c1]
+
+
+                draw_lines(1,(0,0,0,1),coords)
+
+                textcard = generate_text_card(
+                    context, textField, table, basePoint=field_origin, xDir=xDir, yDir=yDir, cardIdx=0)
+                textField['textcard'] = textcard
+
+                if table.use_header and (not header_drawn):
+                    header_drawn = True
+                    continue
+
+                col_idx += 1
+            
+            row_idx += 1
+            col_idx = 0
+
+            if sceneProps.show_dim_text:
+                for row in table.rows:
+                    for textField in row.textFields:
+                        if 'textcard' in textField:
+                            textcard = textField['textcard']
+                            draw_text_3D(context, textField, table, myobj, textcard)
+            # Work out width
+
+
+
+
 def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
     # Draw Line Endcaps
     dotcoord = None
@@ -3623,6 +3775,10 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator
                 draw_annotation(context, myobj, annotationGen, mat, svg=svg, dxf=dxf)
+
+            if 'TableGenerator' in myobj:
+                tableGen = myobj.TableGenerator
+                draw_table(context, myobj, tableGen, mat, svg=svg, dxf=dxf)
 
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator

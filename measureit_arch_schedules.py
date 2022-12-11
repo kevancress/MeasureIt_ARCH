@@ -266,7 +266,7 @@ class GenerateSchedule(Operator):
 
         try:
             with open(os.path.join(file_path, file_name), 'w', newline='') as file:
-                writer = csv.writer(file)
+                writer = csv.writer(file, lineterminator=',\n')
                 writer.writerows(row_list)
 
         except PermissionError:
