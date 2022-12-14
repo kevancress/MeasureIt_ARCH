@@ -36,11 +36,13 @@ from mathutils import Vector, Matrix, Euler, Quaternion
 from .measureit_arch_utils import get_smart_selected, get_view
 from .measureit_arch_baseclass import BaseWithText
 
-class RowProperties(PropertyGroup,):
+
+class RowProperties(PropertyGroup,BaseWithText):
     height: FloatProperty(
         name="Height",
         description="Row Height",
         default=1.0)
+    
 
 class ColumnProperties(PropertyGroup,):
     width: FloatProperty(
@@ -56,11 +58,20 @@ class TableProperties(PropertyGroup, BaseWithText):
     rows: CollectionProperty(type=RowProperties)
     columns: CollectionProperty(type=ColumnProperties)
 
+    num_columns: IntProperty(name='Number of Columns', min = 1, default = 2)
+
     draw_border: BoolProperty(
         name="Draw Border",
         description="Draw a Border Around the table",
         default=False)
     
+    use_header: BoolProperty(name='Use Header', default=True)
+
+    textFile: PointerProperty(
+        name="TextFile",
+        type = bpy.types.Text)
+    
+    wrap_text: BoolProperty(name='Wrap Text', default=False)
     
     lineWeight: FloatProperty(
         name="Line Weight",
@@ -206,6 +217,10 @@ class OBJECT_PT_Tables(Panel):
 
             if tableGen.show_settings:
                 col = box.column()
-                col.prop(table, 'scene', text="Scene")
                 col.prop(table,'draw_border')
+                col.prop(table, 'use_header')
+                col.prop(table, 'wrap_text')
+                col.prop(table,'textFile')
+                col.prop(table, 'num_columns')
+
     
