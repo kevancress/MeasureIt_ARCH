@@ -154,6 +154,7 @@ def update_text(textobj, props, context, fields=[]):
             if props.font not in badfonts:
                 vecFont = props.font
                 fontPath = vecFont.filepath
+                fontPath = bpy.path.abspath(fontPath)
                 font_id = blf.load(fontPath)
             else:
                 font_id = 0

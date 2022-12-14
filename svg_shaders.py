@@ -306,6 +306,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     font_family = "Open Sans"
     if style.font != None:
         font_file = style.font.filepath
+        font_file = bpy.path.abspath(font_file)
         try:
             tt = ttLib.TTFont(font_file, verbose=1)
             font_family = shortName(tt)[0]
