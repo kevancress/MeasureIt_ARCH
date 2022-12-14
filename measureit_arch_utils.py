@@ -159,6 +159,22 @@ def get_view():
     return view
 
 
+
+def get_scale():
+    scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    view = get_view()
+    scale = sceneProps.default_scale
+
+    if view is None or view.camera is None:
+        return scale
+
+    if view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
+        scale = view.model_scale / view.paper_scale
+
+    return scale
+
 def get_resolution(update_flag = False):
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps

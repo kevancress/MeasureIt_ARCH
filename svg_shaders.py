@@ -38,7 +38,7 @@ from mathutils import Vector, Matrix
 from sys import getrecursionlimit, setrecursionlimit
 from . import vector_utils
 
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit, get_resolution
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit, get_resolution, get_scale
 
 def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
@@ -300,6 +300,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     # Get resolution for text size
     view = get_view()
     res = get_resolution()
+    scale = get_scale()
 
     # Try to get font
     font_family = "Open Sans"
