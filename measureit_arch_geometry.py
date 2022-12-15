@@ -2703,62 +2703,73 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
         # Fit Card Width & height
         tallest = 0
         widest = 0
-
+        max_columns = 0
         for row in table.rows:
+            col_count = 0
             for textField in row.textFields:
                 if textField.textWidth > widest: widest = textField.textWidth
                 if textField.textHeight > tallest: tallest = textField.textHeight
+                col_count += 1
+            if col_count >= max_columns: max_columns = col_count
+
 
         # Scale by res
         res = get_resolution()
         scale = get_scale()
-        tallest *= scale / res / 20
-        widest *= scale / res / 20
+        size = (table.fontSize / 600) * scale
+        tallest = tallest / res * size
+        widest = widest / res * size
+
+        scale = get_scale()
+
 
 
         origin = loc
-        col_idx = 0
+     
         header_drawn = False
-
+        coords = []
         row_idx = 0
         for row in table.rows:
-
-            for textField in row.textFields:
-                        # Draw the table
-            
-                textField.textAlignment = 'C'
-                textField.textPosition = 'M'
+            for col_idx in range(max_columns):
+                # Draw the table
                 xDir = fullRotMat @ Vector((1, 0, 0)) * widest
                 yDir = fullRotMat @ Vector((0, 1, 0)) * tallest
 
-                if table.use_header and (not header_drawn):
-                    xDir *= table.num_columns
-
                 field_origin = origin + xDir * col_idx - yDir * row_idx
+                
+
+                if (col_idx + 1) < max_columns and (col_idx +1) > len(row.textFields)-1:
+                    if table.extend_short_rows or (row_idx == 0 and table.extend_header):
+                        xDir = xDir * (max_columns-col_idx)
 
                 c1 = field_origin
                 c2 = field_origin + xDir
                 c3 = field_origin + xDir + yDir
                 c4 = field_origin + yDir
 
-                coords = [c1,c2,c2,c3,c3,c4,c4,c1]
+                cell_coords = [c1,c2,c2,c3,c3,c4,c4,c1]
+                coords.extend(cell_coords)
 
+                try:
+                    textField = row.textFields[col_idx]
+                    textField.textAlignment = 'C'
+                    textField.textPosition = 'M'
+                    textcard = generate_text_card(
+                        context, textField, table, basePoint=field_origin, xDir=xDir, yDir=yDir, cardIdx=0)
+                    textField['textcard'] = textcard
+                except IndexError:
+                    pass
 
-                draw_lines(1,(0,0,0,1),coords)
+                if (col_idx + 1) < max_columns and (col_idx +1) > len(row.textFields)-1:
+                    if table.extend_short_rows or (row_idx == 0 and table.extend_header):
+                        break
 
-                textcard = generate_text_card(
-                    context, textField, table, basePoint=field_origin, xDir=xDir, yDir=yDir, cardIdx=0)
-                textField['textcard'] = textcard
-
-                if table.use_header and (not header_drawn):
-                    header_drawn = True
-                    continue
-
-                col_idx += 1
             
             row_idx += 1
-            col_idx = 0
 
+            rawRGB = table.color
+            rgb = rgb_gamma_correct(rawRGB)
+            draw_lines(1,rgb,coords)
             if sceneProps.show_dim_text:
                 for row in table.rows:
                     for textField in row.textFields:
