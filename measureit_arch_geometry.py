@@ -49,7 +49,7 @@ from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit,\
-    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution
+    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale
 
 lastMode = {}
 lineBatch3D = {}
@@ -154,6 +154,7 @@ def update_text(textobj, props, context, fields=[]):
             if props.font not in badfonts:
                 vecFont = props.font
                 fontPath = vecFont.filepath
+                fontPath = bpy.path.abspath(fontPath)
                 font_id = blf.load(fontPath)
             else:
                 font_id = 0
@@ -3626,21 +3627,6 @@ def get_viewport():
             context.area.height,
         ]
 
-
-def get_scale():
-    scene = bpy.context.scene
-    sceneProps = scene.MeasureItArchProps
-
-    view = get_view()
-    scale = sceneProps.default_scale
-
-    if view is None or view.camera is None:
-        return scale
-
-    if view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
-        scale = view.model_scale / view.paper_scale
-
-    return scale
 
 
 def z_order_objs(obj_list, extMat, multMat):

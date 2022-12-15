@@ -310,6 +310,7 @@ def get_ss_point(point):
 
     return p1ss
 
+
 def check_visible(item, point):
     context = bpy.context
     scene = context.scene
