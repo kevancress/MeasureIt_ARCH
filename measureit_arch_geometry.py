@@ -845,8 +845,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                 dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension
 
                 if sceneProps.show_dim_text:
-                    square = dimText['textcard']
-                    draw_text_3D(context, dimText, dimProps, myobj, square)
+                    draw_text_3D(context, dimText, dimProps, myobj)
 
                 # Collect coords and endcaps
                 coords = [leadStartA, leadEndA, leadStartB,
@@ -879,7 +878,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                     svg_shaders.svg_fill_shader(
                         dim, filledCoords, rgb, svg, parent=svg_dim)
                     svg_shaders.svg_text_shader(
-                        dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+                        dim, dimProps, dimText.text, origin, dimText['textcard'], rgb, svg, parent=svg_dim)
 
             idx += 1
 
@@ -1213,12 +1212,13 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         # make text card
         vecX = midVec.cross(norm).normalized()
-        square = generate_text_card(
+        dim.textFields[0].textAlignment = 'C'
+        dim.textFields[0]['textcard'] = generate_text_card(
             context, dim.textFields[0], dimProps, basePoint=midPoint, xDir=vecX, yDir=midVec)
 
 
         if sceneProps.show_dim_text:
-            draw_text_3D(context, dim.textFields[0], dimProps, myobj, square)
+            draw_text_3D(context, dim.textFields[0], dimProps, myobj)
 
         # Get coords for point pass
         pointCoords = []
@@ -1267,7 +1267,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
-                dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+                dim, dimProps, dimText.text, origin, dim.textFields[0]['textcard'], rgb, svg, parent=svg_dim)
 
 
 
@@ -1451,7 +1451,9 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             dim.textFields.add()
 
         radiusText = dim.textFields[0]
+        radiusText.textAlignment = 'C'
         lengthText = dim.textFields[1]
+        lengthText.textAlignment = 'C'
 
         # format text and update if necessary
         lengthStr = format_distance(arc_length)
@@ -1474,25 +1476,23 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             vecY = midPoint.cross(norm).normalized()
             vecX = midPoint.normalized()
             rad_origin = Vector(midPoint) + 0.04 * vecY + center
-            dim.textAlignment = 'C'
-            rad_square = generate_text_card(
+            dim.textFields[0]['textcard'] = generate_text_card(
                 context, radiusText, dimProps, basePoint=rad_origin, xDir=vecX, yDir=vecY)
-
+            rad_square = dim.textFields[0]['textcard']
             if sceneProps.show_dim_text:
                 draw_text_3D(
-                    context, dim.textFields[0], dimProps, myobj, rad_square)
+                    context, dim.textFields[0], dimProps, myobj)
 
         # make Length text card
         midPoint = radiusLeader.normalized() * offsetRadius
         vecX = midPoint.cross(norm).normalized()
         vecY = midPoint.normalized()
         len_origin = Vector(midPoint) + center
-        len_square = generate_text_card(
+        dim.textFields[1]['textcard'] = generate_text_card(
             context, lengthText, dimProps, basePoint=len_origin, xDir=vecX, yDir=vecY)
-
+        len_square = dim.textFields[1]['textcard']
         if sceneProps.show_dim_text:
-            draw_text_3D(
-                context, dim.textFields[1], dimProps, myobj, len_square)
+            draw_text_3D(context, dim.textFields[1], dimProps, myobj)
 
         measure_coords = []
         measure_pointCoords = []
@@ -1533,7 +1533,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(
-                dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
+                dim, dimProps, arc_coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_line_shader(
                 dim, dimProps, measure_coords, lineWeight * 2, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
@@ -1687,10 +1687,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         origin = mat @ origin
 
-
-        dimProps.textAlignment = 'C'
-        dimProps.textPosition = 'M'
-
         # Setup Text Fields
         #def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):
         #placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,vecY, is_area=True)
@@ -1714,10 +1710,9 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             set_text(textField, myobj)
 
             textcard = generate_text_card(context, textField, dimProps, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
-            textField['textcard'] = textcard
 
             if sceneProps.show_dim_text:
-                draw_text_3D(context, textField, dimProps, myobj, textField['textcard'])
+                draw_text_3D(context, textField, dimProps, myobj)
             idx += 1
 
         # Draw Fill
@@ -2593,8 +2588,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
             if sceneProps.show_dim_text:
                 for textField in fields:
-                    textcard = textField['textcard']
-                    draw_text_3D(context, textField, annotationProps, myobj, textcard)
+                    draw_text_3D(context, textField, annotationProps, myobj)
 
             if sceneProps.is_vector_draw:
                 svg_anno = svg.add(svg.g(id=annotation.name))
@@ -2693,6 +2687,8 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                     while len(row.textFields) > max_columns: row.textFields.remove(len(row.textFields)-1)
 
                     # Set Text
+                    row.textFields[col_idx].textAlignment = table.textAlignment
+                    row.textFields[col_idx].textPosition = table.textPosition
                     try:
                         row.textFields[col_idx].text = text_list[col_idx]
                     except IndexError:
@@ -2737,23 +2733,25 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
         for row in table.rows:
             # Set Row Height
             height_fac = 0.6
-            height = (row.height / res * size * height_fac) + table.padding * 2
+            height = (row.height / res * size * height_fac) 
+            padded_height = height + table.padding * 2
             if row.height < table.min_height:
-                height = (table.min_height / res * size * height_fac) + table.padding * 2
+                padded_height = (table.min_height / res * size * height_fac) + table.padding * 2
 
             #Draw Columns
             for col_idx in range(max_columns):
                 col = table.columns[col_idx]
 
-                width_fac = 0.7
-                width = (col.width / res * size * width_fac) + table.padding * 2
+                width_fac = 0.9
+                width = (col.width / res * size * width_fac) 
+                padded_width = width + table.padding * 2
                 if col.width < table.min_width:
-                    width = (table.min_width / res * size * width_fac)  + table.padding * 2
+                    padded_width = (table.min_width / res * size * width_fac)  + table.padding * 2
 
 
                 # Draw the table
-                xDir = fullRotMat @ Vector((1, 0, 0)) * width 
-                yDir = fullRotMat @ Vector((0, 1, 0)) * height 
+                xDir = fullRotMat @ Vector((1, 0, 0)) * padded_width 
+                yDir = fullRotMat @ Vector((0, 1, 0)) * padded_height
 
                 cell_origin = origin + Vector((1, 0, 0)) * cell_x - Vector((0, 1, 0)) * cell_y
                 
@@ -2770,12 +2768,27 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 cell_coords = [c1,c2,c2,c3,c3,c4,c4,c1]
                 coords.extend(cell_coords)
 
-                field_origin = cell_origin + table.padding * Vector((1,1,0)) 
+                # Set Alignment
+                textField = row.textFields[col_idx]
+                if textField.textAlignment == 'L':
+                    field_origin = cell_origin + table.padding * Vector((1,0,0)) 
+                if textField.textAlignment == 'R':
+                    field_origin = c2 - table.padding * Vector((1,0,0)) 
+                if textField.textAlignment == 'C':
+                    field_origin = (cell_origin + c2)/2
+
+                if textField.textPosition == 'T':
+                    field_origin.y = (c4 - table.padding * Vector((0,1,0))- height*Vector((0,1,0))).y
+                if textField.textPosition == 'M':
+                    field_origin.y =  ((cell_origin + c4)/2).y
+                if textField.textPosition == 'B':
+                    field_origin.y = (cell_origin + table.padding * Vector((0,1,0)) + height*Vector((0,1,0))).y 
+
+
+
 
                 try:
                     textField = row.textFields[col_idx]
-                    textField.textAlignment = 'C'
-                    textField.textPosition = 'M'
                     textcard = generate_text_card(
                         context, textField, table, basePoint=field_origin, xDir=xDir, yDir=yDir, cardIdx=0)
                     textField['textcard'] = textcard
@@ -2786,9 +2799,9 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                     if table.extend_short_rows or (row_idx == 0 and table.extend_header):
                         break
                 
-                cell_x += width
+                cell_x += padded_width
             
-            cell_y += height
+            cell_y += padded_height
             cell_x = 0
             row_idx += 1
 
@@ -2799,8 +2812,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
             for row in table.rows:
                 for textField in row.textFields:
                     if 'textcard' in textField:
-                        textcard = textField['textcard']
-                        draw_text_3D(context, textField, table, myobj, textcard)
+                        draw_text_3D(context, textField, table, myobj)
         # Work out width
 
 
@@ -2986,9 +2998,9 @@ def preview_dual(context):
 
                 draw_lines(3, (0, 0, 0, 0.7), coords, twoPass=True, offset=-0.0005)
 
-def draw_text_3D(context, textobj, textprops, myobj, card):
+def draw_text_3D(context, textobj, textprops, myobj):
     # get props
-
+    card = textobj['textcard']
     sceneProps = context.scene.MeasureItArchProps
 
     if sceneProps.is_vector_draw:
@@ -3274,16 +3286,16 @@ def generate_text_card(
     ]
 
     # pick approprate card based on alignment
-    if textProps.textAlignment == 'R':
+    if textobj.textAlignment == 'R':
         aOff = 0.5 * cardX
-    elif textProps.textAlignment == 'L':
+    elif textobj.textAlignment == 'L':
         aOff = -0.5 * cardX
     else:
         aOff = Vector((0.0, 0.0, 0.0))
 
-    if textProps.textPosition == 'M':
+    if textobj.textPosition == 'M':
         pOff = 0.5 * cardY
-    elif textProps.textPosition == 'B':
+    elif textobj.textPosition == 'B':
         pOff = 1.0 * cardY
     else:
         pOff = Vector((0.0, 0.0, 0.0))
@@ -3618,7 +3630,7 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     context = bpy.context
     sceneProps = context.scene.MeasureItArchProps
     flipCaps = False
-    dimProps.textPosition = 'T'
+    dim.textPosition = 'T'
     dimLineExtension = 0  # add some extension to the line if the dimension is ext
     normDistVector = distVec.normalized()
     dim.fontSize = dimProps.fontSize
@@ -3918,7 +3930,7 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
         dim.textFields.add()
 
     dimText = dim.textFields[0]
-
+    
     # format text and update if necessary
     if not dim.use_custom_text:
 
@@ -3932,16 +3944,20 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
     idx = 0
     flipCaps = None
     dimLineExtension = None
+    
     for textField in dim.textFields:
         set_text(textField, myobj)
-        placementResults = dim_text_placement(
-            dim, dimProps, origin, dist, distVector, offsetDistance, dimProps.endcapSize, cardIdx=idx, textField=textField)
+        placementResults = dim_text_placement(dim, dimProps, origin, dist, distVector, offsetDistance, dimProps.endcapSize, cardIdx=idx, textField=dim.textFields[idx])
         if idx == 0:
             flipCaps = placementResults[0]
             dimLineExtension = placementResults[1]
             origin = placementResults[2]
+        
+        textField.textAlignment = dim.textAlignment
+        textField.textPosition = dim.textPosition
+
         if sceneProps.show_dim_text:
-            draw_text_3D(context, textField, dimProps, myobj, textField['textcard'])
+            draw_text_3D(context, textField, dimProps, myobj)
         idx += 1
 
     return (flipCaps,dimLineExtension,origin)

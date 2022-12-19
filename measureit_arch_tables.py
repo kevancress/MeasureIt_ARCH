@@ -243,6 +243,9 @@ class OBJECT_PT_Tables(Panel):
                 col.prop(table,'min_width')
                 col.prop(table,'min_height')
                 col.prop(table,'padding')
+
+                col.prop(table,'textAlignment')
+                col.prop(table,'textPosition')
                 #col.prop(table, 'use_header')
                 #col.prop(table, 'wrap_text')
                 col.prop(table,'textFile')
