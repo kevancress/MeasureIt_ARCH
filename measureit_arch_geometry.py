@@ -2653,6 +2653,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
     cameraX = cameraRotMat @ Vector((1, 0, 0))
 
     for table in tableGen.tables:
+        tableProps = table
 
         # Populate Text Fields from source file
         if table.textFile == None:
@@ -2768,17 +2769,34 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
             
             row_idx += 1
 
-            rawRGB = table.color
-            rgb = rgb_gamma_correct(rawRGB)
-            draw_lines(1,rgb,coords)
-            if sceneProps.show_dim_text:
-                for row in table.rows:
-                    for textField in row.textFields:
-                        if 'textcard' in textField:
-                            textcard = textField['textcard']
-                            draw_text_3D(context, textField, table, myobj, textcard)
-            # Work out width
+        rawRGB = table.color
+        rgb = rgb_gamma_correct(rawRGB)
+        draw_lines(1,rgb,coords)
+        if sceneProps.show_dim_text:
+            for row in table.rows:
+                for textField in row.textFields:
+                    if 'textcard' in textField:
+                        textcard = textField['textcard']
+                        draw_text_3D(context, textField, table, myobj, textcard)
+        # Work out width
 
+
+
+        ### SVG & DXF DRAW
+
+        if sceneProps.is_vector_draw:
+            svg_table = svg.add(svg.g(id=table.name))
+            svg_shaders.svg_line_shader(
+                table, tableProps, coords, table.lineWeight, rgb, svg, parent=svg_table)
+
+            for row in table.rows:
+                for textField in row.textFields:
+                    textcard = textField['textcard']
+                    svg_shaders.svg_text_shader(
+                        table, tableProps, textField.text, origin, textcard, rgb, svg, parent=svg_table)
+
+        if sceneProps.is_dxf_draw:
+            pass
 
 
 
