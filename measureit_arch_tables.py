@@ -36,19 +36,22 @@ from mathutils import Vector, Matrix, Euler, Quaternion
 from .measureit_arch_utils import get_smart_selected, get_view
 from .measureit_arch_baseclass import BaseWithText
 
+def text_file_update(self,context):
+    self.text_file_updated = True
+
 
 class RowProperties(PropertyGroup,BaseWithText):
     height: FloatProperty(
         name="Height",
         description="Row Height",
-        default=1.0)
+        default=0.0)
     
 
 class ColumnProperties(PropertyGroup,):
     width: FloatProperty(
         name="Width",
         description="Column Width",
-        default=1.0)
+        default=0.0)
 
 class TableProperties(PropertyGroup, BaseWithText):
     name: StringProperty(name="Table Name")
@@ -62,20 +65,28 @@ class TableProperties(PropertyGroup, BaseWithText):
     extend_short_rows: BoolProperty(name='Extend Short Rows', default=True)
 
     min_height: FloatProperty(
-        name="Height",
+        name="Minimum Row Height",
         description="Minimum Row Height",
         default=1.0)
 
     min_width: FloatProperty(
-        name="Width",
+        name="Minimum Column Width",
         description="Minimum Column Width",
+        default=1.0)
+    
+    padding: FloatProperty(
+        name="Padding",
+        description="Cell Padding",
         default=1.0)
 
     textFile: PointerProperty(
         name="TextFile",
-        type = bpy.types.Text)
+        type = bpy.types.Text,
+        update = text_file_update)
     
     wrap_text: BoolProperty(name='Wrap Text', default=False)
+
+    text_file_updated: BoolProperty(name='Wrap Text', default=False)
     
     lineWeight: FloatProperty(
         name="Line Weight",
@@ -231,6 +242,7 @@ class OBJECT_PT_Tables(Panel):
 
                 col.prop(table,'min_width')
                 col.prop(table,'min_height')
+                col.prop(table,'padding')
                 #col.prop(table, 'use_header')
                 #col.prop(table, 'wrap_text')
                 col.prop(table,'textFile')
