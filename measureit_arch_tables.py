@@ -61,6 +61,16 @@ class TableProperties(PropertyGroup, BaseWithText):
     extend_header: BoolProperty(name='Extend Header', default=True)
     extend_short_rows: BoolProperty(name='Extend Short Rows', default=True)
 
+    min_height: FloatProperty(
+        name="Height",
+        description="Minimum Row Height",
+        default=1.0)
+
+    min_width: FloatProperty(
+        name="Width",
+        description="Minimum Column Width",
+        default=1.0)
+
     textFile: PointerProperty(
         name="TextFile",
         type = bpy.types.Text)
@@ -216,7 +226,11 @@ class OBJECT_PT_Tables(Panel):
 
             if tableGen.show_settings:
                 col = box.column()
+                col.prop(table,'extend_header')
                 col.prop(table,'extend_short_rows')
+
+                col.prop(table,'min_width')
+                col.prop(table,'min_height')
                 #col.prop(table, 'use_header')
                 #col.prop(table, 'wrap_text')
                 col.prop(table,'textFile')

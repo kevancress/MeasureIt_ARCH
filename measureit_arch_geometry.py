@@ -2658,69 +2658,75 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
         # Populate Text Fields from source file
         if table.textFile == None:
             continue
-        text_string = table.textFile.as_string()
-        text_lines = text_string.splitlines()
 
-        #check that we have enough rows
-        row_idx = 0
-        for line in text_lines:
-            try: row = table.rows[row_idx]
-            except IndexError: 
-                table.rows.add()
-                row = table.rows[row_idx]
-            row_idx += 1
+        # Re generate text if file is modified
+        if table.textFile.is_dirty:
+            print('re_calculating text')
+            text_string = table.textFile.as_string()
+            text_lines = text_string.splitlines()
 
-        # Set text Fields
-        row_idx = 0
-        for row in table.rows:
-            # Remove extra rows
-            if row_idx >= len(text_lines):
-                table.rows.remove(row_idx)
-                continue
+            #check that we have enough rows
+            row_idx = 0
+            for line in text_lines:
+                try: row = table.rows[row_idx]
+                except IndexError: 
+                    table.rows.add()
+                    row = table.rows[row_idx]
+                row_idx += 1
 
-            line = text_lines[row_idx]
-            text_list = line.split(',')
+            # Set text Fields
+            row_idx = 0
+            for row in table.rows:
+                # Remove extra rows
+                if row_idx >= len(text_lines):
+                    table.rows.remove(row_idx)
+                    continue
 
-            idx = 0
-            for item in text_list:
-                try:
-                    row.textFields[idx].text = item
-                except IndexError:
-                    row.textFields.add()
-                    row.textFields[idx].text = item
-                idx += 1
-            
-            idx = 0
-            for textField in row.textFields:
-                if idx >= len(text_list):
-                    row.textFields.remove(idx)
-                idx += 1
+                line = text_lines[row_idx]
+                text_list = line.split(',')
+
+                idx = 0
+                for item in text_list:
+                    try:
+                        row.textFields[idx].text = item
+                    except IndexError:
+                        row.textFields.add()
+                        row.textFields[idx].text = item
+                    idx += 1
                 
-              
-            
-            row_idx += 1
+                idx = 0
+                for textField in row.textFields:
+                    if idx >= len(text_list):
+                        row.textFields.remove(idx)
+                    idx += 1
+                    
+                
+                
+                row_idx += 1
 
+            # Fit Card Width & height
+            tallest = 0
+            widest = 0
+            max_columns = 0
+            for row in table.rows:
+                col_count = 0
+                for textField in row.textFields:
+                    if textField.textWidth > widest: widest = textField.textWidth
+                    if textField.textHeight > tallest: tallest = textField.textHeight
+                    col_count += 1
+                if col_count >= max_columns: max_columns = col_count
 
-
-        # Fit Card Width & height
-        tallest = 0
-        widest = 0
-        max_columns = 0
-        for row in table.rows:
-            col_count = 0
-            for textField in row.textFields:
-                if textField.textWidth > widest: widest = textField.textWidth
-                if textField.textHeight > tallest: tallest = textField.textHeight
-                col_count += 1
-            if col_count >= max_columns: max_columns = col_count
-
+            table['tallest'] = tallest
+            table['widest'] = widest
+            table['max_columns'] = max_columns
 
         # Scale by res
         res = get_resolution()
         scale = get_scale()
         size = (table.fontSize / 600) * scale
-        tallest = tallest / res * size
-        widest = widest / res * size
+        tallest = table['tallest'] / res * size
+        widest = table['widest'] / res * size
+        max_columns = table['max_columns']
 
         scale = get_scale()
 
