@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/prop_descriptions/styles/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://kevancress.github.io/MeasureIt_ARCH/prop_descriptions/tables/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Styles - MeasureIt_ARCH Docs</title>
+    <title>Tables - MeasureIt_ARCH Docs</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Styles";
-        var mkdocs_page_input_path = "prop_descriptions\\styles.md";
-        var mkdocs_page_url = "/MeasureIt_ARCH/prop_descriptions/styles/";
+        var mkdocs_page_name = "Tables";
+        var mkdocs_page_input_path = "prop_descriptions\\tables.md";
+        var mkdocs_page_url = "/MeasureIt_ARCH/prop_descriptions/tables/";
       </script>
     
     <script src="../../js/jquery-3.6.0.min.js" defer></script>
@@ -71,15 +71,31 @@
               </ul>
               <p class="caption"><span class="caption-text">Property Descriptions</span></p>
               <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="#">Object Properties</a>
-    <ul>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Object Properties</a>
+    <ul class="current">
                 <li class="toctree-l2"><a class="reference internal" href="../dimensions/">Dimensions</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../linegroups/">Line Groups</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../annotations/">Annotations</a>
                 </li>
-                <li class="toctree-l2"><a class="reference internal" href="../tables/">Tables</a>
+                <li class="toctree-l2 current"><a class="reference internal current" href="./">Tables</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#adding-tables-measureit_arch-main-panel">Adding Tables (MeasureIt_ARCH Main Panel)</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#table">Table:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#table-list-object-settings">Table List (Object Settings)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#table-settings">Table Settings</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#table-text-fields">Table Text Fields:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#cell-markup-formatting">Cell Markup Formatting</a>
+    </li>
+    </ul>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../hatches/">Hatches</a>
                 </li>
@@ -87,13 +103,9 @@
                 </li>
     </ul>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Scene Properties</a>
-    <ul class="current">
-                <li class="toctree-l2 current"><a class="reference internal current" href="./">Styles</a>
-    <ul class="current">
-    <li class="toctree-l3"><a class="reference internal" href="#styles-extras-menu">Styles Extra's Menu</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Scene Properties</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../styles/">Styles</a>
                 </li>
                 <li class="toctree-l2"><a class="reference internal" href="../units/">Units</a>
                 </li>
@@ -134,10 +146,10 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
           <li>Property Descriptions &raquo;</li>
-          <li>Scene Properties &raquo;</li>
-      <li>Styles</li>
+          <li>Object Properties &raquo;</li>
+      <li>Tables</li>
     <li class="wy-breadcrumbs-aside">
-        <a href="https://github.com/kevancress/MeasureIt_ARCH/edit/development/docs/docs/prop_descriptions/styles.md"
+        <a href="https://github.com/kevancress/MeasureIt_ARCH/edit/development/docs/docs/prop_descriptions/tables.md"
           class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
@@ -146,22 +158,70 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="styles">Styles</h1>
-<p>Styles have a nearly identical user interface to their corresponding items. Style-able properties can be found in the item's settings.</p>
-<p><img alt="image" src="../images/__ui-styles.jpg" /></p>
-<p>Note that some settings, like an Annotations Offset, or a Dimensions Distance, are still set per item, even when using a style.</p>
-<h2 id="styles-extras-menu">Styles Extra's Menu</h2>
-<p><img alt="image" src="../images/ui-styles-extras.JPG" /></p>
+                <h1 id="tables">Tables</h1>
+<p>Often when documenting a project it's helpful to be able to embed a table of information into a drawing (To display door and window schedules, zoning information etc.). MeasureIt_ARCH Tables provide a simple way to display Comma Separated Value (CSV) tables in a drawing. Tables automatically scale cells to fit the provided content.</p>
+<p>Tables can be used with the CSV's produced by MeasureIt_ARCH <a href="../schedules/">Schedules.</a></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Tables are currently under development, their behavior may change.</p>
+</div>
+<h2 id="adding-tables-measureit_arch-main-panel">Adding Tables (MeasureIt_ARCH Main Panel)</h2>
+<h5 id="table"><img alt="image" src="../../icons/bi__spreadsheet.png" /> Table:</h5>
 <ul>
-<li><strong>Delete All Styles:</strong> Deletes all styles in the scene.</li>
-<li><strong>Duplicate Style:</strong> Duplicates the active Style</li>
+<li>Adds a table to an Empty Object at the location of the 3D cursor.</li>
+</ul>
+<hr />
+<h2 id="table-list-object-settings">Table List (Object Settings)</h2>
+<p>The Tables List lets you select and edit the properties of the Tables attached to the actively selected object.</p>
+<p><img alt="image" src="../images/ui-table-list.JPG" /></p>
+<ul>
+<li><strong>Name</strong>: Sets the Table's name.</li>
+<li><strong>Color</strong>: Sets Table's Color.</li>
+</ul>
+<hr />
+<h2 id="table-settings">Table Settings</h2>
+<p><img alt="image" src="../images/ui-table-settings.JPG" /></p>
+<ul>
+<li><strong>Text File</strong>: The text file (CSV) used to populate the table. CSV files can be written or loaded in from Blender's Text Editor</li>
+<li><strong>Font</strong>: Lets you select a custom font for the Annotation from your system.</li>
+<li><strong>Font Size</strong>: The Table's font size.</li>
+<li><strong>Line Weight</strong>: Line Weight of the Table lines.</li>
+<li><strong>Justification</strong>: Text Justification within the Table Cells (Left, Center, Right).</li>
+<li><strong>Position</strong>: Text Position relative to the end of the Annotation leader line (Top, Middle, Bottom).</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Text Justification and Position can be adjusted per cell by including markups in the CSV text. See Below.</p>
+</div>
+<ul>
+<li><strong>Minimum Column Width</strong>: The minimum width (in drawing space) for all columns in the table. Applies to empty cells as well.</li>
+<li><strong>Minimum Row Height</strong>: The minimum height (in drawing space) for all rows in the table. Applies to empty cells as well.</li>
+<li><strong>Padding</strong>: Clear space (in pixels) between the text and cell border.</li>
+<li><strong>C1 Max Width</strong>: The maximum width of the first column. Can be useful when the first column is being used for Categories &amp; Headers.</li>
+<li><strong>Extend Short Rows</strong>: When enabled, blank rows will not draw cell dividers.</li>
+</ul>
+<h2 id="table-text-fields">Table Text Fields:</h2>
+<p>Displays a list of the Text Fields for the selected Table. <a href="../textfields/">(See TextFields Documentation)</a>
+Table TextFields are automatically populated from the provided CSV file so the raw text is not directly editable here, however cell text can be overwritten using the TextField's AutoFill settings. </p>
+<p>This can be used to inject AutoFill information into a Table, or to link multiline text from a separate text file into a single cell (handy for Wall Schedules) via the 'Text File' Autofill option.</p>
+<hr />
+<h2 id="cell-markup-formatting">Cell Markup Formatting</h2>
+<p>To Provide further formatting options for individual cells, MeasureIt_ARCH table use markup codes within the CSV to provide formatting information. The markup code can be included anywhere within the cell text, and multiple codes can be included in each cell. The following codes are supported.</p>
+<ul>
+<li><code>[l]</code> Justify Text Left.</li>
+<li><code>[c]</code> Justify Text Center.</li>
+<li><code>[r]</code> Justify Text Right.</li>
+<li><code>[t]</code> Position Text at the Top of the cell.</li>
+<li><code>[m]</code> Position Text at the Middle of the cell.</li>
+<li><code>[b]</code> Position Text at the Bottom of the cell.</li>
+<li><code>[br]</code> or <code>[\n]</code> Include a line break at this point in the cell's text.</li>
 </ul>
               
             </div>
           </div><footer>
       <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-          <a href="../textfields/" class="btn btn-neutral float-left" title="Text Fields"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-          <a href="../units/" class="btn btn-neutral float-right" title="Units">Next <span class="icon icon-circle-arrow-right"></span></a>
+          <a href="../annotations/" class="btn btn-neutral float-left" title="Annotations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+          <a href="../hatches/" class="btn btn-neutral float-right" title="Hatches">Next <span class="icon icon-circle-arrow-right"></span></a>
       </div>
   
     <hr/>
@@ -173,7 +233,7 @@
     Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     
     
-    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">October 1, 2022</span></small></p>
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 20, 2022</span></small></p>
     
     
 </footer>
@@ -194,10 +254,10 @@
         </span>
     
     
-      <span><a href="../textfields/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../annotations/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../units/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../hatches/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
