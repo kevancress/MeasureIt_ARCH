@@ -2870,7 +2870,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
         rawRGB = table.color
         rgb = rgb_gamma_correct(rawRGB)
-        draw_lines(1,rgb,coords)
+        draw_lines(table.lineWeight,rgb,coords)
         if sceneProps.show_dim_text:
             for row in table.rows:
                 for textField in row.textFields:

@@ -351,7 +351,7 @@ class TextField(PropertyGroup):
         items=(('L', "Left", "", 'ALIGN_LEFT', 1),
                ('C', "Center", "", 'ALIGN_CENTER', 2),
                ('R', "Right", "", 'ALIGN_RIGHT', 3)),
-        name="align Font",
+        name="Justification",
         default='L',
         description="Set Font alignment")
 
@@ -359,7 +359,7 @@ class TextField(PropertyGroup):
         items=(('T', "Top", "", 'ALIGN_TOP', 1),
                ('M', "Mid", "", 'ALIGN_MIDDLE', 2),
                ('B', "Bottom", "", 'ALIGN_BOTTOM', 3)),
-        name="align Font",
+        name="Position",
         description="Set Font Position")
 
     textWidth: IntProperty(
@@ -442,14 +442,14 @@ class BaseWithText(BaseProp):
         items=(('L', "Left", "", 'ALIGN_LEFT', 1),
                ('C', "Center", "", 'ALIGN_CENTER', 2),
                ('R', "Right", "", 'ALIGN_RIGHT', 3)),
-        name="align Font",
+        name="Justification",
         description="Set Font alignment")
 
     textPosition: EnumProperty(
         items=(('T', "Top", "", 'ALIGN_TOP', 1),
                ('M', "Mid", "", 'ALIGN_MIDDLE', 2),
                ('B', "Bottom", "", 'ALIGN_BOTTOM', 3)),
-        name="align Font",
+        name="Position",
         description="Set Font Position")
 
     fontSize: FloatProperty(

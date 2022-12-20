@@ -252,23 +252,43 @@ class OBJECT_PT_Tables(Panel):
 
             if tableGen.show_settings:
                 col = box.column()
-                col.template_ID(table, "font", open="font.open", unlink="font.unlink")
-                col.prop(table,'extend_header')
-                col.prop(table,'extend_short_rows')
 
+                col.prop(table,'textFile')
+
+                col = box.column()
+                split = box.split(factor=0.485)
+                col = split.column()
+                col.alignment = 'RIGHT'
+
+                col.label(text='Font')
+                col = split.column(align=True)
+                col.template_ID(
+                    table, "font", open="font.open", unlink="font.unlink")
+                
+                col = box.column()
+                col.prop(table,'fontSize')
+                col.prop(table,'lineWeight')
+
+                col.prop(table,'textAlignment')
+                col.prop(table,'textPosition')         
+
+                col = box.column()
                 col.prop(table,'min_width')
                 col.prop(table,'min_height')
                 col.prop(table,'padding')
-
                 col.prop(table,'c1_max_width')
 
-                col.prop(table,'textAlignment')
-                col.prop(table,'textPosition')
+                col = box.column()
+                col.prop(table,'extend_short_rows')
+
+
+
+                
                 #col.prop(table, 'use_header')
                 #col.prop(table, 'wrap_text')
-                col.prop(table,'textFile')
+
                 #col.prop(table, 'num_columns')
-                col.prop(table,'fontSize')
+                
             
 
             box = layout.box()

@@ -33,6 +33,7 @@ nav:
             - Dimensions: prop_descriptions/dimensions.md
             - Line Groups: prop_descriptions/linegroups.md
             - Annotations: prop_descriptions/annotations.md
+            - Tables: prop_descriptions/tables.md
             - Hatches: prop_descriptions/hatches.md
             - Text Fields: prop_descriptions/textfields.md
 
