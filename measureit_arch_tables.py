@@ -66,27 +66,31 @@ class TableProperties(PropertyGroup, BaseWithText):
 
     min_height: FloatProperty(
         name="Minimum Row Height",
-        description="Minimum Row Height",
+        description="Minimum Row Height in Paper Space Units",
+        subtype = 'DISTANCE',
         min = 0,
         default=0.0)
 
     min_width: FloatProperty(
         name="Minimum Column Width",
-        description="Minimum Column Width",
+        description="Minimum Column Width in Paper Space Units",
+        subtype = 'DISTANCE',
         min = 0,
         default=0.0)
 
     c1_max_width: FloatProperty(
         name="C1 Max Width",
-        description="Max Width Of First Column",
+        description="Max Width Of First Column in Paper Space Units",
+        subtype = 'DISTANCE',
         min = 0,
         default=0.0)
     
-    padding: FloatProperty(
+    padding: IntProperty(
         name="Padding",
         description="Cell Padding",
+        subtype = 'PIXEL',
         soft_min = 0,
-        default=0.1)
+        default= 10)
 
     textFile: PointerProperty(
         name="TextFile",

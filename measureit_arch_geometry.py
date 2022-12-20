@@ -49,7 +49,7 @@ from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit,\
-    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale
+    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m
 
 lastMode = {}
 lineBatch3D = {}
@@ -177,7 +177,7 @@ def update_text(textobj, props, context, fields=[]):
                 text = line
                 if props.all_caps:
                     text = line.upper()
-                line_width = blf.dimensions(font_id, text + '  ')[0]
+                line_width = blf.dimensions(font_id, text)[0]
                 if line_width > fwidth:
                     fwidth = line_width
 
@@ -2766,28 +2766,32 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
         cell_x = 0
         cell_y = 0
+
+        padding = px_to_m(table.padding, paper_space = True)
+
         for row_idx in range(len(table.rows)):
             # Set Row Height
             row = table.rows[row_idx]
-            height_fac =1
-            height = (row.height / res * size * height_fac) 
-            padded_height = height + table.padding * 2
-            if row.height < table.min_height:
-                padded_height = (table.min_height / res * size * height_fac) + table.padding * 2
+
+            height = px_to_m(row.height, paper_space=True)
+            padded_height = height + padding * 2
+            if height < table.min_height* scale:
+                padded_height = (table.min_height * scale) + padding * 2
 
             #Draw Columns
             for col_idx in range(len(table.columns)):
                 col = table.columns[col_idx]
                 textField = row.textFields[col_idx]
 
-                width_fac = 0.9
-                width = (col.width / res * size * width_fac) 
-                padded_width = width + table.padding * 2
-                if col.width < table.min_width:
-                    padded_width = (table.min_width / res * size * width_fac)  + table.padding * 2
+                text = textField.text
+                num_char = len(text)
+                width = px_to_m(col.width, paper_space=True)
+                padded_width = width*0.6 + padding * 2
+                if width < table.min_width* scale:
+                    padded_width = (table.min_width *scale)  + padding * 2
                 
                 if table.c1_max_width != 0 and col_idx == 0:
-                    padded_width = (table.c1_max_width / res * size * width_fac)  + table.padding * 2
+                    padded_width = (table.c1_max_width *scale)  + padding * 2
 
 
                 # Draw the table
@@ -2840,18 +2844,18 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
                 # Set Alignment
                 if textField.textAlignment == 'L':
-                    field_origin = cell_origin + table.padding * Vector((1,0,0)) 
+                    field_origin = cell_origin + padding * Vector((1,0,0)) 
                 if textField.textAlignment == 'R':
-                    field_origin = c2 - table.padding * Vector((1,0,0)) 
+                    field_origin = c2 - padding * Vector((1,0,0)) 
                 if textField.textAlignment == 'C':
                     field_origin = (cell_origin + c2)/2
 
                 if textField.textPosition == 'T':
-                    field_origin.y = (cell_origin + table.padding * Vector((0,-1,0))).y
+                    field_origin.y = (cell_origin + padding * Vector((0,-1,0))).y
                 if textField.textPosition == 'M':
                     field_origin.y =  ((cell_origin + c4)/2).y
                 if textField.textPosition == 'B':
-                    field_origin.y = (c4 + table.padding * Vector((0,1,0))).y 
+                    field_origin.y = (c4 + padding * Vector((0,1,0))).y 
 
                 # Generate Text Card
                 textcard = generate_text_card(

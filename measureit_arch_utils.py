@@ -6,6 +6,8 @@ from mathutils import Vector
 from addon_utils import check, paths
 from sys import getrecursionlimit, setrecursionlimit
 
+from .measureit_arch_units import BU_TO_INCHES
+
 __all__ = (
     'get_view',
     'get_rv3d',
@@ -96,6 +98,17 @@ def pts_to_px(pts):
     inch_size = pts * 1/INCH_TO_PT
     px_size = inch_size * res
     return px_size
+
+def px_to_m(px, paper_space = False):
+    res = get_resolution() # Get Pixels per inch
+    scale = get_scale()
+
+    m_size = px / res * 1/BU_TO_INCHES
+
+    if paper_space:
+        m_size *= scale
+
+    return m_size
 
 class Set_Render:
     def __init__(self, sceneProps, is_vector=False, is_dxf = False):
