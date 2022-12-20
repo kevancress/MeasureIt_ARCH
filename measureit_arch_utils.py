@@ -59,6 +59,8 @@ _cad_col_dict = {
     255: (0,0,0,1)
 }
 
+
+
 def safe_name(name, is_dxf = False):
 
     if is_dxf:
@@ -84,6 +86,16 @@ class recursionlimit:
 
     def __exit__(self, type, value, tb):
         setrecursionlimit(self.old_limit)
+
+
+# Convert Pts definitions to px
+def pts_to_px(pts):
+    INCH_TO_PT = 72
+    res = get_resolution() # Get Pixels per inch
+
+    inch_size = pts * 1/INCH_TO_PT
+    px_size = inch_size * res
+    return px_size
 
 class Set_Render:
     def __init__(self, sceneProps, is_vector=False, is_dxf = False):
@@ -180,13 +192,26 @@ def get_resolution(update_flag = False):
     sceneProps = scene.MeasureItArchProps
     view = get_view()
 
-    if sceneProps.use_preview_res and not (sceneProps.is_render_draw or sceneProps.is_vector_draw or update_flag):
-        return sceneProps.preview_resolution
+    view_valid = view is not None and view.camera is not None and view.res_type == 'res_type_paper'
 
-    if view.use_resolution_override:
-        if (view is not None and view.camera is not None and view.res_type == 'res_type_paper'):
+    # RENDER, SVG, or DXF DRAW:
+    if sceneProps.is_render_draw or sceneProps.is_vector_draw or sceneProps.is_dxf_draw or update_flag:
+        # If We're using View resolution
+        if view.use_resolution_override and view_valid:
             return view.res
+        else:
+            return sceneProps.render_resolution
 
+    # We're in the viewport
+    else:
+        if sceneProps.use_preview_res:  # If we Use Preview Res
+            return sceneProps.preview_resolution
+       
+        else:  # Otherwise Get the view resolution
+            if view.use_resolution_override and view_valid:
+                return view.res
+
+    # If all else fails, just use the render resolution
     return sceneProps.render_resolution
 
 def get_camera_z():

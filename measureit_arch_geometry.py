@@ -2766,8 +2766,9 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
         cell_x = 0
         cell_y = 0
-        for row in table.rows:
+        for row_idx in range(len(table.rows)):
             # Set Row Height
+            row = table.rows[row_idx]
             height_fac =1
             height = (row.height / res * size * height_fac) 
             padded_height = height + table.padding * 2
@@ -2777,12 +2778,16 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
             #Draw Columns
             for col_idx in range(len(table.columns)):
                 col = table.columns[col_idx]
+                textField = row.textFields[col_idx]
 
                 width_fac = 0.9
                 width = (col.width / res * size * width_fac) 
                 padded_width = width + table.padding * 2
                 if col.width < table.min_width:
                     padded_width = (table.min_width / res * size * width_fac)  + table.padding * 2
+                
+                if table.c1_max_width != 0 and col_idx == 0:
+                    padded_width = (table.c1_max_width / res * size * width_fac)  + table.padding * 2
 
 
                 # Draw the table
@@ -2791,21 +2796,49 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
                 cell_origin = origin + Vector((1, 0, 0)) * cell_x - Vector((0, 1, 0)) * cell_y
                 
-
-                if (col_idx + 1) < len(table.columns) and (col_idx +1) > len(row.textFields)-1:
-                    if table.extend_short_rows or (row_idx == 0 and table.extend_header):
-                        xDir = xDir * (max_columns-col_idx)
-
                 c1 = cell_origin
                 c2 = cell_origin + xDir 
                 c3 = cell_origin + xDir + yDir
                 c4 = cell_origin + yDir
 
                 cell_coords = [c1,c2,c2,c3,c3,c4,c4,c1]
+
+                
+                # Row Extension Conditions
+                if table.extend_short_rows:
+                    cell_coords = [c1,c2,c3,c4]
+                    next_text = 'end'
+                    if col_idx < len(table.columns)-2:
+                        next_text = row.textFields[col_idx+1].text
+                        
+                    prev_text = 'start'
+                    if col_idx -1 >= 0:
+                        prev_text = row.textFields[col_idx-1].text
+                    
+                    if prev_text == '' and next_text != '' and textField.text != '':
+                        cell_coords.extend([c3,c2])
+
+                    elif prev_text != '' and next_text == '' and textField.text != '':
+                        cell_coords.extend([c1,c4])
+                    
+                    elif prev_text != '' and next_text != '' and textField.text != '':
+                        cell_coords.extend([c3,c2,c1,c4])
+
+                    
+                    
+                    if textField.text == '':
+                        
+                        if col_idx == 0:
+                            cell_coords.extend([c1,c4])
+                            if row_idx == len(table.rows)-1:
+                                cell_coords.extend([c3,c4])
+                        if col_idx == len(table.columns)-1:
+                            cell_coords.extend([c2,c3])
+                
+                # Add to full coords list
                 coords.extend(cell_coords)
 
                 # Set Alignment
-                textField = row.textFields[col_idx]
                 if textField.textAlignment == 'L':
                     field_origin = cell_origin + table.padding * Vector((1,0,0)) 
                 if textField.textAlignment == 'R':
@@ -2820,20 +2853,10 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 if textField.textPosition == 'B':
                     field_origin.y = (c4 + table.padding * Vector((0,1,0))).y 
 
-
-
-
-                try:
-                    textField = row.textFields[col_idx]
-                    textcard = generate_text_card(
-                        context, textField, table, basePoint=field_origin, xDir=xDir, yDir=yDir, cardIdx=0)
-                    textField['textcard'] = textcard
-                except IndexError:
-                    pass
-
-                if (col_idx + 1) < len(table.columns) and (col_idx +1) > len(row.textFields)-1:
-                    if table.extend_short_rows or (row_idx == 0 and table.extend_header):
-                        break
+                # Generate Text Card
+                textcard = generate_text_card(
+                    context, textField, table, basePoint=field_origin, xDir=xDir, yDir=yDir, cardIdx=0)
+                textField['textcard'] = textcard
                 
                 cell_x += padded_width
             

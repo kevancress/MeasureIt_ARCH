@@ -84,7 +84,7 @@ def update(self, context):
 
     #Update Compositior Render Layer if it exists
     tree = bpy.context.scene.node_tree
-    if tree != None:
+    if tree != None and view.view_layer != '':
         try:
             render_node = tree.nodes['Render Layers']
             render_node.layer = view.view_layer
@@ -146,7 +146,7 @@ def update_camera(scene, camera):
     paperScale = view.paper_scale
 
     ppi = get_resolution(update_flag=True)
-
+    print('updating camera and render res')
     render.resolution_percentage = 100
     render.resolution_x = int(width * ppi * BU_TO_INCHES)
     render.resolution_y = int(height * ppi * BU_TO_INCHES)

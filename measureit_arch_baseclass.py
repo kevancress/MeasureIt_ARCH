@@ -7,7 +7,8 @@ from bpy.types import PropertyGroup, Operator, Collection
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
-
+from .measureit_arch_units import BU_TO_INCHES
+from .measureit_arch_utils import get_resolution
 
 def recalc_index(self, context):
     # ensure index's are accurate
@@ -44,6 +45,29 @@ class StyleWrapper(PropertyGroup):
 
 def update_flag(self, context):
     self.text_updated = True
+
+def update_camera(self,context):
+    scene = context.scene
+    render = scene.render
+    ViewGen = scene.ViewGenerator
+    view = ViewGen.views[ViewGen.active_index]
+    width = view.width
+    height = view.height
+    modelScale = view.model_scale
+    paperScale = view.paper_scale
+
+    ppi = get_resolution(update_flag=True)
+    print('updating camera and render res')
+    render.resolution_percentage = 100
+    render.resolution_x = int(width * ppi * BU_TO_INCHES)
+    render.resolution_y = int(height * ppi * BU_TO_INCHES)
+
+    if width > height:
+        camera.ortho_scale = (
+            render.resolution_x / ppi / BU_TO_INCHES) * (modelScale / paperScale)
+    else:
+        camera.ortho_scale = (
+            render.resolution_y / ppi / BU_TO_INCHES) * (modelScale / paperScale)
 
 def has_dimension_generator(context):
     return context.object is not None and \
@@ -800,7 +824,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
         soft_min=50,
         soft_max=1200,
         description="Render Resolution",
-        update=update_flag)
+        update=update_camera)
 
     metric_precision: IntProperty(
         name='Precision', min=0, max=5, default=2,

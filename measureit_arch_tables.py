@@ -75,6 +75,12 @@ class TableProperties(PropertyGroup, BaseWithText):
         description="Minimum Column Width",
         min = 0,
         default=0.0)
+
+    c1_max_width: FloatProperty(
+        name="C1 Max Width",
+        description="Max Width Of First Column",
+        min = 0,
+        default=0.0)
     
     padding: FloatProperty(
         name="Padding",
@@ -249,6 +255,8 @@ class OBJECT_PT_Tables(Panel):
                 col.prop(table,'min_width')
                 col.prop(table,'min_height')
                 col.prop(table,'padding')
+
+                col.prop(table,'c1_max_width')
 
                 col.prop(table,'textAlignment')
                 col.prop(table,'textPosition')
