@@ -34,7 +34,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
 
 from mathutils import Vector, Matrix, Euler, Quaternion
 from .measureit_arch_utils import get_smart_selected, get_view
-from .measureit_arch_baseclass import BaseWithText
+from .measureit_arch_baseclass import BaseWithText, draw_textfield_settings
 
 def text_file_update(self,context):
     self.text_file_updated = True
@@ -67,17 +67,20 @@ class TableProperties(PropertyGroup, BaseWithText):
     min_height: FloatProperty(
         name="Minimum Row Height",
         description="Minimum Row Height",
-        default=1.0)
+        min = 0,
+        default=0.0)
 
     min_width: FloatProperty(
         name="Minimum Column Width",
         description="Minimum Column Width",
-        default=1.0)
+        min = 0,
+        default=0.0)
     
     padding: FloatProperty(
         name="Padding",
         description="Cell Padding",
-        default=1.0)
+        soft_min = 0,
+        default=0.1)
 
     textFile: PointerProperty(
         name="TextFile",
@@ -100,6 +103,7 @@ class TableContainer(PropertyGroup):
     num_tables: IntProperty(name='number of tables in collection')
 
     show_settings: BoolProperty(name='Show Sheet View Settings', default=False)
+    show_textFields: BoolProperty(name='Show Sheet View Settings', default=False)
 
     tables: CollectionProperty(type=TableProperties)
 
@@ -160,6 +164,7 @@ class AddTableButton(Operator):
                     newTable.uses_style = False
 
                 newTable.name = "Table {}".format(tableGen.num_tables)
+                newTable.textPosition = 'M'
 
                 newTable.color = (0, 0, 0, 1)
                 newTable.fontSize = 24
@@ -252,5 +257,22 @@ class OBJECT_PT_Tables(Panel):
                 col.prop(table,'textFile')
                 #col.prop(table, 'num_columns')
                 col.prop(table,'fontSize')
+            
+
+            box = layout.box()
+            col = box.column()
+            row = col.row()
+            row.prop(tableGen, 'show_textFields', text="",
+                     icon=settingsIcon, emboss=False)
+
+            row.label(text=table.name + ' TextFields:')
+
+            if tableGen.show_textFields:
+                col = box.column()
+                for row_idx in range(len(table.rows)):
+                    col.label(text='Row {} TextFields'.format(row_idx))
+                    prop_path = 'bpy.context.active_object.TableGenerator.tables[bpy.context.active_object.TableGenerator.active_index].rows[row_idx].textFields'
+                    draw_textfield_settings(table.rows[row_idx], col, prop_path, entry_disabled = True, show_buttons=False)
+
 
     

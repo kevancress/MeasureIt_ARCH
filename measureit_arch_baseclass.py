@@ -351,7 +351,7 @@ class TextField(PropertyGroup):
         description='flag when text texture need to be redrawn',
         default=False)
 
-def draw_textfield_settings(item, box, prop_path, dim_skip_length = False):
+def draw_textfield_settings(item, box, prop_path, dim_skip_length = False, entry_disabled = False, show_buttons = True):
     col = box.column(align=True)
     idx = 0
     for textField in item.textFields:
@@ -369,6 +369,9 @@ def draw_textfield_settings(item, box, prop_path, dim_skip_length = False):
         if textField.autoFillText:
             row.prop(textField, 'textSource', text="")
         else:
+            if entry_disabled:
+                row = row.row()
+                row.enabled = False
             row.prop(textField, 'text', text="")
 
         if textField.textSource == 'RNAPROP' and textField.autoFillText:
@@ -376,25 +379,26 @@ def draw_textfield_settings(item, box, prop_path, dim_skip_length = False):
 
         elif textField.textSource == 'TEXT_FILE' and textField.autoFillText:
             row.prop_search(textField, 'textFile', bpy.data, 'texts', text="", icon='TEXT')
+        
+        if show_buttons:
+            row.emboss = 'PULLDOWN_MENU'
+            op = row.operator('measureit_arch.moveitem', text="", icon='TRIA_DOWN')
+            op.propPath = prop_path
+            op.upDown = 1
+            op.idx = idx
 
-        row.emboss = 'PULLDOWN_MENU'
-        op = row.operator('measureit_arch.moveitem', text="", icon='TRIA_DOWN')
-        op.propPath = prop_path
-        op.upDown = 1
-        op.idx = idx
-
-        op = row.operator(
-            'measureit_arch.moveitem', text="", icon='TRIA_UP')
-        op.propPath = prop_path
-        op.upDown = -1
-        op.idx = idx
+            op = row.operator(
+                'measureit_arch.moveitem', text="", icon='TRIA_UP')
+            op.propPath = prop_path
+            op.upDown = -1
+            op.idx = idx
 
 
-        txtRemoveOp = row.operator(
-            "measureit_arch.additem", text="", icon="X")
-        txtRemoveOp.propPath = prop_path
-        txtRemoveOp.idx = idx
-        txtRemoveOp.add = False
+            txtRemoveOp = row.operator(
+                "measureit_arch.additem", text="", icon="X")
+            txtRemoveOp.propPath = prop_path
+            txtRemoveOp.idx = idx
+            txtRemoveOp.add = False
 
 
         idx += 1

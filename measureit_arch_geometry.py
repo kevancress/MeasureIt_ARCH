@@ -2712,6 +2712,8 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 textField.textAlignment = table.textAlignment
                 textField.textPosition = table.textPosition
 
+                
+
                 if '[c]' in text:
                     text = text.replace('[c]','')
                     textField.textAlignment = 'C'
@@ -2724,12 +2726,19 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                     text = text.replace('[r]','')
                     textField.textAlignment = 'R'
                 
+                if '[m]' in text:
+                    text = text.replace('[m]','')
+                    textField.textPosition = 'M'
+
+
                 if '[\\n]' in text or '[br]':
                     text = text.replace('[\\n]', '\n')
                     text = text.replace('[br]', '\n')
 
                 if textField.text != text:
                     textField.text = text
+
+                set_text(textField, myobj, style = table, item = table)
 
                 col = table.columns[col_idx]
                 textField = row.textFields[col_idx]
@@ -2805,11 +2814,11 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                     field_origin = (cell_origin + c2)/2
 
                 if textField.textPosition == 'T':
-                    field_origin.y = (c4 - table.padding * Vector((0,1,0))- height*Vector((0,1,0))).y
+                    field_origin.y = (cell_origin + table.padding * Vector((0,-1,0))).y
                 if textField.textPosition == 'M':
                     field_origin.y =  ((cell_origin + c4)/2).y
                 if textField.textPosition == 'B':
-                    field_origin.y = (cell_origin + table.padding * Vector((0,1,0)) + height*Vector((0,1,0))).y 
+                    field_origin.y = (c4 + table.padding * Vector((0,1,0))).y 
 
 
 
