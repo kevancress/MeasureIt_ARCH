@@ -2654,11 +2654,11 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
             continue
 
         # Re generate text if file is modified
+        text_string = table.textFile.as_string()
+        text_lines = text_string.splitlines()
+
         if table.textFile.is_dirty or table.text_file_updated:
             table.text_file_updated = False
-            text_string = table.textFile.as_string()
-            text_lines = text_string.splitlines()
-
             # Figure out max rows and max columns
             max_rows = len(text_lines)
             max_columns = 0
@@ -2685,10 +2685,6 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                     row = table.rows[row_idx]
                     while len(row.textFields) < max_columns: row.textFields.add()
                     while len(row.textFields) > max_columns: row.textFields.remove(len(row.textFields)-1)
-
-                    # Set Text
-                    row.textFields[col_idx].textAlignment = table.textAlignment
-                    row.textFields[col_idx].textPosition = table.textPosition
                     try:
                         row.textFields[col_idx].text = text_list[col_idx]
                     except IndexError:
@@ -2701,13 +2697,44 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
             for col in table.columns:
                 col.width = 0
 
-            # Fit Card Width & height            
-            for row in table.rows:
-                for col_idx in range(max_columns):
-                    col = table.columns[col_idx]
-                    textField = row.textFields[col_idx]
-                    if textField.textHeight > row.height: row.height = textField.textHeight
-                    if textField.textWidth > col.width: col.width = textField.textWidth
+        # Fit Card Width & height            
+        for row_idx in range(len(table.rows)):
+            row = table.rows[row_idx]
+            raw_row_text = text_lines[row_idx].split(',')
+            for col_idx in range(len(table.columns)):
+                # Check for Special Formatting
+                textField = row.textFields[col_idx]
+                try:
+                    text = raw_row_text[col_idx]
+                except IndexError:
+                    text = ''
+
+                textField.textAlignment = table.textAlignment
+                textField.textPosition = table.textPosition
+
+                if '[c]' in text:
+                    text = text.replace('[c]','')
+                    textField.textAlignment = 'C'
+                
+                if '[l]' in text:
+                    text = text.replace('[l]','')
+                    textField.textAlignment = 'L'
+                
+                if '[r]' in text:
+                    text = text.replace('[r]','')
+                    textField.textAlignment = 'R'
+                
+                if '[\\n]' in text or '[br]':
+                    text = text.replace('[\\n]', '\n')
+                    text = text.replace('[br]', '\n')
+
+                if textField.text != text:
+                    textField.text = text
+
+                col = table.columns[col_idx]
+                textField = row.textFields[col_idx]
+                if textField.textHeight > row.height: row.height = textField.textHeight
+                if textField.textWidth > col.width: col.width = textField.textWidth
           
 
             
@@ -2732,14 +2759,14 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
         cell_y = 0
         for row in table.rows:
             # Set Row Height
-            height_fac = 0.6
+            height_fac =1
             height = (row.height / res * size * height_fac) 
             padded_height = height + table.padding * 2
             if row.height < table.min_height:
                 padded_height = (table.min_height / res * size * height_fac) + table.padding * 2
 
             #Draw Columns
-            for col_idx in range(max_columns):
+            for col_idx in range(len(table.columns)):
                 col = table.columns[col_idx]
 
                 width_fac = 0.9
@@ -2751,12 +2778,12 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
                 # Draw the table
                 xDir = fullRotMat @ Vector((1, 0, 0)) * padded_width 
-                yDir = fullRotMat @ Vector((0, 1, 0)) * padded_height
+                yDir = fullRotMat @ Vector((0, -1, 0)) * padded_height
 
                 cell_origin = origin + Vector((1, 0, 0)) * cell_x - Vector((0, 1, 0)) * cell_y
                 
 
-                if (col_idx + 1) < max_columns and (col_idx +1) > len(row.textFields)-1:
+                if (col_idx + 1) < len(table.columns) and (col_idx +1) > len(row.textFields)-1:
                     if table.extend_short_rows or (row_idx == 0 and table.extend_header):
                         xDir = xDir * (max_columns-col_idx)
 
@@ -2795,7 +2822,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 except IndexError:
                     pass
 
-                if (col_idx + 1) < max_columns and (col_idx +1) > len(row.textFields)-1:
+                if (col_idx + 1) < len(table.columns) and (col_idx +1) > len(row.textFields)-1:
                     if table.extend_short_rows or (row_idx == 0 and table.extend_header):
                         break
                 

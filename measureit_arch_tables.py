@@ -237,6 +237,7 @@ class OBJECT_PT_Tables(Panel):
 
             if tableGen.show_settings:
                 col = box.column()
+                col.template_ID(table, "font", open="font.open", unlink="font.unlink")
                 col.prop(table,'extend_header')
                 col.prop(table,'extend_short_rows')
 
