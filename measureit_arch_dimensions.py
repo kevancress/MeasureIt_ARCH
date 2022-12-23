@@ -1223,7 +1223,9 @@ def draw_alignedDimensions_settings(dim, layout):
                         unlink="font.unlink", text='Font')
         col = layout.column(align=True)
         col.prop(dim, 'fontSize', text='Font Size')
-        col.prop(dim, 'textAlignment', text='Alignment')
+        
+        if not dim.is_style:
+            col.prop(dim, 'textAlignment', text='Alignment')
 
         # Line Weight
         col = layout.column(align=True)

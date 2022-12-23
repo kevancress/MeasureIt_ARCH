@@ -49,7 +49,7 @@ from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit,\
-    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale
+    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m
 
 lastMode = {}
 lineBatch3D = {}
@@ -177,7 +177,7 @@ def update_text(textobj, props, context, fields=[]):
                 text = line
                 if props.all_caps:
                     text = line.upper()
-                line_width = blf.dimensions(font_id, text + '  ')[0]
+                line_width = blf.dimensions(font_id, text)[0]
                 if line_width > fwidth:
                     fwidth = line_width
 
@@ -845,8 +845,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                 dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension
 
                 if sceneProps.show_dim_text:
-                    square = dimText['textcard']
-                    draw_text_3D(context, dimText, dimProps, myobj, square)
+                    draw_text_3D(context, dimText, dimProps, myobj)
 
                 # Collect coords and endcaps
                 coords = [leadStartA, leadEndA, leadStartB,
@@ -879,7 +878,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                     svg_shaders.svg_fill_shader(
                         dim, filledCoords, rgb, svg, parent=svg_dim)
                     svg_shaders.svg_text_shader(
-                        dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+                        dim, dimProps, dimText.text, origin, dimText['textcard'], rgb, svg, parent=svg_dim)
 
             idx += 1
 
@@ -1213,12 +1212,13 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         # make text card
         vecX = midVec.cross(norm).normalized()
-        square = generate_text_card(
+        dim.textFields[0].textAlignment = 'C'
+        dim.textFields[0]['textcard'] = generate_text_card(
             context, dim.textFields[0], dimProps, basePoint=midPoint, xDir=vecX, yDir=midVec)
 
 
         if sceneProps.show_dim_text:
-            draw_text_3D(context, dim.textFields[0], dimProps, myobj, square)
+            draw_text_3D(context, dim.textFields[0], dimProps, myobj)
 
         # Get coords for point pass
         pointCoords = []
@@ -1267,7 +1267,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             svg_shaders.svg_fill_shader(
                 dim, filledCoords, rgb, svg, parent=svg_dim)
             svg_shaders.svg_text_shader(
-                dim, dimProps, dimText.text, origin, square, rgb, svg, parent=svg_dim)
+                dim, dimProps, dimText.text, origin, dim.textFields[0]['textcard'], rgb, svg, parent=svg_dim)
 
 
 
@@ -1451,7 +1451,9 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             dim.textFields.add()
 
         radiusText = dim.textFields[0]
+        radiusText.textAlignment = 'C'
         lengthText = dim.textFields[1]
+        lengthText.textAlignment = 'C'
 
         # format text and update if necessary
         lengthStr = format_distance(arc_length)
@@ -1474,25 +1476,23 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             vecY = midPoint.cross(norm).normalized()
             vecX = midPoint.normalized()
             rad_origin = Vector(midPoint) + 0.04 * vecY + center
-            dim.textAlignment = 'C'
-            rad_square = generate_text_card(
+            dim.textFields[0]['textcard'] = generate_text_card(
                 context, radiusText, dimProps, basePoint=rad_origin, xDir=vecX, yDir=vecY)
-
+            rad_square = dim.textFields[0]['textcard']
             if sceneProps.show_dim_text:
                 draw_text_3D(
-                    context, dim.textFields[0], dimProps, myobj, rad_square)
+                    context, dim.textFields[0], dimProps, myobj)
 
         # make Length text card
         midPoint = radiusLeader.normalized() * offsetRadius
         vecX = midPoint.cross(norm).normalized()
         vecY = midPoint.normalized()
         len_origin = Vector(midPoint) + center
-        len_square = generate_text_card(
+        dim.textFields[1]['textcard'] = generate_text_card(
             context, lengthText, dimProps, basePoint=len_origin, xDir=vecX, yDir=vecY)
-
+        len_square = dim.textFields[1]['textcard']
         if sceneProps.show_dim_text:
-            draw_text_3D(
-                context, dim.textFields[1], dimProps, myobj, len_square)
+            draw_text_3D(context, dim.textFields[1], dimProps, myobj)
 
         measure_coords = []
         measure_pointCoords = []
@@ -1533,7 +1533,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
             svg_shaders.svg_line_shader(
-                dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
+                dim, dimProps, arc_coords, lineWeight, rgb, svg, parent=svg_dim)
             svg_shaders.svg_line_shader(
                 dim, dimProps, measure_coords, lineWeight * 2, rgb, svg, parent=svg_dim)
             svg_shaders.svg_fill_shader(
@@ -1687,10 +1687,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         origin = mat @ origin
 
-
-        dimProps.textAlignment = 'C'
-        dimProps.textPosition = 'M'
-
         # Setup Text Fields
         #def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):
         #placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,vecY, is_area=True)
@@ -1714,10 +1710,9 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             set_text(textField, myobj)
 
             textcard = generate_text_card(context, textField, dimProps, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
-            textField['textcard'] = textcard
 
             if sceneProps.show_dim_text:
-                draw_text_3D(context, textField, dimProps, myobj, textField['textcard'])
+                draw_text_3D(context, textField, dimProps, myobj)
             idx += 1
 
         # Draw Fill
@@ -2593,8 +2588,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
             if sceneProps.show_dim_text:
                 for textField in fields:
-                    textcard = textField['textcard']
-                    draw_text_3D(context, textField, annotationProps, myobj, textcard)
+                    draw_text_3D(context, textField, annotationProps, myobj)
 
             if sceneProps.is_vector_draw:
                 svg_anno = svg.add(svg.g(id=annotation.name))
@@ -2653,121 +2647,254 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
     cameraX = cameraRotMat @ Vector((1, 0, 0))
 
     for table in tableGen.tables:
+        tableProps = table
 
         # Populate Text Fields from source file
         if table.textFile == None:
             continue
+
+        # Re generate text if file is modified
         text_string = table.textFile.as_string()
         text_lines = text_string.splitlines()
 
-        #check that we have enough rows
-        row_idx = 0
-        for line in text_lines:
-            try: row = table.rows[row_idx]
-            except IndexError: 
-                table.rows.add()
-                row = table.rows[row_idx]
-            row_idx += 1
+        if table.textFile.is_dirty or table.text_file_updated:
+            table.text_file_updated = False
+            # Figure out max rows and max columns
+            max_rows = len(text_lines)
+            max_columns = 0
+            for line in text_lines:
+                text_list = line.split(',')
+                columns = len(text_list)
+                if columns > max_columns: max_columns = columns
+            
+            table['max_columns'] = max_columns
 
-        # Set text Fields
-        row_idx = 0
-        for row in table.rows:
-            # Remove extra rows
-            if row_idx >= len(text_lines):
-                table.rows.remove(row_idx)
-                continue
+            # match number of rows and columns
+            while len(table.rows) < max_rows: table.rows.add()
+            while len(table.rows) > max_rows: table.rows.remove(len(table.rows)-1)
 
-            line = text_lines[row_idx]
-            text_list = line.split(',')
+            while len(table.columns) < max_columns: table.columns.add()
+            while len(table.columns) > max_columns: table.columns.remove(len(table.columns)-1)
+            
+            # Set Row Text Fields
+            for row_idx in range(max_rows):
+                line = text_lines[row_idx]
+                text_list = line.split(',')
+                for col_idx in range(max_columns):
+                    # Get right number of text fields
+                    row = table.rows[row_idx]
+                    while len(row.textFields) < max_columns: row.textFields.add()
+                    while len(row.textFields) > max_columns: row.textFields.remove(len(row.textFields)-1)
+                    try:
+                        row.textFields[col_idx].text = text_list[col_idx]
+                    except IndexError:
+                        row.textFields[col_idx].text = ''
 
-            idx = 0
-            for item in text_list:
+            # Clear Width & Height
+            for row in table.rows:
+                row.height = 0
+
+            for col in table.columns:
+                col.width = 0
+
+        # Fit Card Width & height            
+        for row_idx in range(len(table.rows)):
+            row = table.rows[row_idx]
+            raw_row_text = text_lines[row_idx].split(',')
+            for col_idx in range(len(table.columns)):
+                # Check for Special Formatting
+                textField = row.textFields[col_idx]
                 try:
-                    row.textFields[idx].text = item
+                    text = raw_row_text[col_idx]
                 except IndexError:
-                    row.textFields.add()
-                    row.textFields[idx].text = item
-                idx += 1
-            
-            idx = 0
-            for textField in row.textFields:
-                if idx >= len(text_list):
-                    row.textFields.remove(idx)
-                idx += 1
+                    text = ''
+
+                textField.textAlignment = table.textAlignment
+                textField.textPosition = table.textPosition
+
                 
-              
+
+                if '[c]' in text:
+                    text = text.replace('[c]','')
+                    textField.textAlignment = 'C'
+                
+                if '[l]' in text:
+                    text = text.replace('[l]','')
+                    textField.textAlignment = 'L'
+                
+                if '[r]' in text:
+                    text = text.replace('[r]','')
+                    textField.textAlignment = 'R'
+                
+                if '[m]' in text:
+                    text = text.replace('[m]','')
+                    textField.textPosition = 'M'
+
+
+                if '[\\n]' in text or '[br]':
+                    text = text.replace('[\\n]', '\n')
+                    text = text.replace('[br]', '\n')
+
+                if textField.text != text:
+                    textField.text = text
+
+                set_text(textField, myobj, style = table, item = table)
+
+                col = table.columns[col_idx]
+                textField = row.textFields[col_idx]
+                if textField.textHeight > row.height: row.height = textField.textHeight
+                if textField.textWidth > col.width: col.width = textField.textWidth
+          
+
             
-            row_idx += 1
-
-
-
-        # Fit Card Width & height
-        tallest = 0
-        widest = 0
-
-        for row in table.rows:
-            for textField in row.textFields:
-                if textField.textWidth > widest: widest = textField.textWidth
-                if textField.textHeight > tallest: tallest = textField.textHeight
 
         # Scale by res
         res = get_resolution()
         scale = get_scale()
-        tallest *= scale / res / 20
-        widest *= scale / res / 20
+        size = (table.fontSize / 600) * scale
+        max_columns = table['max_columns']
+
+        scale = get_scale()
+
 
 
         origin = loc
-        col_idx = 0
+     
         header_drawn = False
-
+        coords = []
         row_idx = 0
-        for row in table.rows:
 
-            for textField in row.textFields:
-                        # Draw the table
-            
-                textField.textAlignment = 'C'
-                textField.textPosition = 'M'
-                xDir = fullRotMat @ Vector((1, 0, 0)) * widest
-                yDir = fullRotMat @ Vector((0, 1, 0)) * tallest
+        cell_x = 0
+        cell_y = 0
 
-                if table.use_header and (not header_drawn):
-                    xDir *= table.num_columns
+        padding = px_to_m(table.padding, paper_space = True)
 
-                field_origin = origin + xDir * col_idx - yDir * row_idx
+        for row_idx in range(len(table.rows)):
+            # Set Row Height
+            row = table.rows[row_idx]
 
-                c1 = field_origin
-                c2 = field_origin + xDir
-                c3 = field_origin + xDir + yDir
-                c4 = field_origin + yDir
+            height = px_to_m(row.height, paper_space=True)
+            padded_height = height + padding * 2
+            if height < table.min_height* scale:
+                padded_height = (table.min_height * scale) + padding * 2
 
-                coords = [c1,c2,c2,c3,c3,c4,c4,c1]
+            #Draw Columns
+            for col_idx in range(len(table.columns)):
+                col = table.columns[col_idx]
+                textField = row.textFields[col_idx]
+
+                text = textField.text
+                num_char = len(text)
+                width = px_to_m(col.width, paper_space=True)
+                padded_width = width*0.6 + padding * 2
+                if width < table.min_width* scale:
+                    padded_width = (table.min_width *scale)  + padding * 2
+                
+                if table.c1_max_width != 0 and col_idx == 0:
+                    padded_width = (table.c1_max_width *scale)  + padding * 2
 
 
-                draw_lines(1,(0,0,0,1),coords)
+                # Draw the table
+                xDir = fullRotMat @ Vector((1, 0, 0)) * padded_width 
+                yDir = fullRotMat @ Vector((0, -1, 0)) * padded_height
 
+                cell_origin = origin + Vector((1, 0, 0)) * cell_x - Vector((0, 1, 0)) * cell_y
+                
+                c1 = cell_origin
+                c2 = cell_origin + xDir 
+                c3 = cell_origin + xDir + yDir
+                c4 = cell_origin + yDir
+
+                cell_coords = [c1,c2,c2,c3,c3,c4,c4,c1]
+
+                
+                # Row Extension Conditions
+                if table.extend_short_rows:
+                    cell_coords = [c1,c2,c3,c4]
+                    next_text = 'end'
+                    if col_idx < len(table.columns)-2:
+                        next_text = row.textFields[col_idx+1].text
+                        
+                    prev_text = 'start'
+                    if col_idx -1 >= 0:
+                        prev_text = row.textFields[col_idx-1].text
+                    
+                    if prev_text == '' and next_text != '' and textField.text != '':
+                        cell_coords.extend([c3,c2])
+
+                    elif prev_text != '' and next_text == '' and textField.text != '':
+                        cell_coords.extend([c1,c4])
+                    
+                    elif prev_text != '' and next_text != '' and textField.text != '':
+                        cell_coords.extend([c3,c2,c1,c4])
+
+                    
+                    
+                    if textField.text == '':
+                        
+                        if col_idx == 0:
+                            cell_coords.extend([c1,c4])
+                            if row_idx == len(table.rows)-1:
+                                cell_coords.extend([c3,c4])
+                        if col_idx == len(table.columns)-1:
+                            cell_coords.extend([c2,c3])
+                
+                # Add to full coords list
+                coords.extend(cell_coords)
+
+                # Set Alignment
+                if textField.textAlignment == 'L':
+                    field_origin = cell_origin + padding * Vector((1,0,0)) 
+                if textField.textAlignment == 'R':
+                    field_origin = c2 - padding * Vector((1,0,0)) 
+                if textField.textAlignment == 'C':
+                    field_origin = (cell_origin + c2)/2
+
+                if textField.textPosition == 'T':
+                    field_origin.y = (cell_origin + padding * Vector((0,-1,0))).y
+                if textField.textPosition == 'M':
+                    field_origin.y =  ((cell_origin + c4)/2).y
+                if textField.textPosition == 'B':
+                    field_origin.y = (c4 + padding * Vector((0,1,0))).y 
+
+                # Generate Text Card
                 textcard = generate_text_card(
                     context, textField, table, basePoint=field_origin, xDir=xDir, yDir=yDir, cardIdx=0)
                 textField['textcard'] = textcard
-
-                if table.use_header and (not header_drawn):
-                    header_drawn = True
-                    continue
-
-                col_idx += 1
+                
+                cell_x += padded_width
             
+            cell_y += padded_height
+            cell_x = 0
             row_idx += 1
-            col_idx = 0
 
-            if sceneProps.show_dim_text:
-                for row in table.rows:
-                    for textField in row.textFields:
-                        if 'textcard' in textField:
-                            textcard = textField['textcard']
-                            draw_text_3D(context, textField, table, myobj, textcard)
-            # Work out width
+        rawRGB = table.color
+        rgb = rgb_gamma_correct(rawRGB)
+        draw_lines(table.lineWeight,rgb,coords)
+        if sceneProps.show_dim_text:
+            for row in table.rows:
+                for textField in row.textFields:
+                    if 'textcard' in textField:
+                        draw_text_3D(context, textField, table, myobj)
+        # Work out width
 
+
+
+        ### SVG & DXF DRAW
+
+        if sceneProps.is_vector_draw:
+            svg_table = svg.add(svg.g(id=table.name))
+            svg_shaders.svg_line_shader(
+                table, tableProps, coords, table.lineWeight, rgb, svg, parent=svg_table)
+
+            for row in table.rows:
+                for textField in row.textFields:
+                    textcard = textField['textcard']
+                    svg_shaders.svg_text_shader(
+                        table, tableProps, textField.text, origin, textcard, rgb, svg, parent=svg_table)
+
+        if sceneProps.is_dxf_draw:
+            pass
 
 
 
@@ -2934,9 +3061,9 @@ def preview_dual(context):
 
                 draw_lines(3, (0, 0, 0, 0.7), coords, twoPass=True, offset=-0.0005)
 
-def draw_text_3D(context, textobj, textprops, myobj, card):
+def draw_text_3D(context, textobj, textprops, myobj):
     # get props
-
+    card = textobj['textcard']
     sceneProps = context.scene.MeasureItArchProps
 
     if sceneProps.is_vector_draw:
@@ -3222,16 +3349,16 @@ def generate_text_card(
     ]
 
     # pick approprate card based on alignment
-    if textProps.textAlignment == 'R':
+    if textobj.textAlignment == 'R':
         aOff = 0.5 * cardX
-    elif textProps.textAlignment == 'L':
+    elif textobj.textAlignment == 'L':
         aOff = -0.5 * cardX
     else:
         aOff = Vector((0.0, 0.0, 0.0))
 
-    if textProps.textPosition == 'M':
+    if textobj.textPosition == 'M':
         pOff = 0.5 * cardY
-    elif textProps.textPosition == 'B':
+    elif textobj.textPosition == 'B':
         pOff = 1.0 * cardY
     else:
         pOff = Vector((0.0, 0.0, 0.0))
@@ -3566,7 +3693,7 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     context = bpy.context
     sceneProps = context.scene.MeasureItArchProps
     flipCaps = False
-    dimProps.textPosition = 'T'
+    dim.textPosition = 'T'
     dimLineExtension = 0  # add some extension to the line if the dimension is ext
     normDistVector = distVec.normalized()
     dim.fontSize = dimProps.fontSize
@@ -3866,7 +3993,7 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
         dim.textFields.add()
 
     dimText = dim.textFields[0]
-
+    
     # format text and update if necessary
     if not dim.use_custom_text:
 
@@ -3880,16 +4007,20 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
     idx = 0
     flipCaps = None
     dimLineExtension = None
+    
     for textField in dim.textFields:
         set_text(textField, myobj)
-        placementResults = dim_text_placement(
-            dim, dimProps, origin, dist, distVector, offsetDistance, dimProps.endcapSize, cardIdx=idx, textField=textField)
+        placementResults = dim_text_placement(dim, dimProps, origin, dist, distVector, offsetDistance, dimProps.endcapSize, cardIdx=idx, textField=dim.textFields[idx])
         if idx == 0:
             flipCaps = placementResults[0]
             dimLineExtension = placementResults[1]
             origin = placementResults[2]
+        
+        textField.textAlignment = dim.textAlignment
+        textField.textPosition = dim.textPosition
+
         if sceneProps.show_dim_text:
-            draw_text_3D(context, textField, dimProps, myobj, textField['textcard'])
+            draw_text_3D(context, textField, dimProps, myobj)
         idx += 1
 
     return (flipCaps,dimLineExtension,origin)

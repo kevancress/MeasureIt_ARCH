@@ -38,7 +38,7 @@ from mathutils import Vector, Matrix
 from sys import getrecursionlimit, setrecursionlimit
 from . import vector_utils
 
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit, get_resolution, get_scale
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit, get_resolution, get_scale, pts_to_px
 
 def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None, mat=Matrix.Identity(4)):
     idName = item.name + "_lines"
@@ -347,7 +347,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
             # I wish i could tell you why this fudge factor is necessary, but for some reason
             # spec-ing svg units in inches and using this factor for text size is the only way to get
             # sensible imports in both inkscape and illustrator
-            'font-size': round(style.fontSize * 4.166666667 / (300 / res), 2),
+            'font-size': '{}px'.format(pts_to_px(style.fontSize)),
             'font-family':  font_family,
             'text-anchor': text_anchor,
             'text-align': text_anchor,

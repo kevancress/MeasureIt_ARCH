@@ -7,7 +7,8 @@ from bpy.types import PropertyGroup, Operator, Collection
 from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
     BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
-
+from .measureit_arch_units import BU_TO_INCHES
+from .measureit_arch_utils import get_resolution
 
 def recalc_index(self, context):
     # ensure index's are accurate
@@ -44,6 +45,29 @@ class StyleWrapper(PropertyGroup):
 
 def update_flag(self, context):
     self.text_updated = True
+
+def update_camera(self,context):
+    scene = context.scene
+    render = scene.render
+    ViewGen = scene.ViewGenerator
+    view = ViewGen.views[ViewGen.active_index]
+    width = view.width
+    height = view.height
+    modelScale = view.model_scale
+    paperScale = view.paper_scale
+
+    ppi = get_resolution(update_flag=True)
+    print('updating camera and render res')
+    render.resolution_percentage = 100
+    render.resolution_x = int(width * ppi * BU_TO_INCHES)
+    render.resolution_y = int(height * ppi * BU_TO_INCHES)
+
+    if width > height:
+        camera.ortho_scale = (
+            render.resolution_x / ppi / BU_TO_INCHES) * (modelScale / paperScale)
+    else:
+        camera.ortho_scale = (
+            render.resolution_y / ppi / BU_TO_INCHES) * (modelScale / paperScale)
 
 def has_dimension_generator(context):
     return context.object is not None and \
@@ -327,7 +351,7 @@ class TextField(PropertyGroup):
         items=(('L', "Left", "", 'ALIGN_LEFT', 1),
                ('C', "Center", "", 'ALIGN_CENTER', 2),
                ('R', "Right", "", 'ALIGN_RIGHT', 3)),
-        name="align Font",
+        name="Justification",
         default='L',
         description="Set Font alignment")
 
@@ -335,7 +359,7 @@ class TextField(PropertyGroup):
         items=(('T', "Top", "", 'ALIGN_TOP', 1),
                ('M', "Mid", "", 'ALIGN_MIDDLE', 2),
                ('B', "Bottom", "", 'ALIGN_BOTTOM', 3)),
-        name="align Font",
+        name="Position",
         description="Set Font Position")
 
     textWidth: IntProperty(
@@ -351,7 +375,7 @@ class TextField(PropertyGroup):
         description='flag when text texture need to be redrawn',
         default=False)
 
-def draw_textfield_settings(item, box, prop_path, dim_skip_length = False):
+def draw_textfield_settings(item, box, prop_path, dim_skip_length = False, entry_disabled = False, show_buttons = True):
     col = box.column(align=True)
     idx = 0
     for textField in item.textFields:
@@ -369,6 +393,9 @@ def draw_textfield_settings(item, box, prop_path, dim_skip_length = False):
         if textField.autoFillText:
             row.prop(textField, 'textSource', text="")
         else:
+            if entry_disabled:
+                row = row.row()
+                row.enabled = False
             row.prop(textField, 'text', text="")
 
         if textField.textSource == 'RNAPROP' and textField.autoFillText:
@@ -376,25 +403,26 @@ def draw_textfield_settings(item, box, prop_path, dim_skip_length = False):
 
         elif textField.textSource == 'TEXT_FILE' and textField.autoFillText:
             row.prop_search(textField, 'textFile', bpy.data, 'texts', text="", icon='TEXT')
+        
+        if show_buttons:
+            row.emboss = 'PULLDOWN_MENU'
+            op = row.operator('measureit_arch.moveitem', text="", icon='TRIA_DOWN')
+            op.propPath = prop_path
+            op.upDown = 1
+            op.idx = idx
 
-        row.emboss = 'PULLDOWN_MENU'
-        op = row.operator('measureit_arch.moveitem', text="", icon='TRIA_DOWN')
-        op.propPath = prop_path
-        op.upDown = 1
-        op.idx = idx
-
-        op = row.operator(
-            'measureit_arch.moveitem', text="", icon='TRIA_UP')
-        op.propPath = prop_path
-        op.upDown = -1
-        op.idx = idx
+            op = row.operator(
+                'measureit_arch.moveitem', text="", icon='TRIA_UP')
+            op.propPath = prop_path
+            op.upDown = -1
+            op.idx = idx
 
 
-        txtRemoveOp = row.operator(
-            "measureit_arch.additem", text="", icon="X")
-        txtRemoveOp.propPath = prop_path
-        txtRemoveOp.idx = idx
-        txtRemoveOp.add = False
+            txtRemoveOp = row.operator(
+                "measureit_arch.additem", text="", icon="X")
+            txtRemoveOp.propPath = prop_path
+            txtRemoveOp.idx = idx
+            txtRemoveOp.add = False
 
 
         idx += 1
@@ -414,14 +442,14 @@ class BaseWithText(BaseProp):
         items=(('L', "Left", "", 'ALIGN_LEFT', 1),
                ('C', "Center", "", 'ALIGN_CENTER', 2),
                ('R', "Right", "", 'ALIGN_RIGHT', 3)),
-        name="align Font",
+        name="Justification",
         description="Set Font alignment")
 
     textPosition: EnumProperty(
         items=(('T', "Top", "", 'ALIGN_TOP', 1),
                ('M', "Mid", "", 'ALIGN_MIDDLE', 2),
                ('B', "Bottom", "", 'ALIGN_BOTTOM', 3)),
-        name="align Font",
+        name="Position",
         description="Set Font Position")
 
     fontSize: FloatProperty(
@@ -796,7 +824,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
         soft_min=50,
         soft_max=1200,
         description="Render Resolution",
-        update=update_flag)
+        update=update_camera)
 
     metric_precision: IntProperty(
         name='Precision', min=0, max=5, default=2,

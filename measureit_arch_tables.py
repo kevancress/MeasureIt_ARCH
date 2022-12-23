@@ -34,21 +34,24 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
 
 from mathutils import Vector, Matrix, Euler, Quaternion
 from .measureit_arch_utils import get_smart_selected, get_view
-from .measureit_arch_baseclass import BaseWithText
+from .measureit_arch_baseclass import BaseWithText, draw_textfield_settings
+
+def text_file_update(self,context):
+    self.text_file_updated = True
 
 
 class RowProperties(PropertyGroup,BaseWithText):
     height: FloatProperty(
         name="Height",
         description="Row Height",
-        default=1.0)
+        default=0.0)
     
 
 class ColumnProperties(PropertyGroup,):
     width: FloatProperty(
         name="Width",
         description="Column Width",
-        default=1.0)
+        default=0.0)
 
 class TableProperties(PropertyGroup, BaseWithText):
     name: StringProperty(name="Table Name")
@@ -57,21 +60,46 @@ class TableProperties(PropertyGroup, BaseWithText):
 
     rows: CollectionProperty(type=RowProperties)
     columns: CollectionProperty(type=ColumnProperties)
-
-    num_columns: IntProperty(name='Number of Columns', min = 1, default = 2)
-
-    draw_border: BoolProperty(
-        name="Draw Border",
-        description="Draw a Border Around the table",
-        default=False)
     
-    use_header: BoolProperty(name='Use Header', default=True)
+    extend_header: BoolProperty(name='Extend Header', default=True)
+    extend_short_rows: BoolProperty(name='Extend Short Rows', default=True)
+
+    min_height: FloatProperty(
+        name="Minimum Row Height",
+        description="Minimum Row Height in Paper Space Units",
+        subtype = 'DISTANCE',
+        min = 0,
+        default=0.0)
+
+    min_width: FloatProperty(
+        name="Minimum Column Width",
+        description="Minimum Column Width in Paper Space Units",
+        subtype = 'DISTANCE',
+        min = 0,
+        default=0.0)
+
+    c1_max_width: FloatProperty(
+        name="C1 Max Width",
+        description="Max Width Of First Column in Paper Space Units",
+        subtype = 'DISTANCE',
+        min = 0,
+        default=0.0)
+    
+    padding: IntProperty(
+        name="Padding",
+        description="Cell Padding",
+        subtype = 'PIXEL',
+        soft_min = 0,
+        default= 10)
 
     textFile: PointerProperty(
         name="TextFile",
-        type = bpy.types.Text)
+        type = bpy.types.Text,
+        update = text_file_update)
     
     wrap_text: BoolProperty(name='Wrap Text', default=False)
+
+    text_file_updated: BoolProperty(name='Wrap Text', default=False)
     
     lineWeight: FloatProperty(
         name="Line Weight",
@@ -85,6 +113,7 @@ class TableContainer(PropertyGroup):
     num_tables: IntProperty(name='number of tables in collection')
 
     show_settings: BoolProperty(name='Show Sheet View Settings', default=False)
+    show_textFields: BoolProperty(name='Show Sheet View Settings', default=False)
 
     tables: CollectionProperty(type=TableProperties)
 
@@ -145,6 +174,7 @@ class AddTableButton(Operator):
                     newTable.uses_style = False
 
                 newTable.name = "Table {}".format(tableGen.num_tables)
+                newTable.textPosition = 'M'
 
                 newTable.color = (0, 0, 0, 1)
                 newTable.fontSize = 24
@@ -158,15 +188,20 @@ class AddTableButton(Operator):
 class M_ARCH_UL_Tables_List(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            view = item
+            table = item
             layout.use_property_decorate = False
             row = layout.row(align=True)
             subrow = row.row()
-            subrow.prop(view, "name", text="", emboss=False)
+            subrow.prop(table, "name", text="", emboss=False)
+            subrow = row.row()
+            subrow.scale_x = 0.6
+            subrow.prop(table, 'color', text="")
 
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon='MESH_CUBE')
+
+            
 
 
 class OBJECT_PT_Tables(Panel):
@@ -217,10 +252,59 @@ class OBJECT_PT_Tables(Panel):
 
             if tableGen.show_settings:
                 col = box.column()
-                col.prop(table,'draw_border')
-                col.prop(table, 'use_header')
-                col.prop(table, 'wrap_text')
+
                 col.prop(table,'textFile')
-                col.prop(table, 'num_columns')
+
+                col = box.column()
+                split = box.split(factor=0.485)
+                col = split.column()
+                col.alignment = 'RIGHT'
+
+                col.label(text='Font')
+                col = split.column(align=True)
+                col.template_ID(
+                    table, "font", open="font.open", unlink="font.unlink")
+                
+                col = box.column()
+                col.prop(table,'fontSize')
+                col.prop(table,'lineWeight')
+
+                col.prop(table,'textAlignment')
+                col.prop(table,'textPosition')         
+
+                col = box.column()
+                col.prop(table,'min_width')
+                col.prop(table,'min_height')
+                col.prop(table,'padding')
+                col.prop(table,'c1_max_width')
+
+                col = box.column()
+                col.prop(table,'extend_short_rows')
+
+
+
+                
+                #col.prop(table, 'use_header')
+                #col.prop(table, 'wrap_text')
+
+                #col.prop(table, 'num_columns')
+                
+            
+
+            box = layout.box()
+            col = box.column()
+            row = col.row()
+            row.prop(tableGen, 'show_textFields', text="",
+                     icon=settingsIcon, emboss=False)
+
+            row.label(text=table.name + ' TextFields:')
+
+            if tableGen.show_textFields:
+                col = box.column()
+                for row_idx in range(len(table.rows)):
+                    col.label(text='Row {} TextFields'.format(row_idx))
+                    prop_path = 'bpy.context.active_object.TableGenerator.tables[bpy.context.active_object.TableGenerator.active_index].rows[row_idx].textFields'
+                    draw_textfield_settings(table.rows[row_idx], col, prop_path, entry_disabled = True, show_buttons=False)
+
 
     

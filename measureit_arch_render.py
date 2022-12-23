@@ -379,7 +379,6 @@ def render_main_svg(self, context):
     with Set_Render(sceneProps, is_vector = True):
         vector_utils.clear_db()
         
-
         clipdepth = context.scene.camera.data.clip_end
         objlist = context.view_layer.objects
 
@@ -388,8 +387,8 @@ def render_main_svg(self, context):
         width = int(scene.render.resolution_x * render_scale)
         height = int(scene.render.resolution_y * render_scale)
 
-
         view_matrix_3d = scene.camera.matrix_world.inverted()
+        
         # Render Depth Buffer
 
         if view.vector_depthtest:
