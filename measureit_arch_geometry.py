@@ -33,6 +33,7 @@ import math
 import numpy as np
 import svgwrite
 import time
+import os
 
 from bpy_extras import mesh_utils
 from datetime import datetime
@@ -49,13 +50,15 @@ from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit,\
-    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m
+    OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
+    load_shader_str
 
 lastMode = {}
 lineBatch3D = {}
 dashedBatch3D = {}
 hiddenBatch3D = {}
 
+AllLinesBuffer = {"coords":[],"weights":[],"colors":[]}
 # define Shaders
 
 # Alter which frag shaders are used depending on the blender version
@@ -101,6 +104,13 @@ pointShader = gpu.types.GPUShader(
 textShader = gpu.types.GPUShader(
     Text_Shader.vertex_shader,
     textfrag)
+
+# Make the lines ubershader
+allLinesShader = gpu.types.GPUShader(
+    load_shader_str("All_Lines\All_Lines_Vert.glsl"),
+    load_shader_str("All_Lines\All_Lines_Frag.glsl"),
+    geocode = load_shader_str("All_Lines\All_Lines_Geo.glsl")
+)
 
 
 def get_dim_tag(self, obj):
@@ -340,9 +350,9 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 weight = hatch.patternWeight
                 scale = get_scale()
                 ortho_scale = view.camera.data.ortho_scale
-               
+
                 color = hatch.line_color
-                
+
 
                 if sceneProps.is_vector_draw:
                     pattern = svgwrite.pattern.Pattern(width="{}px".format(size), height="{}px".format(size), id=name, patternUnits="userSpaceOnUse", **{
@@ -1056,7 +1066,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
             viewAxis = Vector(viewSector)
             if viewAxis[0] < 0 or viewAxis[1] < 0 or viewAxis[2] < 0:
                 viewAxis *= -1
-        
+
         vec = -axisVec.cross(dirVector).normalized()
         viewAxisDiff = Vector((
             alignedDistVector[0] * vec[0],
@@ -2616,11 +2626,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
 def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = None):
     scene = context.scene
-    sceneProps = scene.MeasureItArchProps 
+    sceneProps = scene.MeasureItArchProps
 
     # Get Camera Aligned Rot Mats
-  
-    
+
+
     # Get local Rotation and Translation
     rot = mat.to_quaternion()
     loc = mat.to_translation()
@@ -2642,7 +2652,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
     cameraRotMat = cameraRotMat.to_4x4()
 
     fullRotMat = annoMat @ cameraRotMat
-    extMat = locMatrix @ fullRotMat 
+    extMat = locMatrix @ fullRotMat
 
     cameraX = cameraRotMat @ Vector((1, 0, 0))
 
@@ -2666,7 +2676,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 text_list = line.split(',')
                 columns = len(text_list)
                 if columns > max_columns: max_columns = columns
-            
+
             table['max_columns'] = max_columns
 
             # match number of rows and columns
@@ -2675,7 +2685,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
             while len(table.columns) < max_columns: table.columns.add()
             while len(table.columns) > max_columns: table.columns.remove(len(table.columns)-1)
-            
+
             # Set Row Text Fields
             for row_idx in range(max_rows):
                 line = text_lines[row_idx]
@@ -2697,7 +2707,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
             for col in table.columns:
                 col.width = 0
 
-        # Fit Card Width & height            
+        # Fit Card Width & height
         for row_idx in range(len(table.rows)):
             row = table.rows[row_idx]
             raw_row_text = text_lines[row_idx].split(',')
@@ -2712,20 +2722,20 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 textField.textAlignment = table.textAlignment
                 textField.textPosition = table.textPosition
 
-                
+
 
                 if '[c]' in text:
                     text = text.replace('[c]','')
                     textField.textAlignment = 'C'
-                
+
                 if '[l]' in text:
                     text = text.replace('[l]','')
                     textField.textAlignment = 'L'
-                
+
                 if '[r]' in text:
                     text = text.replace('[r]','')
                     textField.textAlignment = 'R'
-                
+
                 if '[m]' in text:
                     text = text.replace('[m]','')
                     textField.textPosition = 'M'
@@ -2744,9 +2754,9 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 textField = row.textFields[col_idx]
                 if textField.textHeight > row.height: row.height = textField.textHeight
                 if textField.textWidth > col.width: col.width = textField.textWidth
-          
 
-            
+
+
 
         # Scale by res
         res = get_resolution()
@@ -2759,7 +2769,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
 
         origin = loc
-     
+
         header_drawn = False
         coords = []
         row_idx = 0
@@ -2789,64 +2799,64 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 padded_width = width*0.6 + padding * 2
                 if width < table.min_width* scale:
                     padded_width = (table.min_width *scale)  + padding * 2
-                
+
                 if table.c1_max_width != 0 and col_idx == 0:
                     padded_width = (table.c1_max_width *scale)  + padding * 2
 
 
                 # Draw the table
-                xDir = fullRotMat @ Vector((1, 0, 0)) * padded_width 
+                xDir = fullRotMat @ Vector((1, 0, 0)) * padded_width
                 yDir = fullRotMat @ Vector((0, -1, 0)) * padded_height
 
                 cell_origin = origin + Vector((1, 0, 0)) * cell_x - Vector((0, 1, 0)) * cell_y
-                
+
                 c1 = cell_origin
-                c2 = cell_origin + xDir 
+                c2 = cell_origin + xDir
                 c3 = cell_origin + xDir + yDir
                 c4 = cell_origin + yDir
 
                 cell_coords = [c1,c2,c2,c3,c3,c4,c4,c1]
 
-                
+
                 # Row Extension Conditions
                 if table.extend_short_rows:
                     cell_coords = [c1,c2,c3,c4]
                     next_text = 'end'
                     if col_idx < len(table.columns)-2:
                         next_text = row.textFields[col_idx+1].text
-                        
+
                     prev_text = 'start'
                     if col_idx -1 >= 0:
                         prev_text = row.textFields[col_idx-1].text
-                    
+
                     if prev_text == '' and next_text != '' and textField.text != '':
                         cell_coords.extend([c3,c2])
 
                     elif prev_text != '' and next_text == '' and textField.text != '':
                         cell_coords.extend([c1,c4])
-                    
+
                     elif prev_text != '' and next_text != '' and textField.text != '':
                         cell_coords.extend([c3,c2,c1,c4])
 
-                    
-                    
+
+
                     if textField.text == '':
-                        
+
                         if col_idx == 0:
                             cell_coords.extend([c1,c4])
                             if row_idx == len(table.rows)-1:
                                 cell_coords.extend([c3,c4])
                         if col_idx == len(table.columns)-1:
                             cell_coords.extend([c2,c3])
-                
+
                 # Add to full coords list
                 coords.extend(cell_coords)
 
                 # Set Alignment
                 if textField.textAlignment == 'L':
-                    field_origin = cell_origin + padding * Vector((1,0,0)) 
+                    field_origin = cell_origin + padding * Vector((1,0,0))
                 if textField.textAlignment == 'R':
-                    field_origin = c2 - padding * Vector((1,0,0)) 
+                    field_origin = c2 - padding * Vector((1,0,0))
                 if textField.textAlignment == 'C':
                     field_origin = (cell_origin + c2)/2
 
@@ -2855,15 +2865,15 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 if textField.textPosition == 'M':
                     field_origin.y =  ((cell_origin + c4)/2).y
                 if textField.textPosition == 'B':
-                    field_origin.y = (c4 + padding * Vector((0,1,0))).y 
+                    field_origin.y = (c4 + padding * Vector((0,1,0))).y
 
                 # Generate Text Card
                 textcard = generate_text_card(
                     context, textField, table, basePoint=field_origin, xDir=xDir, yDir=yDir, cardIdx=0)
                 textField['textcard'] = textcard
-                
+
                 cell_x += padded_width
-            
+
             cell_y += padded_height
             cell_x = 0
             row_idx += 1
@@ -3641,40 +3651,80 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     viewport = get_viewport()
+    global AllLinesBuffer
+    if True:
+        for coord in coords:
+            AllLinesBuffer['coords'].append(coord)
+            AllLinesBuffer['colors'].append(rgb)
+            AllLinesBuffer['weights'].append(lineWeight)
 
-    lineShader.bind()
-    lineShader.uniform_float("Viewport", viewport)
-    lineShader.uniform_float("thickness", lineWeight)
-    lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-    lineShader.uniform_float("offset", offset)
-    gpu.shader.unbind()
+    else:
 
-    # batch & Draw Shader
-    batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
+        lineShader.bind()
+        lineShader.uniform_float("Viewport", viewport)
+        lineShader.uniform_float("thickness", lineWeight)
+        lineShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        lineShader.uniform_float("offset", offset)
+        gpu.shader.unbind()
 
-    if rgb[3] == 1 and twoPass:
+        # batch & Draw Shader
+        batch3d = batch_for_shader(lineShader, 'LINES', {"pos": coords})
 
-        bgl.glDepthMask(True)
-        lineShader.uniform_float("depthPass", True)
+        if rgb[3] == 1 and twoPass:
+
+            bgl.glDepthMask(True)
+            lineShader.uniform_float("depthPass", True)
+            batch3d.program_set(lineShader)
+            batch3d.draw()
+
+        if sceneProps.is_render_draw:
+            bgl.glBlendEquation(bgl.GL_MAX)
+
+        bgl.glDepthMask(False)
+        lineShader.uniform_float("depthPass", False)
         batch3d.program_set(lineShader)
         batch3d.draw()
+        gpu.shader.unbind()
 
-    if sceneProps.is_render_draw:
-        bgl.glBlendEquation(bgl.GL_MAX)
+        if pointPass:
+            if pointCoords is None:
+                pointCoords = coords
+            draw_points(lineWeight, rgb, pointCoords, offset)
+
+        bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+
+def clear_line_buffers():
+    global AllLinesBuffer
+    AllLinesBuffer["coords"] = []
+    AllLinesBuffer["weights"] = []
+    AllLinesBuffer["colors"] = []
+    pass
+
+def draw_all_lines():
+    context = bpy.context
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+    viewport = get_viewport()
+    global AllLinesBuffer
+
+    allLinesShader.bind()
+    allLinesShader.uniform_float("Viewport", viewport)
+    allLinesShader.uniform_float("offset", -0.01)
+    # batch & Draw Shader
+    batch3d = batch_for_shader(
+        allLinesShader,
+        'LINES',
+        {"pos": AllLinesBuffer["coords"],
+         "weight":AllLinesBuffer["weights"],
+         "color":AllLinesBuffer["colors"]
+        })
 
     bgl.glDepthMask(False)
-    lineShader.uniform_float("depthPass", False)
-    batch3d.program_set(lineShader)
+    batch3d.program_set(allLinesShader)
     batch3d.draw()
     gpu.shader.unbind()
 
-    if pointPass:
-        if pointCoords is None:
-            pointCoords = coords
-        draw_points(lineWeight, rgb, pointCoords, offset)
-
-    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-
+    pass
 
 def cap_extension(dirVec, capSize, capAngle):
     scale = get_scale()
@@ -3852,6 +3902,8 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
+    clear_line_buffers()
+
     if sceneProps.is_render_draw:
         startTime = time.time()
 
@@ -3982,6 +4034,9 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                         for axisDim in DimGen.axisDimensions:
                             draw_axisDimension(
                                 context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
+
+    draw_all_lines()
+
     if sceneProps.is_render_draw:
         endTime = time.time()
         print("Draw 3D Loop Time: " + str(endTime - startTime))
@@ -3993,7 +4048,7 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
         dim.textFields.add()
 
     dimText = dim.textFields[0]
-    
+
     # format text and update if necessary
     if not dim.use_custom_text:
 
@@ -4007,7 +4062,7 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
     idx = 0
     flipCaps = None
     dimLineExtension = None
-    
+
     for textField in dim.textFields:
         set_text(textField, myobj)
         placementResults = dim_text_placement(dim, dimProps, origin, dist, distVector, offsetDistance, dimProps.endcapSize, cardIdx=idx, textField=dim.textFields[idx])
@@ -4015,7 +4070,7 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
             flipCaps = placementResults[0]
             dimLineExtension = placementResults[1]
             origin = placementResults[2]
-        
+
         textField.textAlignment = dim.textAlignment
         textField.textPosition = dim.textPosition
 

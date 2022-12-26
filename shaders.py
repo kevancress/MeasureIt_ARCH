@@ -462,7 +462,7 @@ class Frag_Shaders_3D_B283 ():
             aaColor = mix(mixColor,aaColor,aa);
 
 
-            if (fract(g_ArcLength / (u_dashSize + u_gapSize)) > u_dashSize/(u_dashSize + u_gapSize))discard; 
+            if (fract(g_ArcLength / (u_dashSize + u_gapSize)) > u_dashSize/(u_dashSize + u_gapSize))discard;
             fragColor = blender_srgb_to_framebuffer_space(aaColor);
         }
     '''
@@ -587,7 +587,7 @@ class Dashed_Shader_3D ():
             arcLengths[1] = 0;
             float scale_fac = Render.x / Viewport.x;
             if (screenSpaceDash){
-               
+
                 arcLengths[2] = length(ssp2-ssp1)*resolution*scale_fac;
                 arcLengths[3] = length(ssp2-ssp1)*resolution*scale_fac;
             } else {
@@ -713,7 +713,7 @@ class Point_Shader_3D ():
             for (int i = 0; i <= segments; i++) {
                 // Angle between each side in radians
                 float ang = PI * 2.0 / float(segments) * float(i);
-                
+
                 // Offset from center of point
                 vec2 offset = vec2(cos(ang)*radius, -sin(ang)*radius);
                 offset.x /= aspect;

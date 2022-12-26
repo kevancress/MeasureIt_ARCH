@@ -1,6 +1,7 @@
 import bpy
 import bmesh
 import bgl
+import os
 
 from mathutils import Vector
 from addon_utils import check, paths
@@ -21,11 +22,11 @@ __all__ = (
     'multi_setattr',
 )
 
-_imp_scales_dict ={ 
+_imp_scales_dict ={
         "1' = 1'" : (1,1),
         "2\" = 1'" : (1,6),
         "1\" = 1'" : (1,12),
-        "3/4\" = 1'" : (1,16),  
+        "3/4\" = 1'" : (1,16),
         "1/2\" = 1'" : (1,24),
         "3/8\" = 1'" : (1,32),
         "1/4\" = 1'" : (1,48),
@@ -36,7 +37,7 @@ _imp_scales_dict ={
 }
 
 
-_metric_scales_dict ={ 
+_metric_scales_dict ={
         "1:1" : (1,1),
         "1:2" : (1,2),
         "1:5" : (1,5),
@@ -45,7 +46,7 @@ _metric_scales_dict ={
         "1:50" : (1,50),
         "1:100" : (1,100),
         "1:200" : (1,200),
-        "1:500" : (1,500),       
+        "1:500" : (1,500),
 }
 
 _cad_col_dict = {
@@ -61,6 +62,13 @@ _cad_col_dict = {
     255: (0,0,0,1)
 }
 
+
+def load_shader_str(file):
+    path = os.path.dirname(os.path.abspath(__file__))
+    shader_file = open(os.path.join(path, "glsl\{}".format(file)), "r")
+    shader_str = shader_file.read()
+    shader_file.close()
+    return shader_str
 
 
 def safe_name(name, is_dxf = False):
@@ -219,7 +227,7 @@ def get_resolution(update_flag = False):
     else:
         if sceneProps.use_preview_res:  # If we Use Preview Res
             return sceneProps.preview_resolution
-       
+
         else:  # Otherwise Get the view resolution
             if view.use_resolution_override and view_valid:
                 return view.res
@@ -515,10 +523,10 @@ def get_smart_selected(filterObj=None, forceEdges=False, usePairs=True):
                                 pointList.append(pointData)
 
         print('In Edit Mode')
-    
+
     # Curve Selection
     elif bpy.context.mode == 'EDIT_CURVE':
-    
+
         objs = bpy.context.objects_in_mode
         for obj in objs:
             spline_id=0
