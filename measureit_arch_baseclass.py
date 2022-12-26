@@ -246,7 +246,7 @@ class BaseProp:
         name="Visibility",
         description="how/hide",
         default=True)
-    
+
     # Endcap properties are defined here to ensure compatiblity but the
     # enumProps are overwritten in child property groups
     endcapSize: FloatProperty(
@@ -403,7 +403,7 @@ def draw_textfield_settings(item, box, prop_path, dim_skip_length = False, entry
 
         elif textField.textSource == 'TEXT_FILE' and textField.autoFillText:
             row.prop_search(textField, 'textFile', bpy.data, 'texts', text="", icon='TEXT')
-        
+
         if show_buttons:
             row.emboss = 'PULLDOWN_MENU'
             op = row.operator('measureit_arch.moveitem', text="", icon='TRIA_DOWN')
@@ -756,7 +756,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
     angle_precision: IntProperty(
         name='Angle Precision', min=0, max=5, default=0,
         description="Angle decimal precision")
-    
+
     mm_precision: IntProperty(
         name='mm Precision', min=0, max=5, default=0,
         description="mm decimal precision")
@@ -810,6 +810,12 @@ class MeasureItARCHSceneProps(PropertyGroup):
         default=True,
         update=update_flag)
 
+    use_new_draw_pipeline: BoolProperty(
+        name="Use new draw pipeline ",
+        description="Use the new single draw call pipeline for drawing all lines",
+        default=True,
+        update=update_flag)
+
     preview_resolution: IntProperty(
         name='Default Resolution ', min=1,
         default=72,
@@ -817,7 +823,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
         soft_max=1200,
         description="Preview Resolution",
         update=update_flag)
-    
+
     render_resolution: IntProperty(
         name='Render Resolution ', min=1,
         default=300,

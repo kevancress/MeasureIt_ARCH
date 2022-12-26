@@ -58,7 +58,14 @@ lineBatch3D = {}
 dashedBatch3D = {}
 hiddenBatch3D = {}
 
-AllLinesBuffer = {"coords":[],"weights":[],"colors":[]}
+AllLinesBuffer = {
+    "coords":[],
+    "weights":[],
+    "colors":[],
+    "offsets":[]
+    }
+
+AllLinesBatch = None
 # define Shaders
 
 # Alter which frag shaders are used depending on the blender version
@@ -2258,57 +2265,61 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 batchDashed.draw()
 
             else:
-                lineGroupShader.bind()
-                lineGroupShader.uniform_float("Viewport", viewport)
-                lineGroupShader.uniform_float("objectMatrix", mat)
-                lineGroupShader.uniform_float("thickness", lineWeight)
-                lineGroupShader.uniform_float(
-                    "extension", lineGroup.lineOverExtension)
-                lineGroupShader.uniform_float("pointPass", lineProps.pointPass)
-                lineGroupShader.uniform_float(
-                    "weightInfluence", lineGroup.weightGroupInfluence)
-                lineGroupShader.uniform_float(
-                    "finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                lineGroupShader.uniform_float("zOffset", -offset)
-
-                # colors = [(rgb[0], rgb[1], rgb[2], rgb[3]) for coord in range(len(coords))]
-
-                global lineBatch3D
-                batchKey = myobj.name + lineGroup.name + lineGroup.creation_time
-                batch3d = None
-                if batchKey not in lineBatch3D or recoord_flag:
-                    if not lineGroup.chain:
-                        lineBatch3D[batchKey] = batch_for_shader(
-                            lineGroupShader, 'LINES', {"pos": coords, "weight": weights})
-                        batch3d = lineBatch3D[batchKey]
-                    else:
-                        lineBatch3D[batchKey] = batch_for_shader(
-                            lineGroupShader, 'LINE_STRIP', {"pos": coords, "weight": weights})
-                        batch3d = lineBatch3D[batchKey]
+                if sceneProps.use_new_draw_pipeline:
+                    draw_lines(lineWeight,rgb,coords,offset=offset,twoPass=True, pointPass= lineProps.pointPass)
 
                 else:
-                    batch3d = lineBatch3D[batchKey]
+                    lineGroupShader.bind()
+                    lineGroupShader.uniform_float("Viewport", viewport)
+                    lineGroupShader.uniform_float("objectMatrix", mat)
+                    lineGroupShader.uniform_float("thickness", lineWeight)
+                    lineGroupShader.uniform_float(
+                        "extension", lineGroup.lineOverExtension)
+                    lineGroupShader.uniform_float("pointPass", lineProps.pointPass)
+                    lineGroupShader.uniform_float(
+                        "weightInfluence", lineGroup.weightGroupInfluence)
+                    lineGroupShader.uniform_float(
+                        "finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+                    lineGroupShader.uniform_float("zOffset", -offset)
 
-                if rgb[3] == 1:
-                    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-                                    bgl.GL_ONE_MINUS_SRC_ALPHA)
-                    bgl.glDepthMask(True)
-                    lineGroupShader.uniform_float("depthPass", True)
+                    # colors = [(rgb[0], rgb[1], rgb[2], rgb[3]) for coord in range(len(coords))]
+
+                    global lineBatch3D
+                    batchKey = myobj.name + lineGroup.name + lineGroup.creation_time
+                    batch3d = None
+                    if batchKey not in lineBatch3D or recoord_flag:
+                        if not lineGroup.chain:
+                            lineBatch3D[batchKey] = batch_for_shader(
+                                lineGroupShader, 'LINES', {"pos": coords, "weight": weights})
+                            batch3d = lineBatch3D[batchKey]
+                        else:
+                            lineBatch3D[batchKey] = batch_for_shader(
+                                lineGroupShader, 'LINE_STRIP', {"pos": coords, "weight": weights})
+                            batch3d = lineBatch3D[batchKey]
+
+                    else:
+                        batch3d = lineBatch3D[batchKey]
+
+                    if rgb[3] == 1:
+                        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+                                        bgl.GL_ONE_MINUS_SRC_ALPHA)
+                        bgl.glDepthMask(True)
+                        lineGroupShader.uniform_float("depthPass", True)
+                        batch3d.program_set(lineGroupShader)
+                        batch3d.draw()
+
+                    if sceneProps.is_render_draw:
+                        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+                                        bgl.GL_ONE_MINUS_SRC_ALPHA)
+                        # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+                        bgl.glBlendEquation(bgl.GL_MAX)
+
+                    bgl.glDepthMask(False)
+                    lineGroupShader.uniform_float("depthPass", False)
                     batch3d.program_set(lineGroupShader)
                     batch3d.draw()
 
-                if sceneProps.is_render_draw:
-                    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-                                    bgl.GL_ONE_MINUS_SRC_ALPHA)
-                    # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-                    bgl.glBlendEquation(bgl.GL_MAX)
-
-                bgl.glDepthMask(False)
-                lineGroupShader.uniform_float("depthPass", False)
-                batch3d.program_set(lineGroupShader)
-                batch3d.draw()
-
-                gpu.shader.unbind()
+                    gpu.shader.unbind()
 
             if sceneProps.is_vector_draw:
                 if not lineProps.chain:
@@ -2592,8 +2603,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                     dotcoords.append(dot)
                     filledcoords.append(fill)
 
-                draw_lines(lineWeight, rgb, coords,
-                        twoPass=True, pointPass=True)
+                draw_lines(lineWeight, rgb, coords, twoPass=True, pointPass=True)
 
 
             if sceneProps.show_dim_text:
@@ -3652,14 +3662,17 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
     sceneProps = scene.MeasureItArchProps
     viewport = get_viewport()
     global AllLinesBuffer
-    if True:
+
+    # New method, dump everything into the buffer
+    if sceneProps.use_new_draw_pipeline:
         for coord in coords:
             AllLinesBuffer['coords'].append(coord)
             AllLinesBuffer['colors'].append(rgb)
             AllLinesBuffer['weights'].append(lineWeight)
+            AllLinesBuffer['offsets'].append(offset)
 
+    # Old Method With a draw call for each Line
     else:
-
         lineShader.bind()
         lineShader.uniform_float("Viewport", viewport)
         lineShader.uniform_float("thickness", lineWeight)
@@ -3686,18 +3699,19 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
         batch3d.draw()
         gpu.shader.unbind()
 
-        if pointPass:
-            if pointCoords is None:
-                pointCoords = coords
-            draw_points(lineWeight, rgb, pointCoords, offset)
+    if pointPass:
+        if pointCoords is None:
+            pointCoords = coords
+        draw_points(lineWeight, rgb, pointCoords, offset)
 
-        bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
 def clear_line_buffers():
     global AllLinesBuffer
     AllLinesBuffer["coords"] = []
     AllLinesBuffer["weights"] = []
     AllLinesBuffer["colors"] = []
+    AllLinesBuffer["offsets"] = []
     pass
 
 def draw_all_lines():
@@ -3706,20 +3720,29 @@ def draw_all_lines():
     sceneProps = scene.MeasureItArchProps
     viewport = get_viewport()
     global AllLinesBuffer
+    global AllLinesBatch
+
+    if not sceneProps.use_new_draw_pipeline:
+        return
 
     allLinesShader.bind()
     allLinesShader.uniform_float("Viewport", viewport)
-    allLinesShader.uniform_float("offset", -0.01)
     # batch & Draw Shader
+
     batch3d = batch_for_shader(
         allLinesShader,
         'LINES',
         {"pos": AllLinesBuffer["coords"],
-         "weight":AllLinesBuffer["weights"],
-         "color":AllLinesBuffer["colors"]
+        "weight":AllLinesBuffer["weights"],
+        "color": AllLinesBuffer["colors"],
+        "offset": AllLinesBuffer["offsets"]
         })
 
+
+    bgl.glDepthFunc(bgl.GL_LEQUAL)
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
     bgl.glDepthMask(False)
+    allLinesShader.uniform_float("depthPass", False)
     batch3d.program_set(allLinesShader)
     batch3d.draw()
     gpu.shader.unbind()

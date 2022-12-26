@@ -1,9 +1,9 @@
 uniform mat4 ModelViewProjectionMatrix;
-uniform float offset;
 
 in vec3 pos;
 in float weight;
 in vec4 color;
+in float offset;
 
 out float v_weight;
 out vec4 v_color;

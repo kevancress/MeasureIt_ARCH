@@ -308,6 +308,7 @@ class SCENE_PT_MARCH_Settings(Panel):
 
         if sceneProps.enable_experimental:
             col.prop(sceneProps, "instance_dims")
+            col.prop(sceneProps, "use_new_draw_pipeline")
         # col.prop(sceneProps, "debug_flip_text")
 
         col.label(text = "MeasureIt_ARCH Version Info:")

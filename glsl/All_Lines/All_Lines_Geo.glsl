@@ -3,7 +3,6 @@ layout(triangle_strip, max_vertices = 10) out;
 
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 Viewport;
-uniform float thickness;
 
 in float v_weight[];
 in vec4 v_color[];
