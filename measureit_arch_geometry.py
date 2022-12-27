@@ -45,7 +45,6 @@ from sys import getrecursionlimit, setrecursionlimit
 
 from . import svg_shaders
 from . import dxf_shaders
-from .shaders import *
 from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
@@ -73,43 +72,38 @@ AllLinesBatch = None
 # https://developer.blender.org/T74139
 
 if bpy.app.version > (2, 83, 0):
-    aafrag = Frag_Shaders_3D_B283.aa_fragment_shader
-    basefrag = Frag_Shaders_3D_B283.base_fragment_shader
-    dashedfrag = Frag_Shaders_3D_B283.dashed_fragment_shader
-    textfrag = Frag_Shaders_3D_B283.text_fragment_shader
+    aafrag = load_shader_str("aa_frag.glsl")
+    basefrag = load_shader_str("base_frag.glsl")
+    dashedfrag = load_shader_str("Dashed_Line_Shader\Dashed_Line_Frag.glsl")
+    textfrag = load_shader_str("Text_Shader\Text_Frag.glsl")
 else:
-    aafrag = Base_Shader_3D_AA.fragment_shader
-    basefrag = Base_Shader_3D.fragment_shader
-    dashedfrag = Dashed_Shader_3D.fragment_shader
-    textfrag = Text_Shader.fragment_shader
+    aafrag = load_shader_str("legacy_frag\aa_frag.glsl")
+    basefrag = load_shader_str("legacy_frag\base_frag.glsl")
+    dashedfrag = load_shader_str("legacy_frag\dashed_frag.glsl")
+    textfrag = load_shader_str("legacy_frag\text_frag.glsl")
 
 
 lineShader = gpu.types.GPUShader(
-    Base_Shader_3D.vertex_shader,
+    load_shader_str("base_vert.glsl"),
     aafrag,
-    geocode=Line_Shader_3D.geometry_shader)
-
-lineGroupShader = gpu.types.GPUShader(
-    Line_Group_Shader_3D.vertex_shader,
-    aafrag,
-    geocode=Line_Group_Shader_3D.geometry_shader)
+    geocode=load_shader_str("Basic_Line\Basic_Line_Geo.glsl"))
 
 triShader = gpu.types.GPUShader(
-    Base_Shader_3D.vertex_shader,
+    load_shader_str("base_vert.glsl"),
     basefrag)
 
 dashedLineShader = gpu.types.GPUShader(
-    Dashed_Shader_3D.vertex_shader,
+    load_shader_str("Dashed_Line_Shader\Dashed_Line_Vert.glsl"),
     dashedfrag,
-    geocode=Dashed_Shader_3D.geometry_shader)
+    geocode=load_shader_str("Dashed_Line_Shader\Dashed_Line_Geo.glsl"))
 
 pointShader = gpu.types.GPUShader(
-    Point_Shader_3D.vertex_shader,
+    load_shader_str("Point_Shader\Point_Vert.glsl"),
     aafrag,
-    geocode=Point_Shader_3D.geometry_shader)
+    geocode=load_shader_str("Point_Shader\Point_Geo.glsl"))
 
 textShader = gpu.types.GPUShader(
-    Text_Shader.vertex_shader,
+    load_shader_str("Text_Shader\Text_Vert.glsl"),
     textfrag)
 
 # Make the lines ubershader
@@ -118,6 +112,12 @@ allLinesShader = gpu.types.GPUShader(
     load_shader_str("All_Lines\All_Lines_Frag.glsl"),
     geocode = load_shader_str("All_Lines\All_Lines_Geo.glsl")
 )
+
+# Line Group Shader from file
+lineGroupShader = gpu.types.GPUShader(
+    load_shader_str("Line_Group_Shader\Line_Group_Vert.glsl"),
+    aafrag,
+    geocode = load_shader_str("Line_Group_Shader\Line_Group_Geo.glsl"))
 
 
 def get_dim_tag(self, obj):
@@ -3169,31 +3169,6 @@ def draw_text_3D(context, textobj, textprops, myobj):
             uv = flipMatrixY @ Vector(uv)
             flippedUVs.append(uv)
         normalizedDeviceUVs = flippedUVs
-
-    # Draw View Axis in Red and Card Axis in Green for debug
-    autoflipdebug = sceneProps.debug_flip_text
-    if autoflipdebug:
-        viewport = [context.area.width, context.area.height]
-        lineShader.bind()
-        lineShader.uniform_float("Viewport", viewport)
-        lineShader.uniform_float("thickness", 4)
-        lineShader.uniform_float("finalColor", (1, 0, 0, 1))
-        lineShader.uniform_float("offset", 0)
-
-        zero = Vector((0, 0, 0))
-        coords = [zero, viewAxisX / 2, zero, viewAxisY]
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-        batch.program_set(lineShader)
-        batch.draw()
-
-        lineShader.uniform_float("finalColor", (0, 1, 0, 1))
-        coords = [zero, cardDirX / 2, zero, cardDirY]
-        batch = batch_for_shader(lineShader, 'LINES', {"pos": coords})
-        batch.program_set(lineShader)
-        batch.draw()
-
-        print("X dot: " + str(cardDirX.dot(viewAxisX)))
-        print("Y dot: " + str(cardDirY.dot(viewAxisY)))
 
     uvs = []
     for normUV in normalizedDeviceUVs:

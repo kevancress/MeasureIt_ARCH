@@ -1,14 +1,14 @@
 in vec2 mTexCoord;
+in vec4 fcolor;
 in vec4 gl_FragCoord;
-in vec4 g_color;
 in float alpha;
 
+uniform vec4 finalColor;
 uniform bool depthPass;
 
 out vec4 fragColor;
 
 void main() {
-    vec4 finalColor = g_color;
     vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha);
     vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
@@ -29,5 +29,5 @@ void main() {
         }
     }
 
-    fragColor = blender_srgb_to_framebuffer_space(aaColor);
+    fragColor = aaColor;
 }
