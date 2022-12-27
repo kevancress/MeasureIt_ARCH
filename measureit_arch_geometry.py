@@ -2266,7 +2266,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             else:
                 if sceneProps.use_new_draw_pipeline:
-                    draw_lines(lineWeight,rgb,coords,offset=offset,twoPass=True, pointPass= lineProps.pointPass)
+                    draw_lines(lineWeight,rgb,coords,offset=offset,twoPass=True, pointPass= lineProps.pointPass,objMat=mat)
 
                 else:
                     lineGroupShader.bind()
@@ -3631,12 +3631,21 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
 
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
-               pointPass=False, pointCoords=None):
+               pointPass=False, pointCoords=None, objMat = None):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     viewport = get_viewport()
     global AllLinesBuffer
+
+    if objMat == None:
+        objMat = Matrix.Identity(4)
+
+    # Flatten Matrix by Columns
+    flat_mat = [objMat[0][0],objMat[1][0],objMat[2][0],objMat[3][0],
+            objMat[0][1],objMat[1][1],objMat[2][1],objMat[3][1],
+            objMat[0][2],objMat[1][2],objMat[2][2],objMat[3][2],
+            objMat[0][3],objMat[1][3],objMat[2][3],objMat[3][3]]
 
     # New method, dump everything into the buffer
     if sceneProps.use_new_draw_pipeline:
@@ -3645,6 +3654,8 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
             AllLinesBuffer['colors'].append(rgb)
             AllLinesBuffer['weights'].append(lineWeight)
             AllLinesBuffer['offsets'].append(offset)
+            AllLinesBuffer['rounded'].append(int(pointPass))
+            AllLinesBuffer['objMat'].append(flat_mat)
 
     # Old Method With a draw call for each Line
     else:
@@ -3674,10 +3685,10 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
         batch3d.draw()
         gpu.shader.unbind()
 
-    if pointPass:
-        if pointCoords is None:
-            pointCoords = coords
-        draw_points(lineWeight, rgb, pointCoords, offset)
+        if pointPass:
+            if pointCoords is None:
+                pointCoords = coords
+            draw_points(lineWeight, rgb, pointCoords, offset)
 
     bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
@@ -3687,6 +3698,8 @@ def clear_line_buffers():
     AllLinesBuffer["weights"] = []
     AllLinesBuffer["colors"] = []
     AllLinesBuffer["offsets"] = []
+    AllLinesBuffer["rounded"] = []
+    AllLinesBuffer['objMat'] = []
     pass
 
 def draw_all_lines():
@@ -3710,7 +3723,9 @@ def draw_all_lines():
         {"pos": AllLinesBuffer["coords"],
         "weight":AllLinesBuffer["weights"],
         "color": AllLinesBuffer["colors"],
-        "offset": AllLinesBuffer["offsets"]
+        "offset": AllLinesBuffer["offsets"],
+        "rounded": AllLinesBuffer["rounded"],
+        "objectMatrix": AllLinesBuffer["objMat"]
         })
 
 
