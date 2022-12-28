@@ -2266,7 +2266,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             else:
                 if sceneProps.use_new_draw_pipeline:
-                    draw_lines(lineWeight,rgb,coords,offset=offset,twoPass=True, pointPass= lineProps.pointPass,objMat=mat)
+                    draw_lines(lineWeight,rgb,coords,offset=-offset,twoPass=True, pointPass= lineProps.pointPass,objMat=mat)
 
                 else:
                     lineGroupShader.bind()
@@ -3631,7 +3631,7 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
 
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
-               pointPass=False, pointCoords=None, objMat = None):
+               pointPass=False, pointCoords=None, objMat = None, dashed = False, hidden=False):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -3643,19 +3643,21 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
 
     # Flatten Matrix by Columns
     flat_mat = [objMat[0][0],objMat[1][0],objMat[2][0],objMat[3][0],
-            objMat[0][1],objMat[1][1],objMat[2][1],objMat[3][1],
-            objMat[0][2],objMat[1][2],objMat[2][2],objMat[3][2],
-            objMat[0][3],objMat[1][3],objMat[2][3],objMat[3][3]]
+                objMat[0][1],objMat[1][1],objMat[2][1],objMat[3][1],
+                objMat[0][2],objMat[1][2],objMat[2][2],objMat[3][2],
+                objMat[0][3],objMat[1][3],objMat[2][3],objMat[3][3]]
 
     # New method, dump everything into the buffer
     if sceneProps.use_new_draw_pipeline:
-        for coord in coords:
-            AllLinesBuffer['coords'].append(coord)
-            AllLinesBuffer['colors'].append(rgb)
-            AllLinesBuffer['weights'].append(lineWeight)
-            AllLinesBuffer['offsets'].append(offset)
-            AllLinesBuffer['rounded'].append(int(pointPass))
-            AllLinesBuffer['objMat'].append(flat_mat)
+        num_coords = len(coords)
+        AllLinesBuffer['coords'].extend(coords)
+        if type(rgb) == list: AllLinesBuffer['colors'].extend(rgb)
+        else: AllLinesBuffer['colors'].extend([rgb]*num_coords)
+        AllLinesBuffer['weights'].extend([lineWeight]*num_coords)
+        AllLinesBuffer['offsets'].extend([offset]*num_coords)
+        AllLinesBuffer['rounded'].extend([int(pointPass)]*num_coords)
+        AllLinesBuffer['objMat'].extend([flat_mat]*num_coords)
+
 
     # Old Method With a draw call for each Line
     else:
