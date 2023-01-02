@@ -49,7 +49,7 @@ The Tables List lets you select and edit the properties of the Tables attached t
 
 ## Table Text Fields:
 Displays a list of the Text Fields for the selected Table. [(See TextFields Documentation)](textfields.md)
-Table TextFields are automatically populated from the provided CSV file so the raw text is not directly editable here, however cell text can be overwritten using the TextField's AutoFill settings. 
+Table TextFields are automatically populated from the provided CSV file, so the raw text is not directly editable here, however cell text can be overwritten using the TextField's AutoFill settings. 
 
 This can be used to inject AutoFill information into a Table, or to link multiline text from a separate text file into a single cell (handy for Wall Schedules) via the 'Text File' Autofill option.
 
