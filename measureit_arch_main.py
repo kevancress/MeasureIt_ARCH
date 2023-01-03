@@ -199,14 +199,14 @@ class MEASUREIT_PT_main_panel(Panel):
 
         col.operator("measureit_arch.addlinebutton",
                      text="Line Group by Selection", icon="MESH_CUBE")
-        
+
         # Dynamic line  group is fast enough to replace this now
         #op = col.operator("measureit_arch.addlinebyproperty",
         #                  text="Line Group by Crease", icon="MESH_CUBE")
         #op.calledFromGroup = False
 
 
-       
+
         col = box.column(align=True)
         if hasGen:
             col.prop_search(sceneProps, 'default_line_style',
@@ -302,12 +302,14 @@ class SCENE_PT_MARCH_Settings(Panel):
         col = layout.column(align=True, heading='Debug')
         col.prop(sceneProps, "measureit_arch_debug_text")
         col.prop(sceneProps, "show_text_cards")
+        col.prop(sceneProps, "skip_text")
 
         col = layout.column(align=True, heading='Experimental')
         col.prop(sceneProps, "enable_experimental")
 
         if sceneProps.enable_experimental:
             col.prop(sceneProps, "instance_dims")
+            col.prop(sceneProps, "use_new_draw_pipeline")
         # col.prop(sceneProps, "debug_flip_text")
 
         col.label(text = "MeasureIt_ARCH Version Info:")
@@ -518,7 +520,7 @@ def text_update_loop(context, objlist):
                     for row in table.rows:
                         for textField in row.textFields:
                             fields.append(textField)
-                
+
                     update_text(textobj=table, props=table, context=context, fields=fields)
 
                 # Draw Instanced Objects
@@ -621,7 +623,7 @@ def draw_main_3d(context):
     sceneProps.source_scene = scene
     draw3d_loop(context, objlist)
     #preview_dual(context)
-    
+
     # VIEWPORTS
     viewportGen = scene.ViewportGenerator
     for viewport in get_view().viewports:
@@ -632,7 +634,7 @@ def draw_main_3d(context):
 
     if not sceneProps.hide_titleblock:
         draw_titleblock(context)
-    
+
     scene.ViewGenerator.view_changed = False
 
 
@@ -646,7 +648,7 @@ def draw_viewport(context, viewport=None, svg=None, dxf = None):
     if sceneProps.is_vector_draw:
         titleblock = svg.g(id='TitleBlock')
 
-    
+
     # titleblock call
     if viewport is None:
         if view.titleBlock == "":
@@ -667,7 +669,7 @@ def draw_viewport(context, viewport=None, svg=None, dxf = None):
     #if not sceneProps.is_render_draw:
     #    if rv3d.view_perspective != 'CAMERA':
     #        return
-     
+
     viewportCamera = viewportView.camera
     viewportMat = viewportCamera.matrix_world.inverted_safe()
 
@@ -688,7 +690,7 @@ def draw_viewport(context, viewport=None, svg=None, dxf = None):
             text_update_loop(context, objlist)
 
     draw3d_loop(context, objlist, extMat=extMat, svg=svg, dxf = dxf, multMat=True, custom_call=True)
-    
+
     # Return Source scene to the current scene
     sceneProps.source_scene = context.scene
 

@@ -43,13 +43,13 @@ from . import svg_shaders
 from . import vector_utils
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_main, draw_titleblock, text_update_loop,draw_viewport
-from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render
+from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render, load_shader_str
 from .measureit_arch_units import BU_TO_INCHES
-from .shaders import Base_Shader_3D, DepthOnlyFrag
 
 
 depthOnlyshader = gpu.types.GPUShader(
-    Base_Shader_3D.vertex_shader, DepthOnlyFrag.fragment_shader)
+    load_shader_str("base_vert.glsl"),
+    load_shader_str("depth_only_frag.glsl"))
 
 
 class RENDER_PT_MeasureitArch_Panel(Panel):
@@ -79,7 +79,7 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
                      icon='RENDER_ANIMATION', text="MeasureIt_ARCH Animation")
         col.operator("measureit_arch.rendervectorbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH Vector")
-        
+
         if sceneProps.show_dxf_props:
             col.operator("measureit_arch.renderdxfbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH to DXF")
@@ -296,7 +296,7 @@ def get_view_outpath(scene, view, suffix):
     else:
         outpath = scene.render.filepath
     filepath = "{}_{}".format(bpy.path.abspath(outpath), suffix)
-    
+
     dir, filename = os.path.split(filepath)
     if not os.path.exists(dir):
         os.mkdir(dir)
@@ -338,9 +338,9 @@ def draw_scene(self, context, projection_matrix):
         idx = 0
         vertices = []
         indices = []
-  
+
         for obj_int in deps.object_instances:
-            idx += 1 
+            idx += 1
             #print("Rendering Obj {} of {} to Depth Buffer".format(idx,num_instances))
             obj = obj_int.object
             parent = obj_int.parent
@@ -348,7 +348,7 @@ def draw_scene(self, context, projection_matrix):
             ignore = obj.MeasureItArchProps.ignore_in_depth_test
             if parent != None:
                 ignore = obj.MeasureItArchProps.ignore_in_depth_test or parent.MeasureItArchProps.ignore_in_depth_test
-                
+
             if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or ignore):
                 mat = obj_int.matrix_world
                 obj_eval = obj.evaluated_get(deps)
@@ -356,8 +356,8 @@ def draw_scene(self, context, projection_matrix):
                     preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
                 mesh.calc_loop_triangles()
                 tris = mesh.loop_triangles
-       
-                
+
+
                 vertices = [mat @ vert.co for vert in mesh.vertices]
                 indices = [[tri.vertices[0],tri.vertices[1],tri.vertices[2]] for tri in tris]
 
@@ -378,7 +378,7 @@ def render_main_svg(self, context):
 
     with Set_Render(sceneProps, is_vector = True):
         vector_utils.clear_db()
-        
+
         clipdepth = context.scene.camera.data.clip_end
         objlist = context.view_layer.objects
 
@@ -388,7 +388,7 @@ def render_main_svg(self, context):
         height = int(scene.render.resolution_y * render_scale)
 
         view_matrix_3d = scene.camera.matrix_world.inverted()
-        
+
         # Render Depth Buffer
 
         if view.vector_depthtest:
@@ -410,7 +410,7 @@ def render_main_svg(self, context):
 
                     texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
                     draw_scene(self, context, projection_matrix)
-                    
+
                     bgl.glReadBuffer(bgl.GL_BACK)
                     bgl.glReadPixels(
                         0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
@@ -419,13 +419,13 @@ def render_main_svg(self, context):
                     if 'depthbuffer' in sceneProps:
                         del sceneProps['depthbuffer']
                     sceneProps['depthbuffer'] = texture_buffer
-                                        
+
                     render_end_time = time.time()
                     print("Reading Depth Buffer to SceneProps took: " + str(render_end_time - buffer_start_time))
                     print("Rendering Scene To Depth Buffer took: " + str(render_end_time - render_start_time))
                     print("")
-                    
-                    debug = False
+
+                    debug = True
                     if debug:
                         print("Reading Buffer to Image")
                         scene = context.scene
@@ -450,14 +450,14 @@ def render_main_svg(self, context):
                         image.pixels = pixel_array
 
         vector_utils.set_globals()
-        
-        
+
+
 
         # Setup Output Path
         view = get_view()
         outpath = get_view_outpath(
             scene, view, "{:04d}.svg".format(scene.frame_current))
-        
+
         res = get_resolution()
 
         if view and view.res_type == 'res_type_paper':
@@ -571,7 +571,7 @@ def render_main_svg(self, context):
         drawing_group = svg.g(id="Drawing")
         draw3d_loop(context, objlist, svg=svg)
         svg.add(drawing_group)
-        
+
         tb_group = svg.g(id="Titleblock")
         draw_titleblock(context, svg=svg)
         svg.add(tb_group)
@@ -582,7 +582,7 @@ def render_main_svg(self, context):
         sceneProps.is_render_draw = False
         sceneProps.is_vector_draw = False
         sceneProps.text_updated = True
-        
+
         endTime = time.time()
         print("Full Render SVG Time: " + str(endTime - startTime))
 
@@ -599,7 +599,7 @@ def render_main_dxf(self, context):
 
     with Set_Render(sceneProps, is_dxf = True):
         vector_utils.clear_db()
-        
+
 
         clipdepth = context.scene.camera.data.clip_end
         objlist = context.view_layer.objects
@@ -633,7 +633,7 @@ def render_main_dxf(self, context):
                     texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
                     print("Drawing Scene")
                     draw_scene(self, context, projection_matrix)
-                    
+
                     print("Reading to Buffer")
                     bgl.glReadBuffer(bgl.GL_BACK)
                     bgl.glReadPixels(
@@ -667,24 +667,24 @@ def render_main_dxf(self, context):
         doc.header['$MEASUREMENT'] = 1 #for Metric
 
         # Create the MeasureIt_ARCH dim style
-        
+
         m_arch_style = doc.dimstyles.new(name='MeasureIt_ARCH')
         m_arch_style.dimscale = 1
         m_arch_style.dimtxt = 100
 
 
 
-        # Setup Layers based on styles 
+        # Setup Layers based on styles
         recalc_index(self, context)
         styles = scene.StyleGenerator.wrapper
-        
+
         for style_wrapper in styles:
             name = style_wrapper.name
             type_str = style_wrapper.itemType
             idx = style_wrapper.itemIndex
-            
+
             source_scene = sceneProps.source_scene
-            style = eval("source_scene.StyleGenerator.{}[{}]".format(type_str,idx)) 
+            style = eval("source_scene.StyleGenerator.{}[{}]".format(type_str,idx))
             cad_col_id = style.cad_col_idx
 
             if cad_col_id == 256:
