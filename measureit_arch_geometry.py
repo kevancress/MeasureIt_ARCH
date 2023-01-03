@@ -1738,8 +1738,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
 
         # Draw Perimeter
-        draw_lines(lineWeight, rgb, perimeterCoords,
-                twoPass=True, pointPass=True)
+        print(len(perimeterCoords))
+        draw_lines(lineWeight, rgb, perimeterCoords, twoPass=True, pointPass=True)
 
 
         # Draw SVG
@@ -3083,7 +3083,12 @@ def preview_dual(context):
 
 def draw_text_3D(context, textobj, textprops, myobj):
     # get props
-    card = textobj['textcard']
+    try:
+        card = textobj['textcard']
+    except KeyError:
+        print('\"{}\" on {} has no textcard, failed to draw_text'.format(textobj.text, myobj.name))
+        return
+
     sceneProps = context.scene.MeasureItArchProps
 
     if sceneProps.is_vector_draw:
@@ -3638,6 +3643,10 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
     viewport = get_viewport()
     global AllLinesBuffer
 
+    if len(coords) % 2 != 0:
+        print('ERROR: Odd Number of Coords, injecting padding to preserve other lines')
+        coords.append(Vector((0,0,0)))
+
     if objMat == None:
         objMat = Matrix.Identity(4)
 
@@ -3729,10 +3738,27 @@ def draw_all_lines():
         "rounded": AllLinesBuffer["rounded"],
         "objectMatrix": AllLinesBuffer["objMat"]
         })
-
-
+    
+    # Set Depth Test
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
+
+    # Draw To depth Mask
+    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+                    bgl.GL_ONE_MINUS_SRC_ALPHA)
+    bgl.glDepthMask(True)
+    allLinesShader.uniform_float("depthPass", True)
+    batch3d.program_set(allLinesShader)
+    batch3d.draw()
+
+    # Set Blend
+    if sceneProps.is_render_draw:
+        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+                        bgl.GL_ONE_MINUS_SRC_ALPHA)
+        # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+        bgl.glBlendEquation(bgl.GL_MAX)
+    
+    # Draw Without Depth Mask 
     bgl.glDepthMask(False)
     allLinesShader.uniform_float("depthPass", False)
     batch3d.program_set(allLinesShader)

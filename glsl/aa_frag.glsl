@@ -30,4 +30,5 @@ void main() {
     }
 
     fragColor = blender_srgb_to_framebuffer_space(aaColor);
+    //fragColor = vec4(mTexCoord,aaColor[2],aaColor[3]);
 }

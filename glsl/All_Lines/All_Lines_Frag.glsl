@@ -9,7 +9,7 @@ out vec4 fragColor;
 
 void main() {
     vec4 finalColor = g_color;
-    vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha);
+    vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],alpha*finalColor[3]);
     vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
     vec2 center = vec2(0,0.5);
@@ -24,10 +24,11 @@ void main() {
     aaColor = mix(mixColor,aaColor,aa);
 
     if (depthPass) {
-        if (aa<1) {
+        if (aa<1){
             discard;
         }
     }
 
     fragColor = blender_srgb_to_framebuffer_space(aaColor);
+    //fragColor = vec4(mTexCoord,aaColor[2],aaColor[3]);
 }

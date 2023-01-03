@@ -1,11 +1,13 @@
 layout(lines) in;
 layout(triangle_strip, max_vertices = 64) out;
 
-in float v_weight[];
-in float v_offset[];
-in vec4 v_color[];
-in int v_rounded[];
-in mat4 v_objectMatrix[];
+in VERT_OUT {
+    float weight;
+    float offset;
+    vec4 color;
+    int rounded;
+    mat4 objectMatrix;
+} verts[];
 
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 Viewport;
@@ -15,9 +17,9 @@ out vec2 mTexCoord;
 out vec4 g_color;
 out float alpha;
 
-float width = v_weight[0]*2;
+float width = verts[0].weight*2;
 float extAmount = 0.0;
-vec4 vecOffset = vec4(0.0,0.0,v_offset[0],0.0);
+vec4 vecOffset = vec4(0.0,0.0,verts[0].offset,0.0);
 float radius = width;
 
 vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
@@ -60,10 +62,10 @@ void main() {
     vec4 p2ExtLocal = vec4(p2 + dir3d*extAmount);
 
     // Project to Clip space Using Object and veiw matrix
-    vec4 p1worldPos = v_objectMatrix[0] * p1ExtLocal;
+    vec4 p1worldPos = verts[0].objectMatrix * p1ExtLocal;
     vec4 p1project = ModelViewProjectionMatrix * p1worldPos;
 
-    vec4 p2worldPos =  v_objectMatrix[0] * p2ExtLocal;
+    vec4 p2worldPos =  verts[0].objectMatrix * p2ExtLocal;
     vec4 p2project = ModelViewProjectionMatrix * p2worldPos;
 
     // Add Z offset
@@ -75,10 +77,10 @@ void main() {
     vec2 ssp2 = vec2(p2Ext.xy / p2Ext.w);
 
     // Get Width per point
-    float width1 = v_weight[0] * 2;
+    float width1 = verts[0].weight * 2;
     radius = width1;
 
-    float width2 = v_weight[1] * 2;
+    float width2 = verts[1].weight * 2;
 
     // Screen Space direction and normal
     vec2 dir = normalize(ssp2 - ssp1);
@@ -115,20 +117,20 @@ void main() {
 
     // Draw Point pass
     // Get Center Point in Screen Space
-    if (v_rounded[0]==1){
-        vec4 worldPos =  v_objectMatrix[0] * p1;
+    if (verts[0].rounded==1){
+        vec4 worldPos =  verts[0].objectMatrix * p1;
         vec4 project = ModelViewProjectionMatrix * worldPos;
 
         vec4 pointCenter = project + vecOffset;
         vec2 sspC = vec2(pointCenter.xy / pointCenter.w);
 
         // Get number of segments in the circle
-        int segments = int(floor(v_weight[1])) + 5;
+        int segments = int(floor(verts[0].weight)) + 5;
         segments = clamp(segments,0,28);
 
         // Generate Circle
         gl_Position = pointCenter;
-        g_color = v_color[0];
+        g_color = verts[0].color;
         alpha = 1.0;
         mTexCoord = vec2(0.0,0.5);
         EmitVertex();
@@ -144,10 +146,10 @@ void main() {
             mTexCoord = vec2(0.0,1.0);
             gl_Position = vec4((sspC + circleOffset)*pointCenter.w, pointCenter.z, pointCenter.w);
             alpha = alpha1;
-            g_color = v_color[0];
+            g_color = verts[0].color;
             EmitVertex();
 
-            g_color = v_color[0];
+            g_color = verts[0].color;
             alpha = alpha1;
             gl_Position = pointCenter;
             mTexCoord = vec2(0,0.5);
@@ -163,7 +165,7 @@ void main() {
         mTexCoord = texCoords[i];
         gl_Position = coords[i];
         alpha = alphas[i];
-        g_color = v_color[0];
+        g_color = verts[0].color;
         EmitVertex();
     }
     EndPrimitive();
