@@ -743,6 +743,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="Debug Text Cards",
         description="Display MeasureIt_ARCH Text Cards",
         default=False)
+    
+    skip_text: BoolProperty(
+        name="Skip Text Draw",
+        description="Flag skip text drawing for debug",
+        default=False)
 
     enable_experimental: BoolProperty(
         name="Enable Experimental",

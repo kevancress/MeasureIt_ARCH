@@ -2553,7 +2553,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 yDir = fullRotMat @ Vector((0, 1, 0))
 
                 # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
-
+                textField.textAlignment = annotationProps.textAlignment
+                textField.textPosition = annotationProps.textPosition
                 textcard = generate_text_card(
                     context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
                 textField['textcard'] = textcard
@@ -3082,16 +3083,15 @@ def preview_dual(context):
                 draw_lines(3, (0, 0, 0, 0.7), coords, twoPass=True, offset=-0.0005)
 
 def draw_text_3D(context, textobj, textprops, myobj):
+    sceneProps = context.scene.MeasureItArchProps
+    if sceneProps.is_vector_draw or sceneProps.skip_text:
+        return
+
     # get props
     try:
         card = textobj['textcard']
     except KeyError:
         print('\"{}\" on {} has no textcard, failed to draw_text'.format(textobj.text, myobj.name))
-        return
-
-    sceneProps = context.scene.MeasureItArchProps
-
-    if sceneProps.is_vector_draw:
         return
 
     card[0] = Vector(card[0])
@@ -3201,19 +3201,14 @@ def draw_text_3D(context, textobj, textprops, myobj):
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, texArray[0])
 
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
-                            bgl.GL_TEXTURE_WRAP_S, bgl.GL_CLAMP_TO_BORDER)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
-                            bgl.GL_TEXTURE_WRAP_T, bgl.GL_CLAMP_TO_BORDER)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
-                            bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D,
-                            bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_S, bgl.GL_CLAMP_TO_BORDER)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_T, bgl.GL_CLAMP_TO_BORDER)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
+       
         try:
-            tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(
-                textobj['texture'], dtype=np.uint8))
-            bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width,
-                            height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
+            tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(textobj['texture'], dtype=np.uint8))
+            bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width,height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
         except AttributeError as atribError:
             print(atribError)
             print("ATTRIBUTE ERROR DRAWING TEXT ON {}".format(myobj.name))

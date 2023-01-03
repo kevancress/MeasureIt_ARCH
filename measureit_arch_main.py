@@ -302,6 +302,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col = layout.column(align=True, heading='Debug')
         col.prop(sceneProps, "measureit_arch_debug_text")
         col.prop(sceneProps, "show_text_cards")
+        col.prop(sceneProps, "skip_text")
 
         col = layout.column(align=True, heading='Experimental')
         col.prop(sceneProps, "enable_experimental")
