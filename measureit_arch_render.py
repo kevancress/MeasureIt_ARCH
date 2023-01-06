@@ -301,23 +301,26 @@ def get_view_outpath(scene, view, suffix):
     if not os.path.exists(dir):
         os.mkdir(dir)
     
+    print(dir)
     if view.name_folder:
-        filename = bpy.path.basename(bpy.context.blend_data.filepath)
-        filename = filename.replace('.blend','')
-        namedir = os.path.join(dir,filename)
+        bn= bpy.path.basename(bpy.context.blend_data.filepath)
+        bn = bn.replace('.blend','')
+        namedir = os.path.join(dir,bn)
         if not os.path.exists(namedir):
             os.mkdir(namedir)
         dir = namedir
         
-
+    print(dir)
     if view.date_folder:
         today = datetime.now()
         datedir = os.path.join(dir, today.strftime('%Y%m%d'))
         if not os.path.exists(datedir):
             os.mkdir(datedir)
         dir = datedir
-
+    
+    print(dir)
     filepath = os.path.join(dir, filename)
+    print(filepath)
     
     return filepath
 
