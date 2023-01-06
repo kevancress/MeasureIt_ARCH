@@ -300,13 +300,25 @@ def get_view_outpath(scene, view, suffix):
     dir, filename = os.path.split(filepath)
     if not os.path.exists(dir):
         os.mkdir(dir)
+    
+    if view.name_folder:
+        filename = bpy.path.basename(bpy.context.blend_data.filepath)
+        filename = filename.replace('.blend','')
+        namedir = os.path.join(dir,filename)
+        if not os.path.exists(namedir):
+            os.mkdir(namedir)
+        dir = namedir
+        
 
     if view.date_folder:
         today = datetime.now()
         datedir = os.path.join(dir, today.strftime('%Y%m%d'))
         if not os.path.exists(datedir):
             os.mkdir(datedir)
-        return os.path.join(datedir, filename)
+        dir = datedir
+
+    filepath = os.path.join(dir, filename)
+    
     return filepath
 
 

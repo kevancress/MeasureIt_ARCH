@@ -382,6 +382,11 @@ class ViewProperties(PropertyGroup):
         description="Adds a Folder with todays date to the end of the output path",
         default=False)
 
+    name_folder: BoolProperty(
+        name="Name Folder",
+        description="Adds the project name to the output path",
+        default=False)
+
     output_path: StringProperty(
         name="Output Path",
         description="Render Output Path for this View",
@@ -827,6 +832,7 @@ class SCENE_PT_Views(Panel):
                 row.prop(view, "output_path")
                 row.operator("measureit_arch.openinbrowser",text="",icon="WINDOW")
                 col.prop(view, "date_folder", text="Date Folder")
+                col.prop(view, "name_folder",)
 
                 col = box.column(align=True)
                 col.row().prop(view, 'res_type', expand=True)
