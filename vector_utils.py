@@ -339,55 +339,6 @@ def check_visible(item, point):
         pxIdx1 = int(((width * math.floor(point_ss[1]))+1 + math.floor(point_ss[0])) -1)
         samples = [pxIdx1]
 
-    if scene.MeasureItArchProps.depth_samples == 'CROSS':
-        pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)
-        pxIdx2 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1)
-
-        pxIdx3 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width
-        pxIdx4 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width
-
-        pxIdx5 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width
-        pxIdx6 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width
-
-        pxIdx7 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + 1
-        pxIdx8 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + 1
-
-        pxIdx9 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - 1
-        pxIdx10 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - 1
-
-        samples = [pxIdx1,pxIdx2,pxIdx3,pxIdx4,pxIdx5,pxIdx6,pxIdx7,pxIdx8,pxIdx9,pxIdx10]
-    
-    if scene.MeasureItArchProps.depth_samples == 'SQUARE':
-        pxIdx1 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1)
-        pxIdx2 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1)
-
-        pxIdx3 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width
-        pxIdx4 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width
-
-        pxIdx5 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width + 1
-        pxIdx6 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width +1
-
-        pxIdx7 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + width - 1
-        pxIdx8 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + width -1
-
-        pxIdx9 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width
-        pxIdx10 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width
-
-        pxIdx11 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width + 1
-        pxIdx12 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width + 1
-
-        pxIdx13 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - width - 1
-        pxIdx14 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - width - 1
-
-        pxIdx15 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) + 1
-        pxIdx16 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) + 1
-
-        pxIdx17 = int(((width * math.ceil(point_ss[1])) + math.ceil(point_ss[0])) * 1) - 1
-        pxIdx18 = int(((width * math.floor(point_ss[1])) + math.floor(point_ss[0])) * 1) - 1
-
-        samples = [pxIdx1,pxIdx2,pxIdx3,pxIdx4,pxIdx5,pxIdx6,pxIdx7,pxIdx8,pxIdx9,pxIdx10,pxIdx11,pxIdx12,pxIdx13,pxIdx14,pxIdx15,pxIdx16,pxIdx17,pxIdx18]
-
-
     true_samples = [get_true_z_at_idx(sample) for sample in samples]
     point_depth = sum(true_samples) / len(true_samples)
 
