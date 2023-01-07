@@ -267,12 +267,19 @@ def vis_sampling(p1, p2, mat, item,):
     p1ss = get_ss_point(p1Local)
     p2ss = get_ss_point(p2Local)
 
+    # Get ss normal vectors
+    dir_vec = p1ss - p2ss
+    n1ss = Vector((dir_vec.y, -dir_vec.x))
+    n2ss = Vector((-dir_vec.y, dir_vec.x))
+
+    ss_norms = [n1ss,n2ss]
+
     # Length in ss is ~number of pixels. use for num of visibility samples
     ss_length_vec = p1ss-p2ss
     ss_samples = math.floor(ss_length_vec.length)
     if ss_samples < 1: ss_samples = 1
 
-    last_vis_state = check_visible(item, p1Local)
+    last_vis_state = check_visible(item, p1Local, ss_norms)
     line_segs = []
     seg_start = p1
     distVector = Vector(p1) - Vector(p2)
@@ -281,7 +288,7 @@ def vis_sampling(p1, p2, mat, item,):
 
     for i in range(1,ss_samples):
         p_check = interpolate3d(Vector(p1), Vector(p2), iter_dist * i) # interpolate line to get point to check
-        p_check_vis = check_visible(item, mat @ Vector(p_check)) # Check the visibility of that point
+        p_check_vis = check_visible(item, mat @ Vector(p_check), ss_norms) # Check the visibility of that point
 
         if last_vis_state is not p_check_vis:
             line = [last_vis_state, seg_start, p_check] 
@@ -309,13 +316,13 @@ def get_ss_point(point):
     return p1ss
 
 
-def check_visible(item, point):
+def check_visible(item, point, ss_norms):
     context = bpy.context
     scene = context.scene
     global width
+
     #Set Z-offset
     z_offset = 0.0
-
     if 'lineDepthOffset' in item:
         z_offset += item.lineDepthOffset / 10
 
@@ -328,23 +335,29 @@ def check_visible(item, point):
 
     #Get Render info
 
+    # Get ss_point and adjacent normal points
     point_ss = get_ss_point(point)
+    ss2 = point_ss + ss_norms[0].normalized()
+    ss3 = point_ss + ss_norms[1].normalized()
+
+    # Get Clip space depth
     point_clip = get_clip_space_coord(point)
 
-    # Get Depth buffer Pixel Index based on SS Point
-    #print(f"Sample Point SS {point_ss}")
-    if scene.MeasureItArchProps.depth_samples == 'POINT':
-        pxIdx1 = int(((width * math.floor(point_ss[1]))+1 + math.floor(point_ss[0])) -1)
-        samples = [pxIdx1]
-
-    true_samples = [get_true_z_at_idx(sample) for sample in samples]
-    point_depth = sum(true_samples) / len(true_samples)
+    # Get Depth buffer Pixel Index based on SS Point    
+    db_idx1 = int(((width * math.floor(point_ss[1]))+1 + math.floor(point_ss[0])) -1)
+    db_idx2 = int(((width * math.floor(ss2[1]))+1 + math.floor(ss2[0])) -1)
+    db_idx3 = int(((width * math.floor(ss3[1]))+1 + math.floor(ss3[0])) -1)
+    
+    # Get 3 points depths
+    bd1 = get_true_z_at_idx(db_idx1)
+    bd2 = get_true_z_at_idx(db_idx2)
+    bd3 = get_true_z_at_idx(db_idx3)
 
     # Get Depth From Clip Space point
     point_vecdepth = (point_clip[2]) - z_offset
 
     # Check Clip space point against depth buffer value
-    pointVisible = point_depth > point_vecdepth
+    pointVisible = bd1 >= point_vecdepth or bd2 >= point_vecdepth or bd3 >= point_vecdepth
 
     return pointVisible
 
