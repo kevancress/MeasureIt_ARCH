@@ -1982,12 +1982,12 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             lineWeight = lineProps.lineWeight
 
             # Calculate Offset with User Tweaks
-            offset = lineWeight / 2.5
-            offset += lineProps.lineDepthOffset
-            if isOrtho:
-                offset /= 15
-            if lineProps.isOutline:
-                offset = -10 - offset
+            #offset = lineWeight / 2.5
+            offset = lineProps.lineDepthOffset
+            #if isOrtho:
+            #    offset /= 15
+            #if lineProps.isOutline:
+            #    offset = -10 - offset
             offset /= 1000
 
             # Get line data to be drawn
@@ -2035,7 +2035,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     lineGroup['coordBuffer'] = tempCoords
 
                 # Calculate dynamic lines or curve lines (only for non instances)
-                if lineGroup.useDynamicCrease and not is_instance_draw:
+                if lineGroup.useDynamicCrease or lineGroup.dynamic_sil and not is_instance_draw:
                     tempCoords = []
                     tempIdxs = []
                     # Create a Bmesh Instance from the selected object
@@ -2101,13 +2101,14 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                             dotProd = (normalA.dot(normalB))
 
                             #Check angle of adjacent faces
-                            if dotProd >= -1 and dotProd <= 1 and not lineGroup.dynamic_sil:
-                                creaseAngle = math.acos(dotProd)
-                                if creaseAngle > lineGroup.creaseAngle:
-                                    tempCoords.append(pointA)
-                                    tempCoords.append(pointB)
-                                    tempIdxs.append(edge.verts[0].index)
-                                    tempIdxs.append(edge.verts[1].index)
+                            if lineGroup.useDynamicCrease:
+                                if dotProd >= -1 and dotProd <= 1:
+                                    creaseAngle = math.acos(dotProd)
+                                    if creaseAngle > lineGroup.creaseAngle:
+                                        tempCoords.append(pointA)
+                                        tempCoords.append(pointB)
+                                        tempIdxs.append(edge.verts[0].index)
+                                        tempIdxs.append(edge.verts[1].index)
 
                             #Check dynamic silhouette
                             if lineGroup.dynamic_sil:
