@@ -303,6 +303,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(sceneProps, "measureit_arch_debug_text")
         col.prop(sceneProps, "show_text_cards")
         col.prop(sceneProps, "skip_text")
+        col.prop(sceneProps, "debug_depth_pass")
 
         col = layout.column(align=True, heading='Experimental')
         col.prop(sceneProps, "enable_experimental")
@@ -310,6 +311,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         if sceneProps.enable_experimental:
             col.prop(sceneProps, "instance_dims")
             col.prop(sceneProps, "use_new_draw_pipeline")
+            col.prop(sceneProps, "use_width_aware_depth_test")
         # col.prop(sceneProps, "debug_flip_text")
 
         col.label(text = "MeasureIt_ARCH Version Info:")

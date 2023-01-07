@@ -48,6 +48,7 @@ def update_flag(self, context):
 
 def update_camera(self,context):
     scene = context.scene
+    camera = scene.camera.data
     render = scene.render
     ViewGen = scene.ViewGenerator
     view = ViewGen.views[ViewGen.active_index]
@@ -57,7 +58,6 @@ def update_camera(self,context):
     paperScale = view.paper_scale
 
     ppi = get_resolution(update_flag=True)
-    print('updating camera and render res')
     render.resolution_percentage = 100
     render.resolution_x = int(width * ppi * BU_TO_INCHES)
     render.resolution_y = int(height * ppi * BU_TO_INCHES)
@@ -748,6 +748,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="Skip Text Draw",
         description="Flag skip text drawing for debug",
         default=False)
+    
+    debug_depth_pass: BoolProperty(
+        name="Debug Depth Pass",
+        description="Saves Depth Buffer to image when rendering",
+        default=False)
 
     enable_experimental: BoolProperty(
         name="Enable Experimental",
@@ -818,8 +823,13 @@ class MeasureItARCHSceneProps(PropertyGroup):
     use_new_draw_pipeline: BoolProperty(
         name="Use new draw pipeline ",
         description="Use the new single draw call pipeline for drawing all lines",
-        default=True,
+        default=False,
         update=update_flag)
+
+    use_width_aware_depth_test: BoolProperty(
+        name="Use Width Aware Depth Test",
+        description="Use a vector depth test method that accounts for line width",
+        default=False)
 
     preview_resolution: IntProperty(
         name='Default Resolution ', min=1,

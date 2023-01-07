@@ -440,8 +440,7 @@ def render_main_svg(self, context):
                     print("Rendering Scene To Depth Buffer took: " + str(render_end_time - render_start_time))
                     print("")
 
-                    debug = True
-                    if debug:
+                    if sceneProps.debug_depth_pass:
                         print("Reading Buffer to Image")
                         scene = context.scene
 

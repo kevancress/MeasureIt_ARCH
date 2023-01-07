@@ -232,9 +232,7 @@ def true_z_buffer(zValue):
     global camera_type
     
     if camera_type == 'ORTHO':
-        depth = zValue * (far_clip - near_clip) + near_clip - 0.09 #TODO Why is this fudge factor here
-        if zValue != 1.0 and False:
-            print(f"depth:{depth} z buff: {zValue}")
+        depth = zValue * (far_clip - near_clip) + near_clip
         return depth
 
     elif camera_type == 'PERSP':
@@ -316,7 +314,7 @@ def check_visible(item, point):
     scene = context.scene
     global width
     #Set Z-offset
-    z_offset = 0.1
+    z_offset = 0.0
 
     if 'lineDepthOffset' in item:
         z_offset += item.lineDepthOffset / 10
