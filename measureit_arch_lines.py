@@ -102,11 +102,6 @@ class LineProperties(BaseProp, PropertyGroup):
         min=0,
         max=1)
 
-    isOutline: BoolProperty(
-        name="Is Outline",
-        description="Line Group Is For Drawing Outlines",
-        default=False)
-
     lineTexture: PointerProperty(type=bpy.types.Texture)
 
     useLineTexture: BoolProperty(
@@ -382,11 +377,6 @@ class M_ARCH_UL_lines_list(UIList):
             else:
                 visIcon = 'HIDE_ON'
 
-            # if line.isOutline:
-            #     outIcon = 'SEQ_CHROMA_SCOPE'
-            # else:
-            #     outIcon = 'FILE_3D'
-
             if line.lineDrawHidden:
                 hiddenIcon = 'MOD_WIREFRAME'
             else:
@@ -402,7 +392,6 @@ class M_ARCH_UL_lines_list(UIList):
                 subrow.scale_x = 0.5
                 subrow.prop(line, 'color', emboss=True, text="")
                 subrow.separator()
-                # row.prop(line, 'isOutline', text="", toggle=True, icon=outIcon,emboss=False)
                 row.prop(
                     line, 'lineDrawHidden', text="", toggle=True,
                     icon=hiddenIcon, emboss=False)
