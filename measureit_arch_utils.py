@@ -63,9 +63,13 @@ _cad_col_dict = {
 }
 
 
-def load_shader_str(file):
+def load_shader_str(file, directory = ""):
     path = os.path.dirname(os.path.abspath(__file__))
-    shader_file = open(os.path.join(path, "glsl\{}".format(file)), "r")
+    shader_path = os.path.join(path,"glsl")
+    if directory != "":
+        shader_path = os.path.join(shader_path,directory)
+    shader_path = os.path.join(shader_path,file)
+    shader_file = open(shader_path)
     shader_str = shader_file.read()
     shader_file.close()
     return shader_str

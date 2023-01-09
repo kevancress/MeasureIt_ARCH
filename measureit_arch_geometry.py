@@ -74,50 +74,50 @@ AllLinesBatch = None
 if bpy.app.version > (2, 83, 0):
     aafrag = load_shader_str("aa_frag.glsl")
     basefrag = load_shader_str("base_frag.glsl")
-    dashedfrag = load_shader_str("Dashed_Line_Shader\Dashed_Line_Frag.glsl")
-    textfrag = load_shader_str("Text_Shader\Text_Frag.glsl")
+    dashedfrag = load_shader_str("Dashed_Line_Frag.glsl", directory="Dashed_Line_Shader")
+    textfrag = load_shader_str("Text_Frag.glsl", directory="Text_Shader")
 else:
-    aafrag = load_shader_str("legacy_frag\aa_frag.glsl")
-    basefrag = load_shader_str("legacy_frag\base_frag.glsl")
-    dashedfrag = load_shader_str("legacy_frag\dashed_frag.glsl")
-    textfrag = load_shader_str("legacy_frag\text_frag.glsl")
+    aafrag = load_shader_str("aa_frag.glsl", directory= "legacy_frag")
+    basefrag = load_shader_str("base_frag.glsl", directory= "legacy_frag")
+    dashedfrag = load_shader_str("dashed_frag.glsl", directory= "legacy_frag")
+    textfrag = load_shader_str("text_frag.glsl", directory= "legacy_frag")
 
 
 lineShader = gpu.types.GPUShader(
     load_shader_str("base_vert.glsl"),
     aafrag,
-    geocode=load_shader_str("Basic_Line\Basic_Line_Geo.glsl"))
+    geocode=load_shader_str("Basic_Line_Geo.glsl", directory="Basic_Line"))
 
 triShader = gpu.types.GPUShader(
     load_shader_str("base_vert.glsl"),
     basefrag)
 
 dashedLineShader = gpu.types.GPUShader(
-    load_shader_str("Dashed_Line_Shader\Dashed_Line_Vert.glsl"),
+    load_shader_str("Dashed_Line_Vert.glsl", directory="Dashed_Line_Shader"),
     dashedfrag,
-    geocode=load_shader_str("Dashed_Line_Shader\Dashed_Line_Geo.glsl"))
+    geocode=load_shader_str("Dashed_Line_Geo.glsl", directory="Dashed_Line_Shader"))
 
 pointShader = gpu.types.GPUShader(
-    load_shader_str("Point_Shader\Point_Vert.glsl"),
+    load_shader_str("Point_Vert.glsl", directory="Point_Shader"),
     aafrag,
-    geocode=load_shader_str("Point_Shader\Point_Geo.glsl"))
+    geocode=load_shader_str("Point_Geo.glsl", directory="Point_Shader"))
 
 textShader = gpu.types.GPUShader(
-    load_shader_str("Text_Shader\Text_Vert.glsl"),
+    load_shader_str("Text_Vert.glsl", directory="Text_Shader"),
     textfrag)
 
 # Make the lines ubershader
 allLinesShader = gpu.types.GPUShader(
-    load_shader_str("All_Lines\All_Lines_Vert.glsl"),
-    load_shader_str("All_Lines\All_Lines_Frag.glsl"),
-    geocode = load_shader_str("All_Lines\All_Lines_Geo.glsl")
+    load_shader_str("All_Lines_Vert.glsl", directory="All_Lines"),
+    load_shader_str("All_Lines_Frag.glsl", directory="All_Lines"),
+    geocode = load_shader_str("All_Lines_Geo.glsl", directory="All_Lines")
 )
 
 # Line Group Shader from file
 lineGroupShader = gpu.types.GPUShader(
-    load_shader_str("Line_Group_Shader\Line_Group_Vert.glsl"),
+    load_shader_str("Line_Group_Vert.glsl", directory="Line_Group_Shader"),
     aafrag,
-    geocode = load_shader_str("Line_Group_Shader\Line_Group_Geo.glsl"))
+    geocode = load_shader_str("Line_Group_Geo.glsl", directory="Line_Group_Shader"))
 
 
 def get_dim_tag(self, obj):
@@ -1983,7 +1983,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             # Calculate Offset with User Tweaks
             offset = lineWeight / 2.5
-            offset = lineProps.lineDepthOffset
+            offset += lineProps.lineDepthOffset
             #if isOrtho:
             #    offset /= 15
             offset /= 1000
@@ -2530,9 +2530,12 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 annotation.textFields.add()
 
             # Some Backwards Compatibility for annotations
-            if annotation.textFields[0].text == "" and annotation.name == "":
-                annotation.textFields[0].text = annotation.text
-                annotation.name = annotation.text
+            try:
+                if annotation.textFields[0].text == "" and annotation.name == "":
+                    annotation.textFields[0].text = annotation.text
+                    annotation.name = annotation.text
+            except IndexError:
+                pass
 
             fields = []
             notesFlag = False
@@ -2578,6 +2581,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 coords.append(p2)
                 coords.append(p3)
 
+                if len(fields) == 0:
+                    return
                 textcard = fields[0]['textcard']
 
                 if not annotationProps.draw_leader:
@@ -2655,12 +2660,14 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
     # use Camera rot for the rest
     camera = context.scene.camera
-    cameraMat = camera.matrix_world
-    cameraRot = cameraMat.decompose()[1]
     cameraRotMat = Matrix.Identity(3)
-    cameraRotMat.rotate(cameraRot)
-    cameraRotMat = cameraRotMat.to_4x4()
 
+    if camera != None:
+        cameraMat = camera.matrix_world
+        cameraRot = cameraMat.decompose()[1]
+        cameraRotMat.rotate(cameraRot)
+    
+    cameraRotMat = cameraRotMat.to_4x4()
     fullRotMat = annoMat @ cameraRotMat
     extMat = locMatrix @ fullRotMat
 

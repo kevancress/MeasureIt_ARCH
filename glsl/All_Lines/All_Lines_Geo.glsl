@@ -17,7 +17,7 @@ out vec2 mTexCoord;
 out vec4 g_color;
 out float alpha;
 
-float width = verts[0].weight*2;
+float width = verts[0].weight;
 float extAmount = 0.0;
 vec4 vecOffset = vec4(0.0,0.0,verts[0].offset,0.0);
 float radius = width;
@@ -77,10 +77,10 @@ void main() {
     vec2 ssp2 = vec2(p2Ext.xy / p2Ext.w);
 
     // Get Width per point
-    float width1 = verts[0].weight * 2;
+    float width1 = verts[0].weight;
     radius = width1;
 
-    float width2 = verts[1].weight * 2;
+    float width2 = verts[1].weight;
 
     // Screen Space direction and normal
     vec2 dir = normalize(ssp2 - ssp1);
