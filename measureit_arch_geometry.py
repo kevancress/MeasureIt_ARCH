@@ -2787,7 +2787,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
         cell_x = 0
         cell_y = 0
 
-        padding = px_to_m(table.padding, paper_space = True)
+        padding = px_to_m(pts_to_px(table.padding), paper_space = True)
 
         for row_idx in range(len(table.rows)):
             # Set Row Height

@@ -87,8 +87,7 @@ class TableProperties(PropertyGroup, BaseWithText):
     
     padding: IntProperty(
         name="Padding",
-        description="Cell Padding",
-        subtype = 'PIXEL',
+        description="Cell Padding in Pts (1 pt = 1/72\")",
         soft_min = 0,
         default= 10)
 
