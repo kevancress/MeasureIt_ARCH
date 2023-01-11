@@ -80,7 +80,7 @@ float get_line_alpha(vec2 normal, float width) {
     if (length(offsetvec) < minLength){
         alpha *= (length(offsetvec)/minLength);
     }
-    return clamp(alpha,0.8,1.0);
+    return clamp(alpha,1.0,1.0);
 }
 
 
