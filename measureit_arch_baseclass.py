@@ -824,7 +824,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
     use_new_draw_pipeline: BoolProperty(
         name="Use new draw pipeline ",
         description="Use the new single draw call pipeline for drawing all lines",
-        default=False,
+        default=True,
         update=update_flag)
 
     use_width_aware_depth_test: BoolProperty(
