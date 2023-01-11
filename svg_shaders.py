@@ -156,6 +156,10 @@ def svg_circle_shader(item, point, rad, color, svg, parent=None):
     fills.add(circle)
 
 def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL='', itemProps = None, closed=True, mat = Matrix.Identity(4)):
+    weight_scale_fac = 1.3333333333333333 * get_resolution()/96
+    if bpy.context.scene.MeasureItArchProps.illustrator_style_svgs:
+        weight_scale_fac = 1
+    
     if vector_utils.camera_cull(coords,mat):
         print("No Points In front of Camera: {} Culled in Poly Fill Shader")
         return
@@ -378,6 +382,9 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
 
 def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
+    weight_scale_fac = 1.3333333333333333 * get_resolution()/96
+    if bpy.context.scene.MeasureItArchProps.illustrator_style_svgs:
+        weight_scale_fac = 1
     svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
 
     for obj in objs:
