@@ -865,6 +865,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="Hide Linework",
         description="Hide Linework",
         default=False,)
+    
+    illustrator_style_svgs: BoolProperty(
+        name="Ilustrator Style SVGs",
+        description="Exports SVGs with lineweights specified directly in pts",
+        default=False,)
 
     source_scene: PointerProperty(type = bpy.types.Scene)
 
