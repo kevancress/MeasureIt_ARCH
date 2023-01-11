@@ -2793,7 +2793,8 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
             # Set Row Height
             row = table.rows[row_idx]
 
-            height = px_to_m(row.height, paper_space=True)
+             
+            height = px_to_m(pts_to_px(row.height),paper_space=True)  * 72/res
             padded_height = height + padding * 2
             if height < table.min_height* scale:
                 padded_height = (table.min_height * scale) + padding * 2
@@ -2805,8 +2806,10 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
                 text = textField.text
                 num_char = len(text)
-                width = px_to_m(col.width, paper_space=True)
-                padded_width = width*0.6 + padding * 2
+
+                # Get World space card size from texture pixel size
+                width = px_to_m(pts_to_px(col.width),paper_space=True)  * 72/res
+                padded_width = width + padding * 2
                 if width < table.min_width* scale:
                     padded_width = (table.min_width *scale)  + padding * 2
 
@@ -3328,8 +3331,8 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
     res = get_resolution()
 
     # Get World space card size from texture pixel size
-    sx = px_to_m(pts_to_px(width)) * scale * 72/res
-    sy = px_to_m(pts_to_px(height)) * scale * 72/res
+    sx = px_to_m(pts_to_px(width),paper_space=True)  * 72/res
+    sy = px_to_m(pts_to_px(height),paper_space=True)  * 72/res
     #sx = (width) * size 
     #sy = (height) * size
 

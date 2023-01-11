@@ -457,7 +457,8 @@ class BaseWithText(BaseProp):
         description="Font Size in pt (1pt = 1/72\")\n"
                     "Note: Font size is relative to the current scale\n"
                     "Scale is defined in your active view, or in the Scene unit settings",
-        default=10, soft_min = 1, step=100, precision=0)
+        default=10, soft_min = 1, step=100, precision=0,
+        update = update_flag)
 
     font: PointerProperty(
         type=bpy.types.VectorFont,
