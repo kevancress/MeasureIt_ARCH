@@ -18,19 +18,39 @@ const float PI = 3.1415926;
 out vec2 mTexCoord;
 out float alpha;
 
-float width = thickness*2;
+float width = thickness;
 float extAmount = extension * 0.01;
 vec4 vecOffset = vec4(0.0,0.0,zOffset,0.0);
 float radius = width;
 
 vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
+float view_ratio = Viewport.x / Viewport.y;
 
 float minLength = 1.0*length(pxVec);
 
+vec2 get_ss_width_from_ws(){
+    mat4 inv_proj_mat = inverse(ModelViewProjectionMatrix);
+    vec4 p1ss = vec4(0.0,0.0,0.0,1.0);
+    vec4 p2ss = vec4(1.0,0.0,0.0,1.0);
+    vec4 p3ss = vec4(0.0,1.0,0.0,1.0);
+    vec4 p1ws = inv_proj_mat * p1ss;
+    vec4 p2ws = inv_proj_mat * p2ss;
+    vec4 p3ws = inv_proj_mat * p3ss;
+    p1ws.xyz *= p1ws.w;
+    p2ws.xyz *= p2ws.w;
+    p3ws.xyz *= p3ws.w;
+    float ws_dist_x = length((p2ws.xyz)- (p1ws.xyz));
+    float ws_dist_y = length((p3ws.xyz) - (p1ws.xyz));
+    return vec2(1.0/ws_dist_x,1.0/ws_dist_y);
+}
+
+vec2 ws_ratio = get_ss_width_from_ws();
+
 vec2 get_line_width(vec2 normal, float width) {
     vec2 offsetvec = vec2(normal * width);
-    offsetvec.x /= Viewport.x;
-    offsetvec.y /= Viewport.y;
+    offsetvec *= pxVec;
+    offsetvec *= ws_ratio.x;
+    offsetvec *= view_ratio * 8.125;
 
     if (length(offsetvec) < minLength){
         offsetvec = normalize(offsetvec);
@@ -41,8 +61,9 @@ vec2 get_line_width(vec2 normal, float width) {
 
 float get_line_alpha(vec2 normal, float width) {
     vec2 offsetvec = vec2(normal * width);
-    offsetvec.x /= Viewport.x;
-    offsetvec.y /= Viewport.y;
+    offsetvec *= pxVec;
+    offsetvec *= ws_ratio.x;
+    offsetvec *= view_ratio * 8.125;
 
     float alpha = 1.0;
     if (length(offsetvec) < minLength){
@@ -118,6 +139,7 @@ void main() {
 
     // Draw Point pass
     // Get Center Point in Screen Space
+    radius = width * get_ss_width_from_ws().x * view_ratio * 8.125;
     if (pointPass){
         vec4 worldPos = objectMatrix * p1;
         vec4 project = ModelViewProjectionMatrix * worldPos;

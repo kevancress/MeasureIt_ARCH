@@ -3716,14 +3716,28 @@ def draw_all_lines():
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     viewport = get_viewport()
+
     global AllLinesBuffer
     global AllLinesBatch
 
     if not sceneProps.use_new_draw_pipeline:
         return
 
+    # get the near clipping plane
+    rv3d = get_rv3d()
+    is_camera = 0
+    try:
+        if rv3d.view_perspective =='CAMERA' and scene.camera.data.type =="ORTHO":
+            is_camera = 1
+    except AttributeError:
+        if sceneProps.is_render_draw:
+            is_camera = 1
+
+
     allLinesShader.bind()
     allLinesShader.uniform_float("Viewport", viewport)
+    allLinesShader.uniform_float("is_camera", is_camera)
+
     # batch & Draw Shader
 
     batch3d = batch_for_shader(
@@ -3738,6 +3752,7 @@ def draw_all_lines():
         })
     
     # Set Depth Test
+    bgl.glEnable(bgl.GL_BLEND)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
     bgl.glEnable(bgl.GL_DEPTH_TEST)
 
@@ -3759,7 +3774,6 @@ def draw_all_lines():
     # Draw Without Depth Mask 
     bgl.glDepthMask(False)
     allLinesShader.uniform_float("depthPass", False)
-    batch3d.program_set(allLinesShader)
     batch3d.draw()
     gpu.shader.unbind()
 

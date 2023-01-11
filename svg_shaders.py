@@ -60,7 +60,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         
 
     lines = svg.g(id=idName, stroke=svgColor,fill = 'none',
-                  stroke_width=thickness, stroke_linecap=cap)
+                  stroke_width="{}pt".format(thickness), stroke_linecap=cap)
     if parent:
         parent.add(lines)
     else:
@@ -84,7 +84,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     except AttributeError:
         dash_val = "5,5"
 
-    dashed_lines = svg.g(id=dash_id_name, stroke=dash_col,fill = 'none', stroke_width=dash_weight,
+    dashed_lines = svg.g(id=dash_id_name, stroke=dash_col,fill = 'none', stroke_width="{}pt".format(dash_weight),
                     stroke_dasharray=dash_val, stroke_linecap='butt')
 
     if parent:
@@ -193,10 +193,10 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     lineOpacity = lineColor[3]
     if dashed:
         solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
-                        stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round",  stroke_dasharray=dash_val, stroke_linecap= cap)
+                        stroke=lineColor, stroke_width="{}pt".format(lineWeight), stroke_opacity=lineOpacity,stroke_linejoin="round",  stroke_dasharray=dash_val, stroke_linecap= cap)
     else:
         solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
-                        stroke=lineColor, stroke_width=lineWeight, stroke_opacity=lineOpacity,stroke_linejoin="round", stroke_linecap= cap)
+                        stroke=lineColor, stroke_width="{}pt".format(lineWeight), stroke_opacity=lineOpacity,stroke_linejoin="round", stroke_linecap= cap)
     if parent:
         parent.add(solidfill)
     else:
@@ -359,18 +359,18 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     ## Debug Draw Text Card for troubleshooting
     if bpy.context.scene.MeasureItArchProps.show_text_cards:
 
-        svg.add(svg.line(start=tuple(ssp0), end=tuple(ssp1), stroke="blue", stroke_width=1))
-        svg.add(svg.line(start=tuple(ssp1), end=tuple(ssp2), stroke="blue", stroke_width=1))
-        svg.add(svg.line(start=tuple(ssp2), end=tuple(ssp3), stroke="blue", stroke_width=1))
-        svg.add(svg.line(start=tuple(ssp0), end=tuple(ssp3), stroke="blue", stroke_width=1))
+        svg.add(svg.line(start=tuple(ssp0), end=tuple(ssp1), stroke="blue", stroke_width="1pt"))
+        svg.add(svg.line(start=tuple(ssp1), end=tuple(ssp2), stroke="blue", stroke_width="1pt"))
+        svg.add(svg.line(start=tuple(ssp2), end=tuple(ssp3), stroke="blue", stroke_width="1pt"))
+        svg.add(svg.line(start=tuple(ssp0), end=tuple(ssp3), stroke="blue", stroke_width="1pt"))
 
-        svg.add(svg.line(start=tuple(card[0]), end=tuple(card[3]), stroke="red", stroke_width=2))
-        svg.add(svg.line(start=tuple(card[0]), end=tuple(card[1]), stroke="green", stroke_width=2))
-        svg.add(svg.line(start=tuple(midVec), end=tuple(center), stroke="blue", stroke_width=2))
+        svg.add(svg.line(start=tuple(card[0]), end=tuple(card[3]), stroke="red", stroke_width="2pt"))
+        svg.add(svg.line(start=tuple(card[0]), end=tuple(card[1]), stroke="green", stroke_width="2pt"))
+        svg.add(svg.line(start=tuple(midVec), end=tuple(center), stroke="blue", stroke_width="2pt"))
         svg.add(svg.line(start=tuple(text_position), end=tuple(offset_text_position), stroke="yellow", stroke_width=2))
 
-        svg.add(svg.line(start=tuple((0,0)), end=tuple((50,0)), stroke="red", stroke_width=1))
-        svg.add(svg.line(start=tuple((0,0)), end=tuple((0,50)), stroke="green", stroke_width=1))
+        svg.add(svg.line(start=tuple((0,0)), end=tuple((50,0)), stroke="red", stroke_width="1pt"))
+        svg.add(svg.line(start=tuple((0,0)), end=tuple((0,50)), stroke="green", stroke_width="1pt"))
 
 
 def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
@@ -386,7 +386,7 @@ def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
                        mesh.vertices[idx].co[1] * size)
                 pair.append(ssp)
             pattern.add(svg.line(start=tuple(pair[0]), end=tuple(
-                pair[1]), stroke_width=weight, stroke=svgColor, stroke_linecap='round'))
+                pair[1]), stroke_width="{}pt".format(weight), stroke=svgColor, stroke_linecap='round'))
 
 
 def polygon_subtract(source, cut):

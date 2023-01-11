@@ -11,8 +11,14 @@ in VERT_OUT {
 
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 Viewport;
+uniform vec2 Paper;
+uniform int res;
+uniform float scale;
+uniform float is_camera;
 
 const float PI = 3.1415926;
+const float INCH_TO_CM = 2.54;
+const float BU_TO_IN = 100.0 / INCH_TO_CM;
 out vec2 mTexCoord;
 out vec4 g_color;
 out float alpha;
@@ -23,13 +29,36 @@ vec4 vecOffset = vec4(0.0,0.0,verts[0].offset,0.0);
 float radius = width;
 
 vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
+float view_ratio = Viewport.x / Viewport.y;
 
 float minLength = 1.0*length(pxVec);
 
+vec2 get_ss_width_from_ws(){
+    mat4 inv_proj_mat = inverse(ModelViewProjectionMatrix);
+    vec4 p1ss = vec4(0.0,0.0,0.0,1.0);
+    vec4 p2ss = vec4(1.0,0.0,0.0,1.0);
+    vec4 p3ss = vec4(0.0,1.0,0.0,1.0);
+    vec4 p1ws = inv_proj_mat * p1ss;
+    vec4 p2ws = inv_proj_mat * p2ss;
+    vec4 p3ws = inv_proj_mat * p3ss;
+    p1ws.xyz *= p1ws.w;
+    p2ws.xyz *= p2ws.w;
+    p3ws.xyz *= p3ws.w;
+    float ws_dist_x = length((p2ws.xyz)- (p1ws.xyz));
+    float ws_dist_y = length((p3ws.xyz) - (p1ws.xyz));
+    return vec2(1.0/ws_dist_x,1.0/ws_dist_y);
+}
+
+vec2 ws_ratio = get_ss_width_from_ws();
+
 vec2 get_line_width(vec2 normal, float width) {
     vec2 offsetvec = vec2(normal * width);
-    offsetvec.x /= Viewport.x;
-    offsetvec.y /= Viewport.y;
+    offsetvec *= pxVec;
+
+    if (is_camera==1.0){
+        offsetvec *= ws_ratio.x;
+        offsetvec *= view_ratio * 8.125;
+    }
 
     if (length(offsetvec) < minLength){
         offsetvec = normalize(offsetvec);
@@ -40,8 +69,12 @@ vec2 get_line_width(vec2 normal, float width) {
 
 float get_line_alpha(vec2 normal, float width) {
     vec2 offsetvec = vec2(normal * width);
-    offsetvec.x /= Viewport.x;
-    offsetvec.y /= Viewport.y;
+    offsetvec *= pxVec;
+
+    if (is_camera==1.0){
+        offsetvec *= ws_ratio.x;
+        offsetvec *= view_ratio * 8.125;
+    }
 
     float alpha = 1.0;
     if (length(offsetvec) < minLength){
@@ -108,15 +141,21 @@ void main() {
     alphas[1] = alpha1;
 
     coords[2] = vec4((ssp2 + lineOffset2)*p2Ext.w,p2Ext.z,p2Ext.w);
-    texCoords[2] = vec2(0,1);
+    texCoords[2] = vec2(1,1);
     alphas[2] = alpha2;
 
     coords[3] = vec4((ssp2 - lineOffset2)*p2Ext.w,p2Ext.z,p2Ext.w);
-    texCoords[3] = vec2(0,0);
+    texCoords[3] = vec2(1,0);
     alphas[3] = alpha2;
 
     // Draw Point pass
     // Get Center Point in Screen Space
+    
+    radius = width;
+    if (is_camera==1.0){
+        radius *= ws_ratio.x;
+        radius *= view_ratio * 8.125;
+    }
     if (verts[0].rounded==1){
         vec4 worldPos =  verts[0].objectMatrix * p1;
         vec4 project = ModelViewProjectionMatrix * worldPos;
