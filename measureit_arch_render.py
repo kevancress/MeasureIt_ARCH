@@ -227,7 +227,8 @@ def render_main(self, context):
         view_matrix_3d = scene.camera.matrix_world.inverted()
         projection_matrix = scene.camera.calc_matrix_camera(
             context.view_layer.depsgraph, x=width, y=height)
-
+        
+        text_update_loop(context, objlist)
         with OpenGL_Settings(None):
             with renderoffscreen.bind():
 
@@ -249,6 +250,7 @@ def render_main(self, context):
                 # -----------------------------
                 # Loop to draw all objects
                 # -----------------------------
+
                 draw3d_loop(context, objlist)
                 view = get_view()
                 dt = view.vector_depthtest

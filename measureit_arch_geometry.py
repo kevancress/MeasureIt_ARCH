@@ -48,7 +48,7 @@ from . import dxf_shaders
 from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
-from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, recursionlimit,\
+from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, pts_to_px, recursionlimit,\
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
     load_shader_str
 
@@ -157,7 +157,7 @@ def update_text(textobj, props, context, fields=[]):
         if textField.text_updated or sceneProps.text_updated:
             # Get textitem Properties
             rgb = rgb_gamma_correct(props.color)
-            size = 20
+            size = props.fontSize
             resolution = get_resolution()
 
             # Get Font Id
@@ -244,7 +244,8 @@ def update_text(textobj, props, context, fields=[]):
 
                     # Write Texture Buffer to ID Property as List
                     if 'texture' in textField:
-                        del textField['texture']
+                        pass
+                        #del textField['texture']
                     textField['texture'] = texture_buffer
                     textField.text_updated = False
                     textField.texture_updated = True
@@ -2651,12 +2652,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
     loc = mat.to_translation()
     scale = mat.to_scale()
 
-    # Only use the z rot of the annotation rotation
     locMatrix = Matrix.Translation(loc)
-    annoMat = Matrix.Identity(3).copy()
-    annoEuler = Euler((0, 0, 0), 'XYZ')
-    annoMat.rotate(annoEuler)
-    annoMat = annoMat.to_4x4()
 
     # use Camera rot for the rest
     camera = context.scene.camera
@@ -2668,10 +2664,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
         cameraRotMat.rotate(cameraRot)
     
     cameraRotMat = cameraRotMat.to_4x4()
-    fullRotMat = annoMat @ cameraRotMat
-    extMat = locMatrix @ fullRotMat
 
-    cameraX = cameraRotMat @ Vector((1, 0, 0))
 
     for table in tableGen.tables:
         tableProps = table
@@ -2822,10 +2815,13 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
 
                 # Draw the table
-                xDir = fullRotMat @ Vector((1, 0, 0)) * padded_width
-                yDir = fullRotMat @ Vector((0, -1, 0)) * padded_height
+                i = cameraRotMat @ Vector((1, 0, 0))
+                j = cameraRotMat @ Vector((0, 1, 0))
 
-                cell_origin = origin + Vector((1, 0, 0)) * cell_x - Vector((0, 1, 0)) * cell_y
+                xDir = i * padded_width
+                yDir = -j * padded_height
+
+                cell_origin = origin + i * cell_x - j * cell_y
 
                 c1 = cell_origin
                 c2 = cell_origin + xDir
@@ -2871,18 +2867,18 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
                 # Set Alignment
                 if textField.textAlignment == 'L':
-                    field_origin = cell_origin + padding * Vector((1,0,0))
+                    field_origin = cell_origin + padding * i
                 if textField.textAlignment == 'R':
-                    field_origin = c2 - padding * Vector((1,0,0))
+                    field_origin = c2 - padding * i
                 if textField.textAlignment == 'C':
                     field_origin = (cell_origin + c2)/2
 
                 if textField.textPosition == 'T':
-                    field_origin.y = (cell_origin + padding * Vector((0,-1,0))).y
+                    field_origin.y = (cell_origin + padding * -j).y
                 if textField.textPosition == 'M':
                     field_origin.y =  ((cell_origin + c4)/2).y
                 if textField.textPosition == 'B':
-                    field_origin.y = (c4 + padding * Vector((0,1,0))).y
+                    field_origin.y = (c4 + padding * j).y
 
                 # Generate Text Card
                 textcard = generate_text_card(
@@ -3186,10 +3182,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
         uv = (Vector(normUV) + Vector((1, 1))) * 0.5
         uvs.append(uv)
 
-    # Gets Texture from Object
-    width = textobj.textWidth
-    height = textobj.textHeight
-    dim = width * height * 4
+
 
     # Draw Text card for debug
     if sceneProps.show_text_cards:
@@ -3198,6 +3191,10 @@ def draw_text_3D(context, textobj, textprops, myobj):
         draw_lines(1.0, (0.0, 1.0, 0.0, 1.0), coords)
 
 
+    # Gets Texture from Object
+    width = textobj.textWidth
+    height = textobj.textHeight
+    dim = width * height * 4
 
     if 'texture' in textobj and textobj.text != "":
         # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
@@ -3317,8 +3314,7 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
     return capCoords, filledCoords
 
 
-def generate_text_card(
-        context, textobj, textProps, rotation=Vector((0, 0, 0)), basePoint=Vector((0, 0, 0)), xDir=Vector((1, 0, 0)),
+def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), basePoint=Vector((0, 0, 0)), xDir=Vector((1, 0, 0)),
         yDir=Vector((0, 1, 0)), cardIdx=0):
 
     """
@@ -3329,15 +3325,13 @@ def generate_text_card(
     height = textobj.textHeight
 
     scale = get_scale()
+    res = get_resolution()
 
-    # Define annotation Card Geometry
-    resolution = get_resolution()
-
-    # Get font size in pt more stupid fudge factors :(
-    size = (textProps.fontSize / 803) * scale
-
-    sx = (width / resolution) * size
-    sy = (height / resolution) * size
+    # Get World space card size from texture pixel size
+    sx = px_to_m(pts_to_px(width)) * scale * 72/res
+    sy = px_to_m(pts_to_px(height)) * scale * 72/res
+    #sx = (width) * size 
+    #sy = (height) * size
 
     cardX = xDir.normalized() * sx
     cardY = yDir.normalized() * sy

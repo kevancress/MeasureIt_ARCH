@@ -46,6 +46,7 @@ height = None
 
 def get_render_location(mypoint, svg_flip_y = True):
     global width
+    global height
     scene = bpy.context.scene
 
     v1 = Vector(mypoint)
