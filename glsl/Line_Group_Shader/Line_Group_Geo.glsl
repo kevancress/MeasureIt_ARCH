@@ -26,7 +26,7 @@ float radius = width;
 vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
 float view_ratio = Viewport.x / Viewport.y;
 
-float minLength = 1.0*length(pxVec);
+float minLength = 2.0*length(pxVec);
 
 vec2 get_ss_width_from_ws(){
     mat4 inv_proj_mat = inverse(ModelViewProjectionMatrix);

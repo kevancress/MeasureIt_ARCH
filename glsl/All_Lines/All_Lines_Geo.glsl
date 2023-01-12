@@ -12,6 +12,8 @@ in VERT_OUT {
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 Viewport;
 uniform vec2 Paper;
+uniform vec4 camera_coord1;
+uniform vec4 camera_coord2; // camera aligned coords 1BU apart in x
 uniform int res;
 uniform float scale;
 uniform float is_camera;
@@ -23,64 +25,61 @@ out vec2 mTexCoord;
 out vec4 g_color;
 out float alpha;
 
-float width = verts[0].weight;
 float extAmount = 0.0;
 vec4 vecOffset = vec4(0.0,0.0,verts[0].offset,0.0);
-float radius = width;
+float radius = 1.0;
 
 vec2 pxVec = vec2(1.0/Viewport.x,1.0/Viewport.y);
-float view_ratio = Viewport.x / Viewport.y;
+float view_ratio_x = Viewport.x / Viewport.y;
+float view_ratio_y = Viewport.y / Viewport.x;
 
-float minLength = 1.0*length(pxVec);
+float min_size_fac = 4.0;
+float minLength = min_size_fac*length(pxVec);
 
-vec2 get_ss_width_from_ws(){
+float get_ss_inch(){
+    vec4 camera_proj_1 = ModelViewProjectionMatrix * camera_coord1;
+    vec4 camera_proj_2 = ModelViewProjectionMatrix * camera_coord2;
+
+    vec2 cam_ss1 = camera_proj_1.xy / camera_proj_1.w;
+    vec2 cam_ss2 = camera_proj_2.xy / camera_proj_2.w;
+
+    float ss_dist = length(cam_ss2 - cam_ss1); // this is 1BU in ss
+    float ss_inch = ss_dist * BU_TO_IN; // this is 1 in in ss
+    return ss_inch;
+}
+
+float ss_inch = get_ss_inch();
+float ss_pt = ss_inch / 72 * scale;
+
+float get_ss_width_from_ws(){
     mat4 inv_proj_mat = inverse(ModelViewProjectionMatrix);
     vec4 p1ss = vec4(0.0,0.0,0.0,1.0);
     vec4 p2ss = vec4(1.0,0.0,0.0,1.0);
-    vec4 p3ss = vec4(0.0,1.0,0.0,1.0);
     vec4 p1ws = inv_proj_mat * p1ss;
     vec4 p2ws = inv_proj_mat * p2ss;
-    vec4 p3ws = inv_proj_mat * p3ss;
     p1ws.xyz *= p1ws.w;
     p2ws.xyz *= p2ws.w;
-    p3ws.xyz *= p3ws.w;
     float ws_dist_x = length((p2ws.xyz)- (p1ws.xyz));
-    float ws_dist_y = length((p3ws.xyz) - (p1ws.xyz));
-    return vec2(1.0/ws_dist_x,1.0/ws_dist_y);
+    return 1.0/ws_dist_x * view_ratio_x*scale;
 }
 
-vec2 ws_ratio = get_ss_width_from_ws();
+float ws_ratio = get_ss_width_from_ws();
 
-vec2 get_line_width(vec2 normal, float width) {
-    vec2 offsetvec = vec2(normal * width);
-    offsetvec *= pxVec;
-
+vec3 get_line_width_and_alpha(vec2 normal, float width) {
+    vec2 offsetvec = vec2(normal);
     if (is_camera==1.0){
-        offsetvec *= ws_ratio.x;
-        offsetvec *= view_ratio * 8.125;
+        offsetvec *= ss_pt * width;
     }
-
-    if (length(offsetvec) < minLength){
-        offsetvec = normalize(offsetvec);
-        offsetvec *= minLength;
-    }
-    return(offsetvec);
-}
-
-float get_line_alpha(vec2 normal, float width) {
-    vec2 offsetvec = vec2(normal * width);
-    offsetvec *= pxVec;
-
-    if (is_camera==1.0){
-        offsetvec *= ws_ratio.x;
-        offsetvec *= view_ratio * 8.125;
-    }
-
+    
     float alpha = 1.0;
     if (length(offsetvec) < minLength){
         alpha *= (length(offsetvec)/minLength);
+        offsetvec = normalize(offsetvec);
+        offsetvec *= minLength;
     }
-    return clamp(alpha,1.0,1.0);
+    offsetvec *=pxVec;
+    clamp(alpha,1.0,1.0);
+    return vec3(offsetvec,alpha);
 }
 
 
@@ -111,8 +110,6 @@ void main() {
 
     // Get Width per point
     float width1 = verts[0].weight;
-    radius = width1;
-
     float width2 = verts[1].weight;
 
     // Screen Space direction and normal
@@ -121,11 +118,13 @@ void main() {
     normal = normalize(normal);
 
     // Screen Space line width offset
-    vec2 lineOffset1 = get_line_width(normal,width1);
-    float alpha1 = get_line_alpha(normal,width1);
+    vec3 wa1 = get_line_width_and_alpha(normal,width1);
+    vec2 lineOffset1 = wa1.xy;
+    float alpha1 = wa1[2];
 
-    vec2 lineOffset2 = get_line_width(normal, width2);
-    float alpha2 = get_line_alpha(normal,width2);
+    vec3 wa2 = get_line_width_and_alpha(normal,width2);
+    vec2 lineOffset2 = wa2.xy;
+    float alpha2 = wa2[2];
 
     // Generate the rectangle Coords
     vec4 coords[4];
@@ -150,11 +149,9 @@ void main() {
 
     // Draw Point pass
     // Get Center Point in Screen Space
-    
-    radius = width;
+    radius = 1.0;
     if (is_camera==1.0){
-        radius *= ws_ratio.x;
-        radius *= view_ratio * 8.125;
+       radius *= ss_pt * width1;
     }
     if (verts[0].rounded==1){
         vec4 worldPos =  verts[0].objectMatrix * p1;
@@ -164,9 +161,8 @@ void main() {
         vec2 sspC = vec2(pointCenter.xy / pointCenter.w);
 
         // Get number of segments in the circle
-        int segments = int(floor(verts[0].weight)) + 5;
-        segments = clamp(segments,0,28);
-
+        int segments = 28;
+        
         // Generate Circle
         gl_Position = pointCenter;
         g_color = verts[0].color;

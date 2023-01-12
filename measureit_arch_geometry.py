@@ -3716,6 +3716,8 @@ def draw_all_lines():
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     viewport = get_viewport()
+    scale = get_scale()
+    view = get_view()
 
     global AllLinesBuffer
     global AllLinesBatch
@@ -3733,11 +3735,22 @@ def draw_all_lines():
         if sceneProps.is_render_draw:
             is_camera = 1
 
+    #print(scene.camera.data.view_frame())
+    # Get the camera view frame so we can work out world scale in the geo shader
+    z = -scene.camera.data.clip_start
+    c1 = scene.camera.matrix_world @ Vector((0,0,z,1))
+    c2 = scene.camera.matrix_world @ Vector((1,0,z,1))
 
     allLinesShader.bind()
     allLinesShader.uniform_float("Viewport", viewport)
     allLinesShader.uniform_float("is_camera", is_camera)
+    allLinesShader.uniform_float("scale", scale)
+    allLinesShader.uniform_float("camera_coord1", c1)
+    allLinesShader.uniform_float("camera_coord2", c2)
+    
 
+
+    #print(camera_coords)
     # batch & Draw Shader
 
     batch3d = batch_for_shader(
