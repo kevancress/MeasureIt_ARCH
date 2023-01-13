@@ -527,8 +527,8 @@ class OBJECT_PT_UILines(Panel):
                             col.prop(line, 'lineDepthOffset', text="Z Offset")
 
                             col = box.column(align=True)
-                            col.prop(line, 'lineOverExtension',
-                                     text="Extension")
+                            #col.prop(line, 'lineOverExtension',
+                            #         text="Extension")
                             # col.prop(line, 'randomSeed', text="Seed" )
 
                             col = box.column(align=True)
