@@ -1983,10 +1983,10 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             lineWeight = lineProps.lineWeight
 
             # Calculate Offset with User Tweaks
-            offset = lineWeight / 2.5
+            offset = lineWeight / 20
             offset += lineProps.lineDepthOffset
-            #if isOrtho:
-            #    offset /= 15
+            if isOrtho:
+                offset /= 15
             offset /= 1000
 
             # Get line data to be drawn
