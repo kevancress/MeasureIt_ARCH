@@ -2016,7 +2016,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     verts = mesh.vertices
 
 
-            # Get Coords
+            # Re Calc Coords
             sceneProps = bpy.context.scene.MeasureItArchProps
             if ('coordBuffer' not in lineGroup or recoord_flag):
                 # Handle line groups created with older versions of MeasureIt_ARCH
@@ -2142,37 +2142,25 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     bm.free()
 
 
-                # Get vertex group for evaluated mesh
-                # line weight group setup
-                tempWeights = []
-                #if lineGroup.lineWeightGroup != "":
-                #    obj_eval = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
-                #    vertex_group = obj_eval.vertex_groups[lineGroup.lineWeightGroup]
-                #    group_idx = vertex_group.index
-                #    for idx in lineGroup['lineBuffer']:
-                #        try:
-                #            vert = obj_eval.data.vertices[idx]
-                #            print(vert.groups)
-                #            tempWeights.append(vert.groups[group_idx].weight)
-                #        except IndexError as e:
-                #            print("Index: {} not in Vertex Group: {} on obj: {}".format(idx,lineGroup.lineWeightGroup,myobj.name))
-                #            tempWeights.append(0.0)
-                #else:
-                tempWeights = [1.0] * len(lineGroup['coordBuffer'])
-
-                lineGroup['weightBuffer'] = tempWeights
-
+              
+            # Get Coords from Buffer  
             coords = []
             coords = lineGroup['coordBuffer']
 
-            try:
-                weights = lineGroup['weightBuffer']
-            except KeyError:
-                tempWeights = [1.0] * len(lineGroup['coordBuffer'])
-                lineGroup['weightBuffer'] = tempWeights
-                weights = lineGroup['weightBuffer']
-
-            lineGroup.weightGroupInfluence = 0.0
+            # Get Filter Weights
+            filterWeights = [1.0] * len(coords)
+            if lineGroup.filterGroup != "":
+                filterWeights = get_vertex_group_weights(myobj, lineGroup['lineBuffer'], lineGroup.filterGroup, filter = True)
+            
+            # Get Line Weights
+            groupWeights = [1.0] * len(coords)
+            if lineGroup.lineWeightGroup != "":
+                groupWeights = get_vertex_group_weights(myobj, lineGroup['lineBuffer'], lineGroup.lineWeightGroup)
+                
+            lineWeights = [lineGroup.lineWeight] * len(coords)
+            for idx in range(len(coords)):
+                lineWeights[idx] = lineGroup.lineWeight * groupWeights[idx] * filterWeights[idx]
+                #print("Resulting Weight {} . From filter {} , and Group {}".format(lineWeights[idx],filterWeights[idx],groupWeights[idx]))
 
             if len(coords) == 0:
                 #print("No Coords")
@@ -2266,7 +2254,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             else:
                 if sceneProps.use_new_draw_pipeline:
-                    draw_lines(lineWeight,rgb,coords,offset=-offset,twoPass=True, pointPass= lineProps.pointPass,objMat=mat)
+                    draw_lines(lineWeights,rgb,coords,offset=-offset,twoPass=True, pointPass= lineProps.pointPass,objMat=mat)
 
                 else:
                     lineGroupShader.bind()
@@ -2338,6 +2326,29 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             if sceneProps.is_dxf_draw:
                 dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf,myobj, mat=mat, )
     gpu.shader.unbind()
+
+def get_vertex_group_weights(myobj, vert_list, group_name, filter = False):
+    weights = []
+    obj_eval = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
+    vertex_group = obj_eval.vertex_groups[group_name]
+    group_idx = vertex_group.index
+    for idx in vert_list:
+        try:
+            vert = obj_eval.data.vertices[idx]
+            weight = vert.groups[group_idx].weight
+            if filter:
+                weights.append(float(weight>0.5))
+            else:
+                weights.append(weight)
+            
+        except IndexError as e:
+            #print("Index: {} not in Vertex Group: {} on obj: {}".format(idx,group_name, myobj.name))
+            if filter:
+                weights.append(0.0)
+            else:
+                weights.append(1.0)
+    
+    return weights
 
 
 def get_color(rawRGB, myobj, is_active=True, only_active=False, cad_col_idx = 256):
@@ -3658,9 +3669,13 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
     if sceneProps.use_new_draw_pipeline:
         num_coords = len(coords)
         AllLinesBuffer['coords'].extend(coords)
+        # Check for list of rgb values
         if type(rgb) == list: AllLinesBuffer['colors'].extend(rgb)
         else: AllLinesBuffer['colors'].extend([rgb]*num_coords)
-        AllLinesBuffer['weights'].extend([lineWeight]*num_coords)
+        # Check for list of weight values
+        if type(lineWeight) == list: AllLinesBuffer['weights'].extend(lineWeight)
+        else:AllLinesBuffer['weights'].extend([lineWeight]*num_coords)
+        
         AllLinesBuffer['offsets'].extend([offset]*num_coords)
         AllLinesBuffer['rounded'].extend([int(pointPass)]*num_coords)
         AllLinesBuffer['objMat'].extend([flat_mat]*num_coords)

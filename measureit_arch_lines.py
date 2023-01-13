@@ -79,6 +79,8 @@ class LineProperties(BaseProp, PropertyGroup):
 
     lineWeightGroup: StringProperty(name='Line Weight Group')
 
+    filterGroup: StringProperty(name='Filter by Group')
+
     invertGroupFilter: BoolProperty(default = False)
 
     weightGroupInfluence: FloatProperty(
@@ -504,11 +506,12 @@ class OBJECT_PT_UILines(Panel):
 
                         col = box.column(align=True)
                         row = col.row(align=True)
-                        row.prop_search(line, "lineWeightGroup", context.active_object, "vertex_groups",
-                                text="Filter Vertex Group")
+                        row.prop_search(line, "filterGroup", context.active_object, "vertex_groups")
                         row.prop(line, "invertGroupFilter")
-                        #col.prop(line, 'weightGroupInfluence', text="Influence")
 
+                        col.prop_search(line, "lineWeightGroup", context.active_object, "vertex_groups")
+                        col.prop(line, "weightGroupInfluence")
+                        
                         if not line.uses_style:
 
                             col = box.column(align=True)

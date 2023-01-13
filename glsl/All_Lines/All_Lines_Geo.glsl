@@ -1,5 +1,5 @@
 layout(lines) in;
-layout(triangle_strip, max_vertices = 64) out;
+layout(triangle_strip, max_vertices = 60) out;
 
 in VERT_OUT {
     float weight;
@@ -70,7 +70,8 @@ void main() {
     // Get Direction (accounting for perspective divide and viewport)
     vec2 dir = normalize((p2_clip.xy/p2_clip.w -p1_clip.xy/p1_clip.w) * Viewport);
     // Get Perpindicular vector for offset
-    vec2 offset = vec2(-dir.y,dir.x) * verts[0].weight/2.0 * ss_pt / Viewport;
+    vec2 offset1 = vec2(-dir.y,dir.x) * verts[0].weight/2.0 * ss_pt / Viewport;
+    vec2 offset2 = vec2(-dir.y,dir.x) * verts[1].weight/2.0 * ss_pt / Viewport;
 
     // set rectangel coords
     vec4 coords[4];
@@ -78,35 +79,35 @@ void main() {
     vec4 colors[4];
     float alphas[4];
 
-    coords[0] = p1_clip + vec4(offset.xy * p1_clip.w, 0.0, 0.0);
+    coords[0] = p1_clip + vec4(offset1.xy * p1_clip.w, 0.0, 0.0);
     texCoords[0] = vec2(0,1);
     colors[0] = verts[0].color;
     alphas[0] = 1.0;
 
-    coords[1] = p1_clip - vec4(offset.xy * p1_clip.w, 0.0, 0.0);
+    coords[1] = p1_clip - vec4(offset1.xy * p1_clip.w, 0.0, 0.0);
     texCoords[1] = vec2(0,0);
     colors[1] = verts[0].color;
     alphas[1] = 1.0;
 
-    coords[2] = p2_clip + vec4(offset.xy * p2_clip.w, 0.0, 0.0);
+    coords[2] = p2_clip + vec4(offset2.xy * p2_clip.w, 0.0, 0.0);
     texCoords[2] = vec2(1,1);
     colors[2] = verts[1].color;
     alphas[2] = 1.0;
 
-    coords[3] = p2_clip - vec4(offset.xy * p2_clip.w, 0.0, 0.0);
+    coords[3] = p2_clip - vec4(offset2.xy * p2_clip.w, 0.0, 0.0);
     texCoords[3] = vec2(1,0);
     colors[3] = verts[1].color;
     alphas[3] = 1.0;
 
     // Point Pass
-    float radius = verts[0].weight/2.0;
+    
     vec4 centers[2];
     centers[0] = p1_ws;
     centers[1] = p2_ws;
-    
 
     for (int i = 0; i < 2; ++i) {
         if (verts[i].rounded == 1){
+            float radius = verts[i].weight/2.0;
             // Get Center Point
             vec4 pc = centers[i];
             vec4 pc_clip = ModelViewProjectionMatrix * pc + vecOffset;
