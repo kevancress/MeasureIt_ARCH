@@ -2069,10 +2069,10 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                         pointB = edge.verts[1].co
 
                         #Check Filter Vertex Group
-                        if lineGroup.lineWeightGroup != '':
+                        if lineGroup.filterGroup != '':
                             #print('has filter group')
                             eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
-                            vertex_group = eval_obj.vertex_groups[lineGroup.lineWeightGroup]
+                            vertex_group = eval_obj.vertex_groups[lineGroup.filterGroup]
                             group_idx = vertex_group.index
                             v1_groups = eval_obj.data.vertices[edge.verts[0].index].groups
                             v2_groups = eval_obj.data.vertices[edge.verts[1].index].groups
@@ -2084,9 +2084,6 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                             for item in v2_groups:
                                 id2.append(item.group)
                                 #print('v2 in group: {} looking for group: {}'.format(item.group,group_idx))
-
-
-
                             if lineGroup.invertGroupFilter - (group_idx not in id1 or group_idx not in id2):
                                 #print('skipping line segment')
                                 continue
@@ -2146,11 +2143,6 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             # Get Coords from Buffer  
             coords = []
             coords = lineGroup['coordBuffer']
-
-            # Get Filter Weights
-            filterWeights = [1.0] * len(coords)
-            if lineGroup.filterGroup != "":
-                filterWeights = get_vertex_group_weights(myobj, lineGroup['lineBuffer'], lineGroup.filterGroup, filter = True)
             
             # Get Line Weights
             groupWeights = [1.0] * len(coords)
@@ -2159,7 +2151,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 
             lineWeights = [lineGroup.lineWeight] * len(coords)
             for idx in range(len(coords)):
-                lineWeights[idx] = lineGroup.lineWeight * groupWeights[idx] * filterWeights[idx]
+                lineWeights[idx] = lineGroup.lineWeight * groupWeights[idx]
                 #print("Resulting Weight {} . From filter {} , and Group {}".format(lineWeights[idx],filterWeights[idx],groupWeights[idx]))
 
             if len(coords) == 0:
