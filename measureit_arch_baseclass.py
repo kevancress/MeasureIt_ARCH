@@ -222,7 +222,7 @@ class BaseProp:
         name="Line Weight",
         description="Lineweight",
         default=1,
-        soft_min=1.0,
+        soft_min=0.1,
         step=25,
         min=0)
 

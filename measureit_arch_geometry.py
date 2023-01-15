@@ -2149,9 +2149,12 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             if lineGroup.lineWeightGroup != "":
                 groupWeights = get_vertex_group_weights(myobj, lineGroup['lineBuffer'], lineGroup.lineWeightGroup)
                 
-            lineWeights = [lineGroup.lineWeight] * len(coords)
+            lineWeights = [lineProps.lineWeight] * len(coords)
             for idx in range(len(coords)):
-                lineWeights[idx] = lineGroup.lineWeight * groupWeights[idx]
+                try:
+                    lineWeights[idx] = lineProps.lineWeight * groupWeights[idx]
+                except IndexError:
+                    lineWeights[idx] = lineProps.lineWeight
                 #print("Resulting Weight {} . From filter {} , and Group {}".format(lineWeights[idx],filterWeights[idx],groupWeights[idx]))
 
             if len(coords) == 0:

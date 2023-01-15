@@ -1,5 +1,5 @@
 layout(lines) in;
-layout(triangle_strip, max_vertices = 60) out;
+layout(triangle_strip, max_vertices = 82) out;
 
 in VERT_OUT {
     float weight;
@@ -11,7 +11,6 @@ in VERT_OUT {
 
 // OUTS
 out vec2 mTexCoord;
-out float alpha;
 out vec4 g_color;
 
 // UNIFORMS
@@ -54,6 +53,23 @@ float get_ss_pt(){
 
 float ss_pt = get_ss_pt();
 
+vec3 get_offset_and_alpha(vec2 dir, float weight){
+    float min_length = 4.0;
+    vec2 min_offset = dir * min_length/2.0  / Viewport;
+
+    float alpha = 1.0;
+    vec2 offset = dir * weight/2.0 * ss_pt / Viewport;
+    if (length(offset) < length(min_offset)){
+        alpha = (length(offset) / length(min_offset));
+        offset = min_offset;
+    }
+
+    alpha = clamp(alpha,0.5,1.0);
+
+    return vec3(offset,alpha);
+
+}
+
 void main() {
     // Get Vertex Positions (LOCAL SPACE)
     vec4 p1 =  gl_in[0].gl_Position;
@@ -69,35 +85,31 @@ void main() {
 
     // Get Direction (accounting for perspective divide and viewport)
     vec2 dir = normalize((p2_clip.xy/p2_clip.w -p1_clip.xy/p1_clip.w) * Viewport);
+    vec2 perp = vec2(-dir.y,dir.x);
     // Get Perpindicular vector for offset
-    vec2 offset1 = vec2(-dir.y,dir.x) * verts[0].weight/2.0 * ss_pt / Viewport;
-    vec2 offset2 = vec2(-dir.y,dir.x) * verts[1].weight/2.0 * ss_pt / Viewport;
+    vec3 offset_a_1 = get_offset_and_alpha(perp,verts[0].weight);
+    vec3 offset_a_2 = get_offset_and_alpha(perp,verts[1].weight);
 
     // set rectangel coords
     vec4 coords[4];
     vec2 texCoords[4];
     vec4 colors[4];
-    float alphas[4];
 
-    coords[0] = p1_clip + vec4(offset1.xy * p1_clip.w, 0.0, 0.0);
+    coords[0] = p1_clip + vec4(offset_a_1.xy * p1_clip.w, 0.0, 0.0);
     texCoords[0] = vec2(0,1);
-    colors[0] = verts[0].color;
-    alphas[0] = 1.0;
+    colors[0] = vec4(verts[0].color.xyz, offset_a_1[2] * verts[0].color[3]);
 
-    coords[1] = p1_clip - vec4(offset1.xy * p1_clip.w, 0.0, 0.0);
+    coords[1] = p1_clip - vec4(offset_a_1.xy * p1_clip.w, 0.0, 0.0);
     texCoords[1] = vec2(0,0);
-    colors[1] = verts[0].color;
-    alphas[1] = 1.0;
+    colors[1] = vec4(verts[0].color.xyz, offset_a_1[2] * verts[0].color[3]);
 
-    coords[2] = p2_clip + vec4(offset2.xy * p2_clip.w, 0.0, 0.0);
+    coords[2] = p2_clip + vec4(offset_a_2.xy * p2_clip.w, 0.0, 0.0);
     texCoords[2] = vec2(1,1);
-    colors[2] = verts[1].color;
-    alphas[2] = 1.0;
+    colors[2] = vec4(verts[1].color.xyz, offset_a_2[2] * verts[1].color[3]);
 
-    coords[3] = p2_clip - vec4(offset2.xy * p2_clip.w, 0.0, 0.0);
+    coords[3] = p2_clip - vec4(offset_a_2.xy * p2_clip.w, 0.0, 0.0);
     texCoords[3] = vec2(1,0);
-    colors[3] = verts[1].color;
-    alphas[3] = 1.0;
+    colors[3] = vec4(verts[1].color.xyz, offset_a_2[2] * verts[1].color[3]);
 
     // Point Pass
     
@@ -107,13 +119,13 @@ void main() {
 
     for (int i = 0; i < 2; ++i) {
         if (verts[i].rounded == 1){
-            float radius = verts[i].weight/2.0;
+            float radius = verts[i].weight;
             // Get Center Point
             vec4 pc = centers[i];
             vec4 pc_clip = ModelViewProjectionMatrix * pc + vecOffset;
 
             // Define Segments
-            int segments = 12;
+            int segments = 18;
 
             // Emit Center
             gl_Position = pc_clip;
@@ -126,17 +138,15 @@ void main() {
 
                 // Offset from center of point
                 vec2 circle_dir= vec2(cos(ang), -sin(ang));
-                vec2 circleOffset = circle_dir * radius* ss_pt / Viewport;
+                vec3 circleOffset = get_offset_and_alpha(circle_dir,radius);
             
                 gl_Position = pc_clip + vec4(circleOffset.xy*pc_clip.w, 0.0, 0.0);
                 mTexCoord = vec2(i,1.0);
-                alpha = 1.0;
-                g_color = verts[i].color;
+                g_color = vec4(verts[i].color.xyz, circleOffset[2] * verts[i].color[3]);
                 EmitVertex();
 
                 gl_Position = pc_clip;
                 mTexCoord = vec2(i,0.5);
-                alpha = 1.0;
                 g_color = verts[i].color;
                 EmitVertex();
             }
@@ -148,7 +158,6 @@ void main() {
         gl_Position = coords[i];
         mTexCoord = texCoords[i];
         g_color = colors[i];
-        alpha = alphas[i];
         EmitVertex();
     }
     EndPrimitive();
