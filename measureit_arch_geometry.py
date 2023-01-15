@@ -61,7 +61,10 @@ AllLinesBuffer = {
     "coords":[],
     "weights":[],
     "colors":[],
-    "offsets":[]
+    "offsets":[],
+    "dashed":[],
+    "dash_sizes":[],
+    "gap_sizes":[]
     }
 
 AllLinesBatch = None
@@ -2214,42 +2217,22 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 gpu.shader.unbind()
 
 
-            if lineProps.lineDrawDashed:
-                dashedLineShader.bind()
-                view = get_view()
-                dashedLineShader.uniform_float("resolution",  res)
-                dashedLineShader.uniform_float("u_dashSize",  lineProps.d1_length)
-                dashedLineShader.uniform_float("u_gapSize", lineProps.g1_length)
-                dashedLineShader.uniform_float("Viewport", viewport)
-                dashedLineShader.uniform_float("Render", (scene.render.resolution_x, scene.render.resolution_y) )
-                dashedLineShader.uniform_float("objectMatrix", mat)
-                dashedLineShader.uniform_float("thickness", lineWeight)
-                dashedLineShader.uniform_float(
-                    "screenSpaceDash", lineProps.screenSpaceDashes)
-                dashedLineShader.uniform_float(
-                    "finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-                dashedLineShader.uniform_float("offset", -offset)
-
-                global dashedBatch3D
-                batchKey = myobj.name + lineGroup.name + lineGroup.creation_time
-                if batchKey not in dashedBatch3D or recoord_flag:
-                    if not lineGroup.chain:
-                        dashedBatch3D[batchKey] = batch_for_shader(
-                            dashedLineShader, 'LINES', {"pos": coords})
-                        batchDashed = dashedBatch3D[batchKey]
-                    else:
-                        dashedBatch3D[batchKey] = batch_for_shader(
-                            dashedLineShader, 'LINE_STRIP', {"pos": coords})
-                        batchDashed = dashedBatch3D[batchKey]
-                else:
-                    batchDashed = dashedBatch3D[batchKey]
-
-                batchDashed.program_set(dashedLineShader)
-                batchDashed.draw()
-
             else:
                 if sceneProps.use_new_draw_pipeline:
-                    draw_lines(lineWeights,rgb,coords,offset=-offset,twoPass=True, pointPass= lineProps.pointPass,objMat=mat)
+                    dash_spaces = [0,0,0,0]
+                    gap_spaces = [0,0,0,0]
+                    if lineProps.lineDrawDashed:
+                        dash_spaces = [0,0,0,0]
+                        gap_spaces = [0,0,0,0]
+                        dash_props = [lineProps.d1_length,lineProps.d2_length,lineProps.d3_length,lineProps.d4_length]
+                        gap_props =  [lineProps.g1_length,lineProps.g2_length,lineProps.g3_length,lineProps.g4_length]
+                        for i in range(lineProps.num_dashes):
+                            dash_spaces[i] = dash_props[i]
+                            gap_spaces[i] = gap_props[i]
+
+                    draw_lines(lineWeights,rgb,coords,offset=-offset,twoPass=True, 
+                        pointPass= lineProps.pointPass,objMat=mat, dashed=lineProps.lineDrawDashed,
+                        dash_sizes=dash_spaces, gap_sizes=gap_spaces)
 
                 else:
                     lineGroupShader.bind()
@@ -3640,7 +3623,8 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
 
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
-               pointPass=False, pointCoords=None, objMat = None, dashed = False, hidden=False):
+               pointPass=False, pointCoords=None, objMat = None, dashed = False,
+               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0]):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -3674,6 +3658,9 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
         AllLinesBuffer['offsets'].extend([offset]*num_coords)
         AllLinesBuffer['rounded'].extend([int(pointPass)]*num_coords)
         AllLinesBuffer['objMat'].extend([flat_mat]*num_coords)
+        AllLinesBuffer['dashed'].extend([int(dashed)]*num_coords)
+        AllLinesBuffer['dash_sizes'].extend([dash_sizes]*num_coords)
+        AllLinesBuffer['gap_sizes'].extend([gap_sizes]*num_coords)
 
 
     # Old Method With a draw call for each Line
@@ -3719,6 +3706,9 @@ def clear_line_buffers():
     AllLinesBuffer["offsets"] = []
     AllLinesBuffer["rounded"] = []
     AllLinesBuffer['objMat'] = []
+    AllLinesBuffer['dashed'] = []
+    AllLinesBuffer['dash_sizes'] = []
+    AllLinesBuffer['gap_sizes'] = []
     pass
 
 def draw_all_lines():
@@ -3772,7 +3762,10 @@ def draw_all_lines():
         "color": AllLinesBuffer["colors"],
         "offset": AllLinesBuffer["offsets"],
         "rounded": AllLinesBuffer["rounded"],
-        "objectMatrix": AllLinesBuffer["objMat"]
+        "objectMatrix": AllLinesBuffer["objMat"],
+        "dashed": AllLinesBuffer['dashed'],
+        "gap_sizes": AllLinesBuffer['gap_sizes'],
+        "dash_sizes": AllLinesBuffer['dash_sizes']
         })
     
     # Set Depth Test

@@ -172,6 +172,7 @@ class LineProperties(BaseProp, PropertyGroup):
         name= "Dash 1 Length",
         description = 'Dash 1 Length in pixels',
         default = 5,
+        min = 0,
         subtype='PIXEL'
     )
 
@@ -179,6 +180,7 @@ class LineProperties(BaseProp, PropertyGroup):
         name= "Dash 2 Length",
         description = 'Dash 3 Length in pixels',
         default = 5,
+        min = 0,
         subtype='PIXEL'
     )
 
@@ -186,6 +188,7 @@ class LineProperties(BaseProp, PropertyGroup):
         name= "Dash 3 Length",
         description = 'Dash 3 Length in pixels',
         default = 5,
+        min = 0,
         subtype='PIXEL'
     )
 
@@ -193,6 +196,7 @@ class LineProperties(BaseProp, PropertyGroup):
         name= "Dash 4 Length",
         description = 'Dash 4 Length in pixels',
         default = 5,
+        min = 0,
         subtype='PIXEL'
     )
 
@@ -200,6 +204,7 @@ class LineProperties(BaseProp, PropertyGroup):
         name= "Gap 1 Length",
         description = 'Gap 1 Length in pixels',
         default = 5,
+        min = 0,
         subtype='PIXEL'
     )
 
@@ -207,6 +212,7 @@ class LineProperties(BaseProp, PropertyGroup):
         name= "Gap 2 Length",
         description = 'Gap 2 Length in pixels',
         default = 5,
+        min = 0,
         subtype='PIXEL'
     )
 
@@ -214,6 +220,7 @@ class LineProperties(BaseProp, PropertyGroup):
         name= "Gap 3 Length",
         description = 'Gap 3 Length in pixels',
         default = 5,
+        min = 0,
         subtype='PIXEL'
     )
 
@@ -221,6 +228,7 @@ class LineProperties(BaseProp, PropertyGroup):
         name= "Gap 3 Length",
         description = 'Gap 3 Length in pixels',
         default = 5,
+        min = 0,
         subtype='PIXEL'
     )
 

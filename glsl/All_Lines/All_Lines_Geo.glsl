@@ -1,5 +1,5 @@
 layout(lines) in;
-layout(triangle_strip, max_vertices = 82) out;
+layout(triangle_strip, max_vertices = 53) out;
 
 in VERT_OUT {
     float weight;
@@ -7,11 +7,17 @@ in VERT_OUT {
     vec4 color;
     int rounded;
     mat4 objectMatrix;
+    vec4 dash_sizes;
+    vec4 gap_sizes;
+    int dashed;
 } verts[];
 
 // OUTS
 out vec2 mTexCoord;
 out vec4 g_color;
+out vec4 f_gap_sizes;
+out vec4 f_dash_sizes;
+out flat int f_dashed;
 
 // UNIFORMS
 uniform mat4 ModelViewProjectionMatrix;
@@ -96,7 +102,7 @@ void main() {
     vec2 view_correct = (ss_dir.xy) * Viewport;
     vec2 dir = normalize(view_correct);
 
-    float len = ceil(length(ws_dir) * ss_pt);
+    float len = ceil(length(view_correct) / ss_pt);
 
     vec2 perp = vec2(-dir.y,dir.x);
     // Get Perpindicular vector for offset
@@ -138,7 +144,7 @@ void main() {
             vec4 pc_clip = ModelViewProjectionMatrix * pc + vecOffset;
 
             // Define Segments
-            int segments = 18;
+            int segments = 10;
 
             // Emit Center
             gl_Position = pc_clip;
@@ -171,6 +177,9 @@ void main() {
         gl_Position = coords[i];
         mTexCoord = texCoords[i];
         g_color = colors[i];
+        f_dashed = verts[0].dashed;
+        f_dash_sizes = verts[0].dash_sizes;
+        f_gap_sizes = verts[0].gap_sizes;
         EmitVertex();
     }
     EndPrimitive();
