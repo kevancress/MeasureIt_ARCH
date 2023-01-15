@@ -79,12 +79,25 @@ void main() {
     vec4 p1_ws = objectMatrix * p1;
     vec4 p2_ws = objectMatrix * p2;
 
+    vec4 ws_dir = p2_ws-p1_ws;
+
     // Get Clip Space Co-ordinates (with z offset)
     vec4 p1_clip = ModelViewProjectionMatrix * p1_ws + vecOffset;
     vec4 p2_clip = ModelViewProjectionMatrix * p2_ws + vecOffset;
 
+    vec4 cs_dir = p2_clip-p1_clip;
+
+    // Get Screen Space Coords
+    vec4 p1_ss = p1_clip/p1_clip.w;
+    vec4 p2_ss = p2_clip/p2_clip.w;
+    vec4 ss_dir = p2_ss - p1_ss; 
+
     // Get Direction (accounting for perspective divide and viewport)
-    vec2 dir = normalize((p2_clip.xy/p2_clip.w -p1_clip.xy/p1_clip.w) * Viewport);
+    vec2 view_correct = (ss_dir.xy) * Viewport;
+    vec2 dir = normalize(view_correct);
+
+    float len = ceil(length(ws_dir) * ss_pt);
+
     vec2 perp = vec2(-dir.y,dir.x);
     // Get Perpindicular vector for offset
     vec3 offset_a_1 = get_offset_and_alpha(perp,verts[0].weight);
@@ -104,11 +117,11 @@ void main() {
     colors[1] = vec4(verts[0].color.xyz, offset_a_1[2] * verts[0].color[3]);
 
     coords[2] = p2_clip + vec4(offset_a_2.xy * p2_clip.w, 0.0, 0.0);
-    texCoords[2] = vec2(1,1);
+    texCoords[2] = vec2(len,1);
     colors[2] = vec4(verts[1].color.xyz, offset_a_2[2] * verts[1].color[3]);
 
     coords[3] = p2_clip - vec4(offset_a_2.xy * p2_clip.w, 0.0, 0.0);
-    texCoords[3] = vec2(1,0);
+    texCoords[3] = vec2(len,0);
     colors[3] = vec4(verts[1].color.xyz, offset_a_2[2] * verts[1].color[3]);
 
     // Point Pass

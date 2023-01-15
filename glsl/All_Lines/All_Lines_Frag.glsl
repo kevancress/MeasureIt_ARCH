@@ -27,6 +27,11 @@ void main() {
         }
     }
 
+    //float arc_length = fract(mTexCoord.x);
+    //if (arc_length > 0.3 && arc_length < 0.7){
+    //    discard;
+    //}
+
     fragColor = blender_srgb_to_framebuffer_space(aaColor);
-    //fragColor = vec4(mTexCoord,aaColor[2],1.0);
+    //fragColor = vec4(fract(mTexCoord),aaColor[2],1.0);
 }
