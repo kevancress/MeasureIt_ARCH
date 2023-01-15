@@ -61,8 +61,6 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     except AttributeError:
         pass
 
-        
-
     lines = svg.g(id=idName, stroke=svgColor,fill = 'none',
                   stroke_width="{}".format(thickness*weight_scale_fac), stroke_linecap=cap)
     if parent:
@@ -84,7 +82,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
             if i > 1: dash_val += ","
             dash_space = eval('itemProps.d{}_length'.format(i))
             gap_space = eval('itemProps.g{}_length'.format(i))
-            dash_val += "{},{}".format(dash_space , gap_space)
+            dash_val += "{},{}".format(dash_space * weight_scale_fac, gap_space* weight_scale_fac)
     except AttributeError:
         dash_val = "5,5"
 
@@ -116,7 +114,7 @@ def draw_single_line(p1,p2,mat,itemProps,svg,lines,dashed_lines,cap,draw_hidden)
         if vis or draw_hidden:
             p1ss = vector_utils.get_render_location(mat @ Vector(p1))
             p2ss = vector_utils.get_render_location(mat @ Vector(p2))
-            line_draw = svg.line(start=tuple(p1ss), end=tuple(p2ss),stroke_linecap=cap)
+            line_draw = svg.line(start=tuple(p1ss), end=tuple(p2ss))
             if vis:
                 lines.add(line_draw)
             elif not vis and draw_hidden:
