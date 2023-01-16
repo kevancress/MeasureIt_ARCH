@@ -2830,11 +2830,11 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 # Row Extension Conditions
                 if table.extend_short_rows:
                     cell_coords = [c1,c2,c3,c4]
-                    next_text = 'end'
+                    next_text = ''
                     if col_idx < len(table.columns)-2:
                         next_text = row.textFields[col_idx+1].text
 
-                    prev_text = 'start'
+                    prev_text = ''
                     if col_idx -1 >= 0:
                         prev_text = row.textFields[col_idx-1].text
 
@@ -2849,14 +2849,13 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
 
 
-                    if textField.text == '':
 
-                        if col_idx == 0:
-                            cell_coords.extend([c1,c4])
-                            if row_idx == len(table.rows)-1:
-                                cell_coords.extend([c3,c4])
-                        if col_idx == len(table.columns)-1:
-                            cell_coords.extend([c2,c3])
+                    if col_idx == 0:
+                        cell_coords.extend([c1,c4])
+                        if row_idx == len(table.rows)-1:
+                            cell_coords.extend([c3,c4])
+                    if col_idx == len(table.columns)-1:
+                        cell_coords.extend([c2,c3])
 
                 # Add to full coords list
                 coords.extend(cell_coords)
