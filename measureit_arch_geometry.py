@@ -62,12 +62,27 @@ AllLinesBuffer = {
     "weights":[],
     "colors":[],
     "offsets":[],
+    "rounded":[],
+    "objMat":[],
+    "dashed":[],
+    "dash_sizes":[],
+    "gap_sizes":[]
+    }
+
+HiddenLinesBuffer = {
+    "coords":[],
+    "weights":[],
+    "colors":[],
+    "offsets":[],
+    "rounded":[],
+    "objMat":[],
     "dashed":[],
     "dash_sizes":[],
     "gap_sizes":[]
     }
 
 AllLinesBatch = None
+HiddenLinesBatch = None
 # define Shaders
 
 # Alter which frag shaders are used depending on the blender version
@@ -2178,61 +2193,30 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 filledcoords.append(fill)
 
             res = get_resolution()
-            if drawHidden:
-                # Invert The Depth test for hidden lines
-                bgl.glDepthFunc(bgl.GL_GREATER)
-                hiddenLineWeight = lineProps.lineHiddenWeight
-                dashRGB = get_color(lineProps.lineHiddenColor,myobj, is_active= not lineGroup.is_active)
-                view = get_view()
-                dashedLineShader.bind()
-
-                dashedLineShader.uniform_float("resolution",  res)
-                dashedLineShader.uniform_float("u_dashSize",  lineProps.d1_length)
-                dashedLineShader.uniform_float("u_gapSize", lineProps.g1_length)
-                dashedLineShader.uniform_float("Viewport", viewport)
-                dashedLineShader.uniform_float("Render", (scene.render.resolution_x, scene.render.resolution_y) )
-                dashedLineShader.uniform_float("objectMatrix", mat)
-                dashedLineShader.uniform_float("thickness", hiddenLineWeight)
-                dashedLineShader.uniform_float(
-                    "screenSpaceDash", lineProps.screenSpaceDashes)
-                dashedLineShader.uniform_float(
-                    "finalColor", (dashRGB[0], dashRGB[1], dashRGB[2], dashRGB[3]))
-                dashedLineShader.uniform_float("offset", -offset)
-
-                global hiddenBatch3D
-                batchKey = myobj.name + lineGroup.name + lineGroup.creation_time
-                if batchKey not in hiddenBatch3D or recoord_flag:
-                    hiddenBatch3D[batchKey] = batch_for_shader(
-                        dashedLineShader, 'LINES', {"pos": coords})
-                if sceneProps.is_render_draw:
-                    batchHidden = batch_for_shader(
-                        dashedLineShader, 'LINES', {"pos": coords})
-                else:
-                    batchHidden = hiddenBatch3D[batchKey]
-
-                batchHidden.program_set(dashedLineShader)
-                batchHidden.draw()
-
-                bgl.glDepthFunc(bgl.GL_LESS)
-                gpu.shader.unbind()
 
 
-            else:
-
+            dash_spaces = [0,0,0,0]
+            gap_spaces = [0,0,0,0]
+            if lineProps.lineDrawDashed or drawHidden:
                 dash_spaces = [0,0,0,0]
                 gap_spaces = [0,0,0,0]
-                if lineProps.lineDrawDashed:
-                    dash_spaces = [0,0,0,0]
-                    gap_spaces = [0,0,0,0]
-                    dash_props = [lineProps.d1_length,lineProps.d2_length,lineProps.d3_length,lineProps.d4_length]
-                    gap_props =  [lineProps.g1_length,lineProps.g2_length,lineProps.g3_length,lineProps.g4_length]
-                    for i in range(lineProps.num_dashes):
-                        dash_spaces[i] = dash_props[i]
-                        gap_spaces[i] = gap_props[i]
+                dash_props = [lineProps.d1_length,lineProps.d2_length,lineProps.d3_length,lineProps.d4_length]
+                gap_props =  [lineProps.g1_length,lineProps.g2_length,lineProps.g3_length,lineProps.g4_length]
+                for i in range(lineProps.num_dashes):
+                    dash_spaces[i] = dash_props[i]
+                    gap_spaces[i] = gap_props[i]
 
-                draw_lines(lineWeights,rgb,coords,offset=-offset,twoPass=True, 
-                    pointPass= lineProps.pointPass,objMat=mat, dashed=lineProps.lineDrawDashed,
-                    dash_sizes=dash_spaces, gap_sizes=gap_spaces)
+            draw_lines(lineWeights,rgb,coords,offset=-offset,twoPass=True, 
+                pointPass= lineProps.pointPass,objMat=mat, dashed=lineProps.lineDrawDashed,
+                dash_sizes=dash_spaces, gap_sizes=gap_spaces)
+            
+            if drawHidden:
+                hiddenLineWeight = lineProps.lineHiddenWeight
+                hiddenRGB = get_color(lineProps.lineHiddenColor,myobj, is_active= not lineGroup.is_active)
+
+                draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,twoPass=True, 
+                    pointPass= lineProps.pointPass, objMat=mat, dashed=True,
+                    dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True)
 
             if sceneProps.is_vector_draw:
                 if not lineProps.chain:
@@ -3575,11 +3559,13 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
                pointPass=False, pointCoords=None, objMat = None, dashed = False,
                hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0]):
+
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     viewport = get_viewport()
     global AllLinesBuffer
+    global HiddenLinesBuffer
 
     if len(coords) % 2 != 0:
         print('ERROR: Odd Number of Coords, injecting padding to preserve other lines')
@@ -3596,37 +3582,36 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
 
     # New method, dump everything into the buffer
     buffer = AllLinesBuffer
-
+    if hidden: buffer = HiddenLinesBuffer
     num_coords = len(coords)
-    AllLinesBuffer['coords'].extend(coords)
+    buffer['coords'].extend(coords)
     # Check for list of rgb values
-    if type(rgb) == list: AllLinesBuffer['colors'].extend(rgb)
-    else: AllLinesBuffer['colors'].extend([rgb]*num_coords)
+    if type(rgb) == list: buffer['colors'].extend(rgb)
+    else: buffer['colors'].extend([rgb]*num_coords)
     # Check for list of weight values
     if type(lineWeight) == list: AllLinesBuffer['weights'].extend(lineWeight)
-    else:AllLinesBuffer['weights'].extend([lineWeight]*num_coords)
+    else:buffer['weights'].extend([lineWeight]*num_coords)
     
-    AllLinesBuffer['offsets'].extend([offset]*num_coords)
-    AllLinesBuffer['rounded'].extend([int(pointPass)]*num_coords)
-    AllLinesBuffer['objMat'].extend([flat_mat]*num_coords)
-    AllLinesBuffer['dashed'].extend([int(dashed)]*num_coords)
-    AllLinesBuffer['dash_sizes'].extend([dash_sizes]*num_coords)
-    AllLinesBuffer['gap_sizes'].extend([gap_sizes]*num_coords)
-
+    buffer['offsets'].extend([offset]*num_coords)
+    buffer['rounded'].extend([int(pointPass)]*num_coords)
+    buffer['objMat'].extend([flat_mat]*num_coords)
+    buffer['dashed'].extend([int(dashed)]*num_coords)
+    buffer['dash_sizes'].extend([dash_sizes]*num_coords)
+    buffer['gap_sizes'].extend([gap_sizes]*num_coords)
 
 
 
 def clear_line_buffers():
     global AllLinesBuffer
-    AllLinesBuffer["coords"] = []
-    AllLinesBuffer["weights"] = []
-    AllLinesBuffer["colors"] = []
-    AllLinesBuffer["offsets"] = []
-    AllLinesBuffer["rounded"] = []
-    AllLinesBuffer['objMat'] = []
-    AllLinesBuffer['dashed'] = []
-    AllLinesBuffer['dash_sizes'] = []
-    AllLinesBuffer['gap_sizes'] = []
+    global HiddenLinesBuffer
+
+    for key in AllLinesBuffer.keys():
+        AllLinesBuffer[key] = []
+    
+    for key in HiddenLinesBuffer.keys():
+        HiddenLinesBuffer[key] = []
+
+
     pass
 
 def draw_all_lines():
@@ -3682,11 +3667,31 @@ def draw_all_lines():
         "gap_sizes": AllLinesBuffer['gap_sizes'],
         "dash_sizes": AllLinesBuffer['dash_sizes']
         })
+
+    hiddenBatch3d = batch_for_shader(
+        allLinesShader,
+        'LINES',
+        {"pos": HiddenLinesBuffer["coords"],
+        "weight":HiddenLinesBuffer["weights"],
+        "color": HiddenLinesBuffer["colors"],
+        "offset": HiddenLinesBuffer["offsets"],
+        "rounded": HiddenLinesBuffer["rounded"],
+        "objectMatrix": HiddenLinesBuffer["objMat"],
+        "dashed": HiddenLinesBuffer['dashed'],
+        "gap_sizes": HiddenLinesBuffer['gap_sizes'],
+        "dash_sizes": HiddenLinesBuffer['dash_sizes']
+        })
+
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    # Draw Hidden First
+    bgl.glDepthFunc(bgl.GL_GREATER)
+    hiddenBatch3d.program_set(allLinesShader)
+    hiddenBatch3d.draw()
     
     # Set Depth Test
-    bgl.glEnable(bgl.GL_BLEND)
     bgl.glDepthFunc(bgl.GL_LEQUAL)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    
 
     # Draw To depth Mask
     bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
