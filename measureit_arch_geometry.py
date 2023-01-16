@@ -53,9 +53,6 @@ from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_
     load_shader_str
 
 lastMode = {}
-lineBatch3D = {}
-dashedBatch3D = {}
-hiddenBatch3D = {}
 
 AllLinesBuffer = {
     "coords":[],
@@ -137,9 +134,8 @@ def get_dim_tag(self, obj):
 
 
 def clear_batches():
-    lineBatch3D.clear()
-    dashedBatch3D.clear()
-    hiddenBatch3D.clear()
+    AllLinesBatch = None
+    HiddenLinesBatch = None
 
 
 def update_text(textobj, props, context, fields=[]):
@@ -428,154 +424,151 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
     dimProps = get_style(dim,'alignedDimensions')
 
     # Enable GL Settings
-
-
     lineWeight = dimProps.lineWeight
     # check all visibility conditions
-    with OpenGL_Settings(dimProps):
-        if not check_vis(dim, dimProps):
-            return
 
-        # Obj Properties
-        scene = context.scene
-        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
+    if not check_vis(dim, dimProps):
+        return
 
-        # Define Caps as a tuple of capA and capB to reduce code duplications
-        caps = (dimProps.endcapA, dimProps.endcapB)
-        capSize = dimProps.endcapSize
+    # Obj Properties
+    scene = context.scene
+    rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
 
-        offset = dimProps.dimOffset
-        if dim.uses_style:
-            offset += dim.tweakOffset
+    # Define Caps as a tuple of capA and capB to reduce code duplications
+    caps = (dimProps.endcapA, dimProps.endcapB)
+    capSize = dimProps.endcapSize
 
-        geoOffset = dimProps.dimLeaderOffset
+    offset = dimProps.dimOffset
+    if dim.uses_style:
+        offset += dim.tweakOffset
 
-        # get points positions from indicies
-        aMatrix = dim.dimObjectA.matrix_world
-        bMatrix = dim.dimObjectB.matrix_world
+    geoOffset = dimProps.dimLeaderOffset
 
-        if mat is not None:
-            aMatrix = mat @ aMatrix
-            bMatrix = mat @ bMatrix
+    # get points positions from indicies
+    aMatrix = dim.dimObjectA.matrix_world
+    bMatrix = dim.dimObjectB.matrix_world
 
-        # get points positions from indicies
-        p1Local = None
-        p2Local = None
+    if mat is not None:
+        aMatrix = mat @ aMatrix
+        bMatrix = mat @ bMatrix
 
+    # get points positions from indicies
+    p1Local = None
+    p2Local = None
+
+    try:
+        p1Local = get_mesh_vertex(
+            dim.dimObjectA, dim.dimPointA, dimProps.evalMods)
+        p2Local = get_mesh_vertex(
+            dim.dimObjectB, dim.dimPointB, dimProps.evalMods)
+    except IndexError:
+        print('point excepted for ' + dim.name + ' on ' + myobj.name)
+        dimGen = myobj.DimensionGenerator
         try:
-            p1Local = get_mesh_vertex(
-                dim.dimObjectA, dim.dimPointA, dimProps.evalMods)
-            p2Local = get_mesh_vertex(
-                dim.dimObjectB, dim.dimPointB, dimProps.evalMods)
+            wrapTag = get_dim_tag(dim, myobj)
+            wrapper = dimGen.wrapper[wrapTag]
+            tag = wrapper.itemIndex
+            dimGen.alignedDimensions.remove(tag)
+            dimGen.wrapper.remove(wrapTag)
         except IndexError:
-            print('point excepted for ' + dim.name + ' on ' + myobj.name)
-            dimGen = myobj.DimensionGenerator
-            try:
-                wrapTag = get_dim_tag(dim, myobj)
-                wrapper = dimGen.wrapper[wrapTag]
-                tag = wrapper.itemIndex
-                dimGen.alignedDimensions.remove(tag)
-                dimGen.wrapper.remove(wrapTag)
-            except IndexError:
-                dimGen.alignedDimensions.remove(0)
+            dimGen.alignedDimensions.remove(0)
 
-            recalc_dimWrapper_index(None, context)
-            return
+        recalc_dimWrapper_index(None, context)
+        return
 
-        p1 = get_point(p1Local, aMatrix)
-        p2 = get_point(p2Local, bMatrix)
+    p1 = get_point(p1Local, aMatrix)
+    p2 = get_point(p2Local, bMatrix)
 
-        # check dominant Axis
-        sortedPoints = sortPoints(p1, p2)
-        p1 = sortedPoints[0]
-        p2 = sortedPoints[1]
+    # check dominant Axis
+    sortedPoints = sortPoints(p1, p2)
+    p1 = sortedPoints[0]
+    p2 = sortedPoints[1]
 
-        # calculate distance & Midpoint
-        distVector = Vector(p1) - Vector(p2)
-        dist = distVector.length
-        midpoint = interpolate3d(p1, p2, fabs(dist / 2))
-        normDistVector = distVector.normalized()
+    # calculate distance & Midpoint
+    distVector = Vector(p1) - Vector(p2)
+    dist = distVector.length
+    midpoint = interpolate3d(p1, p2, fabs(dist / 2))
+    normDistVector = distVector.normalized()
 
-        # Compute offset vector from face normal and user input
-        rotation = dimProps.dimRotation
-        rotationMatrix = Matrix.Rotation(rotation, 4, normDistVector)
-        selectedNormal = Vector(select_normal(
-            myobj, dim, normDistVector, midpoint, dimProps))
+    # Compute offset vector from face normal and user input
+    rotation = dimProps.dimRotation
+    rotationMatrix = Matrix.Rotation(rotation, 4, normDistVector)
+    selectedNormal = Vector(select_normal(
+        myobj, dim, normDistVector, midpoint, dimProps))
 
-        userOffsetVector = rotationMatrix @ selectedNormal
-        offsetDistance = userOffsetVector * offset
-        geoOffsetDistance = offsetDistance.normalized() * geoOffset
+    userOffsetVector = rotationMatrix @ selectedNormal
+    offsetDistance = userOffsetVector * offset
+    geoOffsetDistance = offsetDistance.normalized() * geoOffset
 
-        if offsetDistance < geoOffsetDistance:
-            offsetDistance = geoOffsetDistance
+    if offsetDistance < geoOffsetDistance:
+        offsetDistance = geoOffsetDistance
 
 
 
-        # Define Lines
-        leadStartA = Vector(p1) + geoOffsetDistance
-        leadEndA = Vector(p1) + offsetDistance + \
-            cap_extension(offsetDistance, capSize, dimProps.endcapArrowAngle)
+    # Define Lines
+    leadStartA = Vector(p1) + geoOffsetDistance
+    leadEndA = Vector(p1) + offsetDistance + \
+        cap_extension(offsetDistance, capSize, dimProps.endcapArrowAngle)
 
-        leadStartB = Vector(p2) + geoOffsetDistance
-        leadEndB = Vector(p2) + offsetDistance + \
-            cap_extension(offsetDistance, capSize, dimProps.endcapArrowAngle)
+    leadStartB = Vector(p2) + geoOffsetDistance
+    leadEndB = Vector(p2) + offsetDistance + \
+        cap_extension(offsetDistance, capSize, dimProps.endcapArrowAngle)
 
-        dimLineStart = Vector(p1) + offsetDistance
-        dimLineEnd = Vector(p2) + offsetDistance
-        textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
+    dimLineStart = Vector(p1) + offsetDistance
+    dimLineEnd = Vector(p2) + offsetDistance
+    textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
 
-        # Set Gizmo Props
-        dim.gizLoc = textLoc
-        dim.gizRotDir = userOffsetVector
-        dim['length'] = dist
+    # Set Gizmo Props
+    dim.gizLoc = textLoc
+    dim.gizRotDir = userOffsetVector
+    dim['length'] = dist
 
-        origin = Vector(textLoc)
+    origin = Vector(textLoc)
 
-        placementResults = setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance)
-        flipCaps = placementResults[0]
-        dimLineExtension = placementResults[1]
-        origin = placementResults[2]
+    placementResults = setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance)
+    flipCaps = placementResults[0]
+    dimLineExtension = placementResults[1]
+    origin = placementResults[2]
 
-        # Add the Extension to the dimension line
-        dimLineVec = dimLineStart - dimLineEnd
-        dimLineVec.normalize()
-        dimLineEndCoord = dimLineEnd - dimLineVec * dimLineExtension
-        dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension
+    # Add the Extension to the dimension line
+    dimLineVec = dimLineStart - dimLineEnd
+    dimLineVec.normalize()
+    dimLineEndCoord = dimLineEnd - dimLineVec * dimLineExtension
+    dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension
 
-        # Collect coords and endcaps
-        coords = [leadStartA, leadEndA, leadStartB,
-                leadEndB, dimLineStartCoord, dimLineEndCoord]
-        filledCoords = []
-        pos = (dimLineStart, dimLineEnd)
-        for i, cap in enumerate(caps):
-            capCoords = generate_end_caps(
-                context, dimProps, cap, capSize, pos[i], userOffsetVector, textLoc, i, flipCaps)
-            for coord in capCoords[0]:
-                coords.append(coord)
-            for filledCoord in capCoords[1]:
-                filledCoords.append(filledCoord)
+    # Collect coords and endcaps
+    coords = [leadStartA, leadEndA, leadStartB,
+            leadEndB, dimLineStartCoord, dimLineEndCoord]
+    filledCoords = []
+    pos = (dimLineStart, dimLineEnd)
+    for i, cap in enumerate(caps):
+        capCoords = generate_end_caps(
+            context, dimProps, cap, capSize, pos[i], userOffsetVector, textLoc, i, flipCaps)
+        for coord in capCoords[0]:
+            coords.append(coord)
+        for filledCoord in capCoords[1]:
+            filledCoords.append(filledCoord)
 
-        # Filled Coords Call
-        if len(filledCoords) != 0:
-            draw_filled_coords(filledCoords, rgb)
+    # Filled Coords Call
+    if len(filledCoords) != 0:
+        draw_filled_coords(filledCoords, rgb)
 
-        # Line Shader Calls
+    # Line Shader Calls
+    draw_lines(lineWeight, rgb, coords, twoPass=True)
 
-        draw_lines(lineWeight, rgb, coords, twoPass=True)
+    if sceneProps.is_vector_draw:
+        svg_dim = svg.add(svg.g(id=dim.name))
+        svg_shaders.svg_line_shader(
+            dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
+        svg_shaders.svg_fill_shader(
+            dim, filledCoords, rgb, svg, parent=svg_dim)
+        for textField in dim.textFields:
+            textcard = textField['textcard']
+            svg_shaders.svg_text_shader(
+                dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
 
-        if sceneProps.is_vector_draw:
-            svg_dim = svg.add(svg.g(id=dim.name))
-            svg_shaders.svg_line_shader(
-                dim, dimProps, coords, lineWeight, rgb, svg, parent=svg_dim)
-            svg_shaders.svg_fill_shader(
-                dim, filledCoords, rgb, svg, parent=svg_dim)
-            for textField in dim.textFields:
-                textcard = textField['textcard']
-                svg_shaders.svg_text_shader(
-                    dim, dimProps, textField.text, origin, textcard, rgb, svg, parent=svg_dim)
-
-        if sceneProps.is_dxf_draw:
-            dxf_shaders.dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf)
+    if sceneProps.is_dxf_draw:
+        dxf_shaders.dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf)
 
 
 
@@ -1937,11 +1930,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
 def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instance_draw = False):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-
-    viewport = get_viewport()
-
     #print('Drawing Line group on {}, is instance: {}'.format(myobj.name, is_instance_draw))
-
     # Check for object mode changes, outside of line group loop
     global lastMode
     mode_change_flag = False
@@ -1960,263 +1949,248 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
     for lineGroup in lineGen.line_groups:
         lineProps = get_style(lineGroup,'line_groups')
 
-        with OpenGL_Settings(lineProps):
+        if not check_vis(lineGroup, lineProps):
+            continue
 
-            if not check_vis(lineGroup, lineProps):
-                continue
+        rgb = get_color(lineProps.color, myobj, is_active= not lineGroup.is_active, cad_col_idx= lineProps.cad_col_idx)
 
-            rgb = get_color(lineProps.color, myobj, is_active= not lineGroup.is_active, cad_col_idx= lineProps.cad_col_idx)
+        # set other line properties
+        isOrtho = False
+        if sceneProps.is_render_draw:
+            if scene.camera.data.type == 'ORTHO':
+                isOrtho = True
+        else:
+            for space in context.area.spaces:
+                if space.type == 'VIEW_3D':
+                    r3d = space.region_3d
+            if r3d.view_perspective == 'ORTHO':
+                isOrtho = True
 
-            # set other line properties
-            isOrtho = False
-            if sceneProps.is_render_draw:
-                if scene.camera.data.type == 'ORTHO':
-                    isOrtho = True
-            else:
-                for space in context.area.spaces:
-                    if space.type == 'VIEW_3D':
-                        r3d = space.region_3d
-                if r3d.view_perspective == 'ORTHO':
-                    isOrtho = True
+        drawHidden = lineProps.lineDrawHidden
+        lineWeight = lineProps.lineWeight
 
-            drawHidden = lineProps.lineDrawHidden
-            lineWeight = lineProps.lineWeight
+        # Calculate Offset with User Tweaks
+        offset = lineWeight / 20
+        offset += lineProps.lineDepthOffset
+        if isOrtho:
+            offset /= 15
+        offset /= 1000
 
-            # Calculate Offset with User Tweaks
-            offset = lineWeight / 20
-            offset += lineProps.lineDepthOffset
-            if isOrtho:
-                offset /= 15
-            offset /= 1000
+        # Get line data to be drawn
+        evalMods = lineProps.evalMods
 
-            # Get line data to be drawn
-            evalMods = lineProps.evalMods
+        # Flag for re-evaluation of batches & mesh data
+        verts = []
 
-            # Flag for re-evaluation of batches & mesh data
-            verts = []
+        # Conditions for re calculating Line Co-ordinates
+        if mode_change_flag or \
+            myobj.mode == 'WEIGHT_PAINT' or \
+            sceneProps.is_render_draw or\
+            scene.ViewGenerator.view_changed or\
+            evalModsGlobal or\
+            evalMods:
+            recoord_flag = True
+        else:
+            recoord_flag = False
 
-            # Conditions for re calculating Line Co-ordinates
-            if mode_change_flag or \
-                myobj.mode == 'WEIGHT_PAINT' or \
-                sceneProps.is_render_draw or\
-                scene.ViewGenerator.view_changed or\
-                evalModsGlobal or\
-                evalMods:
-                recoord_flag = True
-            else:
-                recoord_flag = False
+        if is_instance_draw: recoord_flag = False
 
-            if is_instance_draw: recoord_flag = False
+        if recoord_flag and check_mods(myobj) and not is_instance_draw:
+            if myobj.type == 'MESH':
+                deps = bpy.context.view_layer.depsgraph
+                obj_eval = myobj.evaluated_get(deps)
+                mesh = obj_eval.data
+                verts = mesh.vertices
 
-            if recoord_flag and check_mods(myobj) and not is_instance_draw:
-                if myobj.type == 'MESH':
-                    deps = bpy.context.view_layer.depsgraph
-                    obj_eval = myobj.evaluated_get(deps)
-                    mesh = obj_eval.data
-                    verts = mesh.vertices
+        # Re Calc Coords
+        sceneProps = bpy.context.scene.MeasureItArchProps
+        if ('coordBuffer' not in lineGroup or recoord_flag):
+            # Handle line groups created with older versions of MeasureIt_ARCH
+            if 'singleLine' in lineGroup and 'lineBuffer' not in lineGroup:
+                toLineBuffer = []
+                for line in lineGroup['singleLine']:
+                    toLineBuffer.append(line['pointA'])
+                    toLineBuffer.append(line['pointB'])
+                lineGroup['lineBuffer'] = toLineBuffer
 
+            # Get Coords From non Dynamic Lines
+            if 'lineBuffer' in lineGroup:
+                tempCoords = [get_line_vertex(
+                    idx, verts) for idx in lineGroup['lineBuffer']]
+                lineGroup['coordBuffer'] = tempCoords
 
-            # Re Calc Coords
-            sceneProps = bpy.context.scene.MeasureItArchProps
-            if ('coordBuffer' not in lineGroup or recoord_flag):
-                # Handle line groups created with older versions of MeasureIt_ARCH
-                if 'singleLine' in lineGroup and 'lineBuffer' not in lineGroup:
-                    toLineBuffer = []
-                    for line in lineGroup['singleLine']:
-                        toLineBuffer.append(line['pointA'])
-                        toLineBuffer.append(line['pointB'])
-                    lineGroup['lineBuffer'] = toLineBuffer
-
-                # Get Coords From non Dynamic Lines
-                if 'lineBuffer' in lineGroup:
-                    tempCoords = [get_line_vertex(
-                        idx, verts) for idx in lineGroup['lineBuffer']]
-                    lineGroup['coordBuffer'] = tempCoords
-
-                # Calculate dynamic lines or curve lines (only for non instances)
-                if lineGroup.useDynamicCrease or lineGroup.dynamic_sil and not is_instance_draw:
-                    tempCoords = []
-                    tempIdxs = []
-                    # Create a Bmesh Instance from the selected object
-                    bm = bmesh.new()
-                    mesh = myobj.data
-                    try:
-                        camera_z = get_camera_z()
-                    except AttributeError:
-                        camera_z = Vector((0,0,1))
-                    rot = mat.to_quaternion()
-
-                    if myobj.mode != 'OBJECT':
-                        return
-
-                    if myobj.type == 'MESH':
-                        depsgraph = bpy.context.view_layer.depsgraph
-                        eval_obj = myobj.evaluated_get(depsgraph)
-                        temp_mesh = eval_obj.data
-                        bm.from_mesh(temp_mesh)
-                        #bm.from_object(myobj, bpy.context.view_layer.depsgraph)
-
-                    if myobj.type == 'CURVE':
-                        depsgraph = bpy.context.view_layer.depsgraph
-                        eval_obj = myobj.evaluated_get(depsgraph)
-                        temp_mesh = bpy.data.meshes.new_from_object(eval_obj, depsgraph = bpy.context.view_layer.depsgraph)
-                        bm.from_mesh(temp_mesh)
-
-                    # For each edge get its linked faces and vertex indicies
-                    for idx, edge in enumerate(bm.edges):
-                        linked_faces = edge.link_faces
-                        pointA = edge.verts[0].co
-                        pointB = edge.verts[1].co
-
-                        #Check Filter Vertex Group
-                        if lineGroup.filterGroup != '':
-                            #print('has filter group')
-                            eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
-                            vertex_group = eval_obj.vertex_groups[lineGroup.filterGroup]
-                            group_idx = vertex_group.index
-                            v1_groups = eval_obj.data.vertices[edge.verts[0].index].groups
-                            v2_groups = eval_obj.data.vertices[edge.verts[1].index].groups
-                            id1 = []
-                            id2 = []
-                            for item in v1_groups:
-                                id1.append(item.group)
-                                #print('v1 in group: {} looking for group: {}'.format(item.group,group_idx))
-                            for item in v2_groups:
-                                id2.append(item.group)
-                                #print('v2 in group: {} looking for group: {}'.format(item.group,group_idx))
-                            if lineGroup.invertGroupFilter - (group_idx not in id1 or group_idx not in id2):
-                                #print('skipping line segment')
-                                continue
-
-
-                        if len(linked_faces) == 2:
-                            normalA = Vector(
-                                linked_faces[0].normal).normalized()
-                            normalB = Vector(
-                                linked_faces[1].normal).normalized()
-                            dotProd = (normalA.dot(normalB))
-
-                            #Check angle of adjacent faces
-                            if lineGroup.useDynamicCrease:
-                                if dotProd >= -1 and dotProd <= 1:
-                                    creaseAngle = math.acos(dotProd)
-                                    if creaseAngle > lineGroup.creaseAngle:
-                                        tempCoords.append(pointA)
-                                        tempCoords.append(pointB)
-                                        tempIdxs.append(edge.verts[0].index)
-                                        tempIdxs.append(edge.verts[1].index)
-
-                            #Check dynamic silhouette
-                            if lineGroup.dynamic_sil:
-                                normalA.rotate(rot)
-                                normalB.rotate(rot)
-                                a_dot = camera_z.dot(normalA)
-                                b_dot = camera_z.dot(normalB)
-                                sign_a = np.sign(a_dot)
-                                sign_b = np.sign(b_dot)
-                                if sign_a != sign_b:
-                                    tempCoords.append(pointA)
-                                    if not lineGroup.chain:
-                                        tempCoords.append(pointB)
-
-
-                        # Any edge with greater or less
-                        # than 2 linked faces is non manifold
-                        else:
-                            tempCoords.append(pointA)
-                            if not lineGroup.chain or idx == (len(bm.edges)-1):
-                                tempCoords.append(pointB)
-
-
-
-
-
-                    lineGroup['coordBuffer'] = tempCoords.copy()
-                    lineGroup['lineBuffer'] = tempIdxs.copy()
-                    if len(tempCoords) == 0:
-                        lineGroup['coordBuffer'] = []
-                        return
-                    bm.free()
-
-
-              
-            # Get Coords from Buffer  
-            coords = []
-            coords = lineGroup['coordBuffer']
-            
-            # Get Line Weights
-            groupWeights = [1.0] * len(coords)
-            if lineGroup.lineWeightGroup != "":
-                groupWeights = get_vertex_group_weights(myobj, lineGroup['lineBuffer'], lineGroup.lineWeightGroup)
-                
-            lineWeights = [lineProps.lineWeight] * len(coords)
-            for idx in range(len(coords)):
+            # Calculate dynamic lines or curve lines (only for non instances)
+            if lineGroup.useDynamicCrease or lineGroup.dynamic_sil and not is_instance_draw:
+                tempCoords = []
+                tempIdxs = []
+                # Create a Bmesh Instance from the selected object
+                bm = bmesh.new()
+                mesh = myobj.data
                 try:
-                    lineWeights[idx] = lineProps.lineWeight * groupWeights[idx]
-                except IndexError:
-                    lineWeights[idx] = lineProps.lineWeight
-                #print("Resulting Weight {} . From filter {} , and Group {}".format(lineWeights[idx],filterWeights[idx],groupWeights[idx]))
+                    camera_z = get_camera_z()
+                except AttributeError:
+                    camera_z = Vector((0,0,1))
+                rot = mat.to_quaternion()
 
-            if len(coords) == 0:
-                #print("No Coords")
-                return
+                if myobj.mode != 'OBJECT':
+                    return
 
-            dotcoords = []
-            filledcoords = []
+                if myobj.type == 'MESH':
+                    depsgraph = bpy.context.view_layer.depsgraph
+                    eval_obj = myobj.evaluated_get(depsgraph)
+                    temp_mesh = eval_obj.data
+                    bm.from_mesh(temp_mesh)
+                    #bm.from_object(myobj, bpy.context.view_layer.depsgraph)
 
-            if lineGroup.endcapA != 'NONE':
-                dot,fill =  draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[0])  , mat@Vector(coords[-1]) , rgb, lineGroup.endcapSize)
-                dotcoords.append(dot)
-                filledcoords.append(fill)
+                if myobj.type == 'CURVE':
+                    depsgraph = bpy.context.view_layer.depsgraph
+                    eval_obj = myobj.evaluated_get(depsgraph)
+                    temp_mesh = bpy.data.meshes.new_from_object(eval_obj, depsgraph = bpy.context.view_layer.depsgraph)
+                    bm.from_mesh(temp_mesh)
 
-            if lineGroup.endcapB != 'NONE':
-                dot,fill =  draw_annotation_endcaps(lineGroup, lineGroup.endcapB, mat@Vector(coords[-1]) , mat@Vector(coords[-2]) , rgb, lineGroup.endcapSize)
-                dotcoords.append(dot)
-                filledcoords.append(fill)
+                # For each edge get its linked faces and vertex indicies
+                for idx, edge in enumerate(bm.edges):
+                    linked_faces = edge.link_faces
+                    pointA = edge.verts[0].co
+                    pointB = edge.verts[1].co
 
-            res = get_resolution()
+                    #Check Filter Vertex Group
+                    if lineGroup.filterGroup != '':
+                        #print('has filter group')
+                        eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
+                        vertex_group = eval_obj.vertex_groups[lineGroup.filterGroup]
+                        group_idx = vertex_group.index
+                        v1_groups = eval_obj.data.vertices[edge.verts[0].index].groups
+                        v2_groups = eval_obj.data.vertices[edge.verts[1].index].groups
+                        id1 = []
+                        id2 = []
+                        for item in v1_groups:
+                            id1.append(item.group)
+                            #print('v1 in group: {} looking for group: {}'.format(item.group,group_idx))
+                        for item in v2_groups:
+                            id2.append(item.group)
+                            #print('v2 in group: {} looking for group: {}'.format(item.group,group_idx))
+                        if lineGroup.invertGroupFilter - (group_idx not in id1 or group_idx not in id2):
+                            #print('skipping line segment')
+                            continue
 
+                    if len(linked_faces) == 2:
+                        normalA = Vector(
+                            linked_faces[0].normal).normalized()
+                        normalB = Vector(
+                            linked_faces[1].normal).normalized()
+                        dotProd = (normalA.dot(normalB))
 
+                        #Check angle of adjacent faces
+                        if lineGroup.useDynamicCrease:
+                            if dotProd >= -1 and dotProd <= 1:
+                                creaseAngle = math.acos(dotProd)
+                                if creaseAngle > lineGroup.creaseAngle:
+                                    tempCoords.append(pointA)
+                                    tempCoords.append(pointB)
+                                    tempIdxs.append(edge.verts[0].index)
+                                    tempIdxs.append(edge.verts[1].index)
+
+                        #Check dynamic silhouette
+                        if lineGroup.dynamic_sil:
+                            normalA.rotate(rot)
+                            normalB.rotate(rot)
+                            a_dot = camera_z.dot(normalA)
+                            b_dot = camera_z.dot(normalB)
+                            sign_a = np.sign(a_dot)
+                            sign_b = np.sign(b_dot)
+                            if sign_a != sign_b:
+                                tempCoords.append(pointA)
+                                if not lineGroup.chain:
+                                    tempCoords.append(pointB)
+
+                    # Any edge with greater or less
+                    # than 2 linked faces is non manifold
+                    else:
+                        tempCoords.append(pointA)
+                        if not lineGroup.chain or idx == (len(bm.edges)-1):
+                            tempCoords.append(pointB)
+
+                lineGroup['coordBuffer'] = tempCoords.copy()
+                lineGroup['lineBuffer'] = tempIdxs.copy()
+                if len(tempCoords) == 0:
+                    lineGroup['coordBuffer'] = []
+                    return
+                bm.free()
+
+        # Get Coords from Buffer  
+        coords = []
+        coords = lineGroup['coordBuffer']
+        
+        # Get Line Weights
+        groupWeights = [1.0] * len(coords)
+        if lineGroup.lineWeightGroup != "":
+            groupWeights = get_vertex_group_weights(myobj, lineGroup['lineBuffer'], lineGroup.lineWeightGroup)
+            
+        lineWeights = [lineProps.lineWeight] * len(coords)
+        for idx in range(len(coords)):
+            try:
+                lineWeights[idx] = lineProps.lineWeight * groupWeights[idx]
+            except IndexError:
+                lineWeights[idx] = lineProps.lineWeight
+            #print("Resulting Weight {} . From filter {} , and Group {}".format(lineWeights[idx],filterWeights[idx],groupWeights[idx]))
+
+        if len(coords) == 0:
+            #print("No Coords")
+            return
+
+        dotcoords = []
+        filledcoords = []
+
+        if lineGroup.endcapA != 'NONE':
+            dot,fill =  draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[0])  , mat@Vector(coords[-1]) , rgb, lineGroup.endcapSize)
+            dotcoords.append(dot)
+            filledcoords.append(fill)
+
+        if lineGroup.endcapB != 'NONE':
+            dot,fill =  draw_annotation_endcaps(lineGroup, lineGroup.endcapB, mat@Vector(coords[-1]) , mat@Vector(coords[-2]) , rgb, lineGroup.endcapSize)
+            dotcoords.append(dot)
+            filledcoords.append(fill)
+
+        dash_spaces = [0,0,0,0]
+        gap_spaces = [0,0,0,0]
+        if lineProps.lineDrawDashed or drawHidden:
             dash_spaces = [0,0,0,0]
             gap_spaces = [0,0,0,0]
-            if lineProps.lineDrawDashed or drawHidden:
-                dash_spaces = [0,0,0,0]
-                gap_spaces = [0,0,0,0]
-                dash_props = [lineProps.d1_length,lineProps.d2_length,lineProps.d3_length,lineProps.d4_length]
-                gap_props =  [lineProps.g1_length,lineProps.g2_length,lineProps.g3_length,lineProps.g4_length]
-                for i in range(lineProps.num_dashes):
-                    dash_spaces[i] = dash_props[i]
-                    gap_spaces[i] = gap_props[i]
+            dash_props = [lineProps.d1_length,lineProps.d2_length,lineProps.d3_length,lineProps.d4_length]
+            gap_props =  [lineProps.g1_length,lineProps.g2_length,lineProps.g3_length,lineProps.g4_length]
+            for i in range(lineProps.num_dashes):
+                dash_spaces[i] = dash_props[i]
+                gap_spaces[i] = gap_props[i]
 
-            draw_lines(lineWeights,rgb,coords,offset=-offset,twoPass=True, 
-                pointPass= lineProps.pointPass,objMat=mat, dashed=lineProps.lineDrawDashed,
-                dash_sizes=dash_spaces, gap_sizes=gap_spaces)
-            
-            if drawHidden:
-                hiddenLineWeight = lineProps.lineHiddenWeight
-                hiddenRGB = get_color(lineProps.lineHiddenColor,myobj, is_active= not lineGroup.is_active)
+        draw_lines(lineWeights,rgb,coords,offset=-offset,twoPass=True, 
+            pointPass= lineProps.pointPass,objMat=mat, dashed=lineProps.lineDrawDashed,
+            dash_sizes=dash_spaces, gap_sizes=gap_spaces)
+        
+        if drawHidden:
+            hiddenLineWeight = lineProps.lineHiddenWeight
+            hiddenRGB = get_color(lineProps.lineHiddenColor,myobj, is_active= not lineGroup.is_active)
 
-                draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,twoPass=True, 
-                    pointPass= lineProps.pointPass, objMat=mat, dashed=True,
-                    dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True)
+            draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,twoPass=True, 
+                pointPass= lineProps.pointPass, objMat=mat, dashed=True,
+                dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True)
 
-            if sceneProps.is_vector_draw:
-                if not lineProps.chain:
-                    svg_shaders.svg_line_shader(
-                        lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat)
-                else:
-                    svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False, mat=mat)
+        if sceneProps.is_vector_draw:
+            if not lineProps.chain:
+                svg_shaders.svg_line_shader(
+                    lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat)
+            else:
+                svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False, mat=mat)
 
-                for dotcoord in dotcoords:
-                    if dotcoord:
-                        svg_shaders.svg_circle_shader(lineGroup,dotcoord[0],dotcoord[1],rgb,svg,parent=svg)
-                for fill in filledcoords:
-                    svg_shaders.svg_fill_shader(
-                        lineGroup, fill, rgb, svg, parent=svg)
+            for dotcoord in dotcoords:
+                if dotcoord:
+                    svg_shaders.svg_circle_shader(lineGroup,dotcoord[0],dotcoord[1],rgb,svg,parent=svg)
+            for fill in filledcoords:
+                svg_shaders.svg_fill_shader(
+                    lineGroup, fill, rgb, svg, parent=svg)
 
-            if sceneProps.is_dxf_draw:
-                dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf,myobj, mat=mat, )
-    gpu.shader.unbind()
+        if sceneProps.is_dxf_draw:
+            dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf,myobj, mat=mat, )
 
 def get_vertex_group_weights(myobj, vert_list, group_name, filter = False):
     weights = []
@@ -2303,243 +2277,237 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
     customFilledCoords = []
     for annotation in annotationGen.annotations:
         annotationProps = get_style(annotation,"annotations")
+        endcap = annotationProps.endcapA
+        endcapSize = annotationProps.endcapSize
 
+        if not check_vis(annotation, annotationProps):
+            return
+        lineWeight = annotationProps.lineWeight
+        # undo blenders Default Gamma Correction
+        rgb = get_color(annotationProps.color, myobj, is_active=annotation.is_active)
 
-        with OpenGL_Settings(annotationProps):
+        # Get Points
+        deleteFlag = False
+        try:
+            p1local = get_mesh_vertex(
+                myobj, annotation.annotationAnchor, annotationProps.evalMods, spline_idx=annotation.annotationAnchorSpline)
+            p1 = get_point(p1local, mat)
+            annotation['p1anchorCoord'] = p1
+        except IndexError:
+            deleteFlag = True
 
-            endcap = annotationProps.endcapA
-            endcapSize = annotationProps.endcapSize
+        if deleteFlag:
+            idx = 0
+            for anno in annotationGen.annotations:
+                if annotation == anno:
+                    annotationGen.annotations.remove(idx)
+                    return
+                idx += 1
 
-            if not check_vis(annotation, annotationProps):
-                return
-            lineWeight = annotationProps.lineWeight
-            # undo blenders Default Gamma Correction
-            rgb = get_color(annotationProps.color, myobj, is_active=annotation.is_active)
+        loc = mat.to_translation()
+        offset = annotation.annotationOffset
 
-            # Get Points
-            deleteFlag = False
+        offset = Vector(offset)
+
+        # Get local Rotation and Translation
+        rot = mat.to_quaternion()
+        loc = mat.to_translation()
+        scale = mat.to_scale()
+
+        # Compose Rotation and Translation Matrix
+        rotMatrix = Matrix.Identity(3)
+        rotMatrix.rotate(rot)
+        rotMatrix.resize_4x4()
+        locMatrix = Matrix.Translation(loc)
+        scaleMatrix = Matrix.Identity(3)
+        scaleMatrix[0][0] *= scale[0]
+        scaleMatrix[1][1] *= scale[1]
+        scaleMatrix[2][2] *= scale[2]
+        scaleMatrix.to_4x4()
+        noScaleMat = locMatrix @ rotMatrix
+        # locMatrix = Matrix.Translation(loc)
+
+        p1Scaled = scaleMatrix @ Vector(p1local)
+        p1 = locMatrix @ rotMatrix @ p1Scaled
+
+        # Transform offset with Composed Matrix
+        p2 = (rotMatrix @ offset) + Vector(p1)
+
+        # Draw Custom Shape
+
+        offsetMat = Matrix.Translation(p1Scaled)
+        rotMat = Matrix.Identity(3).copy()
+        rotEuler = Euler(annotation.annotationRotation, 'XYZ')
+        rotMat.rotate(rotEuler)
+        rotMat = rotMat.to_4x4()
+        customScale = Matrix.Scale(annotation.custom_scale, 4)
+
+        if annotation.custom_shape_location == 'T':
+            offsetMat = Matrix.Translation(
+                p1Scaled + annotation.annotationOffset)
+
+        extMat = noScaleMat @ offsetMat @ rotMat @ customScale
+
+        leaderDist = annotationProps.leader_length
+        mult = 1
+        if annotationProps.align_to_camera:
+            # Only use the z rot of the annotation rotation
+            annoMat = Matrix.Identity(3).copy()
+            annoEuler = Euler((0, 0, annotation.annotationRotation.z), 'XYZ')
+            annoMat.rotate(annoEuler)
+            annoMat = annoMat.to_4x4()
+
+            # use Camera rot for the rest
+            camera = context.scene.camera
+            cameraMat = camera.matrix_world
+            cameraRot = cameraMat.decompose()[1]
+            cameraRotMat = Matrix.Identity(3)
+            cameraRotMat.rotate(cameraRot)
+            cameraRotMat = cameraRotMat.to_4x4()
+
+            fullRotMat = annoMat @ cameraRotMat
+            extMat = locMatrix @ fullRotMat @ customScale
+
+            cameraX = cameraRotMat @ Vector((1, 0, 0))
+            leader1 = p1 - p2
+            proj = leader1.dot(cameraX)
+            if proj > 0:
+                mult = -1
+
+        else:
+            fullRotMat = rotMatrix @ rotMat
+
+        p3dir = fullRotMat @ Vector((1, 0, 0))
+        p3dir.normalize()
+
+        p3 = p2 + p3dir * (leaderDist*get_scale()*0.5) * mult
+
+        if annotation.customShape is not None:
+            col = annotation.customShape
+            objs = col.objects
             try:
-                p1local = get_mesh_vertex(
-                    myobj, annotation.annotationAnchor, annotationProps.evalMods, spline_idx=annotation.annotationAnchorSpline)
-                p1 = get_point(p1local, mat)
-                annotation['p1anchorCoord'] = p1
-            except IndexError:
-                deleteFlag = True
-
-            if deleteFlag:
-                idx = 0
-                for anno in annotationGen.annotations:
-                    if annotation == anno:
-                        annotationGen.annotations.remove(idx)
-                        return
-                    idx += 1
-
-            loc = mat.to_translation()
-            offset = annotation.annotationOffset
-
-            offset = Vector(offset)
-
-            # Get local Rotation and Translation
-            rot = mat.to_quaternion()
-            loc = mat.to_translation()
-            scale = mat.to_scale()
-
-            # Compose Rotation and Translation Matrix
-            rotMatrix = Matrix.Identity(3)
-            rotMatrix.rotate(rot)
-            rotMatrix.resize_4x4()
-            locMatrix = Matrix.Translation(loc)
-            scaleMatrix = Matrix.Identity(3)
-            scaleMatrix[0][0] *= scale[0]
-            scaleMatrix[1][1] *= scale[1]
-            scaleMatrix[2][2] *= scale[2]
-            scaleMatrix.to_4x4()
-            noScaleMat = locMatrix @ rotMatrix
-            # locMatrix = Matrix.Translation(loc)
-
-            p1Scaled = scaleMatrix @ Vector(p1local)
-            p1 = locMatrix @ rotMatrix @ p1Scaled
-
-            # Transform offset with Composed Matrix
-            p2 = (rotMatrix @ offset) + Vector(p1)
-
-            # Draw Custom Shape
-
-            offsetMat = Matrix.Translation(p1Scaled)
-            rotMat = Matrix.Identity(3).copy()
-            rotEuler = Euler(annotation.annotationRotation, 'XYZ')
-            rotMat.rotate(rotEuler)
-            rotMat = rotMat.to_4x4()
-            customScale = Matrix.Scale(annotation.custom_scale, 4)
-
-            if annotation.custom_shape_location == 'T':
-                offsetMat = Matrix.Translation(
-                    p1Scaled + annotation.annotationOffset)
-
-            extMat = noScaleMat @ offsetMat @ rotMat @ customScale
-
-            leaderDist = annotationProps.leader_length
-            mult = 1
-            if annotationProps.align_to_camera:
-                # Only use the z rot of the annotation rotation
-                annoMat = Matrix.Identity(3).copy()
-                annoEuler = Euler((0, 0, annotation.annotationRotation.z), 'XYZ')
-                annoMat.rotate(annoEuler)
-                annoMat = annoMat.to_4x4()
-
-                # use Camera rot for the rest
-                camera = context.scene.camera
-                cameraMat = camera.matrix_world
-                cameraRot = cameraMat.decompose()[1]
-                cameraRotMat = Matrix.Identity(3)
-                cameraRotMat.rotate(cameraRot)
-                cameraRotMat = cameraRotMat.to_4x4()
-
-                fullRotMat = annoMat @ cameraRotMat
-                extMat = locMatrix @ fullRotMat @ customScale
-
-                cameraX = cameraRotMat @ Vector((1, 0, 0))
-                leader1 = p1 - p2
-                proj = leader1.dot(cameraX)
-                if proj > 0:
-                    mult = -1
-
-            else:
-                fullRotMat = rotMatrix @ rotMat
-
-            p3dir = fullRotMat @ Vector((1, 0, 0))
-            p3dir.normalize()
-
-            p3 = p2 + p3dir * (leaderDist*get_scale()*0.5) * mult
-
-            if annotation.customShape is not None:
-                col = annotation.customShape
-                objs = col.objects
-                try:
-                    if col.objects[myobj.name] is not None:
-                        print(
-                            "Annotations Cannot be a part of its custom shape collection")
-                        annotation.customShape = None
-                        return
-                except:
-                    pass
-
-                draw3d_loop(context, objs, svg=svg, extMat=extMat,
-                            multMat=annotationProps.custom_local_transforms,custom_call=True)
-
-
-            fieldIdx = 0
-            if 'textFields' not in annotation:
-                annotation.textFields.add()
-
-            # Some Backwards Compatibility for annotations
-            try:
-                if annotation.textFields[0].text == "" and annotation.name == "":
-                    annotation.textFields[0].text = annotation.text
-                    annotation.name = annotation.text
-            except IndexError:
+                if col.objects[myobj.name] is not None:
+                    print(
+                        "Annotations Cannot be a part of its custom shape collection")
+                    annotation.customShape = None
+                    return
+            except:
                 pass
 
-            fields = []
-            notesFlag = False
-            for textField in annotation.textFields:
-                fields.append(textField)
+            draw3d_loop(context, objs, svg=svg, extMat=extMat,
+                        multMat=annotationProps.custom_local_transforms,custom_call=True)
 
-            for textField in fields:
-                if instance is None:
-                    set_text(textField, myobj, style = annotationProps, item = annotation)
-                else:
-                    set_text(textField,instance.parent, style = annotationProps, item = annotation)
-                origin = p3.copy()
-                if annotationProps.leader_length > 0:
-                    pass
-                    origin += p3dir * (0.0015*get_scale()) * mult
-                xDir = fullRotMat @ Vector((1 * mult, 0, 0))
-                yDir = fullRotMat @ Vector((0, 1, 0))
 
-                # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
-                textField.textAlignment = annotationProps.textAlignment
-                textField.textPosition = annotationProps.textPosition
-                textcard = generate_text_card(
-                    context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
-                textField['textcard'] = textcard
-                fieldIdx += 1
-            # Set Gizmo Properties
-            annotation.gizLoc = p2
+        fieldIdx = 0
+        if 'textFields' not in annotation:
+            annotation.textFields.add()
 
-            # Draw
-            if p1 is not None and p2 is not None:
+        # Some Backwards Compatibility for annotations
+        try:
+            if annotation.textFields[0].text == "" and annotation.name == "":
+                annotation.textFields[0].text = annotation.text
+                annotation.name = annotation.text
+        except IndexError:
+            pass
 
+        fields = []
+        notesFlag = False
+        for textField in annotation.textFields:
+            fields.append(textField)
+
+        for textField in fields:
+            if instance is None:
+                set_text(textField, myobj, style = annotationProps, item = annotation)
+            else:
+                set_text(textField,instance.parent, style = annotationProps, item = annotation)
+            origin = p3.copy()
+            if annotationProps.leader_length > 0:
+                pass
+                origin += p3dir * (0.0015*get_scale()) * mult
+            xDir = fullRotMat @ Vector((1 * mult, 0, 0))
+            yDir = fullRotMat @ Vector((0, 1, 0))
+
+            # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
+            textField.textAlignment = annotationProps.textAlignment
+            textField.textPosition = annotationProps.textPosition
+            textcard = generate_text_card(
+                context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
+            textField['textcard'] = textcard
+            fieldIdx += 1
+        # Set Gizmo Properties
+        annotation.gizLoc = p2
+
+        # Draw
+        if p1 is not None and p2 is not None:
+
+            coords = []
+
+            # Move end of line Back if arrow endcap
+            if endcap == 'T':
+                axis = Vector(p1) - Vector(p2)
+                lineEnd = Vector(p1) - axis * 0.005 * endcapSize
+            else:
+                lineEnd = p1
+
+            coords.append(lineEnd)
+            coords.append(p2)
+            coords.append(p2)
+            coords.append(p3)
+
+            if len(fields) == 0:
+                return
+            textcard = fields[0]['textcard']
+
+            if not annotationProps.draw_leader:
                 coords = []
 
-                # Move end of line Back if arrow endcap
-                if endcap == 'T':
-                    axis = Vector(p1) - Vector(p2)
-                    lineEnd = Vector(p1) - axis * 0.005 * endcapSize
-                else:
-                    lineEnd = p1
+            dotcoords = []
+            filledcoords = []
+            dot,fill = draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize)
+            dotcoords.append(dot)
+            filledcoords.append(fill)
+            # draw_secondary_leader
+            for leader in annotation.secondaryLeaders:
+                obj = leader.anchor
+                if obj == None:
+                    continue
+                anchor_point = obj.location
 
-                coords.append(lineEnd)
+                coords.append(anchor_point)
                 coords.append(p2)
-                coords.append(p2)
-                coords.append(p3)
 
-                if len(fields) == 0:
-                    return
-                textcard = fields[0]['textcard']
-
-                if not annotationProps.draw_leader:
-                    coords = []
-
-
-                dotcoords = []
-                filledcoords = []
-                dot,fill = draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize)
+                dot,fill = draw_annotation_endcaps(annotationProps, endcap, anchor_point , p2, rgb, endcapSize)
                 dotcoords.append(dot)
                 filledcoords.append(fill)
-                # draw_secondary_leader
-                for leader in annotation.secondaryLeaders:
-                    obj = leader.anchor
-                    if obj == None:
-                        continue
-                    anchor_point = obj.location
 
-                    coords.append(anchor_point)
-                    coords.append(p2)
+            draw_lines(lineWeight, rgb, coords, twoPass=True, pointPass=True)
 
-                    dot,fill = draw_annotation_endcaps(annotationProps, endcap, anchor_point , p2, rgb, endcapSize)
-                    dotcoords.append(dot)
-                    filledcoords.append(fill)
+        if sceneProps.show_dim_text:
+            for textField in fields:
+                draw_text_3D(context, textField, annotationProps, myobj)
 
-                draw_lines(lineWeight, rgb, coords, twoPass=True, pointPass=True)
-
-
-            if sceneProps.show_dim_text:
-                for textField in fields:
-                    draw_text_3D(context, textField, annotationProps, myobj)
-
-            if sceneProps.is_vector_draw:
-                svg_anno = svg.add(svg.g(id=annotation.name))
+        if sceneProps.is_vector_draw:
+            svg_anno = svg.add(svg.g(id=annotation.name))
+            svg_shaders.svg_line_shader(
+                annotation, annotationProps, coords, lineWeight, rgb, svg, parent=svg_anno)
+            if annotation.customShape is not None:
                 svg_shaders.svg_line_shader(
-                    annotation, annotationProps, coords, lineWeight, rgb, svg, parent=svg_anno)
-                if annotation.customShape is not None:
-                    svg_shaders.svg_line_shader(
-                        annotation, annotationProps, customCoords, lineWeight, rgb, svg, parent=svg_anno)
-                    svg_shaders.svg_fill_shader(
-                        annotation, customFilledCoords, rgb, svg, parent=svg_anno)
-                for dotcoord in dotcoords:
-                    if dotcoord:
-                        svg_shaders.svg_circle_shader(annotation,dotcoord[0],dotcoord[1],rgb,svg,parent=svg_anno)
-                for fill in filledcoords:
-                    svg_shaders.svg_fill_shader(
-                        annotation, fill, rgb, svg, parent=svg_anno)
-                for textField in fields:
-                    textcard = textField['textcard']
-                    svg_shaders.svg_text_shader(
-                        annotation, annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
+                    annotation, annotationProps, customCoords, lineWeight, rgb, svg, parent=svg_anno)
+                svg_shaders.svg_fill_shader(
+                    annotation, customFilledCoords, rgb, svg, parent=svg_anno)
+            for dotcoord in dotcoords:
+                if dotcoord:
+                    svg_shaders.svg_circle_shader(annotation,dotcoord[0],dotcoord[1],rgb,svg,parent=svg_anno)
+            for fill in filledcoords:
+                svg_shaders.svg_fill_shader(
+                    annotation, fill, rgb, svg, parent=svg_anno)
+            for textField in fields:
+                textcard = textField['textcard']
+                svg_shaders.svg_text_shader(
+                    annotation, annotationProps, textField.text, origin, textcard, rgb, svg, parent=svg_anno)
 
-            if sceneProps.is_dxf_draw:
-                dxf_shaders.dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf)
+        if sceneProps.is_dxf_draw:
+            dxf_shaders.dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf)
 
 
 def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = None):
@@ -2688,6 +2656,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
         cell_x = 0
         cell_y = 0
+        table_width = 0
 
         padding = px_to_m(pts_to_px(table.padding), paper_space = True)
 
@@ -2799,8 +2768,12 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 cell_x += padded_width
 
             cell_y += padded_height
+            table_width = cell_x
             cell_x = 0
-            row_idx += 1
+
+        filled_coords = [origin, origin + i*table_width, origin - j*cell_y,  origin + i*table_width, origin +- j*cell_y, origin+i*table_width-j*cell_y]
+
+        draw_filled_coords(filled_coords, table.background_color,polySmooth=True)
 
         rawRGB = table.color
         rgb = rgb_gamma_correct(rawRGB)
@@ -2815,6 +2788,9 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
         if sceneProps.is_vector_draw:
             svg_table = svg.add(svg.g(id=table.name))
+            svg_fill = [origin, origin + i*table_width, origin+i*table_width-j*cell_y, origin - j*cell_y,]
+            svg_shaders.svg_poly_fill_shader(table,svg_fill,table.background_color,svg,parent=svg_table)
+
             svg_shaders.svg_line_shader(
                 table, tableProps, coords, table.lineWeight, rgb, svg, parent=svg_table)
 
@@ -3114,8 +3090,8 @@ def draw_text_3D(context, textobj, textprops, myobj):
 
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_S, bgl.GL_CLAMP_TO_BORDER)
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_T, bgl.GL_CLAMP_TO_BORDER)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_LINEAR)
-        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_LINEAR)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_NEAREST)
+        bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_NEAREST)
        
         try:
             tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(textobj['texture'], dtype=np.uint8))
@@ -3605,7 +3581,9 @@ def draw_all_lines():
     view = get_view()
 
     global AllLinesBuffer
+    global HiddenLinesBuffer
     global AllLinesBatch
+    global HiddenLinesBatch
 
     # get the near clipping plane
     rv3d = get_rv3d()
@@ -3636,7 +3614,7 @@ def draw_all_lines():
     #print(camera_coords)
     # batch & Draw Shader
 
-    batch3d = batch_for_shader(
+    AllLinesBatch = batch_for_shader(
         allLinesShader,
         'LINES',
         {"pos": AllLinesBuffer["coords"],
@@ -3649,8 +3627,9 @@ def draw_all_lines():
         "gap_sizes": AllLinesBuffer['gap_sizes'],
         "dash_sizes": AllLinesBuffer['dash_sizes']
         })
+    
 
-    hiddenBatch3d = batch_for_shader(
+    HiddenLinesBatch = batch_for_shader(
         allLinesShader,
         'LINES',
         {"pos": HiddenLinesBuffer["coords"],
@@ -3668,8 +3647,8 @@ def draw_all_lines():
     bgl.glEnable(bgl.GL_DEPTH_TEST)
     # Draw Hidden First
     bgl.glDepthFunc(bgl.GL_GREATER)
-    hiddenBatch3d.program_set(allLinesShader)
-    hiddenBatch3d.draw()
+    HiddenLinesBatch.program_set(allLinesShader)
+    HiddenLinesBatch.draw()
     
     # Set Depth Test
     bgl.glDepthFunc(bgl.GL_LEQUAL)
@@ -3680,8 +3659,8 @@ def draw_all_lines():
                     bgl.GL_ONE_MINUS_SRC_ALPHA)
     bgl.glDepthMask(True)
     allLinesShader.uniform_float("depthPass", True)
-    batch3d.program_set(allLinesShader)
-    batch3d.draw()
+    AllLinesBatch.program_set(allLinesShader)
+    AllLinesBatch.draw()
 
     # Set Blend
     if sceneProps.is_render_draw:
@@ -3693,7 +3672,7 @@ def draw_all_lines():
     # Draw Without Depth Mask 
     bgl.glDepthMask(False)
     allLinesShader.uniform_float("depthPass", False)
-    batch3d.draw()
+    AllLinesBatch.draw()
     gpu.shader.unbind()
 
     pass

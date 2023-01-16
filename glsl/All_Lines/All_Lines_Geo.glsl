@@ -17,7 +17,7 @@ out vec2 mTexCoord;
 out vec4 g_color;
 out vec4 f_gap_sizes;
 out vec4 f_dash_sizes;
-out flat int f_dashed;
+flat out int f_dashed;
 
 // UNIFORMS
 uniform mat4 ModelViewProjectionMatrix;

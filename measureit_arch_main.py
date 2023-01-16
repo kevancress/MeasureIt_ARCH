@@ -687,8 +687,8 @@ def draw_viewport(context, viewport=None, svg=None, dxf = None):
     extMat = anchorObjMat @ transMat @ scaleMat @ viewportMat
     sceneProps.source_scene = viewportScene
 
-    if sceneProps.is_render_draw:
-            text_update_loop(context, objlist)
+    if sceneProps.is_vector_draw:
+        text_update_loop(context, objlist)
 
     draw3d_loop(context, objlist, extMat=extMat, svg=svg, dxf = dxf, multMat=True, custom_call=True)
 
@@ -727,8 +727,8 @@ def draw_titleblock(context, svg=None, dxf = None):
 
         extMat = cameraMat @ transMat @ scaleMat
         sceneProps.source_scene = titleblockScene
-        if sceneProps.is_render_draw:
-             text_update_loop(context, objlist)
+        if sceneProps.is_render_draw and sceneProps.is_vector_draw:
+            text_update_loop(context, objlist)
         draw3d_loop(context, objlist, extMat=extMat, svg=svg, dxf = dxf, multMat=True, custom_call=True)
         sceneProps.source_scene = context.scene
 

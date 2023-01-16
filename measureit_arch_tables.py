@@ -99,6 +99,15 @@ class TableProperties(PropertyGroup, BaseWithText):
     wrap_text: BoolProperty(name='Wrap Text', default=False)
 
     text_file_updated: BoolProperty(name='Wrap Text', default=False)
+
+    background_color: FloatVectorProperty(
+        name="Background Color",
+        description="Color for the Item",
+        default=(1.0, 1.0, 1.0, 1.0),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4)
     
     lineWeight: FloatProperty(
         name="Line Weight",
@@ -267,6 +276,7 @@ class OBJECT_PT_Tables(Panel):
                 col = box.column()
                 col.prop(table,'fontSize')
                 col.prop(table,'lineWeight')
+                col.prop(table,'background_color')
 
                 col.prop(table,'textAlignment')
                 col.prop(table,'textPosition')         

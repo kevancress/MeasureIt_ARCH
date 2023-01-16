@@ -30,6 +30,7 @@ import bmesh
 import time
 import bpy_extras.object_utils as object_utils
 import math
+import numpy as np
 
 from math import fabs, sqrt
 from mathutils import Vector, Matrix
@@ -138,7 +139,7 @@ def set_globals():
     global height
     start_time = time.time()
     if 'depthbuffer' in sceneProps and depthbuffer is None and view.vector_depthtest:
-        depthbuffer = sceneProps['depthbuffer'].to_list()    
+        depthbuffer = sceneProps['depthbuffer'].to_list()   
         end_time = time.time()
         print("Reading Depthbuffer to list took: " + str(end_time - start_time))
     
