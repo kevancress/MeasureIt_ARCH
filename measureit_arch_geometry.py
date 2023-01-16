@@ -2810,10 +2810,14 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 i = cameraRotMat @ Vector((1, 0, 0))
                 j = cameraRotMat @ Vector((0, 1, 0))
 
+                
+
                 xDir = i * padded_width
                 yDir = -j * padded_height
 
                 cell_origin = origin + i * cell_x - j * cell_y
+
+               
 
                 c1 = cell_origin
                 c2 = cell_origin + xDir
@@ -2857,24 +2861,30 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 # Add to full coords list
                 coords.extend(cell_coords)
 
+                text_height = px_to_m(pts_to_px(textField.textHeight),paper_space=True)  * 72/res
+
                 # Set Alignment
                 if textField.textAlignment == 'L':
-                    field_origin = cell_origin + padding * i
-                if textField.textAlignment == 'R':
-                    field_origin = c2 - padding * i
+                    field_origin = (cell_origin + i * padding)
                 if textField.textAlignment == 'C':
-                    field_origin = (cell_origin + c2)/2
+                    field_origin = ((cell_origin + c2)/2)
+                if textField.textAlignment == 'R':
+                    field_origin = (c2 - i*padding)
+
 
                 if textField.textPosition == 'T':
-                    field_origin.y = (cell_origin + padding * -j).y
+                    field_origin += -j * padding - text_height * j
                 if textField.textPosition == 'M':
-                    field_origin.y =  ((cell_origin + c4)/2).y
+                    field_origin += -padded_height * j/2
                 if textField.textPosition == 'B':
-                    field_origin.y = (c4 + padding * j).y
+                    field_origin += -padded_height * j  + j * padding + text_height * j
+
+                draw_lines(1.0,Vector((1,0,0,1)),[field_origin,field_origin+i*0.1])
+                draw_lines(1.0,Vector((0,1,0,1)),[field_origin,field_origin+j*0.1])
 
                 # Generate Text Card
                 textcard = generate_text_card(
-                    context, textField, table, basePoint=field_origin, xDir=xDir, yDir=yDir, cardIdx=0)
+                    context, textField, table, basePoint=field_origin, xDir=i, yDir=j, cardIdx=0)
                 textField['textcard'] = textcard
 
                 cell_x += padded_width
