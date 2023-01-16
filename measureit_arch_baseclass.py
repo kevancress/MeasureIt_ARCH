@@ -821,17 +821,6 @@ class MeasureItARCHSceneProps(PropertyGroup):
         default=True,
         update=update_flag)
 
-    use_new_draw_pipeline: BoolProperty(
-        name="Use new draw pipeline ",
-        description="Use the new single draw call pipeline for drawing all lines",
-        default=True,
-        update=update_flag)
-
-    use_width_aware_depth_test: BoolProperty(
-        name="Use Width Aware Depth Test",
-        description="Use a vector depth test method that accounts for line width",
-        default=False)
-
     preview_resolution: IntProperty(
         name='Default Resolution ', min=1,
         default=72,
