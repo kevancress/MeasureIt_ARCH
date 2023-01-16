@@ -2879,8 +2879,8 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                 if textField.textPosition == 'B':
                     field_origin += -padded_height * j  + j * padding + text_height * j
 
-                draw_lines(1.0,Vector((1,0,0,1)),[field_origin,field_origin+i*0.1])
-                draw_lines(1.0,Vector((0,1,0,1)),[field_origin,field_origin+j*0.1])
+                #draw_lines(1.0,Vector((1,0,0,1)),[field_origin,field_origin+i*0.1])
+                #draw_lines(1.0,Vector((0,1,0,1)),[field_origin,field_origin+j*0.1])
 
                 # Generate Text Card
                 textcard = generate_text_card(
