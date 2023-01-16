@@ -100,20 +100,9 @@ else:
     dashedfrag = load_shader_str("dashed_frag.glsl", directory= "legacy_frag")
     textfrag = load_shader_str("text_frag.glsl", directory= "legacy_frag")
 
-
-lineShader = gpu.types.GPUShader(
-    load_shader_str("base_vert.glsl"),
-    aafrag,
-    geocode=load_shader_str("Basic_Line_Geo.glsl", directory="Basic_Line"))
-
 triShader = gpu.types.GPUShader(
     load_shader_str("base_vert.glsl"),
     basefrag)
-
-dashedLineShader = gpu.types.GPUShader(
-    load_shader_str("Dashed_Line_Vert.glsl", directory="Dashed_Line_Shader"),
-    dashedfrag,
-    geocode=load_shader_str("Dashed_Line_Geo.glsl", directory="Dashed_Line_Shader"))
 
 pointShader = gpu.types.GPUShader(
     load_shader_str("Point_Vert.glsl", directory="Point_Shader"),
@@ -130,13 +119,6 @@ allLinesShader = gpu.types.GPUShader(
     load_shader_str("All_Lines_Frag.glsl", directory="All_Lines"),
     geocode = load_shader_str("All_Lines_Geo.glsl", directory="All_Lines")
 )
-
-# Line Group Shader from file
-lineGroupShader = gpu.types.GPUShader(
-    load_shader_str("Line_Group_Vert.glsl", directory="Line_Group_Shader"),
-    aafrag,
-    geocode = load_shader_str("Line_Group_Geo.glsl", directory="Line_Group_Shader"))
-
 
 def get_dim_tag(self, obj):
     dimGen = obj.DimensionGenerator
