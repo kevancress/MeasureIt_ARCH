@@ -2641,7 +2641,6 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
         # Scale by res
         res = get_resolution()
         scale = get_scale()
-        size = (table.fontSize / 600) * scale
         max_columns = table['max_columns']
 
         scale = get_scale()
@@ -3081,7 +3080,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
     dim = width * height * 4
 
     if 'texture' in textobj and textobj.text != "":
-        # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
+        
         texArray = bgl.Buffer(bgl.GL_INT, [1])
         bgl.glGenTextures(1, texArray)
 
@@ -3094,6 +3093,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_NEAREST)
        
         try:
+            # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
             tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(textobj['texture'], dtype=np.uint8))
             bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width,height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
         except AttributeError as atribError:

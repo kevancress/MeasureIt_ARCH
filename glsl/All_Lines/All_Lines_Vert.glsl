@@ -7,7 +7,7 @@ in mat4 objectMatrix;
 
 in vec4 dash_sizes;
 in vec4 gap_sizes;
-in int dashed;
+flat in int dashed;
 
 out VERT_OUT {
     float weight;
