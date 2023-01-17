@@ -1,3 +1,5 @@
+//#version 330
+
 in vec2 mTexCoord;
 in vec4 gl_FragCoord;
 in vec4 g_color;
@@ -6,6 +8,7 @@ uniform bool depthPass;
 uniform vec4 dash_sizes;
 uniform vec4 gap_sizes;
 uniform bool dashed;
+uniform vec4 overlay_color;
 
 out vec4 fragColor;
 
@@ -20,6 +23,9 @@ float get_pattern_size(){
 
 void main() {
     vec4 finalColor = g_color;
+    if (overlay_color != vec4(0,0,0,0)){
+        finalColor = overlay_color;
+    }
     vec4 aaColor = vec4(finalColor[0],finalColor[1],finalColor[2],finalColor[3]);
     vec4 mixColor = vec4(finalColor[0],finalColor[1],finalColor[2],0);
 
@@ -74,7 +80,6 @@ void main() {
         }
     }
     
-
     fragColor = blender_srgb_to_framebuffer_space(aaColor);
     //fragColor = vec4(fract(mTexCoord),aaColor[2],1.0);
 }

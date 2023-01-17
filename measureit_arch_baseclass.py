@@ -45,6 +45,10 @@ class StyleWrapper(PropertyGroup):
 
 def update_flag(self, context):
     self.text_updated = True
+    self.is_invalid = True
+
+def mark_invalid(self,context):
+    self.is_invalid = True
 
 def update_camera(self,context):
     scene = context.scene
@@ -134,6 +138,10 @@ class BaseProp:
         set = set_name
     )
 
+    is_invalid: BoolProperty(
+        name='Is Invalid'
+    )
+
     previous_name: StringProperty(
         name='Previous Name'
     )
@@ -177,7 +185,8 @@ class BaseProp:
     is_style: BoolProperty(
         name="is Style",
         description="This property Group is a Style",
-        default=False)
+        default=False,
+        update = mark_invalid)
 
     uses_style: BoolProperty(
         name="uses Style",
@@ -216,7 +225,8 @@ class BaseProp:
         description="Autocad Color Index, for .dxf export or high contrast preview",
         default=256,
         min=1,
-        soft_max=255,)
+        soft_max=255,
+        update = mark_invalid)
 
     lineWeight: FloatProperty(
         name="Line Weight",
@@ -224,7 +234,8 @@ class BaseProp:
         default=1,
         soft_min=0.1,
         step=25,
-        min=0)
+        min=0,
+        update = mark_invalid)
 
     free: BoolProperty(
         name="Free",
@@ -245,7 +256,8 @@ class BaseProp:
     visible: BoolProperty(
         name="Visibility",
         description="how/hide",
-        default=True)
+        default=True,
+        update = mark_invalid)
 
     # Endcap properties are defined here to ensure compatiblity but the
     # enumProps are overwritten in child property groups
@@ -303,6 +315,10 @@ class ObjProps(PropertyGroup):
         default=0.0, min=0.0,subtype='ANGLE')
 
 class TextField(PropertyGroup):
+    is_invalid: BoolProperty(
+        name='Is Invalid'
+    )
+
     text_updated: BoolProperty(
         name='text_updated',
         description='flag when text needs to be redrawn',

@@ -38,6 +38,8 @@ from datetime import datetime
 from .measureit_arch_baseclass import BaseProp
 from .measureit_arch_utils import get_smart_selected, get_selected_vertex, get_selected_vertex_history
 
+def mark_invalid(self,context):
+    self.is_invalid = True
 
 class LineProperties(BaseProp, PropertyGroup):
     pointPass: BoolProperty(
@@ -77,7 +79,8 @@ class LineProperties(BaseProp, PropertyGroup):
         step=25,
         min=0)
 
-    lineWeightGroup: StringProperty(name='Line Weight Group')
+    lineWeightGroup: StringProperty(name='Line Weight Group',
+        update= mark_invalid)
 
     filterGroup: StringProperty(name='Filter by Group')
 
@@ -518,7 +521,7 @@ class OBJECT_PT_UILines(Panel):
                         row.prop(line, "invertGroupFilter")
 
                         col.prop_search(line, "lineWeightGroup", context.active_object, "vertex_groups")
-                        col.prop(line, "weightGroupInfluence")
+                        #col.prop(line, "weightGroupInfluence")
                         
                         if not line.uses_style:
 

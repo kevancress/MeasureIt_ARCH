@@ -1,3 +1,5 @@
+//#version 330
+
 layout(lines) in;
 layout(triangle_strip, max_vertices = 53) out;
 
@@ -45,15 +47,15 @@ float get_ss_pt(){
         vec2 lengthVec = (cam_ss2 - cam_ss1) * Viewport;
         float ss_dist = length(lengthVec) / length(Viewport); // this is 1BU in ss on x
         float ss_inch = ss_dist * BU_TO_IN; // this is 1 in in ss
-        ss_pt = ss_inch / 72 * scale;
+        ss_pt = ss_inch / 72.0 * scale;
     }
 
     return ss_pt;
 }
 
-float ss_pt = get_ss_pt();
 
 vec3 get_offset_and_alpha(vec2 dir, float weight){
+    float ss_pt = get_ss_pt();
     float min_length = 4.0;
     vec2 min_offset = dir * min_length/2.0  / Viewport;
 
@@ -65,12 +67,11 @@ vec3 get_offset_and_alpha(vec2 dir, float weight){
     }
 
     alpha = clamp(alpha,0.5,1.0);
-
     return vec3(offset,alpha);
-
 }
 
 void main() {
+    float ss_pt = get_ss_pt();
     // Get Vertex Positions (LOCAL SPACE)
     vec4 p1 =  gl_in[0].gl_Position;
     vec4 p2 =  gl_in[1].gl_Position;

@@ -75,8 +75,8 @@ bufferUniformKeysList = [
     "gap_sizes",
 ]
 
-AllLinesBatchs = None
-HiddenLinesBatchs = None
+AllLinesBatchs = {}
+HiddenLinesBatchs = {}
 # define Shaders
 
 # Alter which frag shaders are used depending on the blender version
@@ -109,9 +109,9 @@ textShader = gpu.types.GPUShader(
 
 # Make the lines ubershader
 allLinesShader = gpu.types.GPUShader(
-    load_shader_str("All_Lines_Vert.glsl", directory="All_Lines"),
-    load_shader_str("All_Lines_Frag.glsl", directory="All_Lines"),
-    geocode = load_shader_str("All_Lines_Geo.glsl", directory="All_Lines")
+    load_shader_str("All_Lines.vert.glsl", directory="All_Lines"),
+    load_shader_str("All_Lines.frag.glsl", directory="All_Lines"),
+    geocode = load_shader_str("All_Lines.geom.glsl", directory="All_Lines")
 )
 
 def get_dim_tag(self, obj):
@@ -429,7 +429,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
 
     # Obj Properties
     scene = context.scene
-    rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
+    rgb = get_color(dimProps.color)
 
     # Define Caps as a tuple of capA and capB to reduce code duplications
     caps = (dimProps.endcapA, dimProps.endcapB)
@@ -740,7 +740,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
 
         # measureAxis = []
         # scene = context.scene
-        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
+        rgb = get_color(dimProps.color)
 
         # Define Caps as a tuple of capA and capB to reduce code duplications
         caps = (dimProps.endcapA, dimProps.endcapB)
@@ -912,7 +912,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
             viewRot = context.area.spaces[0].region_3d.view_rotation
 
         # Obj Properties
-        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
+        rgb = get_color(dimProps.color)
 
         axis = dim.dimAxis
 
@@ -1148,7 +1148,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         lineWeight = dimProps.lineWeight
 
-        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
+        rgb = get_color(dimProps.color)
         radius = dim.dimRadius
 
         try:
@@ -1290,7 +1290,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             return
 
         lineWeight = dimProps.lineWeight
-        rgb = get_color(dimProps.color, myobj, is_active=dim.is_active)
+        rgb = get_color(dimProps.color)
         radius = dim.dimOffset
 
         deleteFlag = False
@@ -1567,7 +1567,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         lineWeight = dimProps.lineWeight
 
-        rgb = get_color(dim.fillColor, myobj, is_active=dim.is_active)
+        rgb = get_color(dim.fillColor)
         fillRGB = (rgb[0], rgb[1], rgb[2], dim.fillAlpha)
 
         rawTextRGB = dimProps.color
@@ -1946,7 +1946,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         if not check_vis(lineGroup, lineProps):
             continue
 
-        rgb = get_color(lineProps.color, myobj, is_active= not lineGroup.is_active, cad_col_idx= lineProps.cad_col_idx)
+        rgb = get_color(lineProps.color)
 
         # set other line properties
         isOrtho = False
@@ -1984,6 +1984,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             evalModsGlobal or\
             evalMods:
             recoord_flag = True
+            lineGroup.is_invalid = True
         else:
             recoord_flag = False
 
@@ -2118,16 +2119,17 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         
         # Get Line Weights
         groupWeights = [1.0] * len(coords)
-        if lineGroup.lineWeightGroup != "":
-            groupWeights = get_vertex_group_weights(myobj, lineGroup['lineBuffer'], lineGroup.lineWeightGroup)
-            
         lineWeights = [lineProps.lineWeight] * len(coords)
-        for idx in range(len(coords)):
-            try:
-                lineWeights[idx] = lineProps.lineWeight * groupWeights[idx]
-            except IndexError:
-                lineWeights[idx] = lineProps.lineWeight
-            #print("Resulting Weight {} . From filter {} , and Group {}".format(lineWeights[idx],filterWeights[idx],groupWeights[idx]))
+        if lineGroup.is_invalid:
+            if lineGroup.lineWeightGroup != "":
+                groupWeights = get_vertex_group_weights(myobj, lineGroup['lineBuffer'], lineGroup.lineWeightGroup)
+                
+            for idx in range(len(coords)):
+                try:
+                    lineWeights[idx] = lineProps.lineWeight * groupWeights[idx]
+                except IndexError:
+                    lineWeights[idx] = lineProps.lineWeight
+                #print("Resulting Weight {} . From filter {} , and Group {}".format(lineWeights[idx],filterWeights[idx],groupWeights[idx]))
 
         if len(coords) == 0:
             #print("No Coords")
@@ -2159,15 +2161,15 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
         draw_lines(lineWeights,rgb,coords,offset=-offset, 
             pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
-            dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name)
+            dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid)
         
         if drawHidden:
             hiddenLineWeight = lineProps.lineHiddenWeight
-            hiddenRGB = get_color(lineProps.lineHiddenColor,myobj, is_active= not lineGroup.is_active)
+            hiddenRGB = get_color(lineProps.lineHiddenColor)
 
             draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset, 
                 pointPass= lineProps.pointPass, dashed=True,
-                dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name)
+                dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid)
 
         if sceneProps.is_vector_draw:
             if not lineProps.chain:
@@ -2185,6 +2187,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
         if sceneProps.is_dxf_draw:
             dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf,myobj, mat=mat, )
+        
+        lineGroup.is_invalid = False
 
 def get_vertex_group_weights(myobj, vert_list, group_name, filter = False):
     weights = []
@@ -2210,19 +2214,10 @@ def get_vertex_group_weights(myobj, vert_list, group_name, filter = False):
     return weights
 
 
-def get_color(rawRGB, myobj, is_active=True, only_active=False, cad_col_idx = 256):
-    # undo blenders Default Gamma Correction
-
+def get_overlay_color(myobj, is_active=True, only_active=False):
     context = bpy.context
     sceneProps = bpy.context.scene.MeasureItArchProps
-    if sceneProps.use_cad_col and cad_col_idx != 256:
-        try:
-            rawRGB = _cad_col_dict[cad_col_idx]
-        except KeyError:
-            rawRGB = rawRGB
-
-
-    rgb = rgb_gamma_correct(rawRGB)
+    rgb = [0,0,0,0]
 
     if not sceneProps.highlight_selected or sceneProps.is_render_draw:
         return rgb
@@ -2240,6 +2235,21 @@ def get_color(rawRGB, myobj, is_active=True, only_active=False, cad_col_idx = 25
         rgb[1] = bpy.context.preferences.themes[0].view_3d.object_active[1]
         rgb[2] = bpy.context.preferences.themes[0].view_3d.object_active[2]
         rgb[3] = 1.0
+    
+    return rgb
+
+
+def get_color(rawRGB, cad_col_idx = 256):
+    # undo blenders Default Gamma Correction
+    context = bpy.context
+    sceneProps = bpy.context.scene.MeasureItArchProps
+    if sceneProps.use_cad_col and cad_col_idx != 256:
+        try:
+            rawRGB = _cad_col_dict[cad_col_idx]
+        except KeyError:
+            rawRGB = rawRGB
+
+    rgb = rgb_gamma_correct(rawRGB)
 
     return rgb
 
@@ -2278,7 +2288,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             return
         lineWeight = annotationProps.lineWeight
         # undo blenders Default Gamma Correction
-        rgb = get_color(annotationProps.color, myobj, is_active=annotation.is_active)
+        rgb = get_color(annotationProps.color)
 
         # Get Points
         deleteFlag = False
@@ -3509,7 +3519,7 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
 
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed = False,
-               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = ''):
+               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = '', invalid = True, overlay_color=None):
 
     context = bpy.context
     scene = context.scene
@@ -3518,6 +3528,9 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     global AllLinesBuffer
     global HiddenLinesBuffer
     global bufferVBOKeysList
+
+    if overlay_color == None:
+        overlay_color = get_overlay_color(obj, is_active=True, only_active=False)
 
     buffer = AllLinesBuffer
     if hidden: 
@@ -3529,6 +3542,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
 
     if obj == None:
         objMat = Matrix.Identity(4)
+        invalid = True # Just Always Rebatch basic lines
         bufferKey = 'General Buffer {}'.format(len(buffer.keys()))
     else:
         objMat = obj.matrix_world
@@ -3546,30 +3560,33 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
 
 
     # Set up uniforms
-    buffer[bufferKey]["invalid"] = True
+    buffer[bufferKey]["invalid"] = invalid
     buffer[bufferKey]["dash_sizes"] = dash_sizes
     buffer[bufferKey]["gap_sizes"] = gap_sizes
+    buffer[bufferKey]["overlay_color"] = overlay_color
     buffer[bufferKey]["offset"] = offset
     buffer[bufferKey]["dashed"] = dashed
     buffer[bufferKey]["objMat"] = flat_mat
    
     # Set up keys if they don't Exist
     vboBuffer = buffer[bufferKey]["VBOs"]
-    for key in bufferVBOKeysList:
-        if not key in vboBuffer:
-           vboBuffer[key] = []
 
-    # Set Up VBO properties
-    num_coords = len(coords)
-    vboBuffer['coords'].extend(coords)
-    # Check for list of rgb values
-    if type(rgb) == list: buffer['colors'].extend(rgb)
-    else: vboBuffer['colors'].extend([rgb]*num_coords)
-    # Check for list of weight values
-    if type(lineWeight) == list: vboBuffer['weights'].extend(lineWeight)
-    else:vboBuffer['weights'].extend([lineWeight]*num_coords)
-    
-    vboBuffer['rounded'].extend([int(pointPass)]*num_coords)
+    for key in bufferVBOKeysList:
+        vboBuffer[key] = []
+
+    if invalid:
+        # Set Up VBO properties
+        #print('rebuilding vbos')
+        num_coords = len(coords)
+        vboBuffer['coords'].extend(coords)
+        # Check for list of rgb values
+        if type(rgb) == list: buffer['colors'].extend(rgb)
+        else: vboBuffer['colors'].extend([rgb]*num_coords)
+        # Check for list of weight values
+        if type(lineWeight) == list: vboBuffer['weights'].extend(lineWeight)
+        else:vboBuffer['weights'].extend([lineWeight]*num_coords)
+        
+        vboBuffer['rounded'].extend([int(pointPass)]*num_coords)
 
 
 
@@ -3581,6 +3598,8 @@ def clear_line_buffers():
     AllLinesBuffer = {}
     HiddenLinesBuffer = {}
 
+    pass
+
 def draw_all_lines():
     context = bpy.context
     scene = context.scene
@@ -3591,8 +3610,8 @@ def draw_all_lines():
 
     global AllLinesBuffer
     global HiddenLinesBuffer
-    global AllLinesBatch
-    global HiddenLinesBatch
+    global AllLinesBatchs
+    global HiddenLinesBatchs
 
     # get the near clipping plane
     rv3d = get_rv3d()
@@ -3645,16 +3664,21 @@ def draw_all_lines():
         allLinesShader.uniform_float("dashed", hiddenbuffer["dashed"])
         allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
         allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
+        allLinesShader.uniform_float("overlay_color", hiddenbuffer["overlay_color"])
     
         # Batch VBO
-        HiddenLinesBatch = batch_for_shader(
-            allLinesShader,
-            'LINES',
-            {"pos": hiddenvboBuffer["coords"],
-            "weight":hiddenvboBuffer["weights"],
-            "color": hiddenvboBuffer["colors"],
-            "rounded": hiddenvboBuffer["rounded"],
-            })
+        if hiddenbuffer['invalid'] or key not in HiddenLinesBatchs:
+            HiddenLinesBatch = batch_for_shader(
+                allLinesShader,
+                'LINES',
+                {"pos": hiddenvboBuffer["coords"],
+                "weight":hiddenvboBuffer["weights"],
+                "color": hiddenvboBuffer["colors"],
+                "rounded": hiddenvboBuffer["rounded"],
+                })
+            HiddenLinesBatchs[key] = HiddenLinesBatch
+        else:
+            HiddenLinesBatch = HiddenLinesBatchs[key]
 
         bgl.glDepthMask(False)
         allLinesShader.uniform_float("depthPass", False)
@@ -3673,16 +3697,22 @@ def draw_all_lines():
         allLinesShader.uniform_float("dashed", buffer["dashed"])
         allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
         allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
+        allLinesShader.uniform_float("overlay_color", buffer["overlay_color"])
     
         # Batch VBO
-        AllLinesBatch = batch_for_shader(
-            allLinesShader,
-            'LINES',
-            {"pos": vboBuffer["coords"],
-            "weight":vboBuffer["weights"],
-            "color": vboBuffer["colors"],
-            "rounded": vboBuffer["rounded"],
-            })
+        if buffer['invalid'] or key not in AllLinesBatchs:
+            AllLinesBatch = batch_for_shader(
+                allLinesShader,
+                'LINES',
+                {"pos": vboBuffer["coords"],
+                "weight":vboBuffer["weights"],
+                "color": vboBuffer["colors"],
+                "rounded": vboBuffer["rounded"],
+                })
+            #print('re-batching {}. Buffer Invalid: {}, Key Not Found {}'.format(key, buffer['invalid'],key not in AllLinesBatchs))
+            AllLinesBatchs[key] = AllLinesBatch
+        else:
+            AllLinesBatch = AllLinesBatchs[key]
 
         # Set Depth Test
      
