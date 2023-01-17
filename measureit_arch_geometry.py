@@ -1943,6 +1943,9 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
     for lineGroup in lineGen.line_groups:
         lineProps = get_style(lineGroup,'line_groups')
 
+        if lineProps.is_invalid: 
+            lineGroup.is_invalid = True
+
         if not check_vis(lineGroup, lineProps):
             continue
 

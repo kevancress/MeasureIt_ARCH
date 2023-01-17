@@ -638,6 +638,18 @@ def draw_main_3d(context):
 
     scene.ViewGenerator.view_changed = False
 
+    StyleGen = context.scene.StyleGenerator
+    dimStyles = StyleGen.alignedDimensions
+    annoStyles = StyleGen.annotations
+    lineStyles = StyleGen.line_groups
+    for style in annoStyles:
+        style.is_invalid = False
+    for style in dimStyles:
+        style.is_invalid = False
+    for style in lineStyles:
+        style.is_invalid = False
+
+
 
 ### Revised version of draw Titleblock, to draw any view in any scene, in paperspace
 ### A way to use views similar to AutoCAD "viewports" or Rhino "DetailViews"
