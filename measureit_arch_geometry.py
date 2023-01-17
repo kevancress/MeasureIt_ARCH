@@ -2165,7 +2165,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             hiddenLineWeight = lineProps.lineHiddenWeight
             hiddenRGB = get_color(lineProps.lineHiddenColor,myobj, is_active= not lineGroup.is_active)
 
-            draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,twoPass=True, 
+            draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset, 
                 pointPass= lineProps.pointPass, dashed=True,
                 dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name)
 
@@ -3520,9 +3520,9 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     global bufferVBOKeysList
 
     buffer = AllLinesBuffer
-    if hidden: buffer = HiddenLinesBuffer
+    if hidden: 
+        buffer = HiddenLinesBuffer
     
-
     if len(coords) % 2 != 0:
         print('ERROR: Odd Number of Coords, injecting padding to preserve other lines')
         coords.append(Vector((0,0,0)))
@@ -3559,10 +3559,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         if not key in vboBuffer:
            vboBuffer[key] = []
 
-
-
-    # New method, dump everything into the buffer
-    
+    # Set Up VBO properties
     num_coords = len(coords)
     vboBuffer['coords'].extend(coords)
     # Check for list of rgb values
@@ -3571,6 +3568,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     # Check for list of weight values
     if type(lineWeight) == list: vboBuffer['weights'].extend(lineWeight)
     else:vboBuffer['weights'].extend([lineWeight]*num_coords)
+    
     vboBuffer['rounded'].extend([int(pointPass)]*num_coords)
 
 
@@ -3615,26 +3613,68 @@ def draw_all_lines():
     c1 = view_mat @ Vector((0,0,z,1))
     c2 = view_mat @ Vector((1,1,z,1)).normalized()
 
+    # Set Up Constant Uniforms
+    allLinesShader.bind()
+    allLinesShader.uniform_float("Viewport", viewport)
+    allLinesShader.uniform_float("is_camera", is_camera)
+    allLinesShader.uniform_float("scale", scale)
+    allLinesShader.uniform_float("camera_coord1", c1)
+    allLinesShader.uniform_float("camera_coord2", c2)
+
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+
+    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+                    bgl.GL_ONE_MINUS_SRC_ALPHA)
+    
+    # Set Blend
+    if sceneProps.is_render_draw:
+        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+                        bgl.GL_ONE_MINUS_SRC_ALPHA)
+        # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+        bgl.glBlendEquation(bgl.GL_MAX)
+
+    bgl.glDepthFunc(bgl.GL_GREATER)
+    for key in HiddenLinesBuffer.keys():
+        hiddenbuffer = HiddenLinesBuffer[key]
+        hiddenvboBuffer = hiddenbuffer["VBOs"]
+
+        # Set up Per line Uniforms
+        allLinesShader.uniform_float("offset", hiddenbuffer["offset"])
+        allLinesShader.uniform_float("objectMatrix", hiddenbuffer["objMat"])
+        allLinesShader.uniform_float("dashed", hiddenbuffer["dashed"])
+        allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
+        allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
+    
+        # Batch VBO
+        HiddenLinesBatch = batch_for_shader(
+            allLinesShader,
+            'LINES',
+            {"pos": hiddenvboBuffer["coords"],
+            "weight":hiddenvboBuffer["weights"],
+            "color": hiddenvboBuffer["colors"],
+            "rounded": hiddenvboBuffer["rounded"],
+            })
+
+        bgl.glDepthMask(False)
+        allLinesShader.uniform_float("depthPass", False)
+        HiddenLinesBatch.program_set(allLinesShader)
+        HiddenLinesBatch.draw()
+
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthFunc(bgl.GL_LEQUAL)
     for key in AllLinesBuffer.keys():
         buffer = AllLinesBuffer[key]
         vboBuffer = buffer["VBOs"]
 
-        allLinesShader.bind()
-        allLinesShader.uniform_float("Viewport", viewport)
-        allLinesShader.uniform_float("is_camera", is_camera)
-        allLinesShader.uniform_float("scale", scale)
-        allLinesShader.uniform_float("camera_coord1", c1)
-        allLinesShader.uniform_float("camera_coord2", c2)
-
+        # Set up Per line Uniforms
         allLinesShader.uniform_float("offset", buffer["offset"])
         allLinesShader.uniform_float("objectMatrix", buffer["objMat"])
         allLinesShader.uniform_float("dashed", buffer["dashed"])
         allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
         allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
-        
-        #print(camera_coords)
-        # batch & Draw Shader
-
+    
+        # Batch VBO
         AllLinesBatch = batch_for_shader(
             allLinesShader,
             'LINES',
@@ -3643,41 +3683,25 @@ def draw_all_lines():
             "color": vboBuffer["colors"],
             "rounded": vboBuffer["rounded"],
             })
-        
 
-
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
-        # Draw Hidden First
-        bgl.glDepthFunc(bgl.GL_GREATER)
-        #HiddenLinesBatch.program_set(allLinesShader)
-        #HiddenLinesBatch.draw()
-        
         # Set Depth Test
-        bgl.glDepthFunc(bgl.GL_LEQUAL)
-        
-
+     
+    
         # Draw To depth Mask
-        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-                        bgl.GL_ONE_MINUS_SRC_ALPHA)
+        bgl.glDepthFunc(bgl.GL_LEQUAL)
         bgl.glDepthMask(True)
         allLinesShader.uniform_float("depthPass", True)
         AllLinesBatch.program_set(allLinesShader)
         AllLinesBatch.draw()
 
-        # Set Blend
-        if sceneProps.is_render_draw:
-            bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-                            bgl.GL_ONE_MINUS_SRC_ALPHA)
-            # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-            bgl.glBlendEquation(bgl.GL_MAX)
-        
         # Draw Without Depth Mask 
         bgl.glDepthMask(False)
         allLinesShader.uniform_float("depthPass", False)
         AllLinesBatch.draw()
-        gpu.shader.unbind()
 
+
+
+    gpu.shader.unbind()
     pass
 
 def cap_extension(dirVec, capSize, capAngle):
