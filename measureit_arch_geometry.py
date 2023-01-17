@@ -54,32 +54,29 @@ from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_
 
 lastMode = {}
 
-AllLinesBuffer = {
-    "coords":[],
-    "weights":[],
-    "colors":[],
-    "offsets":[],
-    "rounded":[],
-    "objMat":[],
-    "dashed":[],
-    "dash_sizes":[],
-    "gap_sizes":[]
-    }
+AllLinesBuffer = {}
 
-HiddenLinesBuffer = {
-    "coords":[],
-    "weights":[],
-    "colors":[],
-    "offsets":[],
-    "rounded":[],
-    "objMat":[],
-    "dashed":[],
-    "dash_sizes":[],
-    "gap_sizes":[]
-    }
+HiddenLinesBuffer = {}
 
-AllLinesBatch = None
-HiddenLinesBatch = None
+bufferVBOKeysList = [
+    "coords",
+    "weights",
+    "colors",
+    "rounded",
+
+]
+
+bufferUniformKeysList = [
+    "invalid",
+    "offset",
+    "objMat",
+    "dashed",
+    "dash_sizes",
+    "gap_sizes",
+]
+
+AllLinesBatchs = None
+HiddenLinesBatchs = None
 # define Shaders
 
 # Alter which frag shaders are used depending on the blender version
@@ -554,7 +551,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
         draw_filled_coords(filledCoords, rgb)
 
     # Line Shader Calls
-    draw_lines(lineWeight, rgb, coords, twoPass=True)
+    draw_lines(lineWeight, rgb, coords)
 
     if sceneProps.is_vector_draw:
         svg_dim = svg.add(svg.g(id=dim.name))
@@ -880,7 +877,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                     draw_filled_coords(filledCoords, rgb)
 
                 # bind shader
-                draw_lines(lineWeight, rgb, coords, twoPass=True)
+                draw_lines(lineWeight, rgb, coords)
 
                 if sceneProps.is_vector_draw:
                     svg_dim = svg.add(svg.g(id=dim.name))
@@ -1124,7 +1121,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
             draw_filled_coords(filledCoords, rgb)
 
         # bind shader
-        draw_lines(lineWeight, rgb, coords, twoPass=True)
+        draw_lines(lineWeight, rgb, coords)
 
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
@@ -1268,8 +1265,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         if len(filledCoords) != 0:
             draw_filled_coords(filledCoords, rgb)
 
-        draw_lines(lineWeight, rgb, coords, twoPass=True,
-                pointPass=True, pointCoords=pointCoords)
+        draw_lines(lineWeight, rgb, coords, pointPass=True)
 
         if sceneProps.is_vector_draw:
             svg_dim = svg.add(svg.g(id=dim.name))
@@ -1512,8 +1508,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             measure_pointCoords.append(coord + center)
 
         # Draw Our Measurement
-        draw_lines(lineWeight, rgb, measure_coords, twoPass=True,
-                pointPass=True, pointCoords=measure_pointCoords)
+        draw_lines(lineWeight, rgb, measure_coords, pointPass=True)
 
         # Draw the arc itself
         coords = []
@@ -1531,8 +1526,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             arc_coords.append(coord + center)
             arc_pointCoords.append(coord + center)
 
-        draw_lines(lineWeight * 2, rgb, arc_coords, twoPass=True,
-                pointPass=True, pointCoords=arc_pointCoords)
+        draw_lines(lineWeight * 2, rgb, arc_coords, pointPass=True)
 
         if dim.showRadius:
             pointCenter = [center]
@@ -1733,7 +1727,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         # Draw Perimeter
         print(len(perimeterCoords))
-        draw_lines(lineWeight, rgb, perimeterCoords, twoPass=True, pointPass=True)
+        draw_lines(lineWeight, rgb, perimeterCoords, pointPass=True)
 
 
         # Draw SVG
@@ -2163,17 +2157,17 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 dash_spaces[i] = dash_props[i]
                 gap_spaces[i] = gap_props[i]
 
-        draw_lines(lineWeights,rgb,coords,offset=-offset,twoPass=True, 
-            pointPass= lineProps.pointPass,objMat=mat, dashed=lineProps.lineDrawDashed,
-            dash_sizes=dash_spaces, gap_sizes=gap_spaces)
+        draw_lines(lineWeights,rgb,coords,offset=-offset, 
+            pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
+            dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name)
         
         if drawHidden:
             hiddenLineWeight = lineProps.lineHiddenWeight
             hiddenRGB = get_color(lineProps.lineHiddenColor,myobj, is_active= not lineGroup.is_active)
 
             draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,twoPass=True, 
-                pointPass= lineProps.pointPass, objMat=mat, dashed=True,
-                dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True)
+                pointPass= lineProps.pointPass, dashed=True,
+                dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name)
 
         if sceneProps.is_vector_draw:
             if not lineProps.chain:
@@ -2480,7 +2474,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 dotcoords.append(dot)
                 filledcoords.append(fill)
 
-            draw_lines(lineWeight, rgb, coords, twoPass=True, pointPass=True)
+            draw_lines(lineWeight, rgb, coords, pointPass=True)
 
         if sceneProps.show_dim_text:
             for textField in fields:
@@ -2965,7 +2959,7 @@ def preview_dual(context):
                         center = face.calc_center_median()
                         coords.append(mat @ center)
 
-                draw_lines(3, (0, 0, 0, 0.7), coords, twoPass=True, offset=-0.0005)
+                draw_lines(3, (0, 0, 0, 0.7), coords, offset=-0.0005)
 
 def draw_text_3D(context, textobj, textprops, myobj):
     sceneProps = context.scene.MeasureItArchProps
@@ -3514,9 +3508,8 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
     bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
 
-def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
-               pointPass=False, pointCoords=None, objMat = None, dashed = False,
-               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0]):
+def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed = False,
+               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = ''):
 
     context = bpy.context
     scene = context.scene
@@ -3524,13 +3517,26 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
     viewport = get_viewport()
     global AllLinesBuffer
     global HiddenLinesBuffer
+    global bufferVBOKeysList
+
+    buffer = AllLinesBuffer
+    if hidden: buffer = HiddenLinesBuffer
+    
 
     if len(coords) % 2 != 0:
         print('ERROR: Odd Number of Coords, injecting padding to preserve other lines')
         coords.append(Vector((0,0,0)))
 
-    if objMat == None:
+    if obj == None:
         objMat = Matrix.Identity(4)
+        bufferKey = 'General Buffer {}'.format(len(buffer.keys()))
+    else:
+        objMat = obj.matrix_world
+        bufferKey = obj.name + name
+
+    # Set up object key if it doesn't Exist
+    if not bufferKey in buffer:
+        buffer[bufferKey] = {"VBOs":{}}
 
     # Flatten Matrix by Columns
     flat_mat = [objMat[0][0],objMat[1][0],objMat[2][0],objMat[3][0],
@@ -3538,24 +3544,35 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, twoPass=False,
                 objMat[0][2],objMat[1][2],objMat[2][2],objMat[3][2],
                 objMat[0][3],objMat[1][3],objMat[2][3],objMat[3][3]]
 
+
+    # Set up uniforms
+    buffer[bufferKey]["invalid"] = True
+    buffer[bufferKey]["dash_sizes"] = dash_sizes
+    buffer[bufferKey]["gap_sizes"] = gap_sizes
+    buffer[bufferKey]["offset"] = offset
+    buffer[bufferKey]["dashed"] = dashed
+    buffer[bufferKey]["objMat"] = flat_mat
+   
+    # Set up keys if they don't Exist
+    vboBuffer = buffer[bufferKey]["VBOs"]
+    for key in bufferVBOKeysList:
+        if not key in vboBuffer:
+           vboBuffer[key] = []
+
+
+
     # New method, dump everything into the buffer
-    buffer = AllLinesBuffer
-    if hidden: buffer = HiddenLinesBuffer
+    
     num_coords = len(coords)
-    buffer['coords'].extend(coords)
+    vboBuffer['coords'].extend(coords)
     # Check for list of rgb values
     if type(rgb) == list: buffer['colors'].extend(rgb)
-    else: buffer['colors'].extend([rgb]*num_coords)
+    else: vboBuffer['colors'].extend([rgb]*num_coords)
     # Check for list of weight values
-    if type(lineWeight) == list: AllLinesBuffer['weights'].extend(lineWeight)
-    else:buffer['weights'].extend([lineWeight]*num_coords)
-    
-    buffer['offsets'].extend([offset]*num_coords)
-    buffer['rounded'].extend([int(pointPass)]*num_coords)
-    buffer['objMat'].extend([flat_mat]*num_coords)
-    buffer['dashed'].extend([int(dashed)]*num_coords)
-    buffer['dash_sizes'].extend([dash_sizes]*num_coords)
-    buffer['gap_sizes'].extend([gap_sizes]*num_coords)
+    if type(lineWeight) == list: vboBuffer['weights'].extend(lineWeight)
+    else:vboBuffer['weights'].extend([lineWeight]*num_coords)
+    vboBuffer['rounded'].extend([int(pointPass)]*num_coords)
+
 
 
 
@@ -3563,14 +3580,8 @@ def clear_line_buffers():
     global AllLinesBuffer
     global HiddenLinesBuffer
 
-    for key in AllLinesBuffer.keys():
-        AllLinesBuffer[key] = []
-    
-    for key in HiddenLinesBuffer.keys():
-        HiddenLinesBuffer[key] = []
-
-
-    pass
+    AllLinesBuffer = {}
+    HiddenLinesBuffer = {}
 
 def draw_all_lines():
     context = bpy.context
@@ -3604,76 +3615,68 @@ def draw_all_lines():
     c1 = view_mat @ Vector((0,0,z,1))
     c2 = view_mat @ Vector((1,1,z,1)).normalized()
 
-    allLinesShader.bind()
-    allLinesShader.uniform_float("Viewport", viewport)
-    allLinesShader.uniform_float("is_camera", is_camera)
-    allLinesShader.uniform_float("scale", scale)
-    allLinesShader.uniform_float("camera_coord1", c1)
-    allLinesShader.uniform_float("camera_coord2", c2)
-    
-    #print(camera_coords)
-    # batch & Draw Shader
+    for key in AllLinesBuffer.keys():
+        buffer = AllLinesBuffer[key]
+        vboBuffer = buffer["VBOs"]
 
-    AllLinesBatch = batch_for_shader(
-        allLinesShader,
-        'LINES',
-        {"pos": AllLinesBuffer["coords"],
-        "weight":AllLinesBuffer["weights"],
-        "color": AllLinesBuffer["colors"],
-        "offset": AllLinesBuffer["offsets"],
-        "rounded": AllLinesBuffer["rounded"],
-        "objectMatrix": AllLinesBuffer["objMat"],
-        "dashed": AllLinesBuffer['dashed'],
-        "gap_sizes": AllLinesBuffer['gap_sizes'],
-        "dash_sizes": AllLinesBuffer['dash_sizes']
-        })
-    
+        allLinesShader.bind()
+        allLinesShader.uniform_float("Viewport", viewport)
+        allLinesShader.uniform_float("is_camera", is_camera)
+        allLinesShader.uniform_float("scale", scale)
+        allLinesShader.uniform_float("camera_coord1", c1)
+        allLinesShader.uniform_float("camera_coord2", c2)
 
-    HiddenLinesBatch = batch_for_shader(
-        allLinesShader,
-        'LINES',
-        {"pos": HiddenLinesBuffer["coords"],
-        "weight":HiddenLinesBuffer["weights"],
-        "color": HiddenLinesBuffer["colors"],
-        "offset": HiddenLinesBuffer["offsets"],
-        "rounded": HiddenLinesBuffer["rounded"],
-        "objectMatrix": HiddenLinesBuffer["objMat"],
-        "dashed": HiddenLinesBuffer['dashed'],
-        "gap_sizes": HiddenLinesBuffer['gap_sizes'],
-        "dash_sizes": HiddenLinesBuffer['dash_sizes']
-        })
+        allLinesShader.uniform_float("offset", buffer["offset"])
+        allLinesShader.uniform_float("objectMatrix", buffer["objMat"])
+        allLinesShader.uniform_float("dashed", buffer["dashed"])
+        allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
+        allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
+        
+        #print(camera_coords)
+        # batch & Draw Shader
 
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    # Draw Hidden First
-    bgl.glDepthFunc(bgl.GL_GREATER)
-    HiddenLinesBatch.program_set(allLinesShader)
-    HiddenLinesBatch.draw()
-    
-    # Set Depth Test
-    bgl.glDepthFunc(bgl.GL_LEQUAL)
-    
+        AllLinesBatch = batch_for_shader(
+            allLinesShader,
+            'LINES',
+            {"pos": vboBuffer["coords"],
+            "weight":vboBuffer["weights"],
+            "color": vboBuffer["colors"],
+            "rounded": vboBuffer["rounded"],
+            })
+        
 
-    # Draw To depth Mask
-    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-                    bgl.GL_ONE_MINUS_SRC_ALPHA)
-    bgl.glDepthMask(True)
-    allLinesShader.uniform_float("depthPass", True)
-    AllLinesBatch.program_set(allLinesShader)
-    AllLinesBatch.draw()
 
-    # Set Blend
-    if sceneProps.is_render_draw:
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        # Draw Hidden First
+        bgl.glDepthFunc(bgl.GL_GREATER)
+        #HiddenLinesBatch.program_set(allLinesShader)
+        #HiddenLinesBatch.draw()
+        
+        # Set Depth Test
+        bgl.glDepthFunc(bgl.GL_LEQUAL)
+        
+
+        # Draw To depth Mask
         bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
                         bgl.GL_ONE_MINUS_SRC_ALPHA)
-        # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-        bgl.glBlendEquation(bgl.GL_MAX)
-    
-    # Draw Without Depth Mask 
-    bgl.glDepthMask(False)
-    allLinesShader.uniform_float("depthPass", False)
-    AllLinesBatch.draw()
-    gpu.shader.unbind()
+        bgl.glDepthMask(True)
+        allLinesShader.uniform_float("depthPass", True)
+        AllLinesBatch.program_set(allLinesShader)
+        AllLinesBatch.draw()
+
+        # Set Blend
+        if sceneProps.is_render_draw:
+            bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+                            bgl.GL_ONE_MINUS_SRC_ALPHA)
+            # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+            bgl.glBlendEquation(bgl.GL_MAX)
+        
+        # Draw Without Depth Mask 
+        bgl.glDepthMask(False)
+        allLinesShader.uniform_float("depthPass", False)
+        AllLinesBatch.draw()
+        gpu.shader.unbind()
 
     pass
 

@@ -3,21 +3,13 @@ layout(triangle_strip, max_vertices = 53) out;
 
 in VERT_OUT {
     float weight;
-    float offset;
     vec4 color;
     int rounded;
-    mat4 objectMatrix;
-    vec4 dash_sizes;
-    vec4 gap_sizes;
-    int dashed;
 } verts[];
 
 // OUTS
 out vec2 mTexCoord;
 out vec4 g_color;
-out vec4 f_gap_sizes;
-out vec4 f_dash_sizes;
-flat out int f_dashed;
 
 // UNIFORMS
 uniform mat4 ModelViewProjectionMatrix;
@@ -29,14 +21,16 @@ uniform int res;
 uniform float scale;
 uniform float is_camera;
 
+uniform float offset;
+uniform mat4 objectMatrix;
+
 // CONSTANTS
 const float PI = 3.1415926;
 const float INCH_TO_CM = 2.54;
 const float BU_TO_IN = 100.0 / INCH_TO_CM;
 
 // VARS
-vec4 vecOffset = vec4(0.0,0.0,verts[0].offset,0.0);
-mat4 objectMatrix = verts[0].objectMatrix;
+vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
 
 // Compute pt size in ss units
 float get_ss_pt(){
@@ -177,9 +171,6 @@ void main() {
         gl_Position = coords[i];
         mTexCoord = texCoords[i];
         g_color = colors[i];
-        f_dashed = verts[0].dashed;
-        f_dash_sizes = verts[0].dash_sizes;
-        f_gap_sizes = verts[0].gap_sizes;
         EmitVertex();
     }
     EndPrimitive();

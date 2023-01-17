@@ -2,19 +2,18 @@ in vec2 mTexCoord;
 in vec4 gl_FragCoord;
 in vec4 g_color;
 
-in vec4 f_dash_sizes;
-in vec4 f_gap_sizes;
-flat in int f_dashed;
-
 uniform bool depthPass;
+uniform vec4 dash_sizes;
+uniform vec4 gap_sizes;
+uniform bool dashed;
 
 out vec4 fragColor;
 
 float get_pattern_size(){
     float pattern_size = 0.0;
     for (int i = 0; i < 4; ++i) {
-        pattern_size += f_dash_sizes[i];
-        pattern_size += f_gap_sizes[i];
+        pattern_size += dash_sizes[i];
+        pattern_size += gap_sizes[i];
     }
     return pattern_size;
 }
@@ -40,17 +39,17 @@ void main() {
         }
     }
 
-    if(f_dashed == 1){
+    if(dashed){
         float pattern_size = get_pattern_size();
-        float d1 = f_dash_sizes[0];
-        float d2 = f_dash_sizes[1];
-        float d3 = f_dash_sizes[2];
-        float d4 = f_dash_sizes[3];
+        float d1 = dash_sizes[0];
+        float d2 = dash_sizes[1];
+        float d3 = dash_sizes[2];
+        float d4 = dash_sizes[3];
 
-        float g1 = f_gap_sizes[0];
-        float g2 = f_gap_sizes[1];
-        float g3 = f_gap_sizes[2];
-        float g4 = f_gap_sizes[3];
+        float g1 = gap_sizes[0];
+        float g2 = gap_sizes[1];
+        float g3 = gap_sizes[2];
+        float g4 = gap_sizes[3];
 
         float arc_length = fract(mTexCoord.x/pattern_size)*pattern_size;
         // Discard first gap
