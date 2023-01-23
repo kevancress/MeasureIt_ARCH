@@ -139,6 +139,7 @@ def set_globals():
     global height
     start_time = time.time()
     if 'depthbuffer' in sceneProps and depthbuffer is None and view.vector_depthtest:
+        #depthbuffer = np.asarray(sceneProps['depthbuffer'], dtype=np.float32) # I feel like this should be faster but its not
         depthbuffer = sceneProps['depthbuffer'].to_list()   
         end_time = time.time()
         print("Reading Depthbuffer to list took: " + str(end_time - start_time))

@@ -2814,9 +2814,10 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
     # Draw Line Endcaps
     dotcoord = None
+    size = px_to_m(pts_to_px(endcapSize),paper_space=True)
     if endcap == 'D':
         pointcoords = [p1]
-        size = endcapSize * get_scale() / 10
+        
         dotcoord = [p1,size]
         draw_points(size, rgb, pointcoords, depthpass=True)
 
@@ -2824,10 +2825,11 @@ def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
     filledCoords = []
     if endcap == 'T':
         axis = Vector(p1) - Vector(p2)
-        line = interpolate3d(Vector((0, 0, 0)), axis, -0.1)
-        line = Vector(line) * endcapSize * get_scale() / 100
+        #line = interpolate3d(Vector((0, 0, 0)), axis, -0.1)
+        line = -axis.normalized()
+        line = Vector(line) * size
         perp = line.orthogonal()
-        rotangle = annotationProps.endcapArrowAngle - radians(5)
+        rotangle = annotationProps.endcapArrowAngle
         line.rotate(Quaternion(perp, rotangle))
 
         for idx in range(12):
@@ -3122,9 +3124,22 @@ def draw_text_3D(context, textobj, textprops, myobj):
                 "uv": uvs,
             },
         )
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_DEPTH_TEST)
 
+        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+                        bgl.GL_ONE_MINUS_SRC_ALPHA)
+        
+        # Set Blend
+        if sceneProps.is_render_draw:
+            bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+                            bgl.GL_ONE_MINUS_SRC_ALPHA)
+            # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+            bgl.glBlendEquation(bgl.GL_MAX)
+        
         batch.draw(textShader)
         bgl.glDeleteTextures(1, texArray)
+    
     gpu.shader.unbind()
 
 
@@ -3134,7 +3149,8 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
 
     scale = get_scale()
 
-    size = capSize * scale / 1574.804 #FUDGE FACTOR WHYYYY
+    size = px_to_m(pts_to_px(capSize),paper_space=True)
+    #size = capSize * scale / 1574.804 #FUDGE FACTOR WHYYYY
 
     distVector = Vector(pos - Vector(midpoint)).normalized()
     norm = distVector.cross(userOffsetVector).normalized()
@@ -3175,7 +3191,7 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
 
         # Define Overextension
         capCoords.append(pos)
-        capCoords.append(line * size + pos)
+        capCoords.append(line * size/2 + pos)
 
         # Define Square
         x = distVector.normalized() * size
@@ -3738,15 +3754,13 @@ def draw_all_lines():
     pass
 
 def cap_extension(dirVec, capSize, capAngle):
-    scale = get_scale()
-    return dirVec.normalized() / 1000 * capSize * sin(capAngle) * scale
+    return dirVec.normalized() * px_to_m(pts_to_px(capSize), paper_space = True) * capAngle / radians(45)
 
 def draw_dim_leaders(myobj, dim, dimProps, points, rotationMatrix, normal):
     pass
 
 def dim_line_extension(capSize):
-    scale = get_scale()
-    return (capSize / 1000 * scale)
+    return px_to_m(pts_to_px(capSize), paper_space = True)
 
 
 def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize=0, cardIdx = 0, textField=None):
