@@ -348,11 +348,6 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
                 offset_text_position[0],
                 offset_text_position[1]
             ),
-            
-
-            # I wish i could tell you why this fudge factor is necessary, but for some reason
-            # spec-ing svg units in inches and using this factor for text size is the only way to get
-            # sensible imports in both inkscape and illustrator
             'font-size': '{}px'.format(pts_to_px(style.fontSize)),
             'font-family':  font_family,
             'text-anchor': text_anchor,

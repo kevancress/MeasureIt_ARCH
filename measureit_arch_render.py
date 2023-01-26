@@ -252,11 +252,7 @@ def render_main(self, context):
                 # -----------------------------
 
                 draw3d_loop(context, objlist)
-                view = get_view()
-                dt = view.vector_depthtest
-                view.vector_depthtest = False
                 draw_titleblock(context)
-                view.vector_depthtest = dt
 
                 buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
                 bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)

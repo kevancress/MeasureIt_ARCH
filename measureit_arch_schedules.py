@@ -232,7 +232,7 @@ class GenerateSchedule(Operator):
         schedule = Generator.schedules[Generator.active_index]
         file_name = schedule.name + '.csv'
         file_path = schedule.output_path
-        file_path = bpy.path.abspath(font_file)
+        file_path = bpy.path.abspath(file_path)
 
         if schedule.date_folder:
             today = datetime.now()
