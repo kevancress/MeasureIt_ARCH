@@ -414,8 +414,11 @@ def render_main_svg(self, context):
                 with OpenGL_Settings(None):
                     bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
                     bgl.glClearDepth(clipdepth)
-                    bgl.glEnable(bgl.GL_DEPTH_TEST)
-                    bgl.glDepthFunc(bgl.GL_LEQUAL)
+
+
+                    gpu.state.depth_test_set('LESS_EQUAL')
+                    #bgl.glEnable(bgl.GL_DEPTH_TEST)
+                    #bgl.glDepthFunc(bgl.GL_LEQUAL)
 
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix_3d)
@@ -635,8 +638,10 @@ def render_main_dxf(self, context):
                 with OpenGL_Settings(None):
                     bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
                     bgl.glClearDepth(clipdepth)
-                    bgl.glEnable(bgl.GL_DEPTH_TEST)
-                    bgl.glDepthFunc(bgl.GL_LEQUAL)
+                    #bgl.glEnable(bgl.GL_DEPTH_TEST)
+                    #bgl.glDepthFunc(bgl.GL_LEQUAL)
+
+                    gpu.state.depth_test_set('LESS_EQUAL')
 
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix_3d)

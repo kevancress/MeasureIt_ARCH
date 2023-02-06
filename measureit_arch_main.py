@@ -404,7 +404,7 @@ def draw_main(context):
         objlist = context.view_layer.objects
 
     # Enable GL drawing
-    bgl.glEnable(bgl.GL_BLEND)
+    #bgl.glEnable(bgl.GL_BLEND)
     # ---------------------------------------
     # Generate all OpenGL calls for measures
     # ---------------------------------------

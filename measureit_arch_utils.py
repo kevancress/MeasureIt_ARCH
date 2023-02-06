@@ -1,6 +1,7 @@
 import bpy
 import bmesh
 import bgl
+import gpu
 import os
 
 from mathutils import Vector
@@ -153,26 +154,31 @@ class OpenGL_Settings:
 
         if toggleBool:
             bgl.glEnable(bgl.GL_MULTISAMPLE)
-            bgl.glEnable(bgl.GL_BLEND)
+            #bgl.glEnable(bgl.GL_BLEND)
+            gpu.state.blend_set('ALPHA_PREMULT')
             bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
             bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
-            bgl.glDepthFunc(bgl.GL_LEQUAL)
+            #bgl.glDepthFunc(bgl.GL_LEQUAL)
+            gpu.state.depth_test_set('LESS_EQUAL')
             bgl.glDepthMask(True)
 
             if self.props and self.props.inFront:
-                bgl.glDisable(bgl.GL_DEPTH_TEST)
+                #bgl.glDisable(bgl.GL_DEPTH_TEST)
+                gpu.state.depth_test_set('NONE')
             else:
-                bgl.glEnable(bgl.GL_DEPTH_TEST)
+                gpu.state.depth_test_set('LESS_EQUAL')
 
         else:
             bgl.glDisable(bgl.GL_MULTISAMPLE)
-            bgl.glDisable(bgl.GL_BLEND)
-            bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
-            bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+            #bgl.glDisable(bgl.GL_BLEND)
+            gpu.state.blend_set('NONE')
+            #bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
+            #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
-            bgl.glDisable(bgl.GL_DEPTH_TEST)
-            bgl.glDepthFunc(bgl.GL_LEQUAL)
+            #bgl.glDisable(bgl.GL_DEPTH_TEST)
+            gpu.state.depth_test_set('NONE')
+            #bgl.glDepthFunc(bgl.GL_LEQUAL)
             bgl.glDepthMask(False)
 
             bgl.glDisable(bgl.GL_POLYGON_SMOOTH)

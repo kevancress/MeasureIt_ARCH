@@ -3124,21 +3124,24 @@ def draw_text_3D(context, textobj, textprops, myobj):
                 "uv": uvs,
             },
         )
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glEnable(bgl.GL_DEPTH_TEST)
+        gpu.state.blend_set('ALPHA_PREMULT')
+        gpu.state.depth_test_set('LESS_EQUAL')
 
-        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-                        bgl.GL_ONE_MINUS_SRC_ALPHA)
+        #bgl.glEnable(bgl.GL_BLEND)
+        #bgl.glEnable(bgl.GL_DEPTH_TEST)
+
+        #bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+        #                bgl.GL_ONE_MINUS_SRC_ALPHA)
         
         # Set Blend
-        if sceneProps.is_render_draw:
-            bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-                            bgl.GL_ONE_MINUS_SRC_ALPHA)
+        #if sceneProps.is_render_draw:
+            #bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+            #                bgl.GL_ONE_MINUS_SRC_ALPHA)
             # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-            bgl.glBlendEquation(bgl.GL_MAX)
+            #bgl.glBlendEquation(bgl.GL_MAX)
         
         batch.draw(textShader)
-        bgl.glDeleteTextures(1, texArray)
+        #bgl.glDeleteTextures(1, texArray)
     
     gpu.shader.unbind()
 
@@ -3659,20 +3662,24 @@ def draw_all_lines():
     allLinesShader.uniform_float("camera_coord1", c1)
     allLinesShader.uniform_float("camera_coord2", c2)
 
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    gpu.state.blend_set('ALPHA_PREMULT')
+    
 
-    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-                    bgl.GL_ONE_MINUS_SRC_ALPHA)
+    #bgl.glEnable(bgl.GL_BLEND)
+    #gl.glEnable(bgl.GL_DEPTH_TEST)
+
+    #bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+    #                bgl.GL_ONE_MINUS_SRC_ALPHA)
     
     # Set Blend
-    if sceneProps.is_render_draw:
-        bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-                        bgl.GL_ONE_MINUS_SRC_ALPHA)
-        # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-        bgl.glBlendEquation(bgl.GL_MAX)
+    #if sceneProps.is_render_draw:
+    #    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
+    #                    bgl.GL_ONE_MINUS_SRC_ALPHA)
+    #    # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+    #    bgl.glBlendEquation(bgl.GL_MAX)
 
-    bgl.glDepthFunc(bgl.GL_GREATER)
+    gpu.state.depth_test_set('GREATER')
+    #bgl.glDepthFunc(bgl.GL_GREATER)
     for key in HiddenLinesBuffer.keys():
         hiddenbuffer = HiddenLinesBuffer[key]
         hiddenvboBuffer = hiddenbuffer["VBOs"]
@@ -3704,8 +3711,9 @@ def draw_all_lines():
         HiddenLinesBatch.program_set(allLinesShader)
         HiddenLinesBatch.draw()
 
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthFunc(bgl.GL_LEQUAL)
+    gpu.state.depth_test_set('LESS_EQUAL')
+    #bgl.glEnable(bgl.GL_DEPTH_TEST)
+    #bgl.glDepthFunc(bgl.GL_LEQUAL)
     for key in AllLinesBuffer.keys():
         buffer = AllLinesBuffer[key]
         vboBuffer = buffer["VBOs"]
@@ -3737,7 +3745,8 @@ def draw_all_lines():
      
     
         # Draw To depth Mask
-        bgl.glDepthFunc(bgl.GL_LEQUAL)
+        gpu.state.depth_test_set('LESS_EQUAL')
+        #bgl.glDepthFunc(bgl.GL_LEQUAL)
         bgl.glDepthMask(True)
         allLinesShader.uniform_float("depthPass", True)
         AllLinesBatch.program_set(allLinesShader)
