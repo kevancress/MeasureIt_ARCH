@@ -839,7 +839,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     preview_resolution: IntProperty(
         name='Default Resolution ', min=1,
-        default=72,
+        default=150,
         soft_min=50,
         soft_max=1200,
         description="Preview Resolution",
