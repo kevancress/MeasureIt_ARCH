@@ -236,16 +236,6 @@ def update_text(textobj, props, context, fields=[]):
                         idx += 1
                         y_offset -= line_height * 1.1
 
-                    # Read Offscreen To Texture Buffer
-                    #texture_buffer = bgl.Buffer(
-                    #    bgl.GL_BYTE, width * height * 4)
-                    #bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
-                    #bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
-                    #                 bgl.GL_UNSIGNED_BYTE, texture_buffer)
-
-                    #texture_buffer =  fb.read_color(0, 0, width, height, 4, 0, 'UBYTE')
-                    #texture_buffer.dimensions = width * height * 4 # Reshape buffer
-
                 # Write Texture Buffer to ID Property as List
                 texture_buffer =  fb.read_color(0, 0, width, height, 4, 0, 'FLOAT')
                 texture_buffer.dimensions = width*height*4
@@ -261,6 +251,7 @@ def update_text(textobj, props, context, fields=[]):
                 #extField['key'] = key
                 #offscreen_text_buffers[key] = textOffscreen
                 # generate image datablock from buffer for debug preview
+                
                 # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
                 if sceneProps.measureit_arch_debug_text:
                     if not str('test') in bpy.data.images:
@@ -3107,26 +3098,6 @@ def draw_text_3D(context, textobj, textprops, myobj):
 
     #if key in offscreen_text_buffers:
     if 'texture' in textobj and textobj.text != "":
-    #    
-    #    texArray = bgl.Buffer(bgl.GL_INT, [1])
-    #    bgl.glGenTextures(1, texArray)
-
-    #    bgl.glActiveTexture(bgl.GL_TEXTURE0)
-    #    bgl.glBindTexture(bgl.GL_TEXTURE_2D, texArray[0])
-
-    #    bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_S, bgl.GL_CLAMP_TO_BORDER)
-    #    bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_WRAP_T, bgl.GL_CLAMP_TO_BORDER)
-    #    bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_NEAREST)
-    #    bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_NEAREST)
-       
-    #    try:
-    #        # np.asarray takes advantage of the buffer protocol and solves the bottleneck here!!!
-    #        tex = bgl.Buffer(bgl.GL_BYTE, dim, np.asarray(textobj['texture'], dtype=np.uint8))
-    #        bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_RGBA, width,height, 0, bgl.GL_RGBA, bgl.GL_UNSIGNED_BYTE, tex)
-    #    except AttributeError as atribError:
-    #        print(atribError)
-    #        print("ATTRIBUTE ERROR DRAWING TEXT ON {}".format(myobj.name))
-    #        return
 
         dims = width * height * 4
         raw_props = textobj['texture']
@@ -3149,19 +3120,6 @@ def draw_text_3D(context, textobj, textprops, myobj):
         gpu.state.blend_set('ALPHA_PREMULT')
         gpu.state.depth_test_set('LESS_EQUAL')
 
-        #bgl.glEnable(bgl.GL_BLEND)
-        #bgl.glEnable(bgl.GL_DEPTH_TEST)
-
-        #bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-        #                bgl.GL_ONE_MINUS_SRC_ALPHA)
-        
-        # Set Blend
-        #if sceneProps.is_render_draw:
-            #bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-            #                bgl.GL_ONE_MINUS_SRC_ALPHA)
-            # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-            #bgl.glBlendEquation(bgl.GL_MAX)
-        
         batch.draw(textShader)
         #bgl.glDeleteTextures(1, texArray)
     
@@ -3779,7 +3737,7 @@ def draw_all_lines():
         allLinesShader.uniform_float("depthPass", False)
         AllLinesBatch.draw()
 
-
+    gpu.state.depth_test_set('NONE')
 
     gpu.shader.unbind()
     pass

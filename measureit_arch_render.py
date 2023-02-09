@@ -464,9 +464,10 @@ def render_main_svg(self, context):
                             pixel_array.append(1)
                         image.pixels = pixel_array
 
+            offscreen.free()
         vector_utils.set_globals()
 
-
+            
 
         # Setup Output Path
         view = get_view()
@@ -588,7 +589,7 @@ def render_main_svg(self, context):
         svg.add(drawing_group)
 
         tb_group = svg.g(id="Titleblock")
-        draw_titleblock(context, svg=svg)
+        #draw_titleblock(context, svg=svg)
         svg.add(tb_group)
 
         svg.save(pretty=True)

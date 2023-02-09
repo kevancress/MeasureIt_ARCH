@@ -39,6 +39,8 @@ from .gitcommit import prev_commit,date
 def load_handler(dummy):
     """ Handler called when a Blender file is loaded """
     ShowHideViewportButton.handle_remove(None, bpy.context)
+    for scene in bpy.data.scenes:
+        scene.MeasureItARCHSceneProps.text_updated = True
 
 
 @persistent
@@ -46,6 +48,8 @@ def save_handler(dummy):
     """ Handler called when a Blender file is saved """
     # Clear not used measured
     cleanScene = True
+    for scene in bpy.data.scenes:
+        scene.MeasureItArchProps.text_updated = True
     if cleanScene:
         # Check all Scenes for phantom objects
         # Necessary because the pointer properties on Dimensions and annotations
