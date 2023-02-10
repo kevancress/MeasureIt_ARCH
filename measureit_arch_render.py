@@ -589,7 +589,7 @@ def render_main_svg(self, context):
         svg.add(drawing_group)
 
         tb_group = svg.g(id="Titleblock")
-        #draw_titleblock(context, svg=svg)
+        draw_titleblock(context, svg=svg)
         svg.add(tb_group)
 
         svg.save(pretty=True)

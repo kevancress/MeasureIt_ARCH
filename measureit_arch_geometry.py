@@ -3749,7 +3749,7 @@ def draw_dim_leaders(myobj, dim, dimProps, points, rotationMatrix, normal):
     pass
 
 def dim_line_extension(capSize):
-    return px_to_m(pts_to_px(capSize), paper_space = True)
+    return px_to_m(pts_to_px(capSize), paper_space = True)*2
 
 
 def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, capSize=0, cardIdx = 0, textField=None):
