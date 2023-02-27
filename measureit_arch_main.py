@@ -529,9 +529,10 @@ def text_update_loop(context, objlist):
             if 'TableGenerator' in myobj:
                 tableGen = myobj.TableGenerator
                 for table in tableGen.tables:
+                    fields = []
                     for row in table.rows:
-                        update_text(textobj=table, props=table, context=context)
-
+                        fields.extend(row.textFields)
+                    update_text(textobj=table, props=table, context=context, fields=fields)
                 # Draw Instanced Objects
 
 

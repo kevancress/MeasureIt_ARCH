@@ -2659,9 +2659,19 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                     textField.textPosition = 'M'
 
 
-                if '[\\n]' in text or '[br]':
+                if '[\\n]' in text or '[br]' in text:
                     text = text.replace('[\\n]', '\n')
                     text = text.replace('[br]', '\n')
+                
+                if '[f' in text:
+                    text = text.split('\'')[1]
+                    try:
+                        textfile = bpy.data.texts[text]
+                        textField.autoFillText = True
+                        textField.textSource = 'TEXT_FILE'
+                        textField.textFile = textfile
+                    
+                    except KeyError: text = 'Text File not found'
 
                 if textField.text != text:
                     textField.text = text
