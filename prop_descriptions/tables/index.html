@@ -202,8 +202,8 @@
 </ul>
 <h2 id="table-text-fields">Table Text Fields:</h2>
 <p>Displays a list of the Text Fields for the selected Table. <a href="../textfields/">(See TextFields Documentation)</a>
-Table TextFields are automatically populated from the provided CSV file so the raw text is not directly editable here, however cell text can be overwritten using the TextField's AutoFill settings. </p>
-<p>This can be used to inject AutoFill information into a Table, or to link multiline text from a separate text file into a single cell (handy for Wall Schedules) via the 'Text File' Autofill option.</p>
+Table TextFields are automatically populated from the provided CSV file, so the raw text is not directly editable here, however cell text can be overwritten using the TextField's AutoFill settings. </p>
+<p>This can be used to inject AutoFill information into a Table, or to link multiline text from a separate text file into a single cell (handy for Wall Schedules) via the 'Text File' Autofill option. Text File Autofill can be specified in the csv as well using the Cell Markup <code>[f='FILE_NAME']</code></p>
 <hr />
 <h2 id="cell-markup-formatting">Cell Markup Formatting</h2>
 <p>To Provide further formatting options for individual cells, MeasureIt_ARCH table use markup codes within the CSV to provide formatting information. The markup code can be included anywhere within the cell text, and multiple codes can be included in each cell. The following codes are supported.</p>
@@ -215,6 +215,7 @@ Table TextFields are automatically populated from the provided CSV file so the r
 <li><code>[m]</code> Position Text at the Middle of the cell.</li>
 <li><code>[b]</code> Position Text at the Bottom of the cell.</li>
 <li><code>[br]</code> or <code>[\n]</code> Include a line break at this point in the cell's text.</li>
+<li><code>[f='FILE_NAME']</code> Set this cell to AutoFill from the text file name 'FILE_NAME'</li>
 </ul>
               
             </div>
@@ -233,7 +234,7 @@ Table TextFields are automatically populated from the provided CSV file so the r
     Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     
     
-    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">December 20, 2022</span></small></p>
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">January 2, 2023</span></small></p>
     
     
 </footer>
