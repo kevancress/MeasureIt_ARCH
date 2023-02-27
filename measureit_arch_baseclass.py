@@ -82,6 +82,7 @@ def update_active_dim(self, context):
     dimGen = context.object.DimensionGenerator
     itemType = self.itemType
     idx = 0
+    mark_invalid(self,context)
     for wrap in dimGen.wrapper:
         if itemType == wrap.itemType:
             if itemType == 'alignedDimensions':
@@ -527,7 +528,8 @@ class BaseDim(BaseWithText):
         description='Offset for Dimension',
         default=(0.05),
         min = 0,
-        subtype='DISTANCE')
+        subtype='DISTANCE',
+        update = mark_invalid)
 
     dimViewPlane: EnumProperty(
         items=(('99', "None", "None", 'EMPTY_AXIS', 0),
@@ -537,7 +539,8 @@ class BaseDim(BaseWithText):
                 "Optimize Dimension for YZ Plane (Elevation)", 'AXIS_FRONT', 2),
                ('XZ', "XZ Plane", "Optimize Dimension for XZ Plane (Elevation)", 'AXIS_SIDE', 3)),
         name="View Plane",
-        description="Dimension View Plane")
+        description="Dimension View Plane",
+        update = mark_invalid)
 
     endcapA: EnumProperty(
         items=(('99', "--", "No Cap"),
@@ -546,7 +549,8 @@ class BaseDim(BaseWithText):
                ('D', "Dashed", "Dashed")),
         default='T',
         name="A end",
-        description="Add arrows to point A")
+        description="Add arrows to point A",
+        update = mark_invalid)
 
     endcapB: EnumProperty(
         items=(('99', "--", "No Cap"),
@@ -555,24 +559,28 @@ class BaseDim(BaseWithText):
                ('D', "Dashed", "Dashed")),
         name="B end",
         default='T',
-        description="Add arrows to point A")
+        description="Add arrows to point A",
+        update = mark_invalid)
 
     dimRotation: FloatProperty(
         name='annotationOffset',
         description='Rotation for Dimension',
         default=0.0,
-        subtype='ANGLE')
+        subtype='ANGLE',
+        update = mark_invalid)
 
     use_custom_text: BoolProperty(
         name = "Use Custom Text",
         description = "Use Custom Text",
-        default=False
+        default=False,
+        update = mark_invalid
     )
 
     use_secondary_units: BoolProperty(
         name = "Use Secondary Units",
         description = "Show dimension in both unit systems",
-        default = False
+        default = False,
+        update = mark_invalid
     )
 
     override_unit_system: EnumProperty(
@@ -582,7 +590,8 @@ class BaseDim(BaseWithText):
         ),
         name = "Override Unit System",
         description = "Override Scene Unit System for this Dimension",
-        default = 'NONE'
+        default = 'NONE',
+        update = mark_invalid
     )
 
     override_metric_length: EnumProperty(
@@ -592,7 +601,8 @@ class BaseDim(BaseWithText):
         ),
         name = "Override Metric Length",
         description = "Override Metric Length for this Dimension",
-        default = 'NONE'
+        default = 'NONE',
+        update = mark_invalid
     )
 
     override_imperial_length: EnumProperty(
@@ -602,7 +612,8 @@ class BaseDim(BaseWithText):
         ),
         name = "Override Imperial Length",
         description = "Override Imperial Length for this Dimension",
-        default = 'NONE'
+        default = 'NONE',
+        update = mark_invalid
     )
 
 
