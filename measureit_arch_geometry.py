@@ -475,6 +475,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
     p2 = get_point(p2Local, bMatrix)
 
     try:
+
+        if format_distance(1,dim) != dim['last_units']:
+            dim.is_invalid = True
+            dim['last_units'] = format_distance(1,dim) 
         if [p1.x,p1.y,p1.z] != dim['last_p1'].to_list():
             print([p1.x,p1.y,p1.z])
             print(dim['last_p1'].to_list())
@@ -489,6 +493,9 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
         dim.is_invalid = True
         dim['last_p1'] = p1
         dim['last_p2'] = p2
+        dim['last_units'] = format_distance(1,dim) 
+
+
 
     if dim.is_invalid or sceneProps.is_render_draw:
         # Define Caps as a tuple of capA and capB to reduce code duplications
