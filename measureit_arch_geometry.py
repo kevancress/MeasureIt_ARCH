@@ -1665,9 +1665,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             buffer_list = []
             dim['perimeterVertBuffer'] = []
             print("No Peimeter Vert Buffer found in {} on {}. Please re-create area dimension".format(dim.name,myobj.name))
-        idx = 0
+        idx = -1
         for vert_idx in buffer_list:
-            idx += 1
             v1 = bm.verts[vert_idx]
             polyfillCoords.append(mat @ v1.co)
             perimeterCoords.append(mat @ v1.co)
@@ -1675,6 +1674,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             if idx < len(buffer_list):
                 v2 = bm.verts[buffer_list[idx]]
                 perimeterCoords.append(mat @ v2.co)
+            
+            idx += 1
 
         #print(dim['perimeterEdgeBuffer'].to_list())
 
@@ -1752,7 +1753,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         for textField in dim.textFields:
             set_text(textField, myobj)
 
-            textcard = generate_text_card(context, textField, dimProps, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
+            textField['textcard'] = generate_text_card(context, textField, dimProps, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
 
             if sceneProps.show_dim_text:
                 draw_text_3D(context, textField, dimProps, myobj)
@@ -1764,7 +1765,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
 
         # Draw Perimeter
-        print(len(perimeterCoords))
         draw_lines(lineWeight, rgb, perimeterCoords, pointPass=True)
 
 
