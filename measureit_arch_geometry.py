@@ -3645,13 +3645,22 @@ def clear_line_buffers():
 
     pass
 
-def draw_all_lines():
+def draw_all_lines(ext_mat = None):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     viewport = get_viewport()
     scale = get_scale()
     view = get_view()
+
+    if ext_mat == None:
+        ext_mat = Matrix.Identity(4)
+
+    
+    flat_ext_mat = [ext_mat[0][0],ext_mat[1][0],ext_mat[2][0],ext_mat[3][0],
+                ext_mat[0][1],ext_mat[1][1],ext_mat[2][1],ext_mat[3][1],
+                ext_mat[0][2],ext_mat[1][2],ext_mat[2][2],ext_mat[3][2],
+                ext_mat[0][3],ext_mat[1][3],ext_mat[2][3],ext_mat[3][3]]
 
     global AllLinesBuffer
     global HiddenLinesBuffer
@@ -3706,10 +3715,11 @@ def draw_all_lines():
     for key in HiddenLinesBuffer.keys():
         hiddenbuffer = HiddenLinesBuffer[key]
         hiddenvboBuffer = hiddenbuffer["VBOs"]
-
+        
         # Set up Per line Uniforms
         allLinesShader.uniform_float("offset", hiddenbuffer["offset"])
         allLinesShader.uniform_float("objectMatrix", hiddenbuffer["objMat"])
+        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
         allLinesShader.uniform_float("dashed", hiddenbuffer["dashed"])
         allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
         allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
@@ -3744,6 +3754,7 @@ def draw_all_lines():
         # Set up Per line Uniforms
         allLinesShader.uniform_float("offset", buffer["offset"])
         allLinesShader.uniform_float("objectMatrix", buffer["objMat"])
+        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
         allLinesShader.uniform_float("dashed", buffer["dashed"])
         allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
         allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
@@ -4092,7 +4103,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                             draw_axisDimension(
                                 context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
 
-    draw_all_lines()
+    draw_all_lines(ext_mat=extMat)
 
     if sceneProps.is_render_draw:
         endTime = time.time()

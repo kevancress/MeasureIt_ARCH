@@ -25,6 +25,7 @@ uniform float is_camera;
 
 uniform float offset;
 uniform mat4 objectMatrix;
+uniform mat4 extMatrix;
 
 // CONSTANTS
 const float PI = 3.1415926;
@@ -77,8 +78,8 @@ void main() {
     vec4 p2 =  gl_in[1].gl_Position;
 
     // Get World Space Positions
-    vec4 p1_ws = objectMatrix * p1;
-    vec4 p2_ws = objectMatrix * p2;
+    vec4 p1_ws = extMatrix * objectMatrix * p1;
+    vec4 p2_ws = extMatrix * objectMatrix * p2;
 
     vec4 ws_dir = p2_ws-p1_ws;
 
