@@ -439,17 +439,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
     scene = context.scene
     rgb = get_color(dimProps.color)
 
-    # Define Caps as a tuple of capA and capB to reduce code duplications
-    caps = (dimProps.endcapA, dimProps.endcapB)
-    capSize = dimProps.endcapSize
-
-    offset = dimProps.dimOffset
-    if dim.uses_style:
-        offset += dim.tweakOffset
-
-    geoOffset = dimProps.dimLeaderOffset
-
-    # get points positions from indicies
+        # get points positions from indicies
     aMatrix = dim.dimObjectA.matrix_world
     bMatrix = dim.dimObjectB.matrix_world
 
@@ -484,82 +474,122 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
     p1 = get_point(p1Local, aMatrix)
     p2 = get_point(p2Local, bMatrix)
 
-    # check dominant Axis
-    sortedPoints = sortPoints(p1, p2)
-    p1 = sortedPoints[0]
-    p2 = sortedPoints[1]
+    try:
 
-    # calculate distance & Midpoint
-    distVector = Vector(p1) - Vector(p2)
-    dist = distVector.length
-    midpoint = interpolate3d(p1, p2, fabs(dist / 2))
-    normDistVector = distVector.normalized()
-
-    # Compute offset vector from face normal and user input
-    rotation = dimProps.dimRotation
-    rotationMatrix = Matrix.Rotation(rotation, 4, normDistVector)
-    selectedNormal = Vector(select_normal(
-        myobj, dim, normDistVector, midpoint, dimProps))
-
-    userOffsetVector = rotationMatrix @ selectedNormal
-    offsetDistance = userOffsetVector * offset
-    geoOffsetDistance = offsetDistance.normalized() * geoOffset
-
-    if offsetDistance < geoOffsetDistance:
-        offsetDistance = geoOffsetDistance
+        if format_distance(1,dim) != dim['last_units']:
+            dim.is_invalid = True
+            dim['last_units'] = format_distance(1,dim) 
+        if [p1.x,p1.y,p1.z] != dim['last_p1'].to_list():
+            print([p1.x,p1.y,p1.z])
+            print(dim['last_p1'].to_list())
+            dim['last_p1'] = p1
+            dim.is_invalid = True
+        
+        if [p2.x,p2.y,p2.z] != dim['last_p2'].to_list():
+            print('invalid due to change in p2')
+            dim['last_p2'] = p2
+            dim.is_invalid = True
+    except KeyError:
+        dim.is_invalid = True
+        dim['last_p1'] = p1
+        dim['last_p2'] = p2
+        dim['last_units'] = format_distance(1,dim) 
 
 
 
-    # Define Lines
-    leadStartA = Vector(p1) + geoOffsetDistance
-    leadEndA = Vector(p1) + offsetDistance + \
-        cap_extension(offsetDistance, capSize, dimProps.endcapArrowAngle)
+    if dim.is_invalid or sceneProps.is_render_draw:
+        # Define Caps as a tuple of capA and capB to reduce code duplications
+        caps = (dimProps.endcapA, dimProps.endcapB)
+        capSize = dimProps.endcapSize
 
-    leadStartB = Vector(p2) + geoOffsetDistance
-    leadEndB = Vector(p2) + offsetDistance + \
-        cap_extension(offsetDistance, capSize, dimProps.endcapArrowAngle)
+        offset = dimProps.dimOffset
+        if dim.uses_style:
+            offset += dim.tweakOffset
 
-    dimLineStart = Vector(p1) + offsetDistance
-    dimLineEnd = Vector(p2) + offsetDistance
-    textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
+        geoOffset = dimProps.dimLeaderOffset
 
-    # Set Gizmo Props
-    dim.gizLoc = textLoc
-    dim.gizRotDir = userOffsetVector
-    dim['length'] = dist
+        # check dominant Axis
+        sortedPoints = sortPoints(p1, p2)
+        p1 = sortedPoints[0]
+        p2 = sortedPoints[1]
 
-    origin = Vector(textLoc)
+        # calculate distance & Midpoint
+        distVector = Vector(p1) - Vector(p2)
+        dist = distVector.length
+        midpoint = interpolate3d(p1, p2, fabs(dist / 2))
+        normDistVector = distVector.normalized()
 
-    placementResults = setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance)
-    flipCaps = placementResults[0]
-    dimLineExtension = placementResults[1]
-    origin = placementResults[2]
+        # Compute offset vector from face normal and user input
+        rotation = dimProps.dimRotation
+        rotationMatrix = Matrix.Rotation(rotation, 4, normDistVector)
+        selectedNormal = Vector(select_normal(
+            myobj, dim, normDistVector, midpoint, dimProps))
 
-    # Add the Extension to the dimension line
-    dimLineVec = dimLineStart - dimLineEnd
-    dimLineVec.normalize()
-    dimLineEndCoord = dimLineEnd - dimLineVec * dimLineExtension
-    dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension
+        userOffsetVector = rotationMatrix @ selectedNormal
+        offsetDistance = userOffsetVector * offset
+        geoOffsetDistance = offsetDistance.normalized() * geoOffset
 
-    # Collect coords and endcaps
-    coords = [leadStartA, leadEndA, leadStartB,
-            leadEndB, dimLineStartCoord, dimLineEndCoord]
-    filledCoords = []
-    pos = (dimLineStart, dimLineEnd)
-    for i, cap in enumerate(caps):
-        capCoords = generate_end_caps(
-            context, dimProps, cap, capSize, pos[i], userOffsetVector, textLoc, i, flipCaps)
-        for coord in capCoords[0]:
-            coords.append(coord)
-        for filledCoord in capCoords[1]:
-            filledCoords.append(filledCoord)
+        if offsetDistance < geoOffsetDistance:
+            offsetDistance = geoOffsetDistance
+
+
+
+        # Define Lines
+        cap_ext = cap_extension(offsetDistance, capSize, dimProps.endcapArrowAngle)
+        leadStartA = Vector(p1) + geoOffsetDistance
+        leadEndA = Vector(p1) + offsetDistance + cap_ext
+            
+
+        leadStartB = Vector(p2) + geoOffsetDistance
+        leadEndB = Vector(p2) + offsetDistance + cap_ext
+
+        dimLineStart = Vector(p1) + offsetDistance
+        dimLineEnd = Vector(p2) + offsetDistance
+        textLoc = interpolate3d(dimLineStart, dimLineEnd, fabs(dist / 2))
+
+        # Set Gizmo Props
+        dim.gizLoc = textLoc
+        dim.gizRotDir = userOffsetVector
+        dim['length'] = dist
+
+        origin = Vector(textLoc)
+
+        placementResults = setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance)
+        flipCaps = placementResults[0]
+        dimLineExtension = placementResults[1]
+        origin = placementResults[2]
+
+        # Add the Extension to the dimension line
+        dimLineVec = dimLineStart - dimLineEnd
+        dimLineVec.normalize()
+        dimLineEndCoord = dimLineEnd - dimLineVec * dimLineExtension
+        dimLineStartCoord = dimLineStart + dimLineVec * dimLineExtension
+
+        # Collect coords and endcaps
+        coords = [leadStartA, leadEndA, leadStartB,
+                leadEndB, dimLineStartCoord, dimLineEndCoord]
+        filledCoords = []
+        pos = (dimLineStart, dimLineEnd)
+        for i, cap in enumerate(caps):
+            capCoords = generate_end_caps(
+                context, dimProps, cap, capSize, pos[i], userOffsetVector, textLoc, i, flipCaps)
+            coords.extend(capCoords[0])
+            filledCoords.extend(capCoords[1])
+
+        dim['filled_coords'] = filledCoords
+        dim['coords'] = coords
+        dim.is_invalid = False
+    
+    else:
+        for textField in dim.textFields:
+            draw_text_3D(context, textField, dimProps, myobj)
 
     # Filled Coords Call
-    if len(filledCoords) != 0:
-        draw_filled_coords(filledCoords, rgb)
+    if len(dim['filled_coords']) != 0:
+        draw_filled_coords(dim['filled_coords'], rgb)
 
     # Line Shader Calls
-    draw_lines(lineWeight, rgb, coords)
+    draw_lines(lineWeight, rgb, dim['coords'])
 
     if sceneProps.is_vector_draw:
         svg_dim = svg.add(svg.g(id=dim.name))
@@ -2636,9 +2666,19 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                     textField.textPosition = 'M'
 
 
-                if '[\\n]' in text or '[br]':
+                if '[\\n]' in text or '[br]' in text:
                     text = text.replace('[\\n]', '\n')
                     text = text.replace('[br]', '\n')
+                
+                if '[f' in text:
+                    text = text.split('\'')[1]
+                    try:
+                        textfile = bpy.data.texts[text]
+                        textField.autoFillText = True
+                        textField.textSource = 'TEXT_FILE'
+                        textField.textFile = textfile
+                    
+                    except KeyError: text = 'Text File not found'
 
                 if textField.text != text:
                     textField.text = text
@@ -3405,6 +3445,9 @@ def get_mesh_vertex(myobj, idx, evalMods, spline_idx=-1):
     verts = []
     coord = Vector((0, 0, 0))
 
+    # Early exit for object dims
+    if idx == 9999999:
+        return coord
 
     if myobj.type == 'MESH':
         # Get Vertices
@@ -3658,8 +3701,8 @@ def draw_all_lines():
     #    # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
     #    bgl.glBlendEquation(bgl.GL_MAX)
 
-    gpu.state.depth_test_set('GREATER')
-    #bgl.glDepthFunc(bgl.GL_GREATER)
+    #gpu.state.depth_test_set('GREATER')
+    bgl.glDepthFunc(bgl.GL_GREATER)
     for key in HiddenLinesBuffer.keys():
         hiddenbuffer = HiddenLinesBuffer[key]
         hiddenvboBuffer = hiddenbuffer["VBOs"]
@@ -3691,9 +3734,9 @@ def draw_all_lines():
         HiddenLinesBatch.program_set(allLinesShader)
         HiddenLinesBatch.draw()
 
-    gpu.state.depth_test_set('LESS_EQUAL')
-    #bgl.glEnable(bgl.GL_DEPTH_TEST)
-    #bgl.glDepthFunc(bgl.GL_LEQUAL)
+    #gpu.state.depth_test_set('LESS_EQUAL')
+    bgl.glEnable(bgl.GL_DEPTH_TEST)
+    bgl.glDepthFunc(bgl.GL_LEQUAL)
     for key in AllLinesBuffer.keys():
         buffer = AllLinesBuffer[key]
         vboBuffer = buffer["VBOs"]
@@ -3725,8 +3768,8 @@ def draw_all_lines():
      
     
         # Draw To depth Mask
-        gpu.state.depth_test_set('LESS_EQUAL')
-        #bgl.glDepthFunc(bgl.GL_LEQUAL)
+        #gpu.state.depth_test_set('LESS_EQUAL')
+        bgl.glDepthFunc(bgl.GL_LEQUAL)
         bgl.glDepthMask(True)
         allLinesShader.uniform_float("depthPass", True)
         AllLinesBatch.program_set(allLinesShader)

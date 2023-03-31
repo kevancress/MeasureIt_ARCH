@@ -51,7 +51,7 @@ The Tables List lets you select and edit the properties of the Tables attached t
 Displays a list of the Text Fields for the selected Table. [(See TextFields Documentation)](textfields.md)
 Table TextFields are automatically populated from the provided CSV file, so the raw text is not directly editable here, however cell text can be overwritten using the TextField's AutoFill settings. 
 
-This can be used to inject AutoFill information into a Table, or to link multiline text from a separate text file into a single cell (handy for Wall Schedules) via the 'Text File' Autofill option.
+This can be used to inject AutoFill information into a Table, or to link multiline text from a separate text file into a single cell (handy for Wall Schedules) via the 'Text File' Autofill option. Text File Autofill can be specified in the csv as well using the Cell Markup `[f='FILE_NAME']`.
 
 ---
 
@@ -66,3 +66,4 @@ To Provide further formatting options for individual cells, MeasureIt_ARCH table
 * `[m]` Position Text at the Middle of the cell.
 * `[b]` Position Text at the Bottom of the cell.
 * `[br]` or `[\n]` Include a line break at this point in the cell's text.
+* `[f='FILE_NAME']` Set this cell to AutoFill from the text file name 'FILE_NAME'

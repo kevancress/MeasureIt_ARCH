@@ -25,12 +25,13 @@
 # ----------------------------------------------------------
 import bpy
 import bgl
+import time
 
 from bpy.types import Panel, Operator, SpaceView3D
 from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
 
-from .measureit_arch_geometry import clear_batches, update_text, draw3d_loop, preview_dual
+from .measureit_arch_geometry import clear_batches, update_text, draw3d_loop, preview_dual, check_obj_vis
 from .measureit_arch_utils import get_view, get_rv3d
 from .gitcommit import prev_commit,date
 
@@ -434,10 +435,17 @@ def draw_main(context):
 
 
 def text_update_loop(context, objlist):
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+    if sceneProps.skip_text:
+        return
+
+    if sceneProps.is_render_draw:
+        startTime = time.time()
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps
     for myobj in objlist:
-        if not myobj.hide_get():
+        if check_obj_vis(myobj,False):
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator
                 for alignedDim in DimGen.alignedDimensions:
@@ -523,11 +531,8 @@ def text_update_loop(context, objlist):
                 for table in tableGen.tables:
                     fields = []
                     for row in table.rows:
-                        for textField in row.textFields:
-                            fields.append(textField)
-
+                        fields.extend(row.textFields)
                     update_text(textobj=table, props=table, context=context, fields=fields)
-
                 # Draw Instanced Objects
 
 
@@ -611,6 +616,9 @@ def text_update_loop(context, objlist):
                     update_text(textobj=arcDim, props=dimProps,
                                 context=context)
 
+    if sceneProps.is_render_draw:
+        endTime = time.time()
+        print("Text Update Loop Time: " + str(endTime - startTime))
 
 
 
