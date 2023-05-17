@@ -242,6 +242,15 @@ class DimensionContainer(PropertyGroup):
     # Collection of Wrapped dimensions for list UI display
     wrapper: CollectionProperty(type=DimensionWrapper)
 
+    def get_active_item(self):
+        try:
+            wrap = self.wrapper[self.active_index]
+            active_item = eval('self.{}[{}]'.format(wrap.itemType, wrap.itemIndex))
+            return active_item
+        except IndexError:
+            pass
+            return None
+
 
 class AddAlignedDimensionButton(Operator):
     bl_idname = "measureit_arch.addaligneddimensionbutton"

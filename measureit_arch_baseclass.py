@@ -1048,3 +1048,48 @@ class DeleteAllItemsButton(Operator):
 
     def draw(self, context):
         layout = self.layout
+
+
+class LinkStyles(Operator):
+    bl_idname = "measureit_arch.linkstyles"
+    bl_label = "Link Styles"
+    bl_description = "Link Styles"
+    bl_category = 'MeasureitArch'
+
+    def execute(self, context):
+        obj = context.active_object
+
+        dimGen = obj.DimensionGenerator
+        annoGen = obj.AnnotationGenerator
+        lineGen = obj.LineGenerator
+
+        active_dim = dimGen.get_active_item()
+        try:
+            active_line = lineGen.line_groups[lineGen.active_index]
+        except IndexError: active_line = None
+        try:
+            active_anno = annoGen.annotations[annoGen.active_index]
+        except IndexError: active_anno = None
+
+        for other_obj in context.selected_objects:
+            other_dimGen = other_obj.DimensionGenerator
+            other_annoGen = other_obj.AnnotationGenerator
+            other_lineGen = other_obj.LineGenerator
+
+            if active_anno != None:
+                for anno in other_annoGen.annotations:
+                    anno.uses_style = True
+                    anno.style = active_anno.style
+            
+            if active_line != None:
+                for line in other_lineGen.line_groups:
+                    line.uses_style = True
+                    line.style = active_line.style
+
+            if active_dim != None:
+                for wrap in other_dimGen.wrapper:
+                    dim = eval('other_dimGen.{}[{}]'.format(wrap.itemType,wrap.itemIndex))
+                    dim.uses_style = True
+                    dim.style = active_dim.style
+        
+        return {'FINISHED'}
