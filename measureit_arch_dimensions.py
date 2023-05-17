@@ -1630,3 +1630,35 @@ class TranslateDimensionOp(bpy.types.Operator):
 
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
+
+
+class SelectLinkedAnchor(Operator):
+    bl_idname = "measureit_arch.selectlinkedanchor"
+    bl_label = "Select Linked Anchor"
+    bl_description = "Selects the other anchor object for the active dimension connected to this object."
+    bl_category = 'MeasureitArch'
+
+    def execute(self, context):
+        print('Hello world')
+        obj = context.active_object
+        if obj == None:
+            return {'FINISHED'}
+        dimGen = obj.DimensionGenerator
+        wrap = dimGen.wrapper[dimGen.active_index]
+        itemType = wrap.itemType
+        active_dim = None
+        if itemType == 'alignedDimensions':
+            active_dim = dimGen.alignedDimensions[wrap.itemIndex]
+        elif itemType == 'axisDimensions':
+            active_dim = dimGen.axisDimensions[wrap.itemIndex]
+        else:
+            return {'FINISHED'}
+        
+
+        if obj == active_dim.dimObjectA:
+            active_dim.dimObjectB.select_set(True)
+        
+        if obj == active_dim.dimObjectB:
+            active_dim.dimObjectA.select_set(True)
+
+        return {'FINISHED'}

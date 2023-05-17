@@ -505,7 +505,8 @@ class BaseDim(BaseWithText):
     dimFlip: BoolProperty(
         name= 'dimFlip',
         description= "Flip Dimension",
-        default= False
+        default= False,
+        update = mark_invalid
     )
 
     dimOffset: FloatProperty(

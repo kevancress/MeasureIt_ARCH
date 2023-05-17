@@ -67,3 +67,13 @@ To Provide further formatting options for individual cells, MeasureIt_ARCH table
 * `[b]` Position Text at the Bottom of the cell.
 * `[br]` or `[\n]` Include a line break at this point in the cell's text.
 * `[f='FILE_NAME']` Set this cell to AutoFill from the text file name 'FILE_NAME'
+* `[d='DATA_PATH']` Fill this cell with data from the user entered 'DATA_PATH'
+
+!!! WARNING
+    Using the data path option allows for nearly any data within your Blender file to be dynamically linked to a Table or Schedule.
+
+    However because this approch involves evaluating user entered data paths it could be abused and used to run malicious python code on a users system. We recomend using caution when opening blender files from un-trusted sources, and inspecting text files that use the `[d='DATA_PATH']` flag yourself before enabling MeasureIt_ARCH.
+
+    MeasureIt_ARCH currently checks to ensure the data path does start as a valid blender data path before evaluating, to prevent some arbitrary code execution.
+
+    This markup flag will likely be removed in future versions of MeasureIt_ARCH and replaced with a more secure option.

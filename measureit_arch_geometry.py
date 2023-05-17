@@ -437,7 +437,11 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
 
     # Obj Properties
     scene = context.scene
-    rgb = get_color(dimProps.color)
+    rgb = get_color(dimProps.color, dimProps.cad_col_idx)
+    rgb_overlay = get_overlay_color(myobj,dim.is_active)
+
+    if rgb_overlay != [0,0,0,0]:
+        rgb = Vector(rgb_overlay)
 
         # get points positions from indicies
     aMatrix = dim.dimObjectA.matrix_world
@@ -495,9 +499,14 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
         dim['last_p2'] = p2
         dim['last_units'] = format_distance(1,dim) 
 
+    # Check invalid textfields
+    text_field_invalid = False
+    for textField in dim.textFields:
+        if textField.is_invalid:
+            text_field_invalid = True
+            break   
 
-
-    if dim.is_invalid or sceneProps.is_render_draw:
+    if dim.is_invalid or dimProps.is_invalid or text_field_invalid or sceneProps.is_render_draw:
         # Define Caps as a tuple of capA and capB to reduce code duplications
         caps = (dimProps.endcapA, dimProps.endcapB)
         capSize = dimProps.endcapSize
@@ -778,7 +787,7 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
 
         # measureAxis = []
         # scene = context.scene
-        rgb = get_color(dimProps.color)
+        rgb = get_color(dimProps.color, dimProps.cad_col_idx)
 
         # Define Caps as a tuple of capA and capB to reduce code duplications
         caps = (dimProps.endcapA, dimProps.endcapB)
@@ -950,7 +959,7 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
             viewRot = context.area.spaces[0].region_3d.view_rotation
 
         # Obj Properties
-        rgb = get_color(dimProps.color)
+        rgb = get_color(dimProps.color, dimProps.cad_col_idx)
 
         axis = dim.dimAxis
 
@@ -1186,7 +1195,7 @@ def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         lineWeight = dimProps.lineWeight
 
-        rgb = get_color(dimProps.color)
+        rgb = get_color(dimProps.color, dimProps.cad_col_idx)
         radius = dim.dimRadius
 
         try:
@@ -1328,7 +1337,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             return
 
         lineWeight = dimProps.lineWeight
-        rgb = get_color(dimProps.color)
+        rgb = get_color(dimProps.color, dimProps.cad_col_idx)
         radius = dim.dimOffset
 
         deleteFlag = False
@@ -1987,7 +1996,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         if not check_vis(lineGroup, lineProps):
             continue
 
-        rgb = get_color(lineProps.color)
+        rgb = get_color(lineProps.color, lineProps.cad_col_idx)
 
         # set other line properties
         isOrtho = False
@@ -2206,7 +2215,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         
         if drawHidden:
             hiddenLineWeight = lineProps.lineHiddenWeight
-            hiddenRGB = get_color(lineProps.lineHiddenColor)
+            hiddenRGB = get_color(lineProps.lineHiddenColor, lineProps.cad_col_idx)
 
             draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset, 
                 pointPass= lineProps.pointPass, dashed=True,
@@ -2329,7 +2338,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             return
         lineWeight = annotationProps.lineWeight
         # undo blenders Default Gamma Correction
-        rgb = get_color(annotationProps.color)
+        rgb = get_color(annotationProps.color, annotationProps.cad_col_idx)
 
         # Get Points
         deleteFlag = False
@@ -2670,7 +2679,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                     text = text.replace('[\\n]', '\n')
                     text = text.replace('[br]', '\n')
                 
-                if '[f' in text:
+                if '[f=' in text:
                     text = text.split('\'')[1]
                     try:
                         textfile = bpy.data.texts[text]
@@ -2679,6 +2688,21 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                         textField.textFile = textfile
                     
                     except KeyError: text = 'Text File not found'
+                
+                if '[d=' in text:
+                    datapath = text.split('\'')[1]
+                    value = ''
+                    try:
+                        if not datapath.startswith('bpy.data'):
+                            value = 'BAD DATA PATH'
+                        else:
+                            value = eval(datapath)
+                    except Exception:
+                        value = 'BAD DATA PATH'
+
+                    textField.autoFillText = False
+                    text = str(value)
+                    
 
                 if textField.text != text:
                     textField.text = text
@@ -2856,7 +2880,11 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
         if sceneProps.is_dxf_draw:
             pass
-
+            dxf_shaders.dxf_line_shader(table,table,coords,table.lineWeight,rgb,dxf,myobj)
+            for row in table.rows:
+                for textField in row.textFields:
+                    textcard = textField['textcard']
+                    dxf_shaders.dxf_text_shader(textField,table,textcard,origin,dxf)
 
 
 def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
@@ -3138,30 +3166,33 @@ def draw_text_3D(context, textobj, textprops, myobj):
 
     #if key in offscreen_text_buffers:
     if 'texture' in textobj and textobj.text != "":
+        
+        try:
+            dims = width * height * 4
+            raw_props = textobj['texture']
+            buffer = gpu.types.Buffer('FLOAT',dims,raw_props)
+            tex = gpu.types.GPUTexture((width,height),layers=0, is_cubemap= False, format='RGBA8',data=buffer)
+            textobj.texture_updated = False
 
-        dims = width * height * 4
-        raw_props = textobj['texture']
-        buffer = gpu.types.Buffer('FLOAT',dims,raw_props)
-        tex = gpu.types.GPUTexture((width,height),layers=0, is_cubemap= False, format='RGBA8',data=buffer)
-        textobj.texture_updated = False
+            # Draw Shader
+            textShader.bind()
+            textShader.uniform_sampler("image", tex)
 
-        # Draw Shader
-        textShader.bind()
-        textShader.uniform_sampler("image", tex)
+            # Batch Geometry
+            batch = batch_for_shader(
+                textShader, 'TRI_FAN',
+                {
+                    "pos": card,
+                    "uv": uvs,
+                },
+            )
+            gpu.state.blend_set('ALPHA_PREMULT')
+            gpu.state.depth_test_set('LESS_EQUAL')
 
-        # Batch Geometry
-        batch = batch_for_shader(
-            textShader, 'TRI_FAN',
-            {
-                "pos": card,
-                "uv": uvs,
-            },
-        )
-        gpu.state.blend_set('ALPHA_PREMULT')
-        gpu.state.depth_test_set('LESS_EQUAL')
-
-        batch.draw(textShader)
-        #bgl.glDeleteTextures(1, texArray)
+            batch.draw(textShader)
+            #bgl.glDeleteTextures(1, texArray)
+        except AttributeError:
+            pass
     
     gpu.shader.unbind()
 

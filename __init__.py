@@ -149,6 +149,7 @@ classes = (
     measureit_arch_dimensions.TranslateDimensionOp,
     measureit_arch_dimensions.M_ARCH_UL_dimension_list,
     measureit_arch_dimensions.OBJECT_MT_dimension_menu,
+    measureit_arch_dimensions.SelectLinkedAnchor,
 
     # Gizmos
     measureit_arch_gizmos.mArchGizmoGroup,

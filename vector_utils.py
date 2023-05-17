@@ -201,7 +201,37 @@ def generate_facemap():
                 edge_array.append(FacemapEdge(start,end))
             facemap.append(FacemapPolygon(edge_array,depth))
 
-    
+
+def get_line_plane_intersection(p0, p1, p_co, p_no, epsilon=1e-6):
+
+
+    """
+    modified from https://stackoverflow.com/questions/5666222/3d-line-plane-intersection
+    p0, p1: Define the line.
+    p_co, p_no: define the plane:
+        p_co Is a point on the plane (plane coordinate).
+        p_no Is a normal vector defining the plane direction;
+             (does not need to be normalized).
+
+    Return a Vector or None (when the intersection can't be found).
+    """
+
+    u = p1-p0
+    dot = p_no.dot(u)
+
+    if abs(dot) > epsilon:
+        # The factor of the point between p0 -> p1 (0 - 1)
+        # if 'fac' is between (0 - 1) the point intersects with the segment.
+        # Otherwise:
+        #  < 0.0: behind p0.
+        #  > 1.0: infront of p1.
+        w = p0 - p_co
+        fac = -p_no.dot(w) / dot
+        u = u* fac
+        return p0 + u
+
+    # The segment is parallel to plane.
+    return None  
 
 
 def get_clip_space_coord(mypoint):
