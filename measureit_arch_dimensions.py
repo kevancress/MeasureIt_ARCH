@@ -1639,26 +1639,56 @@ class SelectLinkedAnchor(Operator):
     bl_category = 'MeasureitArch'
 
     def execute(self, context):
-        print('Hello world')
         obj = context.active_object
         if obj == None:
             return {'FINISHED'}
         dimGen = obj.DimensionGenerator
-        wrap = dimGen.wrapper[dimGen.active_index]
-        itemType = wrap.itemType
-        active_dim = None
-        if itemType == 'alignedDimensions':
-            active_dim = dimGen.alignedDimensions[wrap.itemIndex]
-        elif itemType == 'axisDimensions':
-            active_dim = dimGen.axisDimensions[wrap.itemIndex]
-        else:
+        wrap = None
+        try:
+            wrap = dimGen.wrapper[dimGen.active_index]
+        except IndexError:
+            pass
+        
+        if wrap != None:
+            itemType = wrap.itemType
+            active_dim = None
+            if itemType == 'alignedDimensions':
+                active_dim = dimGen.alignedDimensions[wrap.itemIndex]
+            elif itemType == 'axisDimensions':
+                active_dim = dimGen.axisDimensions[wrap.itemIndex]
+            else:
+                return {'FINISHED'}
+            
+
+            if obj == active_dim.dimObjectA:
+                active_dim.dimObjectB.select_set(True)
+            
+            if obj == active_dim.dimObjectB:
+                active_dim.dimObjectA.select_set(True)
+
             return {'FINISHED'}
         
+        else:
+            print('No Dims Checking other objects')
+            for other_obj in context.view_layer.objects:
+                if obj == other_obj:
+                    continue
+                dimGen = other_obj.DimensionGenerator
+                for wrap in dimGen.wrapper:
+                    itemType = wrap.itemType
+                    active_dim = None
+                    if itemType == 'alignedDimensions':
+                        active_dim = dimGen.alignedDimensions[wrap.itemIndex]
+                    elif itemType == 'axisDimensions':
+                        active_dim = dimGen.axisDimensions[wrap.itemIndex]
+                    else:
+                        continue
+                    
 
-        if obj == active_dim.dimObjectA:
-            active_dim.dimObjectB.select_set(True)
+                    if obj == active_dim.dimObjectA or obj == active_dim.dimObjectB:
+                        other_obj.select_set(True)
+                        bpy.context.view_layer.objects.active = other_obj
         
-        if obj == active_dim.dimObjectB:
-            active_dim.dimObjectA.select_set(True)
-
         return {'FINISHED'}
+                    
+                    
