@@ -1674,9 +1674,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             buffer_list = []
             dim['perimeterVertBuffer'] = []
             print("No Peimeter Vert Buffer found in {} on {}. Please re-create area dimension".format(dim.name,myobj.name))
-        idx = 0
+        idx = -1
         for vert_idx in buffer_list:
-            idx += 1
             v1 = bm.verts[vert_idx]
             polyfillCoords.append(mat @ v1.co)
             perimeterCoords.append(mat @ v1.co)
@@ -1684,6 +1683,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             if idx < len(buffer_list):
                 v2 = bm.verts[buffer_list[idx]]
                 perimeterCoords.append(mat @ v2.co)
+            
+            idx += 1
 
         #print(dim['perimeterEdgeBuffer'].to_list())
 
@@ -1761,7 +1762,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         for textField in dim.textFields:
             set_text(textField, myobj)
 
-            textcard = generate_text_card(context, textField, dimProps, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
+            textField['textcard'] = generate_text_card(context, textField, dimProps, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
 
             if sceneProps.show_dim_text:
                 draw_text_3D(context, textField, dimProps, myobj)
@@ -1773,7 +1774,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
 
         # Draw Perimeter
-        print(len(perimeterCoords))
         draw_lines(lineWeight, rgb, perimeterCoords, pointPass=True)
 
 
@@ -3676,13 +3676,22 @@ def clear_line_buffers():
 
     pass
 
-def draw_all_lines():
+def draw_all_lines(ext_mat = None):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     viewport = get_viewport()
     scale = get_scale()
     view = get_view()
+
+    if ext_mat == None:
+        ext_mat = Matrix.Identity(4)
+
+    
+    flat_ext_mat = [ext_mat[0][0],ext_mat[1][0],ext_mat[2][0],ext_mat[3][0],
+                ext_mat[0][1],ext_mat[1][1],ext_mat[2][1],ext_mat[3][1],
+                ext_mat[0][2],ext_mat[1][2],ext_mat[2][2],ext_mat[3][2],
+                ext_mat[0][3],ext_mat[1][3],ext_mat[2][3],ext_mat[3][3]]
 
     global AllLinesBuffer
     global HiddenLinesBuffer
@@ -3737,10 +3746,11 @@ def draw_all_lines():
     for key in HiddenLinesBuffer.keys():
         hiddenbuffer = HiddenLinesBuffer[key]
         hiddenvboBuffer = hiddenbuffer["VBOs"]
-
+        
         # Set up Per line Uniforms
         allLinesShader.uniform_float("offset", hiddenbuffer["offset"])
         allLinesShader.uniform_float("objectMatrix", hiddenbuffer["objMat"])
+        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
         allLinesShader.uniform_float("dashed", hiddenbuffer["dashed"])
         allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
         allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
@@ -3775,6 +3785,7 @@ def draw_all_lines():
         # Set up Per line Uniforms
         allLinesShader.uniform_float("offset", buffer["offset"])
         allLinesShader.uniform_float("objectMatrix", buffer["objMat"])
+        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
         allLinesShader.uniform_float("dashed", buffer["dashed"])
         allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
         allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
@@ -4123,7 +4134,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                             draw_axisDimension(
                                 context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
 
-    draw_all_lines()
+    draw_all_lines(ext_mat=extMat)
 
     if sceneProps.is_render_draw:
         endTime = time.time()

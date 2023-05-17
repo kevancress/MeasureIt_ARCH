@@ -184,10 +184,10 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
                 if i > 1: dash_val += ","
                 dash_space = eval('itemProps.d{}_length'.format(i))
                 gap_space = eval('itemProps.g{}_length'.format(i))
-                dash_val += "{},{}".format(dash_space , gap_space)
+                dash_val += "{},{}".format(dash_space*weight_scale_fac , gap_space*weight_scale_fac)
         except AttributeError:
             if "dash_size" in itemProps:
-                dash_val = "{},{}".format(itemProps.dash_size, itemProps.gap_size)
+                dash_val = "{},{}".format(itemProps.dash_size*weight_scale_fac, itemProps.gap_size*weight_scale_fac)
             else:
                 dash_val = "5,5"
 
