@@ -350,6 +350,7 @@ def get_ss_point(point):
 
 
 def check_visible(item, point, ss_norms):
+    epsilon = 0.00001
     context = bpy.context
     scene = context.scene
     global width
@@ -390,7 +391,11 @@ def check_visible(item, point, ss_norms):
     point_vecdepth = (point_clip[2]) - z_offset
 
     # Check Clip space point against depth buffer value
-    pointVisible = bd1 >= point_vecdepth or bd2 >= point_vecdepth or bd3 >= point_vecdepth
+    check1 = (bd1 - point_vecdepth) > -epsilon
+    check2 = (bd2 - point_vecdepth) > -epsilon
+    check3 = (bd3 - point_vecdepth) > -epsilon
+
+    pointVisible = check1 or check2 or check3
 
     return pointVisible
 
