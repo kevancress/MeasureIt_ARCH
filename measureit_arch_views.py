@@ -938,7 +938,7 @@ class SCENE_PT_Views(Panel):
                 col.prop(view, "embed_scene_render", text="Embed Scene Render")
                 col.prop(view, "embed_greasepencil_svg", text="Embed Grease Pencil SVG")
                 col.prop(view, "vector_depthtest", text="Use Vector Depth Test")
-                col.prop(view, "depth_test_method")
+                col.prop(SceneProps, "depth_test_method", text = "Scene Depth Test Method")
                 col.prop(view, "skip_instances",)
 
                 col = box.column(align=True)

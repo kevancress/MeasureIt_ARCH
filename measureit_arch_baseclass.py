@@ -890,6 +890,15 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     source_scene: PointerProperty(type = bpy.types.Scene)
 
+    depth_test_method: EnumProperty(
+        items=(
+            ('DEPTH_BUFFER', 'Depth Buffer', ''),
+            ('GEOMETRIC', 'Geometric', '')
+        ),
+        name="Depth Test Method",
+        description="Method for depth testing when rendering vector linework. Depth Buffer is generally faseter but less percise",
+        default='DEPTH_BUFFER',)
+
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"
     bl_label = "Delete property"

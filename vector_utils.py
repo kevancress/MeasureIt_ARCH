@@ -147,7 +147,7 @@ def set_globals():
         end_time = time.time()
         print("Reading Depthbuffer to list took: " + str(end_time - start_time))
 
-    if view.vector_depthtest and view.depth_test_method == 'GEOMETRIC':
+    if view.vector_depthtest and sceneProps.depth_test_method == 'GEOMETRIC':
         generate_edgemap()
         generate_facemap()
     
@@ -364,7 +364,7 @@ def true_z_buffer(zValue):
 
 def depth_test(p1, p2, mat, item):
     scene = bpy.context.scene
-
+    sceneProps = bpy.context.scene.MeasureItArchProps
     # Don't depth test if out of culling
     if camera_cull([mat @ Vector(p1), mat @ Vector(p2)]):
         return [[-1, p1, p2]]
@@ -375,9 +375,9 @@ def depth_test(p1, p2, mat, item):
         return [[True, p1, p2]]
 
     # a line segment is a list [intiger visibility, start point, end point]
-    if view.depth_test_method == 'DEPTH_BUFFER':
+    if sceneProps.depth_test_method == 'DEPTH_BUFFER':
         line_segs = vis_sampling(p1, p2, mat, item,)
-    elif view.depth_test_method == 'GEOMETRIC':
+    elif sceneProps.depth_test_method == 'GEOMETRIC':
         line_segs = geometric_vis_calc(p1,p2,mat,item)
 
     return line_segs
