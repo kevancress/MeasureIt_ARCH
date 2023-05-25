@@ -48,7 +48,10 @@ hatch_col_dict = {}
 
 
 
-
+def quantize_vec2(vec2,precision='1e-6'):
+    x = Decimal('{}'.format(vec2.x)).quantize(Decimal(precision))
+    y = Decimal('{}'.format(vec2.y)).quantize(Decimal(precision))
+    return(x,y)
 
 def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, mat=Matrix.Identity(4), make_block = False):
     view = get_view()
@@ -107,8 +110,8 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
                 else:
                     
                     sf = '1e-6'
-                    p1_float = (Decimal('{}'.format(p1ss.x)).quantize(Decimal(sf)),Decimal('{}'.format(p1ss.y)).quantize(Decimal(sf)))
-                    p2_float = (Decimal('{}'.format(p2ss.x)).quantize(Decimal(sf)),Decimal('{}'.format(p2ss.y)).quantize(Decimal(sf)))
+                    p1_float = quantize_vec2(p1ss)
+                    p2_float = quantize_vec2(p2ss)
                     print("{},{}".format(float(p1_float[0]),float(p2_float[0])))
                     line_buffer.append(check_string_1)
                     if make_block:
@@ -131,6 +134,10 @@ def dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf):
 
     ssp1 = vector_utils.get_worldscale_projection(Vector(p1)) 
     ssp2 = vector_utils.get_worldscale_projection(Vector(p2))
+
+    ssp1 = quantize_vec2(ssp2)
+    ssp2 = quantize_vec2(ssp2)
+
     ssOrigin = vector_utils.get_worldscale_projection(Vector(origin))
 
     if (Vector(ssp1) - Vector(ssp2)).length == 0:
@@ -172,6 +179,10 @@ def dxf_axis_dimension(dim, dimProps, p1, p2, origin, dxf):
 
     ssp1 = vector_utils.get_worldscale_projection(Vector(p1))
     ssp2 = vector_utils.get_worldscale_projection(Vector(p2))
+
+    ssp1 = quantize_vec2(ssp2)
+    ssp2 = quantize_vec2(ssp2)
+
     ssOrigin = vector_utils.get_worldscale_projection(Vector(origin))
 
     dxf_dim = model_space.add_linear_dim(
