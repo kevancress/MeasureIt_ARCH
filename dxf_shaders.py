@@ -35,6 +35,7 @@ import bpy
 import ezdxf
 from .measureit_arch_utils import get_view, safe_name
 from . import vector_utils
+from decimal import *
 
 from mathutils import Vector, Matrix
 
@@ -97,14 +98,23 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
                 # Check if we've drawn this line before
                 check_string_1 = "{}:{}".format(p1ss,p2ss)
                 check_string_2 = "{}:{}".format(p2ss,p1ss)
+
+                if p1ss == p2ss: # skip lines that are 0 length when projected
+                    continue
+
                 if check_string_1 in line_buffer or check_string_2 in line_buffer:
                     continue
                 else:
+                    
+                    sf = '1e-6'
+                    p1_float = (Decimal('{}'.format(p1ss.x)).quantize(Decimal(sf)),Decimal('{}'.format(p1ss.y)).quantize(Decimal(sf)))
+                    p2_float = (Decimal('{}'.format(p2ss.x)).quantize(Decimal(sf)),Decimal('{}'.format(p2ss.y)).quantize(Decimal(sf)))
+                    print("{},{}".format(float(p1_float[0]),float(p2_float[0])))
                     line_buffer.append(check_string_1)
                     if make_block:
-                        block.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
+                        block.add_line(p1_float, p2_float , dxfattribs={"layer": itemProps.name})
                     else:
-                        line = model_space.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
+                        line = model_space.add_line(p1_float, p2_float, dxfattribs={"layer": itemProps.name})
 
 
 # From https://ezdxf.readthedocs.io/en/stable/tutorials/linear_dimension.html
