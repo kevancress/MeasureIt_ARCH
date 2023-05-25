@@ -196,7 +196,7 @@
 <li><strong>Camera Type</strong>: Sets the type of camera for this view (Orthographic or Perspective)</li>
 <li><strong>View Layer</strong>: Sets the View Layer to be used for this view</li>
 <li><strong>Output Path</strong>: Sets Render Output Path for this view</li>
-<li><strong>Date Folder</strong>: When enabled, a folder with todays date will be added to the Output Path</li>
+<li><strong>Date Folder</strong>: When enabled, a folder with today's date will be added to the Output Path</li>
 <li>
 <p><strong>Resolution Type</strong>: Pick Paper or Pixel based resolution settings for this view</p>
 <div class="admonition note">
@@ -215,7 +215,7 @@
 <p><strong>Resolution</strong>: Resolution for this view </p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>This also effects the resolution of the depth buffer used for vector depth testing, if you find you having issues with lines over or under extending in vector renders, try increasing the resolution.</p>
+<p>Resolution can also effect the accuracy of vector renders when using the 'Depth Buffer' depth testing mode, if find you having issues with lines over or under extending in vector renders, try increasing the resolution, or changing to 'Geometric' depth testing (see below).</p>
 </div>
 </li>
 <li>
@@ -226,18 +226,23 @@
 <p><strong>Frame Range</strong>: The frame range to render for this view.</p>
 </li>
 <li>
-<p><strong>Embed Scene Render:</strong> When enabled, a regular Blender render of the view will be saved and embeded in Vector Renders</p>
+<p><strong>Embed Scene Render:</strong> When enabled, a regular Blender render of the view will be saved and embedded in Vector Renders</p>
 </li>
-<li><strong>Embed Grease Pencil SVG:</strong> When enabled, an svg export of grease pencil object (including lineart) will be saved and embeded in Vector Renders</li>
+<li><strong>Embed Grease Pencil SVG:</strong> When enabled, an svg export of grease pencil object (including lineart) will be saved and embedded in Vector Renders</li>
+<li><strong>Use Vector Depth Test:</strong> When enabled, line groups will be depth tested against a raster depth buffer of the scene to remove (or draw dashed) hidden lines.</li>
 <li>
-<p><strong>Use Vector Depth Test:</strong> When enabled, line groups will be depth tested against a raster depth buffer of the scene to remove (or draw dashed) hidden lines.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>The accuracy of depth testing is heavily resolution dependant.</p>
+<p><strong>Scene Depth Test Method:</strong> Changes the depth test algorithm used for the scene (also found in the scene setting panel). </p>
+<ul>
+<li><strong>Depth Buffer:</strong> Samples many points along each line and compares them to the raster depth buffer to determine visibility. Generally faster but its speed and accuracy are both dependent on the views Resolution.</li>
+<li><strong>Geometric:</strong> <em>(in development)</em> Generates a view map containing all mesh geometry in the scene to geometrically compute transitions in visibility. Generally much slower on large scenes, but determines precise start and end points for all line segments. Recommended where absolute precision is necessary in linework, such as when rendering to .dxf for other applications.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Geometric Depth testing currently only computes edge intersections when partitioning line segments. This works well enough for plan and elevation views and orthogonal geometry but may not give expected results where lines pass through faces that are not orthogonal to the camera. Adding support for Line-Face intersections to the view map is planned but not yet implemented.</p>
 </div>
 </li>
 <li>
-<p><strong>Embed Freestyle SVG:</strong> When enabled, a freestyle rendering will be done, saved and embeded in Vector Renders. (Requires the Freestyle SVG addon be enabled)</p>
+<p><strong>Embed Freestyle SVG:</strong> When enabled, a freestyle rendering will be done, saved and embedded in Vector Renders. (Requires the Freestyle SVG addon be enabled)</p>
 </li>
 </ul>
               
@@ -257,7 +262,7 @@
     Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
     
     
-    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">September 4, 2022</span></small></p>
+    <p><small>Last update: <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date">May 25, 2023</span></small></p>
     
     
 </footer>

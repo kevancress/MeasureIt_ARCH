@@ -109,6 +109,8 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#default-resolution">Default Resolution</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#scene-depth-test-method">Scene Depth Test Method:</a>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#debug-text">Debug Text</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#debug-text-cards">Debug Text Cards</a>
@@ -182,6 +184,20 @@
 <h5 id="default-resolution">Default Resolution</h5>
 <ul>
 <li>Resolution to use for text rendering if no view resolution has been defined</li>
+</ul>
+<h5 id="scene-depth-test-method">Scene Depth Test Method:</h5>
+<ul>
+<li>
+<p>Changes the depth test algorithm used for the scene (also found in the scene setting panel). </p>
+<ul>
+<li><strong>Depth Buffer:</strong> Samples many points along each line and compares them to the raster depth buffer to determine visibility. Generally faster but its speed and accuracy are both dependent on the views Resolution.</li>
+<li><strong>Geometric:</strong> <em>(in development)</em> Generates a view map containing all mesh geometry in the scene to geometrically compute transitions in visibility. Generally much slower on large scenes, but determines precise start and end points for all line segments. Recommended where absolute precision is necessary in linework, such as when rendering to .dxf for other applications.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Geometric Depth testing currently only computes edge intersections when partitioning line segments. This works well enough for plan and elevation views and orthogonal geometry but may not give expected results where lines pass through faces that are not orthogonal to the camera. Adding support for Line-Face intersections to the view map is planned but not yet implemented.</p>
+</div>
+</li>
 </ul>
 <h5 id="debug-text">Debug Text</h5>
 <ul>
