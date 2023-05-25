@@ -592,6 +592,15 @@ def render_main_svg(self, context):
         draw_titleblock(context, svg=svg)
         svg.add(tb_group)
 
+        #DEBUG CHECK EDGEMAP
+        if False:
+            svgColor = svg_shaders.get_svg_color((1,0,0))
+            lines = svg.g(id='edgemap', stroke=svgColor,fill = 'none',
+                    stroke_width="1", stroke_linecap='butt')
+            for edge in vector_utils.edgemap:
+                
+                svg_shaders.draw_single_line(edge.start_coord, edge.end_coord,svg=svg,lines=lines,depth_test=False)
+            svg.add(lines)
         svg.save(pretty=True)
 
         # restore default value

@@ -102,8 +102,10 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         draw_single_line(coords[x],coords[x+1],mat,itemProps,svg,lines,dashed_lines,cap,draw_hidden)
  
  
-def draw_single_line(p1,p2,mat,itemProps,svg,lines,dashed_lines,cap,draw_hidden):
-    line_segs = vector_utils.depth_test(p1, p2, mat, itemProps)
+def draw_single_line(p1,p2,mat=Matrix.Identity(4),itemProps=None,svg=None,lines=None,dashed_lines=None,cap=None,draw_hidden=False,depth_test=True):
+    if depth_test:
+        line_segs = vector_utils.depth_test(p1, p2, mat, itemProps)
+    else: line_segs = [[1,p1,p2]]
     for line in line_segs:
         vis = line[0]
         p1 = line[1]
@@ -142,7 +144,7 @@ def svg_circle_shader(item, point, rad, color, svg, parent=None):
     if vector_utils.camera_cull([point]):
         print("No Points In front of Camera: {} Culled in Circle Shader")
         return
-
+    
     idName = item.name + "_fills"
     svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
     fills = svg.g(id=idName, fill=svgColor)

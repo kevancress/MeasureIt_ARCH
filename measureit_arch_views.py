@@ -447,6 +447,16 @@ class ViewProperties(PropertyGroup):
         description="Check for Occlusion when rendering to SVG\n"
                     "WARNING: SLOW, open system console before rendering to view progress",
         default=False)
+    
+    depth_test_method: EnumProperty(
+        items=(
+            ('DEPTH_BUFFER', 'Depth Buffer', ''),
+            ('GEOMETRIC', 'Geometric', '')
+        ),
+        name="Depth Test Method",
+        description="Method for depth testing when rendering vector linework",
+        default='DEPTH_BUFFER',
+        update=update)
 
     include_in_batch: BoolProperty(
         name="Include In Batch View Render",
@@ -928,6 +938,7 @@ class SCENE_PT_Views(Panel):
                 col.prop(view, "embed_scene_render", text="Embed Scene Render")
                 col.prop(view, "embed_greasepencil_svg", text="Embed Grease Pencil SVG")
                 col.prop(view, "vector_depthtest", text="Use Vector Depth Test")
+                col.prop(view, "depth_test_method")
                 col.prop(view, "skip_instances",)
 
                 col = box.column(align=True)

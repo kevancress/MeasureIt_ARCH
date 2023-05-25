@@ -49,7 +49,7 @@ hatch_col_dict = {}
 
 
 
-def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, mat=Matrix.Identity(4)):
+def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, mat=Matrix.Identity(4), make_block = False):
     view = get_view()
     dashed = False
     line_buffer = []
@@ -60,19 +60,20 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
         #print('Object Origin behind Camera. Skipping')
         #return
 
-    block = None
-    blockname = myobj.name
-    if myobj.data != None:
-        blockname = myobj.data.name
+    if make_block:
+        block = None
+        blockname = myobj.name
+        if myobj.data != None:
+            blockname = myobj.data.name
 
-    dxf_name = safe_name(view.name + '-' + blockname, is_dxf=True)
+        dxf_name = safe_name(view.name + '-' + blockname, is_dxf=True)
 
-    try:
-        dxf.blocks.get(dxf_name)
-        block = dxf.blocks[dxf_name]
-    except ezdxf.DXFKeyError:
-        block = dxf.blocks.new(name = dxf_name)  
-        model_space.add_blockref(dxf_name, (0,0), dxfattribs={"layer": itemProps.name})
+        try:
+            dxf.blocks.get(dxf_name)
+            block = dxf.blocks[dxf_name]
+        except ezdxf.DXFKeyError:
+            block = dxf.blocks.new(name = dxf_name)  
+            model_space.add_blockref(dxf_name, (0,0), dxfattribs={"layer": itemProps.name})
 
     
 
@@ -100,8 +101,10 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
                     continue
                 else:
                     line_buffer.append(check_string_1)
-                    #line = model_space.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
-                    block.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
+                    if make_block:
+                        block.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
+                    else:
+                        line = model_space.add_line(p1ss, p2ss, dxfattribs={"layer": itemProps.name})
 
 
 # From https://ezdxf.readthedocs.io/en/stable/tutorials/linear_dimension.html
