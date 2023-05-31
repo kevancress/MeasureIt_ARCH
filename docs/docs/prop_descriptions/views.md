@@ -65,11 +65,11 @@ The Views List lets you switch between Views and edit the properties of the acti
 *  __Frame Range__: The frame range to render for this view.
 
 * __Embed Scene Render:__ When enabled, a regular Blender render of the view will be saved and embedded in Vector Renders
-* __Embed Grease Pencil SVG:__ When enabled, an svg export of grease pencil object (including lineart) will be saved and embedded in Vector Renders
+* __Embed Grease Pencil SVG:__ When enabled, an svg export of grease pencil objects (including lineart) will be saved and embedded in Vector Renders
 * __Use Vector Depth Test:__ When enabled, line groups will be depth tested against a raster depth buffer of the scene to remove (or draw dashed) hidden lines.
 * __Scene Depth Test Method:__ Changes the depth test algorithm used for the scene (also found in the scene setting panel). 
     * __Depth Buffer:__ Samples many points along each line and compares them to the raster depth buffer to determine visibility. Generally faster but its speed and accuracy are both dependent on the views Resolution.
-    * __Geometric:__ _in development_ Generates a view map containing all mesh geometry in the scene to geometrically compute transitions in visibility. Generally much slower on large scenes, but determines precise start and end points for all line segments. Recommended where absolute precision is necessary in linework, such as when rendering to .dxf for other applications.
+    * __Geometric:__ _(in development)_ Generates a view map containing all mesh geometry in the scene to geometrically compute transitions in visibility. Generally much slower on large scenes, but determines precise start and end points for all line segments. Recommended where absolute precision is necessary in linework, such as when rendering to .dxf for other applications.
 
     !!! Note
         Geometric Depth testing currently only computes edge intersections when partitioning line segments. This works well enough for plan and elevation views and orthogonal geometry but may not give expected results where lines pass through faces that are not orthogonal to the camera. Adding support for Line-Face intersections to the view map is planned but not yet implemented.

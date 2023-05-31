@@ -97,22 +97,21 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
             if vis or draw_hidden:
                 p1ss = vector_utils.get_worldscale_projection(mat @ Vector(p1)) 
                 p2ss = vector_utils.get_worldscale_projection(mat @ Vector(p2))
+
+                p1_float = quantize_vec2(p1ss)
+                p2_float = quantize_vec2(p2ss)
                 
                 # Check if we've drawn this line before
-                check_string_1 = "{}:{}".format(p1ss,p2ss)
-                check_string_2 = "{}:{}".format(p2ss,p1ss)
+                check_string_1 = "{}:{}".format(p1_float,p2_float)
+                check_string_2 = "{}:{}".format(p2_float,p1_float)
 
-                if p1ss == p2ss: # skip lines that are 0 length when projected
+                if p1_float == p2_float: # skip lines that are 0 length when projected
                     continue
 
                 if check_string_1 in line_buffer or check_string_2 in line_buffer:
                     continue
                 else:
-                    
-                    sf = '1e-6'
-                    p1_float = quantize_vec2(p1ss)
-                    p2_float = quantize_vec2(p2ss)
-                    print("{},{}".format(float(p1_float[0]),float(p2_float[0])))
+                    #print("{},{}".format(float(p1_float[0]),float(p2_float[0])))
                     line_buffer.append(check_string_1)
                     if make_block:
                         block.add_line(p1_float, p2_float , dxfattribs={"layer": itemProps.name})

@@ -299,7 +299,7 @@ def get_view_outpath(scene, view, suffix):
     if not os.path.exists(dir):
         os.mkdir(dir)
     
-    print(dir)
+    #print(dir)
     if view.name_folder:
         bn= bpy.path.basename(bpy.context.blend_data.filepath)
         bn = bn.replace('.blend','')
@@ -308,7 +308,7 @@ def get_view_outpath(scene, view, suffix):
             os.mkdir(namedir)
         dir = namedir
         
-    print(dir)
+    #print(dir)
     if view.date_folder:
         today = datetime.now()
         datedir = os.path.join(dir, today.strftime('%Y%m%d'))
@@ -316,7 +316,7 @@ def get_view_outpath(scene, view, suffix):
             os.mkdir(datedir)
         dir = datedir
     
-    print(dir)
+    #print(dir)
     filepath = os.path.join(dir, filename)
     print(filepath)
     
@@ -740,7 +740,6 @@ def render_main_dxf(self, context):
         print("Full Render DXF Time: " + str(endTime - startTime))
 
     return outpath
-
 
 
 class SVGWriteElement(object):

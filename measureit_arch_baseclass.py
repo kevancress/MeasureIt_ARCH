@@ -872,6 +872,17 @@ class MeasureItARCHSceneProps(PropertyGroup):
     area_precision: IntProperty(
         name='Area Precision', min=0, max=5, default=2,
         description="Area precision")
+    
+
+    offset_x_2d: IntProperty(
+        name='offset X', default=0,)
+    
+    offset_y_2d: IntProperty(
+        name='offset Y', default=0,)
+
+    metric_precision: IntProperty(
+        name='Precision', min=0, max=5, default=2,
+        description="Metric decimal precision")
 
     hide_titleblock: BoolProperty(
         name="Hide Titleblock",

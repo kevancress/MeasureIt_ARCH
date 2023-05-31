@@ -208,6 +208,7 @@ classes = (
     measureit_arch_views.DuplicateViewWithLayerButton,
     measureit_arch_views.AddViewButton,
     measureit_arch_views.BatchViewRender,
+    measureit_arch_views.BatchDXFRender,
     measureit_arch_views.OpenInBrowser,
 
     # Orientations

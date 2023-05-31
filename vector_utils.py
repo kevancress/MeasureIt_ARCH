@@ -75,6 +75,7 @@ def get_worldscale_projection_ndc(mypoint):
 # Because dxf's allways seem to import in mm, we'll use this as the default scale factor
 def get_worldscale_projection(mypoint, units = 'M', is_2d=True):
     scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
     camera = scene.camera
 
     # Fall back to ndc for perspective
@@ -97,7 +98,8 @@ def get_worldscale_projection(mypoint, units = 'M', is_2d=True):
         pass
     
     if is_2d:
-        return proj_point.xy
+
+        return proj_point.xy + Vector((sceneProps.offset_x_2d,sceneProps.offset_y_2d))
 
     return proj_point
     
@@ -441,7 +443,8 @@ def geometric_vis_calc(p1,p2,mat,item):
         vis_sample_point = (Vector(p1) + Vector(p2)) / 2
         visible = check_visible(item, mat @ vis_sample_point, ss_norms)
         
-        line_segs.append([visible,p1,p2])           
+        line_segs.append([visible,p1,p2])
+           
 
     return line_segs
 
