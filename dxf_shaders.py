@@ -149,7 +149,7 @@ def dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf):
         p1=ssp1,  # 1st measurement point
         p2=ssp2,  # 2nd measurement point
         dimstyle="MeasureIt_ARCH",  # Custom MeasureIt_ARCH dim style defined in renderdxf
-        dxfattribs={"layer": layer}
+        dxfattribs={"color":256,"layer": layer}
     )
 
     dim.render()
@@ -195,6 +195,33 @@ def dxf_axis_dimension(dim, dimProps, p1, p2, origin, dxf):
 
     dxf_dim.render()
 
+
+def dxf_fill_shader(coords,dxf,layer):
+    model_space = dxf.modelspace()
+    coords_2d = []
+    hatch = model_space.add_hatch(color=256,dxfattribs={"layer": layer})
+    for coord in coords:
+        c2d = quantize_vec2(vector_utils.get_worldscale_projection(Vector(coord)))
+        if c2d not in coords_2d:
+            coords_2d.append(c2d)
+
+    most_x = Vector(coords_2d[0])
+    most_y = Vector(coords_2d[0])
+    least_y = Vector(coords_2d[0])
+    least_x = Vector(coords_2d[0])
+    for coord in coords_2d:
+        coord = Vector(coord)
+        if most_x.x < coord.x:
+            most_x = coord
+        if most_y.y < coord.y:
+            most_y = coord
+        if least_x.x > coord.x:
+            least_x = coord
+        if least_y.y> coord.y:
+            least_y = coord
+
+    path = [most_x,least_y,least_x,most_y]
+    hatch.paths.add_polyline_path(path,is_closed=True)
 
 def dxf_hatch_shader(hatch,coords,dxf,material):
     global hatch_col_id
@@ -267,14 +294,46 @@ def dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf):
 
 
     # Get Text Rotation
+    x_vec = Vector((1,0))
+    
+    ssp0 = vector_utils.get_worldscale_projection(annotation.textFields[0]['textcard'][0])
+    ssp1 = vector_utils.get_worldscale_projection(annotation.textFields[0]['textcard'][1])
+    ssp2 = vector_utils.get_worldscale_projection(annotation.textFields[0]['textcard'][2])
+    ssp3 = vector_utils.get_worldscale_projection(annotation.textFields[0]['textcard'][3])
+    card = [Vector(ssp0),Vector(ssp1),Vector(ssp2),Vector(ssp3)]
+    
+    xDirVec = card[3] - card[0]
+    yDirVec = card[1] - card[0]
 
-    x_vec = Vector((1,0,0))
-    x_p1 = textField['textcard'][0]
-    x_p2 = textField['textcard'][3]
-    card_x_dir = Vector(x_p2) - Vector(x_p1)
-    rot_angle = x_vec.angle(card_x_dir, 0)
+    # If either card direction is 0, don't draw any text
+    if xDirVec.length == 0 or yDirVec.length == 0:
+        return
 
-    anno_text.dxf.rotation = math.degrees(rot_angle)
+    # If the card is not ordered correctly on the page flip it
+    if yDirVec.dot(Vector((1,1000))) > 0:
+        card[0] = Vector(ssp1)
+        card[3] = Vector(ssp2)
+        card[1] = Vector(ssp0)
+        card[2] = Vector(ssp3)
+
+    if xDirVec.dot(Vector((10000,-1))) < 0:
+        temp = card[0]
+        card[0] = card[3]
+        card[3] = temp
+        temp2 = card[1]
+        card[1] = card[2]
+        card[2] = temp2
+
+    # Re Calc direction vectors after flips
+    xDirVec = card[3] - card[0]
+    yDirVec = card[1] - card[0]
+
+    # Get the rotation angle of the text card from horizontal
+    rotation = math.degrees(xDirVec.angle_signed(x_vec))
+
+    print(rotation)
+
+    anno_text.dxf.rotation = rotation
 
 
 
@@ -327,10 +386,12 @@ def dxf_text_shader(textField,style,coords,origin,dxf):
 
     # Get Text Rotation
 
-    x_vec = Vector((1,0,0))
-    x_p1 = textField['textcard'][0]
-    x_p2 = textField['textcard'][3]
+    x_vec = Vector((1,0))
+    x_p1 = vector_utils.get_worldscale_projection(textField['textcard'][0])
+    x_p2 = vector_utils.get_worldscale_projection(textField['textcard'][3])
     card_x_dir = Vector(x_p2) - Vector(x_p1)
-    rot_angle = x_vec.angle(card_x_dir, 0)
+    rot_angle = x_vec.angle(card_x_dir, 45)
+
+    print(rot_angle)
 
     anno_text.dxf.rotation = math.degrees(rot_angle)

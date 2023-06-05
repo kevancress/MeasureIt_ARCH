@@ -268,7 +268,7 @@ def draw_sheet_views(context, myobj, sheetGen, sheet_view, mat, svg=None, dxf=No
 
 def get_hatch_name(mat_name, hatch, obj):
     if hatch.use_object_pattern:
-        hatch_name = obj.MeasureItArchProps.obj_hatch_pattern.name
+        hatch_name = obj.MeasureItArchProps.obj_hatch_pattern.name + '_' + obj.name
     else:
         hatch_name = hatch.pattern.name
 
@@ -2237,6 +2237,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
         if sceneProps.is_dxf_draw:
             dxf_shaders.dxf_line_shader(lineGroup, lineProps, coords, lineWeight, rgb, dxf,myobj, mat=mat, )
+            for fill in filledcoords:
+                dxf_shaders.dxf_fill_shader(fill, dxf, lineProps.name)
         
         lineGroup.is_invalid = False
 

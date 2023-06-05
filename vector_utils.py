@@ -248,13 +248,13 @@ def generate_facemap():
         bm.from_object(obj, bpy.context.view_layer.depsgraph)
         faces = bm.faces
         for face in faces:
-            center = face.calc_center_bounds()
+            center = mat @ face.calc_center_bounds() 
             depth = get_camera_z_dist(center)
-            normal = face.normal
+            normal = mat @ face.normal 
             edge_array = []
             for edge in face.edges:
-                start = edge.verts[0].co @ mat
-                end = edge.verts[1].co @ mat
+                start = mat @ edge.verts[0].co 
+                end = mat @ edge.verts[1].co  
                 edge_array.append(MapEdge(start,end))
             facemap.append(MapPolygon(edge_array,depth,center,normal))
 
@@ -315,7 +315,9 @@ def get_line_plane_intersection(p0, p1, p_co, p_no, epsilon=1e-6):
         w = p0 - p_co
         fac = -p_no.dot(w) / dot
         u = u* fac
-        return p0 + u
+        intersect = p0 + u
+        factor = (intersect-p0).length / (p1-p0).length
+        return IntersectPoint(intersect,factor)
 
     # The segment is parallel to plane.
     return None  
@@ -414,7 +416,11 @@ def geometric_vis_calc(p1,p2,mat,item):
         if intersection != None:
             intersect_points.append(intersection)
 
-
+    # Get all 3D face intersections
+    for face in facemap:
+        intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
+        if intersection != None and intersection.factor < 1.0:
+            intersect_points.append(intersection)
 
     # Check vis of each segment defined by the intersect points
     line_segs = []
@@ -444,9 +450,26 @@ def geometric_vis_calc(p1,p2,mat,item):
         visible = check_visible(item, mat @ vis_sample_point, ss_norms)
         
         line_segs.append([visible,p1,p2])
-           
 
-    return line_segs
+    # Join segments where no visibility change occurs
+
+    joined_line_segs=[]
+    idx = 0
+    start_point = line_segs[idx][1]
+    prv_seg_vis = line_segs[idx][0]
+    while idx + 1 < len(line_segs):
+        idx += 1
+        seg_vis = line_segs[idx][0]
+        if seg_vis != prv_seg_vis:
+            segment = [prv_seg_vis,start_point,line_segs[idx][1]]
+            prv_seg_vis = line_segs[idx][0]
+            start_point = line_segs[idx][1]
+            joined_line_segs.append(segment)
+
+    final_segment = [prv_seg_vis,start_point, line_segs[-1][2]]
+    joined_line_segs.append(final_segment)
+
+    return joined_line_segs
 
 
 
