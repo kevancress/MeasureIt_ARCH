@@ -41,7 +41,7 @@ def load_handler(dummy):
     """ Handler called when a Blender file is loaded """
     ShowHideViewportButton.handle_remove(None, bpy.context)
     for scene in bpy.data.scenes:
-        scene.MeasureItARCHSceneProps.text_updated = True
+        scene.MeasureItArchProps.text_updated = True
 
 
 @persistent
