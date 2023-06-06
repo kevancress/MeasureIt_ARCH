@@ -21,6 +21,14 @@
 ##### Default Resolution
   * Resolution to use for text rendering if no view resolution has been defined
 
+##### Scene Depth Test Method:
+  * Changes the depth test algorithm used for the scene (also found in the scene setting panel). 
+    * __Depth Buffer:__ Samples many points along each line and compares them to the raster depth buffer to determine visibility. Generally faster but its speed and accuracy are both dependent on the views Resolution.
+    * __Geometric:__ _(in development)_ Generates a view map containing all mesh geometry in the scene to geometrically compute transitions in visibility. Generally much slower on large scenes, but determines precise start and end points for all line segments. Recommended where absolute precision is necessary in linework, such as when rendering to .dxf for other applications.
+
+    !!! Note
+        Geometric Depth testing currently only computes edge intersections when partitioning line segments. This works well enough for plan and elevation views and orthogonal geometry but may not give expected results where lines pass through faces that are not orthogonal to the camera. Adding support for Line-Face intersections to the view map is planned but not yet implemented.
+
 ##### Debug Text
  * Writes Dimension Text to an image for Debug
 

@@ -105,6 +105,7 @@ classes = (
     measureit_arch_baseclass.DeleteAllItemsButton,
     measureit_arch_baseclass.MovePropButton,
     measureit_arch_baseclass.StyleWrapper,
+    measureit_arch_baseclass.LinkStyles,
 
     # Annotations
     measureit_arch_annotations.OBJECT_PT_UIAnnotations,
@@ -149,6 +150,7 @@ classes = (
     measureit_arch_dimensions.TranslateDimensionOp,
     measureit_arch_dimensions.M_ARCH_UL_dimension_list,
     measureit_arch_dimensions.OBJECT_MT_dimension_menu,
+    measureit_arch_dimensions.SelectLinkedAnchor,
 
     # Gizmos
     measureit_arch_gizmos.mArchGizmoGroup,
@@ -206,6 +208,7 @@ classes = (
     measureit_arch_views.DuplicateViewWithLayerButton,
     measureit_arch_views.AddViewButton,
     measureit_arch_views.BatchViewRender,
+    measureit_arch_views.BatchDXFRender,
     measureit_arch_views.OpenInBrowser,
 
     # Orientations

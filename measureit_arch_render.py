@@ -299,7 +299,7 @@ def get_view_outpath(scene, view, suffix):
     if not os.path.exists(dir):
         os.mkdir(dir)
     
-    print(dir)
+    #print(dir)
     if view.name_folder:
         bn= bpy.path.basename(bpy.context.blend_data.filepath)
         bn = bn.replace('.blend','')
@@ -308,7 +308,7 @@ def get_view_outpath(scene, view, suffix):
             os.mkdir(namedir)
         dir = namedir
         
-    print(dir)
+    #print(dir)
     if view.date_folder:
         today = datetime.now()
         datedir = os.path.join(dir, today.strftime('%Y%m%d'))
@@ -316,7 +316,7 @@ def get_view_outpath(scene, view, suffix):
             os.mkdir(datedir)
         dir = datedir
     
-    print(dir)
+    #print(dir)
     filepath = os.path.join(dir, filename)
     print(filepath)
     
@@ -592,6 +592,15 @@ def render_main_svg(self, context):
         draw_titleblock(context, svg=svg)
         svg.add(tb_group)
 
+        #DEBUG CHECK EDGEMAP
+        if False:
+            svgColor = svg_shaders.get_svg_color((1,0,0))
+            lines = svg.g(id='edgemap', stroke=svgColor,fill = 'none',
+                    stroke_width="1", stroke_linecap='butt')
+            for edge in vector_utils.edgemap:
+                
+                svg_shaders.draw_single_line(edge.start_coord, edge.end_coord,svg=svg,lines=lines,depth_test=False)
+            svg.add(lines)
         svg.save(pretty=True)
 
         # restore default value
@@ -731,7 +740,6 @@ def render_main_dxf(self, context):
         print("Full Render DXF Time: " + str(endTime - startTime))
 
     return outpath
-
 
 
 class SVGWriteElement(object):

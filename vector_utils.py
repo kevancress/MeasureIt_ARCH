@@ -39,6 +39,7 @@ from threading import Thread
 
 depthbuffer = None
 facemap = []
+edgemap = []
 near_clip = None
 far_clip = None
 camera_type = None
@@ -74,6 +75,7 @@ def get_worldscale_projection_ndc(mypoint):
 # Because dxf's allways seem to import in mm, we'll use this as the default scale factor
 def get_worldscale_projection(mypoint, units = 'M', is_2d=True):
     scene = bpy.context.scene
+    sceneProps = scene.MeasureItArchProps
     camera = scene.camera
 
     # Fall back to ndc for perspective
@@ -96,7 +98,8 @@ def get_worldscale_projection(mypoint, units = 'M', is_2d=True):
         pass
     
     if is_2d:
-        return proj_point.xy
+
+        return proj_point.xy + Vector((sceneProps.offset_x_2d,sceneProps.offset_y_2d))
 
     return proj_point
     
@@ -125,8 +128,10 @@ def polygon_occlusion(coords):
 def clear_db():
     global depthbuffer
     global facemap
+    global edgemap
     depthbuffer = None
     facemap = []
+    edgemap = []
 
 def set_globals():
     sceneProps = bpy.context.scene.MeasureItArchProps
@@ -143,6 +148,10 @@ def set_globals():
         depthbuffer = sceneProps['depthbuffer'].to_list()   
         end_time = time.time()
         print("Reading Depthbuffer to list took: " + str(end_time - start_time))
+
+    if view.vector_depthtest and sceneProps.depth_test_method == 'GEOMETRIC':
+        generate_edgemap()
+        generate_facemap()
     
     scene = bpy.context.scene
     camera = bpy.context.scene.camera.data
@@ -160,21 +169,68 @@ def set_globals():
 # --------------------------------------------------------------------
 
 
-class FacemapEdge(object):
-    start_coord: Vector = Vector((0,0))
-    end_coord: Vector = Vector((0,1))
+class MapEdge(object):
+    start_coord: Vector = Vector((0,0,0))
+    end_coord: Vector = Vector((0,1,0))
 
     def __init__(self, start, end):
         self.start_coord =start
         self.end_coord = end
 
-class FacemapPolygon(object):
+class MapPolygon(object):
     edges = []
     depth = None
+    center = Vector((0,0,0))
+    normal = Vector((0,0,1))
 
-    def __init__(self, edge_array, depth):
+    def __init__(self, edge_array, depth, center, normal):
         self.edges = edge_array
         self.depth = depth
+        self.center = center
+        self.normal = normal
+
+class IntersectPoint(object):
+    point: Vector = Vector((0,0))
+    factor = 0.0
+
+    def __init__(self, point, factor) -> None:
+        self.point = point
+        self.factor = factor
+    
+    def __lt__(self,other):
+        return self.factor < other.factor
+
+class LineSegment(object):
+    visible = 1 # 1 visible 0 hidden -1 culled
+    start = Vector((0,0,0))
+    end = Vector((0,0,0))
+
+    def __init__(self,start,end, visible) -> None:
+        self.start = start
+        self.end = end
+        self.visible = visible
+
+def generate_edgemap():
+    deps = bpy.context.view_layer.depsgraph
+    for obj_int in deps.object_instances:
+        obj = obj_int.object
+        parent = obj_int.parent
+
+        ignore = obj.MeasureItArchProps.ignore_in_depth_test
+        if parent != None:
+            ignore = obj.MeasureItArchProps.ignore_in_depth_test or parent.MeasureItArchProps.ignore_in_depth_test
+
+        if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or ignore):
+            mat = obj.matrix_world
+            obj_eval = obj.evaluated_get(deps)
+            mesh = obj_eval.to_mesh(
+                preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
+            
+            for edge in mesh.edges:
+                p1 = mat @ mesh.vertices[edge.vertices[0]].co 
+                p2 = mat @ mesh.vertices[edge.vertices[1]].co 
+                map_edge = MapEdge(p1,p2)
+                edgemap.append(map_edge)
 
 def generate_facemap():
     
@@ -192,16 +248,79 @@ def generate_facemap():
         bm.from_object(obj, bpy.context.view_layer.depsgraph)
         faces = bm.faces
         for face in faces:
-            center = face.calc_center_bounds()
+            center = mat @ face.calc_center_bounds() 
             depth = get_camera_z_dist(center)
+            normal = mat @ face.normal 
             edge_array = []
             for edge in face.edges:
-                start = get_render_location(edge.verts[0].co @ mat)
-                end = get_render_location(edge.verts[1].co @ mat)
-                edge_array.append(FacemapEdge(start,end))
-            facemap.append(FacemapPolygon(edge_array,depth))
+                start = mat @ edge.verts[0].co 
+                end = mat @ edge.verts[1].co  
+                edge_array.append(MapEdge(start,end))
+            facemap.append(MapPolygon(edge_array,depth,center,normal))
 
+
+# Calculates the intersection point of line A (p1,p2) and line B (p3,p4)
+# returns the intersect point in 2D and factor along the line from p1
+def line_segment_intersection_2D(p1,p2,p3,p4):
+
+    denom = (p4.y-p3.y) * (p2.x-p1.x) - (p4.x-p3.x) * (p2.y-p1.y)
+
+    if denom == 0: # parallel
+        #print('parallel')
+        return None
     
+    ua = ((p4.x-p3.x) * (p1.y-p3.y) - (p4.y-p3.y) * (p1.x - p3.x)) / denom
+    if ua < 0 or ua > 1: # out of range
+        #print('out of range')
+        return None
+
+    ub = ((p2.x-p1.x)*(p1.y-p3.y) - (p2.y-p1.y)*(p1.x-p3.x)) / denom
+    if ub < 0 or ub > 1: # out of range
+        #print('out of range')
+        return None
+    
+    x = p1.x + ua * (p2.x-p1.x)
+    y = p1.y + ua * (p2.y-p1.y)
+
+    #print('Intersected')
+    intersect = Vector((x,y))
+    factor = (intersect-p1).length / (p2-p1).length
+
+    return IntersectPoint(intersect,factor)
+
+
+def get_line_plane_intersection(p0, p1, p_co, p_no, epsilon=1e-6):
+
+
+    """
+    modified from https://stackoverflow.com/questions/5666222/3d-line-plane-intersection
+    p0, p1: Define the line.
+    p_co, p_no: define the plane:
+        p_co Is a point on the plane (plane coordinate).
+        p_no Is a normal vector defining the plane direction;
+             (does not need to be normalized).
+
+    Return a Vector or None (when the intersection can't be found).
+    """
+
+    u = p1-p0
+    dot = p_no.dot(u)
+
+    if abs(dot) > epsilon:
+        # The factor of the point between p0 -> p1 (0 - 1)
+        # if 'fac' is between (0 - 1) the point intersects with the segment.
+        # Otherwise:
+        #  < 0.0: behind p0.
+        #  > 1.0: infront of p1.
+        w = p0 - p_co
+        fac = -p_no.dot(w) / dot
+        u = u* fac
+        intersect = p0 + u
+        factor = (intersect-p0).length / (p1-p0).length
+        return IntersectPoint(intersect,factor)
+
+    # The segment is parallel to plane.
+    return None  
 
 
 def get_clip_space_coord(mypoint):
@@ -246,9 +365,10 @@ def true_z_buffer(zValue):
     else:
         return zValue
 
+
 def depth_test(p1, p2, mat, item):
     scene = bpy.context.scene
-
+    sceneProps = bpy.context.scene.MeasureItArchProps
     # Don't depth test if out of culling
     if camera_cull([mat @ Vector(p1), mat @ Vector(p2)]):
         return [[-1, p1, p2]]
@@ -258,9 +378,100 @@ def depth_test(p1, p2, mat, item):
     if not view.vector_depthtest or item.inFront:
         return [[True, p1, p2]]
 
-    line_segs = vis_sampling(p1, p2, mat, item,)
+    # a line segment is a list [intiger visibility, start point, end point]
+    if sceneProps.depth_test_method == 'DEPTH_BUFFER':
+        line_segs = vis_sampling(p1, p2, mat, item,)
+    elif sceneProps.depth_test_method == 'GEOMETRIC':
+        line_segs = geometric_vis_calc(p1,p2,mat,item)
 
     return line_segs
+
+def geometric_vis_calc(p1,p2,mat,item):
+    p1Global = mat @ Vector(p1)
+    p2Global = mat @ Vector(p2)
+
+    # Get Screen Space Points
+    p1ss = get_ss_point(p1Global)
+    p2ss = get_ss_point(p2Global)
+
+    # Get ss normal vectorsP
+    dir_vec = p1ss - p2ss
+    n1ss = Vector((dir_vec.y, -dir_vec.x))
+    n2ss = Vector((-dir_vec.y, dir_vec.x))
+
+    ss_norms = [n1ss,n2ss]
+
+
+    intersect_points = []
+
+    # Get all 2D edge intersections
+    for edge in edgemap:
+        p3 = edge.start_coord
+        p4 = edge.end_coord
+
+        p3ss = get_ss_point(p3)
+        p4ss = get_ss_point(p4)
+
+        intersection = line_segment_intersection_2D(p1ss,p2ss,p3ss,p4ss)
+        if intersection != None:
+            intersect_points.append(intersection)
+
+    # Get all 3D face intersections
+    for face in facemap:
+        intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
+        if intersection != None and intersection.factor < 1.0:
+            intersect_points.append(intersection)
+
+    # Check vis of each segment defined by the intersect points
+    line_segs = []
+    if len(intersect_points) > 0:
+        intersect_points.sort() # Sorts by distance from p1
+
+        last_point = Vector(p1)
+        for ip in intersect_points: 
+            dist = (Vector(p2)-Vector(p1)).length * ip.factor
+            point = interpolate3d(Vector(p1),Vector(p2),dist) 
+
+            vis_sample_point = (last_point + point) / 2
+            visible = check_visible(item, mat @ vis_sample_point,ss_norms)
+
+            segment = [visible,last_point, point]
+            line_segs.append(segment)
+            last_point = Vector(point)
+
+        # Last segment
+        vis_sample_point = (last_point + Vector(p2)) / 2
+        visible = check_visible(item, mat @ vis_sample_point, ss_norms)
+        
+        line_segs.append([visible,last_point,p2])           
+
+    else:   
+        vis_sample_point = (Vector(p1) + Vector(p2)) / 2
+        visible = check_visible(item, mat @ vis_sample_point, ss_norms)
+        
+        line_segs.append([visible,p1,p2])
+
+    # Join segments where no visibility change occurs
+
+    joined_line_segs=[]
+    idx = 0
+    start_point = line_segs[idx][1]
+    prv_seg_vis = line_segs[idx][0]
+    while idx + 1 < len(line_segs):
+        idx += 1
+        seg_vis = line_segs[idx][0]
+        if seg_vis != prv_seg_vis:
+            segment = [prv_seg_vis,start_point,line_segs[idx][1]]
+            prv_seg_vis = line_segs[idx][0]
+            start_point = line_segs[idx][1]
+            joined_line_segs.append(segment)
+
+    final_segment = [prv_seg_vis,start_point, line_segs[-1][2]]
+    joined_line_segs.append(final_segment)
+
+    return joined_line_segs
+
+
 
 def vis_sampling(p1, p2, mat, item,):
     p1Local = mat @ Vector(p1)
@@ -270,7 +481,7 @@ def vis_sampling(p1, p2, mat, item,):
     p1ss = get_ss_point(p1Local)
     p2ss = get_ss_point(p2Local)
 
-    # Get ss normal vectors
+    # Get ss normal vectorsP
     dir_vec = p1ss - p2ss
     n1ss = Vector((dir_vec.y, -dir_vec.x))
     n2ss = Vector((-dir_vec.y, dir_vec.x))
@@ -320,14 +531,16 @@ def get_ss_point(point):
 
 
 def check_visible(item, point, ss_norms):
+    epsilon = 0.0001
     context = bpy.context
     scene = context.scene
     global width
 
     #Set Z-offset
     z_offset = 0.0
-    if 'lineDepthOffset' in item:
-        z_offset += item.lineDepthOffset / 10
+    if item != None:
+        if 'lineDepthOffset' in item:
+            z_offset += item.lineDepthOffset / 10
 
     dist = get_camera_z_dist(point)
     if dist < 0:
@@ -360,7 +573,11 @@ def check_visible(item, point, ss_norms):
     point_vecdepth = (point_clip[2]) - z_offset
 
     # Check Clip space point against depth buffer value
-    pointVisible = bd1 >= point_vecdepth or bd2 >= point_vecdepth or bd3 >= point_vecdepth
+    check1 = (bd1 - point_vecdepth) > -epsilon
+    check2 = (bd2 - point_vecdepth) > -epsilon
+    check3 = (bd3 - point_vecdepth) > -epsilon
+
+    pointVisible = check1 or check2 or check3
 
     return pointVisible
 

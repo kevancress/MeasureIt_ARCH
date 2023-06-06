@@ -124,20 +124,27 @@ def px_to_m(px, paper_space = False):
     return m_size
 
 class Set_Render:
-    def __init__(self, sceneProps, is_vector=False, is_dxf = False):
+
+    def __init__(self, sceneProps, is_vector=False, is_dxf = False, offset_x = 0, offset_y =0):
         self.sceneProps = sceneProps
         self.is_vector = is_vector
         self.is_dxf = is_dxf
+        self.offset_x_2d = offset_x
+        self.offset_y_2d = offset_y
 
     def __enter__(self):
         self.sceneProps.is_vector_draw = self.is_vector
         self.sceneProps.is_dxf_draw = self.is_dxf
         self.sceneProps.is_render_draw = True
+        self.sceneProps.offset_x_2d = self.offset_x_2d
+        self.sceneProps.offset_y_2d = self.offset_y_2d
 
     def __exit__(self, type, value, tb):
         self.sceneProps.is_vector_draw = False
         self.sceneProps.is_render_draw = False
         self.sceneProps.is_dxf_draw = False
+        self.sceneProps.offset_x_2d = 0
+        self.sceneProps.offset_y_2d = 0
 
 
 class OpenGL_Settings:

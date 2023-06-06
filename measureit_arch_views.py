@@ -1,9 +1,12 @@
 import bpy
+import bgl
+import gpu
 import os
 import copy
 import webbrowser
+import ezdxf
 
-
+from random import randint
 from bpy.props import (
     CollectionProperty,
     IntProperty,
@@ -16,10 +19,14 @@ from bpy.props import (
 from bpy.types import PropertyGroup, Panel, Operator, UIList, Scene, Object
 from bpy.app.handlers import persistent
 
-from .measureit_arch_render import render_main, render_main_svg
+from mathutils import Vector, Matrix
+
+from . import vector_utils
+from .measureit_arch_render import render_main, render_main_svg, recalc_index, get_view_outpath, draw_scene
 from .measureit_arch_baseclass import TextField, draw_textfield_settings
+from .measureit_arch_geometry import draw3d_loop
 from .measureit_arch_viewports import Viewport
-from . measureit_arch_utils import get_loaded_addons, get_resolution, get_view, _imp_scales_dict, _metric_scales_dict
+from . measureit_arch_utils import get_loaded_addons, get_resolution, get_view, _imp_scales_dict, _metric_scales_dict,OpenGL_Settings, Set_Render
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -447,6 +454,16 @@ class ViewProperties(PropertyGroup):
         description="Check for Occlusion when rendering to SVG\n"
                     "WARNING: SLOW, open system console before rendering to view progress",
         default=False)
+    
+    depth_test_method: EnumProperty(
+        items=(
+            ('DEPTH_BUFFER', 'Depth Buffer', ''),
+            ('GEOMETRIC', 'Geometric', '')
+        ),
+        name="Depth Test Method",
+        description="Method for depth testing when rendering vector linework",
+        default='DEPTH_BUFFER',
+        update=update)
 
     include_in_batch: BoolProperty(
         name="Include In Batch View Render",
@@ -712,6 +729,191 @@ class BatchViewRender(Operator):
         return {'CANCELLED'}
 
 
+class BatchDXFRender(Operator):
+    bl_idname = "measureit_arch.batchdxfrender"
+    bl_label = "Render All Views to dxf"
+    bl_description = "Render All Views to a single .dfx model space"
+    bl_category = 'MeasureitArch'
+    bl_options = {'REGISTER'}
+
+    _timer = None
+    _updating = False
+    view3d = None
+    idx = 0
+    doc = None # DXF Document
+    outpath = ""
+
+    def modal(self, context, event):
+        scene = context.scene
+        sceneProps = scene.MeasureItArchProps
+
+        if event.type in {'RIGHTMOUSE', 'ESC'}:
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        if event.type == 'TIMER' and not self._updating:
+            self._updating = True
+            numViews = len(context.scene.ViewGenerator.views)
+            if self.idx <= numViews - 1:
+                view = context.scene.ViewGenerator.views[self.idx]
+                if view.include_in_batch:
+                    offset_x = 50 * self.idx
+                    with Set_Render(sceneProps, is_dxf = True, offset_x = offset_x):
+                        context.scene.ViewGenerator.active_index = self.idx
+                        self.view3d.tag_redraw()
+                        print("MeasureIt_ARCH: Rendering View: {} to DXF".format(view.name))
+                        
+                        ###### DXF RENDER  CODE
+                        vector_utils.clear_db()
+                        clipdepth = context.scene.camera.data.clip_end
+                        objlist = context.view_layer.objects
+
+                        # Get resolution
+                        render_scale = scene.render.resolution_percentage / 100
+                        width = int(scene.render.resolution_x * render_scale)
+                        height = int(scene.render.resolution_y * render_scale)
+
+                        view_matrix_3d = scene.camera.matrix_world.inverted()
+
+                        if view.vector_depthtest:
+                            print("Rendering Depth Buffer")
+                            offscreen = gpu.types.GPUOffScreen(width, height)
+                            with offscreen.bind():
+                                # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
+                                deps = context.evaluated_depsgraph_get()
+                                projection_matrix = scene.camera.calc_matrix_camera(deps, x=width, y=height)
+                                with OpenGL_Settings(None):
+                                    bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+                                    bgl.glClearDepth(clipdepth)
+                                    bgl.glEnable(bgl.GL_DEPTH_TEST)
+                                    bgl.glDepthFunc(bgl.GL_LEQUAL)
+
+                                    #gpu.state.depth_test_set('LESS_EQUAL')
+
+                                    gpu.matrix.reset()
+                                    gpu.matrix.load_matrix(view_matrix_3d)
+                                    gpu.matrix.load_projection_matrix(projection_matrix)
+
+                                    texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
+                                    print("Drawing Scene")
+                                    draw_scene(self, context, projection_matrix)
+
+                                    print("Reading to Buffer")
+                                    bgl.glReadBuffer(bgl.GL_BACK)
+                                    bgl.glReadPixels(
+                                        0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
+
+                                    if 'depthbuffer' in sceneProps:
+                                        del sceneProps['depthbuffer']
+                                    sceneProps['depthbuffer'] = texture_buffer
+
+                        vector_utils.set_globals()
+
+   
+                        if view and view.res_type == 'res_type_paper':
+                            paperWidth = round(view.width * BU_TO_INCHES, 3)
+                            paperHeight = round(view.height * BU_TO_INCHES, 3)
+                        else:
+                            print('No View Present, using default resolution')
+                            paperWidth = width / sceneProps.res
+                            paperHeight = height / sceneProps.res
+                        
+                        draw3d_loop(context, objlist,dxf=self.doc)
+
+                self.idx += 1
+                self._updating = False
+                           
+
+            else:
+                self.cancel(context)
+                return {'CANCELLED'}
+
+        self.view3d.tag_redraw()
+        return {'PASS_THROUGH'}
+
+    def execute(self, context):
+        # Check camera
+        if not context.scene.camera:
+            self.report({'ERROR'}, "Unable to render: no camera found!")
+            return {'FINISHED'}
+
+        for window in context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.type == 'VIEW_3D':
+                    self.view3d = area
+
+        if self.view3d is None:
+            self.report(
+                {'ERROR'}, 'A 3D Viewport must be open to render MeasureIt_ARCH Animations')
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(1, window=context.window)
+        wm.modal_handler_add(self)
+
+        scene = context.scene
+        sceneProps = scene.MeasureItArchProps
+
+        # Set up outpath TODO: SHould be based on the file name, not the view
+        view = get_view()
+        self.outpath = get_view_outpath(
+            scene, view, "{:04d}.dxf".format(scene.frame_current))
+
+        # Set up the DXF document
+        self.doc = ezdxf.new(dxfversion="AC1032", setup=True, units = 6)
+        self.doc.modelspace()
+        self.doc.units = ezdxf.units.M
+        self.doc.header['$LUNITS'] = 2 # For Decimal
+        self.doc.header['$INSUNITS'] = ezdxf.units.M
+        self.doc.header['$MEASUREMENT'] = 1 #for Metric
+
+        # Create the MeasureIt_ARCH dim style
+
+        m_arch_style = self.doc.dimstyles.new(name='MeasureIt_ARCH')
+        m_arch_style.dimscale = 1
+        m_arch_style.dimtxt = 100
+
+        # Setup Layers based on styles
+        recalc_index(self, context)
+        styles = context.scene.StyleGenerator.wrapper
+
+        for style_wrapper in styles:
+            name = style_wrapper.name
+            type_str = style_wrapper.itemType
+            idx = style_wrapper.itemIndex
+
+            source_scene = sceneProps.source_scene
+            style = eval("source_scene.StyleGenerator.{}[{}]".format(type_str,idx))
+            cad_col_id = style.cad_col_idx
+
+            if cad_col_id == 256:
+                cad_col_id = randint(0,255)
+
+            if "lineDrawDashed" in style and style.lineDrawDashed:
+                self.doc.layers.add(name, color=cad_col_id, linetype="DASHED2")
+            else:
+                self.doc.layers.add(name, color=cad_col_id)
+
+
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        wm = context.window_manager
+        scene = context.scene
+        sceneProps = scene.MeasureItArchProps
+
+        if self._timer != None:
+            wm.event_timer_remove(self._timer)
+        if self.doc != None:
+            self.doc.saveas(self.outpath)
+        
+        # restore default value
+        sceneProps.is_render_draw = False
+        sceneProps.is_vector_draw = False
+        print('Finished .dxf Batch Render')
+        return {'CANCELLED'}
+
 
 
 class M_ARCH_UL_Views_list(UIList):
@@ -928,6 +1130,7 @@ class SCENE_PT_Views(Panel):
                 col.prop(view, "embed_scene_render", text="Embed Scene Render")
                 col.prop(view, "embed_greasepencil_svg", text="Embed Grease Pencil SVG")
                 col.prop(view, "vector_depthtest", text="Use Vector Depth Test")
+                col.prop(SceneProps, "depth_test_method", text = "Scene Depth Test Method")
                 col.prop(view, "skip_instances",)
 
                 col = box.column(align=True)
