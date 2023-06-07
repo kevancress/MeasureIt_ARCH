@@ -2985,8 +2985,16 @@ def set_text(textField, obj, style=None, item=None):
                 elif obj.scale[0] != 1.0 or obj.scale[1] != 1.0 or obj.scale[1] != 1.0:
                     text = "APPLY SCALE"
                 else:
-                    length = obj.data.splines[0].calc_length()
-                    text = format_distance(length)
+                    bm = bmesh.new()
+                    depsgraph = bpy.context.view_layer.depsgraph
+                    eval_obj = obj.evaluated_get(depsgraph)
+                    temp_mesh = bpy.data.meshes.new_from_object(eval_obj, depsgraph = bpy.context.view_layer.depsgraph)
+                    bm.from_mesh(temp_mesh)
+                    bm.edges.ensure_lookup_table()
+                    total_length = 0
+                    for edge in bm.edges:
+                        total_length += edge.calc_length()
+                    text = format_distance(total_length)
                 textField.text = text
             else:
                 textField.text = "Not a Curve"
@@ -3048,7 +3056,9 @@ def preview_dual(context):
             mesh = myobj.data
             bm = bmesh.new()
             if myobj.mode == 'OBJECT':
-                bm.from_object(myobj, bpy.context.view_layer.depsgraph)
+                depsgraph = bpy.context.evaluated_depsgraph_get()
+                eval_obj = myobj.evaluated_get(depsgraph)
+                bm.from_object(eval_obj, bpy.context.view_layer.depsgraph)
             else:
                 bm = bmesh.from_edit_mesh(mesh)
 
@@ -3064,7 +3074,7 @@ def preview_dual(context):
                         center = face.calc_center_median()
                         coords.append(mat @ center)
 
-                draw_lines(3, (0, 0, 0, 0.7), coords, offset=-0.0005)
+                draw_lines(1, (0, 0, 0, 0.7), coords, offset=-0.0005)
 
 def draw_text_3D(context, textobj, textprops, myobj):
     sceneProps = context.scene.MeasureItArchProps
