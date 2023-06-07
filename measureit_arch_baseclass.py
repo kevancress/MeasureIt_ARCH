@@ -378,6 +378,18 @@ class TextField(PropertyGroup):
                ('B', "Bottom", "", 'ALIGN_BOTTOM', 3)),
         name="Position",
         description="Set Font Position")
+    
+    boundaryShape: EnumProperty(
+        items=(('NONE', "None",""),
+               ('BORDER', "Border",""),
+               ('ROUNDED', "Rounded",""),
+               ('DIAMOND', "Diamond",""),
+               ('HEX', "Hexagon",""),
+               ('CIRCLE', "Circle",""),
+               ),
+        name="Position",
+        default = 'NONE',
+        description="Set Font Position")
 
     textWidth: IntProperty(
         name='annotationWidth',
