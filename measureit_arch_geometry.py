@@ -2704,7 +2704,15 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
                     textField.autoFillText = False
                     text = str(value)
+                
+                if '[s=' in text:
+                    shape = text.split('\'')[1]
+                    try:
+                        textField.boundaryShape = shape
+                    except Exception:
+                        print('invalid shape')
                     
+                    text = text.replace('[s=\'{}\']'.format(shape), '')
 
                 if textField.text != text:
                     textField.text = text
@@ -2845,6 +2853,10 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                     context, textField, table, basePoint=field_origin, xDir=i, yDir=j, cardIdx=0)
                 textField['textcard'] = textcard
 
+                tf_boundary_coords = get_textField_boundary(context,textField)
+                if tf_boundary_coords != None:
+                    coords.extend(tf_boundary_coords)
+
                 cell_x += padded_width
 
             cell_y += padded_height
@@ -2853,7 +2865,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
         filled_coords = [origin, origin + i*table_width, origin - j*cell_y,  origin + i*table_width, origin +- j*cell_y, origin+i*table_width-j*cell_y]
 
-        draw_filled_coords(filled_coords, table.background_color,polySmooth=True)
+        #draw_filled_coords(filled_coords, table.background_color,polySmooth=True)
 
         rawRGB = table.color
         rgb = rgb_gamma_correct(rawRGB)
@@ -3286,6 +3298,140 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
 
     return capCoords, filledCoords
 
+
+def get_textField_boundary(context, textField):
+    if textField.boundaryShape == 'NONE': return
+    card = None
+    try:
+        card = textField['textcard']
+    except KeyError:
+        print('Textcard not set before drawing boundary')
+        return
+    
+    # Card Indices:
+    #
+    #     1----------------2
+    #     |                |
+    #     |                |
+    #     0----------------3
+
+    x_dir = (Vector(card[3]) - Vector(card[0]))
+    y_dir = (Vector(card[1]) - Vector(card[0]))
+    center = (Vector(card[0]) + Vector(card[2]))/2
+
+    height = y_dir.length
+    width = x_dir.length
+
+    x_dir = x_dir.normalized()
+    y_dir = y_dir.normalized()
+
+    coords = []
+    if textField.boundaryShape == 'BORDER':
+        padding = 0.25 * height
+        c0 = Vector(card[0]) - padding * x_dir * width - padding * y_dir * height 
+        c1 = Vector(card[1]) - padding * x_dir * width + padding * y_dir * height
+        c2 = Vector(card[2]) + padding * x_dir * width + padding * y_dir * height
+        c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
+        coords = [c0,c1,c1,c2,c2,c3,c3,c0]
+    
+    if textField.boundaryShape == 'ROUNDED':
+        padding = 0.25 * height
+
+        c0 = Vector(card[0]) - padding * x_dir * width - padding * y_dir * height 
+        c1 = Vector(card[1]) - padding * x_dir * width + padding * y_dir * height
+        c2 = Vector(card[2]) + padding * x_dir * width + padding * y_dir * height
+        c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
+
+        coords = [c1,c2,c3,c0]
+
+        left_mid = (c0 + c1) / 2 
+        right_mid = (c3 + c2) / 2 
+
+        rot_axis = x_dir.cross(y_dir)
+        segments = 12
+        angle = math.radians(180/segments)
+
+        # get_coords for cap circles
+        lstart_point = c0 - left_mid
+        rstart_point = c2 - right_mid
+        quat = Quaternion(rot_axis,-angle)
+        for i in range(0,segments):
+            
+            r_next_point = quat @ rstart_point
+            l_next_point = quat @ lstart_point
+
+            coords.extend([lstart_point+left_mid,l_next_point+left_mid,rstart_point+right_mid,r_next_point + right_mid])
+            lstart_point = l_next_point
+            rstart_point = r_next_point
+
+    if textField.boundaryShape == 'DIAMOND':
+        padding = -0.25
+
+        c0 = Vector(card[0]) 
+        c1 = Vector(card[1]) 
+        c2 = Vector(card[2]) 
+        c3 = Vector(card[3])
+
+        left_mid = (c0 + c1) / 2 
+        right_mid = (c3 + c2) / 2 
+        top_mid = (c1 + c2) / 2 
+        bottom_mid = (c0 + c3) / 2 
+
+        d1 = left_mid - x_dir*height/2
+        d2 = top_mid + y_dir*width/2
+        d3 = right_mid + x_dir*height/2
+        d4 = bottom_mid - y_dir*width/2
+
+        coords = [d1,d2,d2,d3,d3,d4,d4,d1]
+
+    if textField.boundaryShape == 'HEX':
+        padding = 0.5*height
+
+        c0 = Vector(card[0]) - padding * x_dir * width - padding * y_dir * height 
+        c1 = Vector(card[1]) - padding * x_dir * width + padding * y_dir * height
+        c2 = Vector(card[2]) + padding * x_dir * width + padding * y_dir * height
+        c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
+
+        hex_half_w = ((c3-c0).length/2)
+        unit_hex_half_w = math.cos(math.radians(30))
+
+        rad = hex_half_w / unit_hex_half_w
+
+        rot_axis = x_dir.cross(y_dir)
+        angle = math.radians(60)
+        h0 = y_dir * rad
+        start_point = h0.copy()
+        quat = Quaternion(rot_axis,angle)
+        coords = []
+        for i in range(0,6):
+            next_point = quat @ start_point
+            coords.extend([start_point + center, next_point+center])
+            start_point = next_point
+    
+    if textField.boundaryShape == 'CIRCLE':
+        padding = 0.5*height
+
+        c0 = Vector(card[0]) - padding * x_dir * width - padding * y_dir * height 
+        c1 = Vector(card[1]) - padding * x_dir * width + padding * y_dir * height
+        c2 = Vector(card[2]) + padding * x_dir * width + padding * y_dir * height
+        c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
+
+        rad = (c2 - center).length
+
+        rot_axis = x_dir.cross(y_dir)
+        angle = math.radians(10)
+        h0 = y_dir * rad
+        start_point = h0.copy()
+        quat = Quaternion(rot_axis,angle)
+        coords = []
+        for i in range(0,36):
+            next_point = quat @ start_point
+            coords.extend([start_point + center, next_point+center])
+            start_point = next_point
+
+    return coords
+
+    
 
 def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), basePoint=Vector((0, 0, 0)), xDir=Vector((1, 0, 0)),
         yDir=Vector((0, 1, 0)), cardIdx=0):
