@@ -160,34 +160,36 @@ class OpenGL_Settings:
     def set_OpenGL_Settings(self, toggleBool, props=None):
 
         if toggleBool:
-            bgl.glEnable(bgl.GL_MULTISAMPLE)
-            bgl.glEnable(bgl.GL_BLEND)
+            #bgl.glEnable(bgl.GL_MULTISAMPLE)
+            #bgl.glEnable(bgl.GL_BLEND)
             gpu.state.blend_set('ALPHA_PREMULT')
-            bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
-            bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+            #bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
+            #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
-            bgl.glEnable(bgl.GL_DEPTH_TEST)
-            bgl.glDepthFunc(bgl.GL_LEQUAL)
-            #gpu.state.depth_test_set('LESS_EQUAL')
-            bgl.glDepthMask(True)
+            #bgl.glEnable(bgl.GL_DEPTH_TEST)
+            #bgl.glDepthFunc(bgl.GL_LEQUAL)
+            gpu.state.depth_test_set('LESS_EQUAL')
+            #bgl.glDepthMask(True)
+            gpu.state.depth_mask_set(True)
 
             if self.props and self.props.inFront:
-                bgl.glDisable(bgl.GL_DEPTH_TEST)
-                #gpu.state.depth_test_set('NONE')
+                #bgl.glDisable(bgl.GL_DEPTH_TEST)
+                gpu.state.depth_test_set('NONE')
 
         else:
-            bgl.glDisable(bgl.GL_MULTISAMPLE)
-            bgl.glDisable(bgl.GL_BLEND)
-            #gpu.state.blend_set('NONE')
-            bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
-            bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+           # bgl.glDisable(bgl.GL_MULTISAMPLE)
+            #bgl.glDisable(bgl.GL_BLEND)
+            gpu.state.blend_set('ALPHA_PREMULT')
+            #bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
+            #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
-            bgl.glDisable(bgl.GL_DEPTH_TEST)
-            #gpu.state.depth_test_set('NONE')
-            bgl.glDepthFunc(bgl.GL_LEQUAL)
-            bgl.glDepthMask(False)
+            #bgl.glDisable(bgl.GL_DEPTH_TEST)
+            gpu.state.depth_test_set('NONE')
+            #bgl.glDepthFunc(bgl.GL_LEQUAL)
+            #bgl.glDepthMask(False)
+            gpu.state.depth_mask_set(True)
 
-            bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+            #bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
 def get_view():
     scene = bpy.context.scene

@@ -432,6 +432,8 @@ def draw_textfield_settings(item, box, prop_path, dim_skip_length = False, entry
 
         elif textField.textSource == 'TEXT_FILE' and textField.autoFillText:
             row.prop_search(textField, 'textFile', bpy.data, 'texts', text="", icon='TEXT')
+        
+        row.prop(textField,'boundaryShape',text="")
 
         if show_buttons:
             row.emboss = 'PULLDOWN_MENU'

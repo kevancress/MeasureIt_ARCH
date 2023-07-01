@@ -417,10 +417,10 @@ def geometric_vis_calc(p1,p2,mat,item):
             intersect_points.append(intersection)
 
     # Get all 3D face intersections
-    for face in facemap:
-        intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
-        if intersection != None and intersection.factor < 1.0 and intersection.factor > 0.0:
-            intersect_points.append(intersection)
+    #for face in facemap:
+    #    intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
+    #    if intersection != None and intersection.factor < 1.0 and intersection.factor > 0.0:
+    #        intersect_points.append(intersection)
 
     # Check vis of each segment defined by the intersect points
     line_segs = []
