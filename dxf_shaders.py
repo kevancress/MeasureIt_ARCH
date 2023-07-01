@@ -48,9 +48,12 @@ hatch_col_dict = {}
 
 
 
-def quantize_vec2(vec2,precision='1e-6'):
-    x = Decimal('{}'.format(vec2.x)).quantize(Decimal(precision))
-    y = Decimal('{}'.format(vec2.y)).quantize(Decimal(precision))
+def quantize_vec(vec,precision='1e-6', is_2d=True):
+    x = Decimal('{}'.format(vec.x)).quantize(Decimal(precision))
+    y = Decimal('{}'.format(vec.y)).quantize(Decimal(precision))
+    if not is_2d:
+        z = Decimal('{}'.format(vec.z)).quantize(Decimal(precision))
+        return(x,y,z)
     return(x,y)
 
 def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, mat=Matrix.Identity(4), make_block = False):
@@ -98,8 +101,8 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
                 p1ss = vector_utils.get_worldscale_projection(mat @ Vector(p1)) 
                 p2ss = vector_utils.get_worldscale_projection(mat @ Vector(p2))
 
-                p1_float = quantize_vec2(p1ss)
-                p2_float = quantize_vec2(p2ss)
+                p1_float = quantize_vec(p1ss)
+                p2_float = quantize_vec(p2ss)
                 
                 # Check if we've drawn this line before
                 check_string_1 = "{}:{}".format(p1_float,p2_float)

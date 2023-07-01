@@ -636,7 +636,7 @@ def draw_main_3d(context):
 
     sceneProps.source_scene = scene
     draw3d_loop(context, objlist)
-    #preview_dual(context)
+    preview_dupal(context)
 
     # VIEWPORTS
     viewportGen = scene.ViewportGenerator
