@@ -187,7 +187,7 @@ class OpenGL_Settings:
             gpu.state.depth_test_set('NONE')
             #bgl.glDepthFunc(bgl.GL_LEQUAL)
             #bgl.glDepthMask(False)
-            gpu.state.depth_mask_set(True)
+            gpu.state.depth_mask_set(False)
 
             #bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 

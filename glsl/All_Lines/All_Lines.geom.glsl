@@ -156,7 +156,7 @@ void main() {
                 vec3 circleOffset = get_offset_and_alpha(circle_dir,radius);
             
                 gl_Position = pc_clip + vec4(circleOffset.xy*pc_clip.w, 0.0, 0.0);
-                mTexCoord = vec2(i,1.0);
+                mTexCoord = vec2(i,0.5);
                 g_color = vec4(verts[i].color.xyz, circleOffset[2] * verts[i].color[3]);
                 EmitVertex();
 

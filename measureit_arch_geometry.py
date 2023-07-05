@@ -2557,6 +2557,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 svg_shaders.svg_fill_shader(
                     annotation, customFilledCoords, rgb, svg, parent=svg_anno)
             for dotcoord in dotcoords:
+
+                
                 if dotcoord:
                     svg_shaders.svg_circle_shader(annotation,dotcoord[0],dotcoord[1],rgb,svg,parent=svg_anno)
             for fill in filledcoords:
@@ -3888,24 +3890,9 @@ def draw_all_lines(ext_mat = None):
     allLinesShader.uniform_float("camera_coord1", c1)
     allLinesShader.uniform_float("camera_coord2", c2)
 
-    gpu.state.blend_set('ALPHA_PREMULT')
-    
-
-    #bgl.glEnable(bgl.GL_BLEND)
-    #gl.glEnable(bgl.GL_DEPTH_TEST)
-
-    #bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-    #                bgl.GL_ONE_MINUS_SRC_ALPHA)
-    
-    # Set Blend
-    #if sceneProps.is_render_draw:
-    #    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-    #                    bgl.GL_ONE_MINUS_SRC_ALPHA)
-    #    # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-    #    bgl.glBlendEquation(bgl.GL_MAX)
-
+    # DRAW HIDDEN LINES
+    gpu.state.blend_set('NONE')
     gpu.state.depth_test_set('GREATER')
-    #bgl.glDepthFunc(bgl.GL_GREATER)
     for key in HiddenLinesBuffer.keys():
         hiddenbuffer = HiddenLinesBuffer[key]
         hiddenvboBuffer = hiddenbuffer["VBOs"]
@@ -3939,9 +3926,8 @@ def draw_all_lines(ext_mat = None):
         HiddenLinesBatch.program_set(allLinesShader)
         HiddenLinesBatch.draw()
 
-    gpu.state.depth_test_set('LESS_EQUAL')
-    #bgl.glEnable(bgl.GL_DEPTH_TEST)
-    #bgl.glDepthFunc(bgl.GL_LEQUAL)
+
+    # DRAW REGULAR LINES
     for key in AllLinesBuffer.keys():
         buffer = AllLinesBuffer[key]
         vboBuffer = buffer["VBOs"]
@@ -3971,25 +3957,18 @@ def draw_all_lines(ext_mat = None):
             AllLinesBatch = AllLinesBatchs[key]
 
         # Set Depth Test
+        gpu.state.depth_test_set('LESS_EQUAL')
      
     
         # Draw To depth Mask
-        gpu.state.depth_test_set('LESS_EQUAL')
+        gpu.state.color_mask_set(True, True, True, True)
         gpu.state.depth_mask_set(True)
-        #bgl.glDepthFunc(bgl.GL_LEQUAL)
-        #bgl.glDepthMask(True)
-        allLinesShader.uniform_float("depthPass", True)
+        gpu.state.blend_set('NONE')
+        allLinesShader.uniform_float("depthPass", False)
         AllLinesBatch.program_set(allLinesShader)
         AllLinesBatch.draw()
 
-        # Draw Without Depth Mask
-        gpu.state.depth_mask_set(False)
-        #bgl.glDepthMask(False)
-        allLinesShader.uniform_float("depthPass", False)
-        AllLinesBatch.draw()
-
-    gpu.state.depth_test_set('NONE')
-
+        gpu.state.blend_set('NONE')
     gpu.shader.unbind()
     pass
 

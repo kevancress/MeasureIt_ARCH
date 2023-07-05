@@ -583,14 +583,15 @@ def render_main_svg(self, context):
         # -----------------------------
         # Loop to draw all objects
         # -----------------------------
-        text_update_loop(context, objlist)
-        drawing_group = svg.g(id="Drawing")
-        draw3d_loop(context, objlist, svg=svg)
-        svg.add(drawing_group)
+        with OpenGL_Settings(None):
+            text_update_loop(context, objlist)
+            drawing_group = svg.g(id="Drawing")
+            draw3d_loop(context, objlist, svg=svg)
+            svg.add(drawing_group)
 
-        tb_group = svg.g(id="Titleblock")
-        draw_titleblock(context, svg=svg)
-        svg.add(tb_group)
+            tb_group = svg.g(id="Titleblock")
+            draw_titleblock(context, svg=svg)
+            svg.add(tb_group)
 
         #DEBUG CHECK EDGEMAP
         if False:
