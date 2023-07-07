@@ -479,13 +479,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
     p2 = get_point(p2Local, bMatrix)
 
     try:
-
         if format_distance(1,dim) != dim['last_units']:
             dim.is_invalid = True
             dim['last_units'] = format_distance(1,dim) 
         if [p1.x,p1.y,p1.z] != dim['last_p1'].to_list():
-            print([p1.x,p1.y,p1.z])
-            print(dim['last_p1'].to_list())
             dim['last_p1'] = p1
             dim.is_invalid = True
         
@@ -2472,6 +2469,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
         for textField in annotation.textFields:
             fields.append(textField)
 
+        num_fields = len(fields)
         for textField in fields:
             if instance is None:
                 set_text(textField, myobj, style = annotationProps, item = annotation)
@@ -2487,8 +2485,10 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
             textField.textAlignment = annotationProps.textAlignment
             textField.textPosition = annotationProps.textPosition
+            cardIdx = fieldIdx
+                
             textcard = generate_text_card(
-                context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
+                context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx, num_cards = num_fields)
             textField['textcard'] = textcard
             fieldIdx += 1
 
@@ -3442,7 +3442,7 @@ def get_textField_boundary(context, textField):
     
 
 def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), basePoint=Vector((0, 0, 0)), xDir=Vector((1, 0, 0)),
-        yDir=Vector((0, 1, 0)), cardIdx=0):
+        yDir=Vector((0, 1, 0)), cardIdx=0, num_cards=1):
 
     """
     Returns a list of 4 Vectors
@@ -3450,6 +3450,8 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
 
     width = textobj.textWidth
     height = textobj.textHeight
+
+    
 
     scale = get_scale()
     res = get_resolution()
@@ -3462,6 +3464,8 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
 
     cardX = xDir.normalized() * sx
     cardY = yDir.normalized() * sy
+
+    total_height = sy * num_cards
 
     square = [
         basePoint - (cardX / 2),
@@ -3478,14 +3482,25 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
     else:
         aOff = Vector((0.0, 0.0, 0.0))
 
+
+    # Card pos
+
+    start_pos = 0
+    offset_dir = 1
+    if textobj.textPosition == 'T':
+        start_pos = total_height - sy
+        offset_dir = -1
     if textobj.textPosition == 'M':
-        pOff = 0.5 * cardY
+        start_pos = (total_height - (2* sy) ) / 2
+        offset_dir = -1
     elif textobj.textPosition == 'B':
-        pOff = 1.0 * cardY
+        start_pos = 0 - sy
+        offset_dir = -1
     else:
         pOff = Vector((0.0, 0.0, 0.0))
 
-    cardOffset = cardIdx * cardY
+    cardOffset = cardIdx * cardY * offset_dir
+    fields_start = cardY.normalized() * start_pos
 
     # Define transformation matrices
     rotMat = Matrix.Identity(3)
@@ -3495,7 +3510,7 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
 
     coords = []
     for coord in square:
-        coord = Vector(coord) - aOff - pOff - cardOffset
+        coord = Vector(coord) - aOff + cardOffset + fields_start
         coord = (rotMat @ (coord - basePoint)) + basePoint
         coords.append(coord)
 

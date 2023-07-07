@@ -728,8 +728,9 @@ def render_main_dxf(self, context):
         # -----------------------------
         # Loop to draw all objects
         # -----------------------------
-        draw3d_loop(context, objlist,dxf=doc)
-        #draw_titleblock(context, dxf = doc)
+        with OpenGL_Settings(None):
+            draw3d_loop(context, objlist,dxf=doc)
+            #draw_titleblock(context, dxf = doc)
 
         doc.saveas(outpath)
 
