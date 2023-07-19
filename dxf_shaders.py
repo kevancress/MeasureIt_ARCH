@@ -66,28 +66,37 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
     #if ss_origin.z < 0:
         #print('Object Origin behind Camera. Skipping')
         #return
+    make_group = False
+    
+    if myobj.data != None and myobj.data.users > 1: make_block = True
 
     if make_block:
         block = None
         blockname = myobj.name
-        if myobj.data != None:
-            blockname = myobj.data.name
+        #if myobj.data != None:
+        #    blockname = myobj.data.name
 
         dxf_name = safe_name(view.name + '-' + blockname, is_dxf=True)
 
         try:
             dxf.blocks.get(dxf_name)
             block = dxf.blocks[dxf_name]
+            model_space.add_blockref(dxf_name, ss_origin, dxfattribs={
+                "layer": itemProps.name,
+            })
+            return
         except ezdxf.DXFKeyError:
             block = dxf.blocks.new(name = dxf_name)  
-            model_space.add_blockref(dxf_name, (0,0), dxfattribs={"layer": itemProps.name})
+            model_space.add_blockref(dxf_name, ss_origin, dxfattribs={
+                "layer": itemProps.name,
+            })
 
     
 
     dashed = "lineDrawDashed" in itemProps and itemProps.lineDrawDashed
     draw_hidden = 'lineDrawHidden' in itemProps and itemProps.lineDrawHidden
 
-   
+    lines = []
     for x in range(0, len(coords) - 1, 2):
         line_segs = vector_utils.depth_test(coords[x], coords[x + 1], mat, itemProps)
         for line in line_segs:
@@ -98,8 +107,12 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
                 continue
 
             if vis or draw_hidden:
-                p1ss = vector_utils.get_worldscale_projection(mat @ Vector(p1)) 
-                p2ss = vector_utils.get_worldscale_projection(mat @ Vector(p2))
+                if make_block:
+                    p1ss = vector_utils.get_worldscale_projection(mat @ Vector(p1)) 
+                    p2ss = vector_utils.get_worldscale_projection(mat @ Vector(p2))
+                else:
+                    p1ss = vector_utils.get_worldscale_projection(mat @ Vector(p1)) 
+                    p2ss = vector_utils.get_worldscale_projection(mat @ Vector(p2))
 
                 p1_float = quantize_vec(p1ss)
                 p2_float = quantize_vec(p2ss)
@@ -117,9 +130,10 @@ def dxf_line_shader(lineGroup, itemProps, coords, lineWeight, rgb, dxf, myobj, m
                     #print("{},{}".format(float(p1_float[0]),float(p2_float[0])))
                     line_buffer.append(check_string_1)
                     if make_block:
-                        block.add_line(p1_float, p2_float , dxfattribs={"layer": itemProps.name})
+                        block.add_line(Vector(p1_float)-ss_origin, Vector(p2_float)-ss_origin , dxfattribs={"layer": itemProps.name})
                     else:
                         line = model_space.add_line(p1_float, p2_float, dxfattribs={"layer": itemProps.name})
+            
 
 
 # From https://ezdxf.readthedocs.io/en/stable/tutorials/linear_dimension.html
@@ -137,7 +151,7 @@ def dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf):
     ssp1 = vector_utils.get_worldscale_projection(Vector(p1)) 
     ssp2 = vector_utils.get_worldscale_projection(Vector(p2))
 
-    ssp1 = quantize_vec(ssp2)
+    ssp1 = quantize_vec(ssp1)
     ssp2 = quantize_vec(ssp2)
 
     ssOrigin = vector_utils.get_worldscale_projection(Vector(origin))
@@ -276,11 +290,11 @@ def dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf):
     #MTEXT_BOTTOM_RIGHT	9
     
     attach_val = 0
-    if annotationProps.textPosition =='T':
+    if annotationProps.textPosition =='B':
         attach_val = 0
     elif annotationProps.textPosition =='M':
         attach_val = 3
-    elif annotationProps.textPosition =='B':
+    elif annotationProps.textPosition =='T':
         attach_val = 6
 
     if annotationProps.textAlignment =='L':

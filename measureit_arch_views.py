@@ -1186,6 +1186,9 @@ class SCENE_MT_Views_menu(bpy.types.Menu):
 
         layout.operator('measureit_arch.batchviewrender',
             text = "Batch Render Views", icon = "DOCUMENTS")
+        
+        layout.operator('measureit_arch.batchdxfrender',
+            text = "Batch Render DXF", icon = "DOCUMENTS")
 
 
 class OpenInBrowser(Operator):

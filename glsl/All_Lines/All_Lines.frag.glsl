@@ -33,8 +33,8 @@ void main() {
     float distFromEdge = 1-abs((mTexCoord.y*2)-1);
 
     float delta = fwidth(distFromEdge);
-    float threshold = 1.5 * delta;
-    float aa = clamp((distFromEdge/threshold)+0.4,0,1);
+    float threshold = 1.0 * delta;
+    float aa = clamp((distFromEdge/threshold),0.0,1.0);
     aa = smoothstep(0,1,aa);
 
     aaColor = mix(mixColor,aaColor,aa);

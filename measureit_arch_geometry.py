@@ -479,13 +479,10 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
     p2 = get_point(p2Local, bMatrix)
 
     try:
-
         if format_distance(1,dim) != dim['last_units']:
             dim.is_invalid = True
             dim['last_units'] = format_distance(1,dim) 
         if [p1.x,p1.y,p1.z] != dim['last_p1'].to_list():
-            print([p1.x,p1.y,p1.z])
-            print(dim['last_p1'].to_list())
             dim['last_p1'] = p1
             dim.is_invalid = True
         
@@ -2467,10 +2464,12 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             pass
 
         fields = []
+        coords = []
         notesFlag = False
         for textField in annotation.textFields:
             fields.append(textField)
 
+        num_fields = len(fields)
         for textField in fields:
             if instance is None:
                 set_text(textField, myobj, style = annotationProps, item = annotation)
@@ -2486,17 +2485,24 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
             textField.textAlignment = annotationProps.textAlignment
             textField.textPosition = annotationProps.textPosition
+            cardIdx = fieldIdx
+                
             textcard = generate_text_card(
-                context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx)
+                context, textField, annotationProps, basePoint=origin, xDir=xDir, yDir=yDir, cardIdx=fieldIdx, num_cards = num_fields)
             textField['textcard'] = textcard
             fieldIdx += 1
+
+            tf_boundary_coords = get_textField_boundary(context,textField)
+            if tf_boundary_coords != None:
+                coords.extend(tf_boundary_coords)
+
         # Set Gizmo Properties
         annotation.gizLoc = p2
 
         # Draw
         if p1 is not None and p2 is not None:
 
-            coords = []
+            
 
             # Move end of line Back if arrow endcap
             if endcap == 'T':
@@ -2505,18 +2511,17 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             else:
                 lineEnd = p1
 
-            coords.append(lineEnd)
-            coords.append(p2)
-            coords.append(p2)
-            coords.append(p3)
+            if annotationProps.draw_leader:
+                coords.append(lineEnd)
+                coords.append(p2)
+                coords.append(p2)
+                coords.append(p3)
 
             if len(fields) == 0:
                 return
             textcard = fields[0]['textcard']
 
-            if not annotationProps.draw_leader:
-                coords = []
-
+            
             dotcoords = []
             filledcoords = []
             dot,fill = draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize)
@@ -2552,6 +2557,8 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
                 svg_shaders.svg_fill_shader(
                     annotation, customFilledCoords, rgb, svg, parent=svg_anno)
             for dotcoord in dotcoords:
+
+                
                 if dotcoord:
                     svg_shaders.svg_circle_shader(annotation,dotcoord[0],dotcoord[1],rgb,svg,parent=svg_anno)
             for fill in filledcoords:
@@ -2564,6 +2571,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
         if sceneProps.is_dxf_draw:
             dxf_shaders.dxf_annotation_shader(annotation,annotationProps,coords,origin,dxf)
+            dxf_shaders.dxf_line_shader(annotation,annotationProps,coords,annotationProps.lineWeight,rgb,dxf,myobj)
 
 
 def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = None):
@@ -3434,7 +3442,7 @@ def get_textField_boundary(context, textField):
     
 
 def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), basePoint=Vector((0, 0, 0)), xDir=Vector((1, 0, 0)),
-        yDir=Vector((0, 1, 0)), cardIdx=0):
+        yDir=Vector((0, 1, 0)), cardIdx=0, num_cards=1):
 
     """
     Returns a list of 4 Vectors
@@ -3442,6 +3450,8 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
 
     width = textobj.textWidth
     height = textobj.textHeight
+
+    
 
     scale = get_scale()
     res = get_resolution()
@@ -3454,6 +3464,8 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
 
     cardX = xDir.normalized() * sx
     cardY = yDir.normalized() * sy
+
+    total_height = sy * num_cards
 
     square = [
         basePoint - (cardX / 2),
@@ -3470,14 +3482,25 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
     else:
         aOff = Vector((0.0, 0.0, 0.0))
 
+
+    # Card pos
+
+    start_pos = 0
+    offset_dir = 1
+    if textobj.textPosition == 'T':
+        start_pos = total_height - sy
+        offset_dir = -1
     if textobj.textPosition == 'M':
-        pOff = 0.5 * cardY
+        start_pos = (total_height - (2* sy) ) / 2
+        offset_dir = -1
     elif textobj.textPosition == 'B':
-        pOff = 1.0 * cardY
+        start_pos = 0 - sy
+        offset_dir = -1
     else:
         pOff = Vector((0.0, 0.0, 0.0))
 
-    cardOffset = cardIdx * cardY
+    cardOffset = cardIdx * cardY * offset_dir
+    fields_start = cardY.normalized() * start_pos
 
     # Define transformation matrices
     rotMat = Matrix.Identity(3)
@@ -3487,7 +3510,7 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
 
     coords = []
     for coord in square:
-        coord = Vector(coord) - aOff - pOff - cardOffset
+        coord = Vector(coord) - aOff + cardOffset + fields_start
         coord = (rotMat @ (coord - basePoint)) + basePoint
         coords.append(coord)
 
@@ -3729,15 +3752,13 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-    bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-    if not polySmooth:
-        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-
     if rgb[3] != 1:
-        bgl.glDepthMask(False)
+        #bgl.glDepthMask(False)
+        gpu.state.depth_mask_set(False)
 
     if sceneProps.is_render_draw:
-        bgl.glBlendEquation(bgl.GL_MAX)
+        gpu.state.blend_set('ALPHA_PREMULT')
+        #bgl.glBlendEquation(bgl.GL_MAX)
 
     triShader.bind()
     triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
@@ -3748,8 +3769,9 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
     batch.draw()
     gpu.shader.unbind()
 
-    bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-    bgl.glBlendEquation(bgl.GL_FUNC_ADD)
+    #bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
+    gpu.state.blend_set('ADDITIVE')
+    #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed = False,
@@ -3883,24 +3905,9 @@ def draw_all_lines(ext_mat = None):
     allLinesShader.uniform_float("camera_coord1", c1)
     allLinesShader.uniform_float("camera_coord2", c2)
 
-    gpu.state.blend_set('ALPHA_PREMULT')
-    
-
-    #bgl.glEnable(bgl.GL_BLEND)
-    #gl.glEnable(bgl.GL_DEPTH_TEST)
-
-    #bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-    #                bgl.GL_ONE_MINUS_SRC_ALPHA)
-    
-    # Set Blend
-    #if sceneProps.is_render_draw:
-    #    bgl.glBlendFunc(bgl.GL_SRC_ALPHA,
-    #                    bgl.GL_ONE_MINUS_SRC_ALPHA)
-    #    # bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-    #    bgl.glBlendEquation(bgl.GL_MAX)
-
-    #gpu.state.depth_test_set('GREATER')
-    bgl.glDepthFunc(bgl.GL_GREATER)
+    # DRAW HIDDEN LINES
+    gpu.state.blend_set('NONE')
+    gpu.state.depth_test_set('GREATER')
     for key in HiddenLinesBuffer.keys():
         hiddenbuffer = HiddenLinesBuffer[key]
         hiddenvboBuffer = hiddenbuffer["VBOs"]
@@ -3928,14 +3935,14 @@ def draw_all_lines(ext_mat = None):
         else:
             HiddenLinesBatch = HiddenLinesBatchs[key]
 
-        bgl.glDepthMask(False)
+        #bgl.glDepthMask(False)
+        gpu.state.depth_mask_set(False)
         allLinesShader.uniform_float("depthPass", False)
         HiddenLinesBatch.program_set(allLinesShader)
         HiddenLinesBatch.draw()
 
-    #gpu.state.depth_test_set('LESS_EQUAL')
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glDepthFunc(bgl.GL_LEQUAL)
+
+    # DRAW REGULAR LINES
     for key in AllLinesBuffer.keys():
         buffer = AllLinesBuffer[key]
         vboBuffer = buffer["VBOs"]
@@ -3965,23 +3972,18 @@ def draw_all_lines(ext_mat = None):
             AllLinesBatch = AllLinesBatchs[key]
 
         # Set Depth Test
+        gpu.state.depth_test_set('LESS_EQUAL')
      
     
         # Draw To depth Mask
-        #gpu.state.depth_test_set('LESS_EQUAL')
-        bgl.glDepthFunc(bgl.GL_LEQUAL)
-        bgl.glDepthMask(True)
-        allLinesShader.uniform_float("depthPass", True)
+        gpu.state.color_mask_set(True, True, True, True)
+        gpu.state.depth_mask_set(True)
+        gpu.state.blend_set('NONE')
+        allLinesShader.uniform_float("depthPass", False)
         AllLinesBatch.program_set(allLinesShader)
         AllLinesBatch.draw()
 
-        # Draw Without Depth Mask 
-        bgl.glDepthMask(False)
-        allLinesShader.uniform_float("depthPass", False)
-        AllLinesBatch.draw()
-
-    gpu.state.depth_test_set('NONE')
-
+        gpu.state.blend_set('NONE')
     gpu.shader.unbind()
     pass
 
