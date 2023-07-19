@@ -345,11 +345,29 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
             objMaterials.append(slot.material)
 
             pattern = hatch.pattern
+            maxX = 1
+            maxY = 1
+            if pattern != None:
+                # get pattern bounds
+                coords = []
+                for obj in pattern.all_objects:
+                    bounds = obj.bound_box
+                    for coord in bounds:
+                        coords.append(obj.matrix_world @ Vector(coord))
+                
+                maxX, minX, maxY, minY, maxZ, minZ = get_axis_aligned_bounds(coords)
+
+
+
+            sizex = hatch.patternSize * ( (maxX/get_scale()) * BU_TO_INCHES * get_resolution())
+            sizey = hatch.patternSize * ( (maxY/get_scale()) * BU_TO_INCHES * get_resolution())
             size = hatch.patternSize * ( (1/get_scale()) * BU_TO_INCHES * get_resolution())
             rotation = math.degrees(hatch.patternRot)
 
             if hatch.use_object_pattern:
                 pattern = myobj.MeasureItArchProps.obj_hatch_pattern
+                sizex = myobj.MeasureItArchProps.obj_patternSize * ( (maxX/get_scale()) * BU_TO_INCHES * get_resolution())
+                sizey = myobj.MeasureItArchProps.obj_patternSize * ( (maxY/get_scale()) * BU_TO_INCHES * get_resolution())
                 size = myobj.MeasureItArchProps.obj_patternSize * ( (1/get_scale()) * BU_TO_INCHES * get_resolution())
                 rotation = math.degrees(myobj.MeasureItArchProps.obj_patternRot)
 
@@ -364,7 +382,7 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
 
 
                 if sceneProps.is_vector_draw:
-                    pattern = svgwrite.pattern.Pattern(width="{}px".format(size), height="{}px".format(size), id=name, patternUnits="userSpaceOnUse", **{
+                    pattern = svgwrite.pattern.Pattern(width="{}px".format(sizex), height="{}px".format(sizey), id=name, patternUnits="userSpaceOnUse", **{
                         'patternTransform': 'rotate({} {} {})'.format(
                             rotation, 0, 0
                         )})
