@@ -137,8 +137,8 @@ def dxf_aligned_dimension(dim, dimProps, p1, p2, origin, dxf):
     ssp1 = vector_utils.get_worldscale_projection(Vector(p1)) 
     ssp2 = vector_utils.get_worldscale_projection(Vector(p2))
 
-    ssp1 = quantize_vec2(ssp2)
-    ssp2 = quantize_vec2(ssp2)
+    ssp1 = quantize_vec(ssp2)
+    ssp2 = quantize_vec(ssp2)
 
     ssOrigin = vector_utils.get_worldscale_projection(Vector(origin))
 
@@ -182,8 +182,8 @@ def dxf_axis_dimension(dim, dimProps, p1, p2, origin, dxf):
     ssp1 = vector_utils.get_worldscale_projection(Vector(p1))
     ssp2 = vector_utils.get_worldscale_projection(Vector(p2))
 
-    ssp1 = quantize_vec2(ssp2)
-    ssp2 = quantize_vec2(ssp2)
+    ssp1 = quantize_vec(ssp2)
+    ssp2 = quantize_vec(ssp2)
 
     ssOrigin = vector_utils.get_worldscale_projection(Vector(origin))
 
@@ -204,7 +204,7 @@ def dxf_fill_shader(coords,dxf,layer):
     coords_2d = []
     hatch = model_space.add_hatch(color=256,dxfattribs={"layer": layer})
     for coord in coords:
-        c2d = quantize_vec2(vector_utils.get_worldscale_projection(Vector(coord)))
+        c2d = quantize_vec(vector_utils.get_worldscale_projection(Vector(coord)))
         if c2d not in coords_2d:
             coords_2d.append(c2d)
 

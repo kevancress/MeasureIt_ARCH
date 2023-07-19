@@ -143,16 +143,7 @@ def set_globals():
     global width
     global height
     start_time = time.time()
-    if 'depthbuffer' in sceneProps and depthbuffer is None and view.vector_depthtest:
-        #depthbuffer = np.asarray(sceneProps['depthbuffer'], dtype=np.float32) # I feel like this should be faster but its not
-        depthbuffer = sceneProps['depthbuffer'].to_list()   
-        end_time = time.time()
-        print("Reading Depthbuffer to list took: " + str(end_time - start_time))
 
-    if view.vector_depthtest and sceneProps.depth_test_method == 'GEOMETRIC':
-        generate_edgemap()
-        generate_facemap()
-    
     scene = bpy.context.scene
     camera = bpy.context.scene.camera.data
     near_clip = camera.clip_start
@@ -161,6 +152,18 @@ def set_globals():
     render_scale = scene.render.resolution_percentage / 100
     width = int(scene.render.resolution_x * render_scale)
     height = int(scene.render.resolution_y * render_scale)
+
+    if 'depthbuffer' in sceneProps and depthbuffer is None and view.vector_depthtest:
+        #depthbuffer = np.asarray(sceneProps['depthbuffer'], dtype=np.float32) # I feel like this should be faster but its not
+        depthbuffer = sceneProps['depthbuffer'].to_list()   
+        end_time = time.time()
+        print("Reading Depthbuffer to list took: " + str(end_time - start_time))
+
+    if view.vector_depthtest and sceneProps.depth_test_method == 'GEOMETRIC':
+        generate_edgemap()
+        #generate_facemap()
+    
+
     
 # --------------------------------------------------------------------
 # Get position in final render image
@@ -173,9 +176,14 @@ class MapEdge(object):
     start_coord: Vector = Vector((0,0,0))
     end_coord: Vector = Vector((0,1,0))
 
+    ss_start_coord : Vector = Vector((0,0,0))
+    ss_end_coord : Vector = Vector((0,0,0))
+
     def __init__(self, start, end):
         self.start_coord =start
         self.end_coord = end
+        self.ss_start_coord = get_ss_point(start)
+        self.ss_end_coord = get_ss_point(end)
 
 class MapPolygon(object):
     edges = []
@@ -405,22 +413,25 @@ def geometric_vis_calc(p1,p2,mat,item):
     intersect_points = []
 
     # Get all 2D edge intersections
+    #loop_st = time.time()
+    #loop_count = 0
     for edge in edgemap:
-        p3 = edge.start_coord
-        p4 = edge.end_coord
+        p3ss = edge.ss_start_coord
+        p4ss = edge.ss_end_coord
 
-        p3ss = get_ss_point(p3)
-        p4ss = get_ss_point(p4)
-
+        #aloop_count += 1
         intersection = line_segment_intersection_2D(p1ss,p2ss,p3ss,p4ss)
         if intersection != None:
             intersect_points.append(intersection)
+    
+    #loop_et = time.time()
+    #print("loop time: " + str(loop_et - loop_st) + '. loop count: ' + str(loop_count))
 
     # Get all 3D face intersections
-    for face in facemap:
-        intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
-        if intersection != None and intersection.factor < 1.0 and intersection.factor > 0.0:
-            intersect_points.append(intersection)
+    #for face in facemap:
+    #    intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
+    #    if intersection != None and intersection.factor < 1.0 and intersection.factor > 0.0:
+    #        intersect_points.append(intersection)
 
     # Check vis of each segment defined by the intersect points
     line_segs = []

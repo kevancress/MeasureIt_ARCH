@@ -224,9 +224,9 @@ class BaseProp:
     cad_col_idx: IntProperty(
         name="CAD Color Index",
         description="Autocad Color Index, for .dxf export or high contrast preview",
-        default=256,
-        min=1,
-        soft_max=255,
+        default=0,
+        min=0,
+        max=255,
         update = mark_invalid)
 
     lineWeight: FloatProperty(
