@@ -35,7 +35,7 @@ import numpy as np
 from math import fabs, sqrt
 from mathutils import Vector, Matrix
 from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist
-from threading import Thread
+from multiprocessing import Pool
 
 depthbuffer = None
 facemap = []
@@ -299,7 +299,6 @@ def line_segment_intersection_2D(p1,p2,p3,p4):
 
 def get_line_plane_intersection(p0, p1, p_co, p_no, epsilon=1e-6):
 
-
     """
     modified from https://stackoverflow.com/questions/5666222/3d-line-plane-intersection
     p0, p1: Define the line.
@@ -386,10 +385,13 @@ def depth_test(p1, p2, mat, item):
     if not view.vector_depthtest or item.inFront:
         return [[True, p1, p2]]
 
+    method = sceneProps.depth_test_method
+    if item.depth_test_override != 'NONE':
+        method = item.depth_test_override
     # a line segment is a list [intiger visibility, start point, end point]
-    if sceneProps.depth_test_method == 'DEPTH_BUFFER':
+    if method == 'DEPTH_BUFFER':
         line_segs = vis_sampling(p1, p2, mat, item,)
-    elif sceneProps.depth_test_method == 'GEOMETRIC':
+    elif method == 'GEOMETRIC':
         line_segs = geometric_vis_calc(p1,p2,mat,item)
 
     return line_segs

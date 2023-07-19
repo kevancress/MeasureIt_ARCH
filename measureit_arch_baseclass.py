@@ -296,6 +296,16 @@ class BaseProp:
         name="Gizmo Rotation Direction",
         description="Default Rot Direction for item Gizmo",
         subtype='TRANSLATION')
+    
+    depth_test_override: EnumProperty(
+        items=(
+            ('NONE','None',''),
+            ('DEPTH_BUFFER', 'Depth Buffer', ''),
+            ('GEOMETRIC', 'Geometric', '')
+        ),
+        name="Depth Test Method Override",
+        description="Method for depth testing when rendering vector linework. Depth Buffer is generally faster but less precise",
+        default='NONE',)
 
 class ObjProps(PropertyGroup):
     ignore_in_depth_test: BoolProperty(
@@ -314,7 +324,7 @@ class ObjProps(PropertyGroup):
         name='Object Hatch Rotation',
         description="Object Hatch Rotation",
         default=0.0, min=0.0,subtype='ANGLE')
-
+    
 class TextField(PropertyGroup):
     is_invalid: BoolProperty(
         name='Is Invalid'
@@ -921,7 +931,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
             ('GEOMETRIC', 'Geometric', '')
         ),
         name="Depth Test Method",
-        description="Method for depth testing when rendering vector linework. Depth Buffer is generally faseter but less percise",
+        description="Method for depth testing when rendering vector linework. Depth Buffer is generally faster but less precise",
         default='DEPTH_BUFFER',)
 
 class DeletePropButton(Operator):
