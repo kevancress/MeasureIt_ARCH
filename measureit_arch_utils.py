@@ -551,8 +551,8 @@ def get_smart_selected(filterObj=None, forceEdges=False, usePairs=True):
             spline_id=0
             for spline in obj.data.splines:
                 point_id =0
-                for point in spline.bezier_points:
-                    if point.select_control_point:
+                for point in spline.points:
+                    if point.select:
                         pointData = {}
                         pointData['spline'] = spline_id
                         pointData['vert'] = point_id

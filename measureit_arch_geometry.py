@@ -2398,7 +2398,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
         noScaleMat = locMatrix @ rotMatrix
         # locMatrix = Matrix.Translation(loc)
 
-        p1Scaled = scaleMatrix @ Vector(p1local)
+        p1Scaled = scaleMatrix @ Vector(p1local.xyz)
         p1 = locMatrix @ rotMatrix @ p1Scaled
 
         # Transform offset with Composed Matrix
@@ -3703,7 +3703,7 @@ def get_mesh_vertex(myobj, idx, evalMods, spline_idx=-1):
             coord = Vector((0,0,0))
 
     if myobj.type == 'CURVE':
-        coord = myobj.data.splines[spline_idx].bezier_points[idx].co
+        coord = myobj.data.splines[spline_idx].points[idx].co
 
 
 
