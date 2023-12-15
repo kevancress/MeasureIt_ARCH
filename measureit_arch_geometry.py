@@ -176,7 +176,7 @@ def update_text(textobj, props, context, fields=[]):
 
             # Set BLF font Properties
             blf.color(font_id, rgb[0], rgb[1], rgb[2], rgb[3])
-            blf.size(font_id, size, resolution)
+            blf.size(font_id, size)
 
             text = textField.text
             lines = text.split('\n')
