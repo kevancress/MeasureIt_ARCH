@@ -783,29 +783,32 @@ class BatchDXFRender(Operator):
                                 deps = context.evaluated_depsgraph_get()
                                 projection_matrix = scene.camera.calc_matrix_camera(deps, x=width, y=height)
                                 with OpenGL_Settings(None):
-                                    bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-                                    bgl.glClearDepth(clipdepth)
-                                    bgl.glEnable(bgl.GL_DEPTH_TEST)
-                                    bgl.glDepthFunc(bgl.GL_LEQUAL)
-
+                                    #bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+                                    #bgl.glClearDepth(clipdepth)
+                                    #bgl.glEnable(bgl.GL_DEPTH_TEST)
+                                    #bgl.glDepthFunc(bgl.GL_LEQUAL)
+                                    fb = gpu.state.active_framebuffer_get()
+                                    fb.clear(color=(0.0, 0.0, 0.0, 0.0), depth = clipdepth)
                                     #gpu.state.depth_test_set('LESS_EQUAL')
 
                                     gpu.matrix.reset()
                                     gpu.matrix.load_matrix(view_matrix_3d)
                                     gpu.matrix.load_projection_matrix(projection_matrix)
 
-                                    texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
+                                    #texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
                                     print("Drawing Scene")
                                     draw_scene(self, context, projection_matrix)
 
                                     print("Reading to Buffer")
-                                    bgl.glReadBuffer(bgl.GL_BACK)
-                                    bgl.glReadPixels(
-                                        0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
+                                    depth_buffer = fb.read_depth(0, 0, width, height)
+                                    depth_buffer.dimensions = width * height
+                                    #bgl.glReadBuffer(bgl.GL_BACK)
+                                    #bgl.glReadPixels(
+                                    #    0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
 
                                     if 'depthbuffer' in sceneProps:
                                         del sceneProps['depthbuffer']
-                                    sceneProps['depthbuffer'] = texture_buffer
+                                    sceneProps['depthbuffer'] = depth_buffer
 
                         vector_utils.set_globals()
 

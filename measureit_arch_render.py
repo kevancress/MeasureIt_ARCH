@@ -231,10 +231,12 @@ def render_main(self, context):
         text_update_loop(context, objlist)
         with OpenGL_Settings(None):
             with renderoffscreen.bind():
-
+                
                 # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
-                bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-                bgl.glClearDepth(clipdepth)
+                fb = gpu.state.active_framebuffer_get()
+                fb.clear(color=(0.0, 0.0, 0.0, 0.0), depth = clipdepth)
+                #bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+                #bgl.glClearDepth(clipdepth)
 
                 gpu.matrix.reset()
                 gpu.matrix.load_matrix(view_matrix_3d)
@@ -242,10 +244,12 @@ def render_main(self, context):
 
                 # Draw Scene for the depth buffer
                 draw_scene(self, context, projection_matrix)
-
+                
+                
                 # Clear Color Buffer, we only need the depth info
-                bgl.glClearColor(0, 0, 0, 0)
-                bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
+                fb.clear(color=(0.0, 0.0, 0.0, 0.0))
+                #bgl.glClearColor(0, 0, 0, 0)
+                #bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
 
                 # -----------------------------
                 # Loop to draw all objects
@@ -254,10 +258,12 @@ def render_main(self, context):
                 draw3d_loop(context, objlist)
                 draw_titleblock(context)
 
-                buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
-                bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
-                bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
-                                bgl.GL_UNSIGNED_BYTE, buffer)
+                # Read Buffer
+                buffer = fb.read_color(0, 0, width, height, 4, 0, 'UBYTE')
+                #buffer = bgl.Buffer(bgl.GL_BYTE, width * height * 4)
+                #bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
+                #bgl.glReadPixels(0, 0, width, height, bgl.GL_RGBA,
+                #                bgl.GL_UNSIGNED_BYTE, buffer)
 
             # Create image
             image_name = "measureit_arch_output"
@@ -266,6 +272,7 @@ def render_main(self, context):
 
             image = bpy.data.images[image_name]
             image.scale(width, height)
+            buffer.dimensions = width * height * 4
             image.pixels = [v / 255 for v in buffer]
 
             renderoffscreen.free()
@@ -412,29 +419,35 @@ def render_main_svg(self, context):
                 deps = context.evaluated_depsgraph_get()
                 projection_matrix = scene.camera.calc_matrix_camera(deps, x=width, y=height)
                 with OpenGL_Settings(None):
-                    bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-                    bgl.glClearDepth(clipdepth)
+                    # Clear Frame Buffer
+                    fb = gpu.state.active_framebuffer_get()
+                    fb.clear(color=(0.0, 0.0, 0.0, 0.0), depth = clipdepth)
+                    #bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+                    #bgl.glClearDepth(clipdepth)
 
 
                     #gpu.state.depth_test_set('LESS_EQUAL')
-                    bgl.glEnable(bgl.GL_DEPTH_TEST)
-                    bgl.glDepthFunc(bgl.GL_LEQUAL)
+                    #bgl.glEnable(bgl.GL_DEPTH_TEST)
+                    #bgl.glDepthFunc(bgl.GL_LEQUAL)
 
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix_3d)
                     gpu.matrix.load_projection_matrix(projection_matrix)
 
-                    texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
+                    #texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
                     draw_scene(self, context, projection_matrix)
 
-                    bgl.glReadBuffer(bgl.GL_BACK)
-                    bgl.glReadPixels(
-                        0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
+                    # Read Depth Buffer
+                    depth_buffer = fb.read_depth(0, 0, width, height)
+                    depth_buffer.dimensions = width * height
+                    #bgl.glReadBuffer(bgl.GL_BACK)
+                    #bgl.glReadPixels(
+                    #    0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
 
                     buffer_start_time = time.time()
                     if 'depthbuffer' in sceneProps:
                         del sceneProps['depthbuffer']
-                    sceneProps['depthbuffer'] = texture_buffer
+                    sceneProps['depthbuffer'] = depth_buffer
 
                     render_end_time = time.time()
                     print("Reading Depth Buffer to SceneProps took: " + str(render_end_time - buffer_start_time))
@@ -445,10 +458,11 @@ def render_main_svg(self, context):
                         print("Reading Buffer to Image")
                         scene = context.scene
 
-                        buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
-                        bgl.glReadBuffer(bgl.GL_BACK)
-                        bgl.glReadPixels(0, 0, width, height, bgl.GL_DEPTH_COMPONENT,
-                                        bgl.GL_FLOAT, buffer)
+                        depth_buffer = fb.read_depth(0, 0, width, height)
+                        #buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
+                        #bgl.glReadBuffer(bgl.GL_BACK)
+                        #bgl.glReadPixels(0, 0, width, height, bgl.GL_DEPTH_COMPONENT,
+                        #                bgl.GL_FLOAT, buffer)
 
                         image_name = "measureit_arch_depth"
                         if image_name not in bpy.data.images:
@@ -457,7 +471,8 @@ def render_main_svg(self, context):
                         image = bpy.data.images[image_name]
                         image.scale(width, height)
                         pixel_array = []
-                        for v in buffer:
+                        depth_buffer.dimensions = width * height
+                        for v in depth_buffer:
                             pixel_array.append(v)
                             pixel_array.append(v)
                             pixel_array.append(v)
@@ -647,29 +662,35 @@ def render_main_dxf(self, context):
                 deps = context.evaluated_depsgraph_get()
                 projection_matrix = scene.camera.calc_matrix_camera(deps, x=width, y=height)
                 with OpenGL_Settings(None):
-                    bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
-                    bgl.glClearDepth(clipdepth)
-                    bgl.glEnable(bgl.GL_DEPTH_TEST)
-                    bgl.glDepthFunc(bgl.GL_LEQUAL)
+                    #bgl.glClear(bgl.GL_DEPTH_BUFFER_BIT)
+                    #bgl.glClearDepth(clipdepth)
+                    #bgl.glEnable(bgl.GL_DEPTH_TEST)
+                    #bgl.glDepthFunc(bgl.GL_LEQUAL)
 
                     #gpu.state.depth_test_set('LESS_EQUAL')
+                    # Clear Frame Buffer
+                    fb = gpu.state.active_framebuffer_get()
+                    fb.clear(color=(0.0, 0.0, 0.0, 0.0), depth = clipdepth)
 
                     gpu.matrix.reset()
                     gpu.matrix.load_matrix(view_matrix_3d)
                     gpu.matrix.load_projection_matrix(projection_matrix)
 
-                    texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
+                    #texture_buffer = bgl.Buffer(bgl.GL_FLOAT, width * height)
                     print("Drawing Scene")
                     draw_scene(self, context, projection_matrix)
-
+                    
                     print("Reading to Buffer")
-                    bgl.glReadBuffer(bgl.GL_BACK)
-                    bgl.glReadPixels(
-                        0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
+                    depth_buffer = fb.read_depth(0, 0, width, height)
+                    depth_buffer.dimensions = width * height
+
+                    #bgl.glReadBuffer(bgl.GL_BACK)
+                    #bgl.glReadPixels(
+                    #    0, 0, width, height, bgl.GL_DEPTH_COMPONENT, bgl.GL_FLOAT, texture_buffer)
 
                     if 'depthbuffer' in sceneProps:
                         del sceneProps['depthbuffer']
-                    sceneProps['depthbuffer'] = texture_buffer
+                    sceneProps['depthbuffer'] = depth_buffer
 
         vector_utils.set_globals()
 
