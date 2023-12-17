@@ -46,6 +46,7 @@ camera_type = None
 width = None
 height = None
 
+# Gets the Pixel Co-ordinate of a point in 3D Spcae
 def get_render_location(mypoint, svg_flip_y = True):
     global width
     global height
@@ -267,6 +268,41 @@ def generate_facemap():
             facemap.append(MapPolygon(edge_array,depth,center,normal))
 
 
+# takes a set of co-ordinates returns the min and max value for each axis
+def get_axis_aligned_bounds(coords):
+    """
+    Takes a set of co-ordinates returns the min and max value for each axis
+    """
+    maxX = None
+    minX = None
+    maxY = None
+    minY = None
+    maxZ = None
+    minZ = None
+
+    for coord in coords:
+        if maxX is None:
+            maxX = coord[0]
+            minX = coord[0]
+            maxY = coord[1]
+            minY = coord[1]
+            maxZ = coord[2]
+            minZ = coord[2]
+        if coord[0] > maxX:
+            maxX = coord[0]
+        if coord[0] < minX:
+            minX = coord[0]
+        if coord[1] > maxY:
+            maxY = coord[1]
+        if coord[1] < minY:
+            minY = coord[1]
+        if coord[2] > maxZ:
+            maxZ = coord[2]
+        if coord[2] < minZ:
+            minZ = coord[2]
+
+    return [maxX, minX, maxY, minY, maxZ, minZ]
+
 # Calculates the intersection point of line A (p1,p2) and line B (p3,p4)
 # returns the intersect point in 2D and factor along the line from p1
 def line_segment_intersection_2D(p1,p2,p3,p4):
@@ -341,6 +377,7 @@ def get_clip_space_coord(mypoint):
 
     return co_clip
 
+# Culls points if they are beyond the camera near or far clip distance
 def camera_cull(points, mat = Matrix.Identity(4)):
     should_cull = []
     for point in points:
@@ -429,11 +466,11 @@ def geometric_vis_calc(p1,p2,mat,item):
     #loop_et = time.time()
     #print("loop time: " + str(loop_et - loop_st) + '. loop count: ' + str(loop_count))
 
-    # Get all 3D face intersections
-    #for face in facemap:
-    #    intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
-    #    if intersection != None and intersection.factor < 1.0 and intersection.factor > 0.0:
-    #        intersect_points.append(intersection)
+    # Get all 3D face intersections     
+    for face in facemap:
+        intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
+        if intersection != None and intersection.factor < 1.0 and intersection.factor > 0.0:
+            intersect_points.append(intersection)
 
     # Check vis of each segment defined by the intersect points
     line_segs = []

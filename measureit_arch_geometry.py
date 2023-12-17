@@ -52,6 +52,8 @@ from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
     load_shader_str
 
+from .vector_utils import get_axis_aligned_bounds
+
 lastMode = {}
 
 AllLinesBuffer = {}
@@ -1804,40 +1806,6 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
                 svg_shaders.svg_text_shader(
                     dim, dimProps, textField.text, origin, textcard, textRGB, svg, parent=svg_dim)
 
-# takes a set of co-ordinates returns the min and max value for each axis
-def get_axis_aligned_bounds(coords):
-    """
-    Takes a set of co-ordinates returns the min and max value for each axis
-    """
-    maxX = None
-    minX = None
-    maxY = None
-    minY = None
-    maxZ = None
-    minZ = None
-
-    for coord in coords:
-        if maxX is None:
-            maxX = coord[0]
-            minX = coord[0]
-            maxY = coord[1]
-            minY = coord[1]
-            maxZ = coord[2]
-            minZ = coord[2]
-        if coord[0] > maxX:
-            maxX = coord[0]
-        if coord[0] < minX:
-            minX = coord[0]
-        if coord[1] > maxY:
-            maxY = coord[1]
-        if coord[1] < minY:
-            minY = coord[1]
-        if coord[2] > maxZ:
-            maxZ = coord[2]
-        if coord[2] < minZ:
-            minZ = coord[2]
-
-    return [maxX, minX, maxY, minY, maxZ, minZ]
 
 def get_view_plane(dim,dimProps):
     # Check for View Plane Overides
