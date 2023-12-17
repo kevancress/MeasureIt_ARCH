@@ -26,7 +26,6 @@
 from textwrap import fill
 import bpy
 import gpu
-import bgl
 import blf
 import bmesh
 import math
@@ -210,10 +209,6 @@ def update_text(textobj, props, context, fields=[]):
                 textOffscreen = gpu.types.GPUOffScreen(width, height)
 
                 with textOffscreen.bind():
-                    # Clear Past Draw and Set 2D View matrix
-                    #bgl.glClearColor(rgb[0], rgb[1], rgb[2], 0)
-                    #bgl.glClear(bgl.GL_COLOR_BUFFER_BIT)
-
                     fb = gpu.state.active_framebuffer_get()
                     fb.clear(color=(0.0, 0.0, 0.0, 0.0))
 
@@ -241,18 +236,10 @@ def update_text(textobj, props, context, fields=[]):
                 # Write Texture Buffer to ID Property as List
                 texture_buffer =  fb.read_color(0, 0, width, height, 4, 0, 'FLOAT')
                 texture_buffer.dimensions = width*height*4
-                if 'texture' in textField:
-                    pass
-                    #del textField['texture']
                 textField['texture'] = texture_buffer
                 
                 textField.text_updated = False
                 textField.texture_updated = True
-                
-                #key = str(textobj.name + str(textField_idx))
-                #extField['key'] = key
-                #offscreen_text_buffers[key] = textOffscreen
-                # generate image datablock from buffer for debug preview
                 
                 # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
                 if sceneProps.measureit_arch_debug_text:
@@ -3209,7 +3196,6 @@ def draw_text_3D(context, textobj, textprops, myobj):
             gpu.state.depth_test_set('LESS_EQUAL')
 
             batch.draw(textShader)
-            #bgl.glDeleteTextures(1, texArray)
         except AttributeError:
             pass
     
@@ -3743,7 +3729,6 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
     sceneProps = scene.MeasureItArchProps
 
     if rgb[3] != 1:
-        #bgl.glDepthMask(False)
         gpu.state.depth_mask_set(False)
 
     if sceneProps.is_render_draw:
@@ -3759,10 +3744,7 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
     batch.draw()
     gpu.shader.unbind()
 
-    #bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
     gpu.state.blend_set('ADDITIVE')
-    #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
-
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed = False,
                hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = '', invalid = True, overlay_color=None):
@@ -3928,7 +3910,6 @@ def draw_all_lines(ext_mat = None):
         else:
             HiddenLinesBatch = HiddenLinesBatchs[key]
 
-        #bgl.glDepthMask(False)
         gpu.state.depth_mask_set(False)
         allLinesShader.uniform_float("depthPass", False)
         HiddenLinesBatch.program_set(allLinesShader)

@@ -1,6 +1,5 @@
 import bpy
 import bmesh
-import bgl
 import gpu
 import os
 
@@ -167,14 +166,10 @@ class OpenGL_Settings:
             #bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
             #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
-            #bgl.glEnable(bgl.GL_DEPTH_TEST)
-            #bgl.glDepthFunc(bgl.GL_LEQUAL)
             gpu.state.depth_test_set('LESS_EQUAL')
-            #bgl.glDepthMask(True)
             gpu.state.depth_mask_set(True)
 
             if self.props and self.props.inFront:
-                #bgl.glDisable(bgl.GL_DEPTH_TEST)
                 gpu.state.depth_test_set('NONE')
 
         else:
@@ -184,13 +179,8 @@ class OpenGL_Settings:
             #bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
             #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
-            #bgl.glDisable(bgl.GL_DEPTH_TEST)
             gpu.state.depth_test_set('NONE')
-            #bgl.glDepthFunc(bgl.GL_LEQUAL)
-            #bgl.glDepthMask(False)
             gpu.state.depth_mask_set(False)
-
-            #bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
 
 def get_view():
     scene = bpy.context.scene

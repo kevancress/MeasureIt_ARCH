@@ -24,7 +24,6 @@
 #
 # ----------------------------------------------------------
 import bpy
-import bgl
 import time
 
 from bpy.types import Panel, Operator, SpaceView3D
@@ -336,7 +335,7 @@ class ShowHideViewportButton(Operator):
     _handle3d = None
 
     # ----------------------------------
-    # Enable gl drawing adding handler
+    # Enable drawing adding handler
     # ----------------------------------
 
     @staticmethod
@@ -409,10 +408,8 @@ def draw_main(context):
     else:
         objlist = context.view_layer.objects
 
-    # Enable GL drawing
-    #bgl.glEnable(bgl.GL_BLEND)
     # ---------------------------------------
-    # Generate all OpenGL calls for measures
+    # Generate all Draw calls for measures
     # ---------------------------------------
     text_update_loop(context, objlist)
 
