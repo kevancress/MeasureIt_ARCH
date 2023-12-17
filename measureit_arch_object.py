@@ -78,4 +78,3 @@ class OBJECT_PT_UIObjSettings(Panel):
         col.prop(obj_props, 'obj_hatch_pattern', text="Object Pattern",)
         col.prop(obj_props, 'obj_patternSize', text="Object Hatch Size",)
         col.prop(obj_props, 'obj_patternRot', text="Object Pattern Rotation",)
-        col.prop(obj_props, 'obj_depth_test_override', text="Object Depth Test Method",)

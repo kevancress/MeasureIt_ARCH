@@ -178,7 +178,7 @@ def update_text(textobj, props, context, fields=[]):
 
             # Set BLF font Properties
             blf.color(font_id, rgb[0], rgb[1], rgb[2], rgb[3])
-            blf.size(font_id, size, resolution)
+            blf.size(font_id, size)
 
             text = textField.text
             lines = text.split('\n')
@@ -1546,7 +1546,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             midPoint = Vector(interpolate3d(zeroVec, radiusLeader, radius / 2))
             vecY = midPoint.cross(norm).normalized()
             vecX = midPoint.normalized()
-            rad_origin = Vector(midPoint) + 0.04 * vecY + center
+            rad_origin = Vector(midPoint) + center
             dim.textFields[0]['textcard'] = generate_text_card(
                 context, radiusText, dimProps, basePoint=rad_origin, xDir=vecX, yDir=vecY)
             rad_square = dim.textFields[0]['textcard']
@@ -1592,9 +1592,10 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 
         draw_lines(lineWeight * 2, rgb, arc_coords, pointPass=True)
 
+        # GENERATE CENTER DOT
         if dim.showRadius:
             pointCenter = [center]
-            draw_points(lineWeight * 5, rgb, pointCenter)
+            draw_points(capSize*1.5, rgb, pointCenter)
 
         if len(filledCoords) != 0:
             draw_filled_coords(filledCoords, rgb)
@@ -1613,7 +1614,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             if dim.showRadius:
                 svg_shaders.svg_text_shader(
                     dim, dimProps, radiusText.text, rad_origin, rad_square, rgb, svg, parent=svg_dim)
-                svg_shaders.svg_circle_shader(dim,center,lineWeight * 5,rgb,svg,parent=svg_dim)
+                svg_shaders.svg_circle_shader(dim,center,capSize*1.5,rgb,svg,parent=svg_dim)
 
 
 
@@ -2366,7 +2367,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
         noScaleMat = locMatrix @ rotMatrix
         # locMatrix = Matrix.Translation(loc)
 
-        p1Scaled = scaleMatrix @ Vector(p1local)
+        p1Scaled = scaleMatrix @ Vector(p1local.xyz)
         p1 = locMatrix @ rotMatrix @ p1Scaled
 
         # Transform offset with Composed Matrix
@@ -3671,8 +3672,11 @@ def get_mesh_vertex(myobj, idx, evalMods, spline_idx=-1):
             coord = Vector((0,0,0))
 
     if myobj.type == 'CURVE':
-        coord = myobj.data.splines[spline_idx].bezier_points[idx].co
-
+        spline = myobj.data.splines[spline_idx]
+        if spline.type == 'BEZIER':
+            coord = spline.bezier_points[idx].co
+        else:
+            coord = spline.points[idx].co
 
 
     return coord
@@ -3846,6 +3850,9 @@ def draw_all_lines(ext_mat = None):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
+    if sceneProps.is_vector_draw:
+        return
+
     viewport = get_viewport()
     scale = get_scale()
     view = get_view()
@@ -4160,7 +4167,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
 
 
     for idx, myobj in enumerate(objlist, start=1):
-        if sceneProps. is_render_draw:
+        if sceneProps.is_render_draw:
             print("Rendering Object: " + str(idx) + " of: " +
                   str(totalobjs) + " Name: " + safe_name(myobj.name))
 
