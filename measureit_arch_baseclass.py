@@ -933,6 +933,14 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="Depth Test Method",
         description="Method for depth testing when rendering vector linework. Depth Buffer is generally faster but less precise",
         default='DEPTH_BUFFER',)
+    
+    default_alignment_method: EnumProperty(
+        items=(
+            ('VIEW', "View", "Align Dimensions to Viewport"),
+            ('CAMERA', "Camera","Align Dimensions to Camera")),
+        name="Default Auto Alignment",
+        default = "CAMERA",
+        description="Default Auto Alignment for Dimensions with no View Plane specified")
 
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"

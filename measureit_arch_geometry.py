@@ -1805,6 +1805,7 @@ def get_view_plane(dim,dimProps):
     return viewPlane
 
 def get_view_axis(context, dim, dimProps):
+    sceneProps = context.scene.MeasureItArchProps
     i = Vector((1, 0, 0))  # X Unit Vector
     j = Vector((0, 1, 0))  # Y Unit Vector
     k = Vector((0, 0, 1))  # Z Unit Vector
@@ -1822,14 +1823,14 @@ def get_view_axis(context, dim, dimProps):
     if viewPlane == '99':
         # Get Viewport and CameraLoc or ViewRot
 
-        if context.scene.camera != None:
+        if context.scene.camera != None and sceneProps.default_alignment_method == 'CAMERA':
             cameraRot = context.scene.camera.matrix_world.to_quaternion()
 
             viewVec = -k.copy()
             viewVec.rotate(cameraRot)
             viewAxis = viewVec
 
-        elif context.scene.camera == None:
+        elif context.scene.camera == None or sceneProps.default_alignment_method == 'VIEW':
             space3D = None
             for space in context.area.spaces:
                 if space.type == 'VIEW_3D':

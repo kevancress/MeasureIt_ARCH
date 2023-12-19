@@ -300,6 +300,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(sceneProps, 'preview_resolution')
         col.prop(sceneProps, 'render_resolution')
         col.prop(sceneProps, 'depth_test_method')
+        col.prop(sceneProps, 'default_alignment_method')
         col.prop(sceneProps, 'keep_freestyle_svg', text="Keep Freestyle SVG")
         col.prop(sceneProps, 'show_dxf_props', text="Show DXF Options")
         col.prop(sceneProps, 'use_cad_col')
