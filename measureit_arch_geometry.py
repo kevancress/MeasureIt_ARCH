@@ -49,7 +49,7 @@ from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, pts_to_px, recursionlimit,\
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
-    load_shader_str
+    load_shader_str, get_projection_matrix
 
 from .vector_utils import get_axis_aligned_bounds
 
@@ -103,10 +103,21 @@ triShader = gpu.shader.create_from_info(tri_shader_info)
 del tri_shader_info
 
 # Point Shader
-pointShader = gpu.types.GPUShader(
-    load_shader_str("Point_Vert.glsl", directory="Point_Shader"),
-    aafrag,
-    geocode=load_shader_str("Point_Geo.glsl", directory="Point_Shader"))
+pointvert = load_shader_str("Point_Vert.glsl", directory="Point_Shader")
+pointfrag = load_shader_str("Point_Frag.glsl", directory="Point_Shader")
+
+point_shader_info = gpu.types.GPUShaderCreateInfo()
+point_shader_info.push_constant('MAT4', "viewProjectionMatrix")
+point_shader_info.push_constant('FLOAT', "offset")
+point_shader_info.push_constant('FLOAT', "pointSize")
+point_shader_info.push_constant('VEC4',"finalColor")
+point_shader_info.vertex_in(0, 'VEC3', "pos")
+point_shader_info.fragment_out(0, 'VEC4', "fragColor")
+point_shader_info.vertex_source(pointvert)
+point_shader_info.fragment_source(pointfrag)
+
+pointShader = gpu.shader.create_from_info(point_shader_info)
+del point_shader_info
 
 # Text Shader
 textvert = load_shader_str("Text_Vert.glsl", directory="Text_Shader")
@@ -129,12 +140,39 @@ textShader = gpu.shader.create_from_info(text_shader_info)
 del text_shader_info
 del text_vert_out
 
+
+
 # Line Shader
-allLinesShader = gpu.types.GPUShader(
-    load_shader_str("All_Lines.vert.glsl", directory="All_Lines"),
-    load_shader_str("All_Lines.frag.glsl", directory="All_Lines"),
-    geocode = load_shader_str("All_Lines.geom.glsl", directory="All_Lines")
-)
+
+
+linevert = load_shader_str("cc_line_vert.glsl", directory="CC_Line_Shader")
+linefrag = load_shader_str("cc_line_frag.glsl", directory="CC_Line_Shader")
+
+
+line_vert_out = gpu.types.GPUStageInterfaceInfo("my_interface")
+line_vert_out.smooth('VEC4', "color")
+
+line_shader_info = gpu.types.GPUShaderCreateInfo()
+line_shader_info.push_constant('MAT4', "viewProjectionMatrix")
+line_shader_info.push_constant('FLOAT', "offset")
+line_shader_info.push_constant('MAT4', "objectMatrix")
+line_shader_info.vertex_in(0, 'VEC3', "pos")
+line_shader_info.vertex_in(1, 'VEC4', "col")
+line_shader_info.vertex_out(line_vert_out)
+line_shader_info.fragment_out(0, 'VEC4', "fragColor")
+line_shader_info.vertex_source(linevert)
+line_shader_info.fragment_source(linefrag)
+
+
+allLinesShader = gpu.shader.create_from_info(line_shader_info)
+del line_shader_info
+del line_vert_out
+
+#allLinesShader = gpu.types.GPUShader(
+#    load_shader_str("All_Lines.vert.glsl", directory="All_Lines"),
+#    load_shader_str("All_Lines.frag.glsl", directory="All_Lines"),
+#    geocode = load_shader_str("All_Lines.geom.glsl", directory="All_Lines")
+#)
 
 def get_dim_tag(self, obj):
     dimGen = obj.DimensionGenerator
@@ -1627,190 +1665,186 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
     dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
 
+    # Check Visibility Conditions
+    if not check_vis(dim, dimProps):
+        return
 
+    lineWeight = dimProps.lineWeight
 
-    with OpenGL_Settings(dimProps):
+    rgb = get_color(dim.fillColor)
+    fillRGB = (rgb[0], rgb[1], rgb[2], dim.fillAlpha)
 
-        # Check Visibility Conditions
-        if not check_vis(dim, dimProps):
-            return
+    rawTextRGB = dimProps.color
+    textRGB = rgb_gamma_correct(rawTextRGB)
 
-        lineWeight = dimProps.lineWeight
-
-        rgb = get_color(dim.fillColor)
-        fillRGB = (rgb[0], rgb[1], rgb[2], dim.fillAlpha)
-
-        rawTextRGB = dimProps.color
-        textRGB = rgb_gamma_correct(rawTextRGB)
-
-        bm = bmesh.new()
-        if myobj.mode != 'EDIT':
-            eval_res = sceneProps.eval_mods
-            if (eval_res or dim.evalMods) and check_mods(myobj):  # From Evaluated Deps Graph
-                bm.from_object(
-                    myobj, bpy.context.view_layer.depsgraph)
-            else:
-                bm.from_mesh(myobj.data)
+    bm = bmesh.new()
+    if myobj.mode != 'EDIT':
+        eval_res = sceneProps.eval_mods
+        if (eval_res or dim.evalMods) and check_mods(myobj):  # From Evaluated Deps Graph
+            bm.from_object(
+                myobj, bpy.context.view_layer.depsgraph)
         else:
-            bm = bmesh.from_edit_mesh(myobj.data)
+            bm.from_mesh(myobj.data)
+    else:
+        bm = bmesh.from_edit_mesh(myobj.data)
 
-        bm.faces.ensure_lookup_table()
-        bm.edges.ensure_lookup_table()
-        bm.verts.ensure_lookup_table()
-        faces = bm.faces
+    bm.faces.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+    bm.verts.ensure_lookup_table()
+    faces = bm.faces
 
-        # Get the Filled Coord and Sum the Face Areas
-        filledCoords = []
-        sumArea = 0
-        verts = bm.verts
-        center = Vector((0,0,0))
-        area_faces = dim['facebuffer'].to_list()
-        for faceIdx in area_faces:
-            face = faces[faceIdx]
-            area = face.calc_area()
-            center += face.calc_center_median_weighted()
+    # Get the Filled Coord and Sum the Face Areas
+    filledCoords = []
+    sumArea = 0
+    verts = bm.verts
+    center = Vector((0,0,0))
+    area_faces = dim['facebuffer'].to_list()
+    for faceIdx in area_faces:
+        face = faces[faceIdx]
+        area = face.calc_area()
+        center += face.calc_center_median_weighted()
 
-            indices = []
-            for vert in face.verts:
-                indices.append(vert.index)
+        indices = []
+        for vert in face.verts:
+            indices.append(vert.index)
 
-            tris = mesh_utils.ngon_tessellate(myobj.data, indices)
+        tris = mesh_utils.ngon_tessellate(myobj.data, indices)
 
-            for tri in tris:
-                v1, v2, v3 = tri
-                p1 = mat @ verts[indices[v1]].co
-                p2 = mat @ verts[indices[v2]].co
-                p3 = mat @ verts[indices[v3]].co
-                filledCoords.append(p1)
-                filledCoords.append(p2)
-                filledCoords.append(p3)
-                area = area_tri(p1, p2, p3)
-                sumArea += area
+        for tri in tris:
+            v1, v2, v3 = tri
+            p1 = mat @ verts[indices[v1]].co
+            p2 = mat @ verts[indices[v2]].co
+            p3 = mat @ verts[indices[v3]].co
+            filledCoords.append(p1)
+            filledCoords.append(p2)
+            filledCoords.append(p3)
+            area = area_tri(p1, p2, p3)
+            sumArea += area
 
-        center /= len(area_faces)
-        # Get the Perimeter Coords
-        perimeterCoords = []
-        polyfillCoords = []
-        if 'perimeterVertBuffer' in dim:
-            buffer_list = dim['perimeterVertBuffer'].to_list()
-        else:
-            buffer_list = []
-            dim['perimeterVertBuffer'] = []
-            print("No Peimeter Vert Buffer found in {} on {}. Please re-create area dimension".format(dim.name,myobj.name))
-        idx = -1
-        for vert_idx in buffer_list:
-            v1 = bm.verts[vert_idx]
-            polyfillCoords.append(mat @ v1.co)
-            perimeterCoords.append(mat @ v1.co)
+    center /= len(area_faces)
+    # Get the Perimeter Coords
+    perimeterCoords = []
+    polyfillCoords = []
+    if 'perimeterVertBuffer' in dim:
+        buffer_list = dim['perimeterVertBuffer'].to_list()
+    else:
+        buffer_list = []
+        dim['perimeterVertBuffer'] = []
+        print("No Peimeter Vert Buffer found in {} on {}. Please re-create area dimension".format(dim.name,myobj.name))
+    idx = -1
+    for vert_idx in buffer_list:
+        v1 = bm.verts[vert_idx]
+        polyfillCoords.append(mat @ v1.co)
+        perimeterCoords.append(mat @ v1.co)
 
-            if idx < len(buffer_list):
-                v2 = bm.verts[buffer_list[idx]]
-                perimeterCoords.append(mat @ v2.co)
+        if idx < len(buffer_list):
+            v2 = bm.verts[buffer_list[idx]]
+            perimeterCoords.append(mat @ v2.co)
 
-            idx += 1
+        idx += 1
 
-        #print(dim['perimeterEdgeBuffer'].to_list())
+    #print(dim['perimeterEdgeBuffer'].to_list())
 
-        # Get local Rotation and Translation
-        rot = mat.to_quaternion()
+    # Get local Rotation and Translation
+    rot = mat.to_quaternion()
 
-        # Compose Rotation and Translation Matrix
-        rotMatrix = Matrix.Identity(3)
-        rotMatrix.rotate(rot)
-        rotMatrix.resize_4x4()
+    # Compose Rotation and Translation Matrix
+    rotMatrix = Matrix.Identity(3)
+    rotMatrix.rotate(rot)
+    rotMatrix.resize_4x4()
 
-        originFace = faces[dim.originFaceIdx]
-        #origin = originFace.calc_center_bounds()
-        origin = center
-        normal = rotMatrix @ originFace.normal
+    originFace = faces[dim.originFaceIdx]
+    #origin = originFace.calc_center_bounds()
+    origin = center
+    normal = rotMatrix @ originFace.normal
 
-        origin += dim.dimTextPos + normal * 0.01
-
-
-        # Get Camera X
-        # Only use the z rot of the annotation rotation
-        annoMat = Matrix.Identity(3).copy()
-        annoEuler = Euler((0, 0, dim.dimRotation), 'XYZ')
-        annoMat.rotate(annoEuler)
-        annoMat = annoMat.to_4x4()
-
-        # use Camera rot for the rest
-
-        camera = context.scene.camera
-        cameraMat = camera.matrix_world
-        cameraRot = cameraMat.decompose()[1]
-        cameraRotMat = Matrix.Identity(3)
-        cameraRotMat.rotate(cameraRot)
-        cameraRotMat = cameraRotMat.to_4x4()
+    origin += dim.dimTextPos + normal * 0.01
 
 
-        fullRotMat = annoMat @ cameraRotMat
+    # Get Camera X
+    # Only use the z rot of the annotation rotation
+    annoMat = Matrix.Identity(3).copy()
+    annoEuler = Euler((0, 0, dim.dimRotation), 'XYZ')
+    annoMat.rotate(annoEuler)
+    annoMat = annoMat.to_4x4()
 
-        cameraX = cameraRotMat @ Vector((1, 0, 0))
+    # use Camera rot for the rest
 
-        ### Get camera X projected onto the area plane
-        proj_camera_x_on_normal = (cameraX.dot(normal)/normal.length**2)*normal
-        proj_camera_x_on_plane = cameraX - proj_camera_x_on_normal
-
-        vecX = proj_camera_x_on_plane
-        vecY = normal.cross(vecX)
-
-        # y.rotate(Quaternion(normal,radians(-45)))
-        # x.rotate(Quaternion(normal,radians(-45)))
-
-        vecY.rotate(Quaternion(normal, dim.dimRotation))
-        vecX.rotate(Quaternion(normal, dim.dimRotation))
-
-        origin = mat @ origin
-
-        # Setup Text Fields
-        #def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):
-        #placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,vecY, is_area=True)
-        if len(dim.textFields) == 0:
-            dim.textFields.add()
-
-        dimText = dim.textFields[0]
-
-        # format text and update if necessary
-        if not dim.use_custom_text:
+    camera = context.scene.camera
+    cameraMat = camera.matrix_world
+    cameraRot = cameraMat.decompose()[1]
+    cameraRotMat = Matrix.Identity(3)
+    cameraRotMat.rotate(cameraRot)
+    cameraRotMat = cameraRotMat.to_4x4()
 
 
-            distanceText = format_area(sumArea, dim=dim)
+    fullRotMat = annoMat @ cameraRotMat
 
-            if dimText.text != distanceText:
-                dimText.text = distanceText
-                dimText.text_updated = True
+    cameraX = cameraRotMat @ Vector((1, 0, 0))
 
-        idx = 0
+    ### Get camera X projected onto the area plane
+    proj_camera_x_on_normal = (cameraX.dot(normal)/normal.length**2)*normal
+    proj_camera_x_on_plane = cameraX - proj_camera_x_on_normal
+
+    vecX = proj_camera_x_on_plane
+    vecY = normal.cross(vecX)
+
+    # y.rotate(Quaternion(normal,radians(-45)))
+    # x.rotate(Quaternion(normal,radians(-45)))
+
+    vecY.rotate(Quaternion(normal, dim.dimRotation))
+    vecX.rotate(Quaternion(normal, dim.dimRotation))
+
+    origin = mat @ origin
+
+    # Setup Text Fields
+    #def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):
+    #placementResults = setup_dim_text(myobj,dim,dimProps, sumArea,origin,vecX,vecY, is_area=True)
+    if len(dim.textFields) == 0:
+        dim.textFields.add()
+
+    dimText = dim.textFields[0]
+
+    # format text and update if necessary
+    if not dim.use_custom_text:
+
+
+        distanceText = format_area(sumArea, dim=dim)
+
+        if dimText.text != distanceText:
+            dimText.text = distanceText
+            dimText.text_updated = True
+
+    idx = 0
+    for textField in dim.textFields:
+        set_text(textField, myobj)
+
+        textField['textcard'] = generate_text_card(context, textField, dimProps, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
+
+        if sceneProps.show_dim_text:
+            draw_text_3D(context, textField, dimProps, myobj)
+        idx += 1
+
+    # Draw Fill
+    draw_filled_coords(filledCoords, fillRGB, polySmooth=False)
+
+
+
+    # Draw Perimeter
+    draw_lines(lineWeight, rgb, perimeterCoords, pointPass=True)
+
+
+    # Draw SVG
+    if sceneProps.is_vector_draw:
+        svg_dim = svg.add(svg.g(id=dim.name))
+        svg_shaders.svg_poly_fill_shader( dim, polyfillCoords,(0,0,0,0),svg, line_color = rgb, lineWeight= lineWeight, itemProps=dimProps)
+
+        svg_shaders.svg_poly_fill_shader(
+            dim, polyfillCoords, fillRGB, svg, parent=svg_dim)
         for textField in dim.textFields:
-            set_text(textField, myobj)
-
-            textField['textcard'] = generate_text_card(context, textField, dimProps, basePoint=origin, xDir=vecX, yDir=vecY.normalized() ,cardIdx=idx)
-
-            if sceneProps.show_dim_text:
-                draw_text_3D(context, textField, dimProps, myobj)
-            idx += 1
-
-        # Draw Fill
-        draw_filled_coords(filledCoords, fillRGB, polySmooth=False)
-
-
-
-        # Draw Perimeter
-        draw_lines(lineWeight, rgb, perimeterCoords, pointPass=True)
-
-
-        # Draw SVG
-        if sceneProps.is_vector_draw:
-            svg_dim = svg.add(svg.g(id=dim.name))
-            svg_shaders.svg_poly_fill_shader( dim, polyfillCoords,(0,0,0,0),svg, line_color = rgb, lineWeight= lineWeight, itemProps=dimProps)
-
-            svg_shaders.svg_poly_fill_shader(
-                dim, polyfillCoords, fillRGB, svg, parent=svg_dim)
-            for textField in dim.textFields:
-                textcard = textField['textcard']
-                svg_shaders.svg_text_shader(
-                    dim, dimProps, textField.text, origin, textcard, textRGB, svg, parent=svg_dim)
+            textcard = textField['textcard']
+            svg_shaders.svg_text_shader(
+                dim, dimProps, textField.text, origin, textcard, textRGB, svg, parent=svg_dim)
 
 
 def get_view_plane(dim,dimProps):
@@ -3202,7 +3236,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
             # Draw Shader
             textShader.bind()
             textShader.uniform_sampler("image", tex)
-            textShader.uniform_float("viewProjectionMatrix", bpy.context.region_data.perspective_matrix)
+            textShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
 
             # Batch Geometry
             batch = batch_for_shader(
@@ -3729,18 +3763,20 @@ def rgb_gamma_correct(rawRGB):
 
 
 def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False):
-    viewport = get_viewport()
 
-    pointShader.bind()
-    pointShader.uniform_float("thickness", lineWeight)
-    pointShader.uniform_float("Viewport", viewport)
-    pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-    pointShader.uniform_float("offset", offset)
-    pointShader.uniform_float("depthPass", False)
-    batch = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
-    batch.program_set(pointShader)
-    batch.draw()
-    gpu.shader.unbind()
+    with OpenGL_Settings(None):
+        viewport = get_viewport()
+        pointShader.bind()
+        matrix = get_projection_matrix()
+        pointShader.uniform_float("viewProjectionMatrix", matrix)
+        pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        pointShader.uniform_float("offset", offset)
+        pointShader.uniform_float("pointSize", lineWeight*72)
+        gpu.state.program_point_size_set(True)
+        batch = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
+        batch.program_set(pointShader)
+        batch.draw()
+        gpu.shader.unbind()
 
 
 def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
@@ -3748,25 +3784,20 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-    if rgb[3] != 1:
-        gpu.state.depth_mask_set(False)
+    with OpenGL_Settings(None):
+        if rgb[3] != 1:
+            gpu.state.depth_mask_set(False)
 
-    if sceneProps.is_render_draw:
-        gpu.state.blend_set('ALPHA_PREMULT')
-        #bgl.glBlendEquation(bgl.GL_MAX)
+        triShader.bind()
+        matrix = get_projection_matrix()
+        triShader.uniform_float("viewProjectionMatrix", matrix)
+        triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
+        triShader.uniform_float("offset", offset)
 
-    triShader.bind()
-    matrix = bpy.context.region_data.perspective_matrix
-    triShader.uniform_float("viewProjectionMatrix", matrix)
-    triShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-    triShader.uniform_float("offset", offset)
-
-    batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
-    batch.program_set(triShader)
-    batch.draw()
-    gpu.shader.unbind()
-
-    gpu.state.blend_set('ADDITIVE')
+        batch = batch_for_shader(triShader, 'TRIS', {"pos": filledCoords})
+        batch.program_set(triShader)
+        batch.draw()
+        gpu.shader.unbind()
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed = False,
                hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = '', invalid = True, overlay_color=None):
@@ -3896,11 +3927,11 @@ def draw_all_lines(ext_mat = None):
 
     # Set Up Constant Uniforms
     allLinesShader.bind()
-    allLinesShader.uniform_float("Viewport", viewport)
-    allLinesShader.uniform_float("is_camera", is_camera)
-    allLinesShader.uniform_float("scale", scale)
-    allLinesShader.uniform_float("camera_coord1", c1)
-    allLinesShader.uniform_float("camera_coord2", c2)
+    #allLinesShader.uniform_float("Viewport", viewport)
+    #allLinesShader.uniform_float("is_camera", is_camera)
+    #allLinesShader.uniform_float("scale", scale)
+    #allLinesShader.uniform_float("camera_coord1", c1)
+    #allLinesShader.uniform_float("camera_coord2", c2)
 
     # DRAW HIDDEN LINES
     gpu.state.blend_set('NONE')
@@ -3912,11 +3943,12 @@ def draw_all_lines(ext_mat = None):
         # Set up Per line Uniforms
         allLinesShader.uniform_float("offset", hiddenbuffer["offset"])
         allLinesShader.uniform_float("objectMatrix", hiddenbuffer["objMat"])
-        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
-        allLinesShader.uniform_float("dashed", hiddenbuffer["dashed"])
-        allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
-        allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
-        allLinesShader.uniform_float("overlay_color", hiddenbuffer["overlay_color"])
+        allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
+        #allLinesShader.uniform_float("extMatrix",flat_ext_mat)
+        #allLinesShader.uniform_float("dashed", hiddenbuffer["dashed"])
+        #allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
+        #allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
+        #allLinesShader.uniform_float("overlay_color", hiddenbuffer["overlay_color"])
 
         # Batch VBO
         if hiddenbuffer['invalid'] or key not in HiddenLinesBatchs:
@@ -3924,16 +3956,16 @@ def draw_all_lines(ext_mat = None):
                 allLinesShader,
                 'LINES',
                 {"pos": hiddenvboBuffer["coords"],
-                "weight":hiddenvboBuffer["weights"],
-                "color": hiddenvboBuffer["colors"],
-                "rounded": hiddenvboBuffer["rounded"],
+                #"weight":hiddenvboBuffer["weights"],
+                "col": hiddenvboBuffer["colors"],
+                #"rounded": hiddenvboBuffer["rounded"],
                 })
             HiddenLinesBatchs[key] = HiddenLinesBatch
         else:
             HiddenLinesBatch = HiddenLinesBatchs[key]
 
         gpu.state.depth_mask_set(False)
-        allLinesShader.uniform_float("depthPass", False)
+        #allLinesShader.uniform_float("depthPass", False)
         HiddenLinesBatch.program_set(allLinesShader)
         HiddenLinesBatch.draw()
 
@@ -3946,11 +3978,12 @@ def draw_all_lines(ext_mat = None):
         # Set up Per line Uniforms
         allLinesShader.uniform_float("offset", buffer["offset"])
         allLinesShader.uniform_float("objectMatrix", buffer["objMat"])
-        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
-        allLinesShader.uniform_float("dashed", buffer["dashed"])
-        allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
-        allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
-        allLinesShader.uniform_float("overlay_color", buffer["overlay_color"])
+        allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
+        #allLinesShader.uniform_float("extMatrix",flat_ext_mat)
+        #allLinesShader.uniform_float("dashed", buffer["dashed"])
+        #allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
+        #allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
+        #allLinesShader.uniform_float("overlay_color", buffer["overlay_color"])
 
         # Batch VBO
         if buffer['invalid'] or key not in AllLinesBatchs:
@@ -3958,9 +3991,9 @@ def draw_all_lines(ext_mat = None):
                 allLinesShader,
                 'LINES',
                 {"pos": vboBuffer["coords"],
-                "weight":vboBuffer["weights"],
-                "color": vboBuffer["colors"],
-                "rounded": vboBuffer["rounded"],
+                #"weight":vboBuffer["weights"],
+                "col": vboBuffer["colors"],
+                #"rounded": vboBuffer["rounded"],
                 })
             #print('re-batching {}. Buffer Invalid: {}, Key Not Found {}'.format(key, buffer['invalid'],key not in AllLinesBatchs))
             AllLinesBatchs[key] = AllLinesBatch
@@ -3975,7 +4008,7 @@ def draw_all_lines(ext_mat = None):
         gpu.state.color_mask_set(True, True, True, True)
         gpu.state.depth_mask_set(True)
         gpu.state.blend_set('NONE')
-        allLinesShader.uniform_float("depthPass", False)
+        #allLinesShader.uniform_float("depthPass", False)
         AllLinesBatch.program_set(allLinesShader)
         AllLinesBatch.draw()
 

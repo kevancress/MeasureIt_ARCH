@@ -162,7 +162,7 @@ class OpenGL_Settings:
         if toggleBool:
             #bgl.glEnable(bgl.GL_MULTISAMPLE)
             #bgl.glEnable(bgl.GL_BLEND)
-            gpu.state.blend_set('ALPHA_PREMULT')
+            gpu.state.blend_set('ALPHA')
             #bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
             #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
@@ -175,12 +175,36 @@ class OpenGL_Settings:
         else:
            # bgl.glDisable(bgl.GL_MULTISAMPLE)
             #bgl.glDisable(bgl.GL_BLEND)
-            gpu.state.blend_set('ALPHA_PREMULT')
+            gpu.state.blend_set('ALPHA')
             #bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
             #bgl.glBlendEquation(bgl.GL_FUNC_ADD)
 
             gpu.state.depth_test_set('NONE')
             gpu.state.depth_mask_set(False)
+
+def get_projection_matrix():
+    scene = bpy.context.scene
+    render = scene.render
+    camera = scene.camera
+    sceneProps = scene.MeasureItArchProps
+
+    if sceneProps.is_render_draw:
+        deps = bpy.context.evaluated_depsgraph_get()
+        modelview_matrix = camera.matrix_world.inverted()
+        projection_matrix = camera.calc_matrix_camera(
+            deps,
+            x=render.resolution_x,
+            y=render.resolution_y,
+            scale_x=render.pixel_aspect_x,
+            scale_y=render.pixel_aspect_y,
+            )
+
+        modelViewProjectionMatrix = projection_matrix @ modelview_matrix
+
+    else:
+        modelViewProjectionMatrix = bpy.context.region_data.perspective_matrix
+
+    return modelViewProjectionMatrix
 
 def get_view():
     scene = bpy.context.scene

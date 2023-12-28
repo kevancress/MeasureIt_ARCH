@@ -42,7 +42,7 @@ from . import svg_shaders
 from . import vector_utils
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_main, draw_titleblock, text_update_loop,draw_viewport
-from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render, load_shader_str
+from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render, load_shader_str, get_projection_matrix
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -387,6 +387,8 @@ def draw_scene(self, context, projection_matrix):
 
                 obj_eval.to_mesh_clear()
 
+            depthOnlyshader.bind()
+            depthOnlyshader.uniform_float("viewProjectionMatrix", get_projection_matrix())
             batch = batch_for_shader(depthOnlyshader, 'TRIS', {
                                     "pos": vertices}, indices=indices)
             batch.program_set(depthOnlyshader)
