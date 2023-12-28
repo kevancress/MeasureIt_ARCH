@@ -46,9 +46,23 @@ from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loa
 from .measureit_arch_units import BU_TO_INCHES
 
 
-depthOnlyshader = gpu.types.GPUShader(
-    load_shader_str("base_vert.glsl"),
-    load_shader_str("depth_only_frag.glsl"))
+
+
+
+# Tri Shader info
+basevert = load_shader_str("base_vert.glsl")
+depthfrag = load_shader_str("depth_only_frag.glsl")
+depth_shader_info = gpu.types.GPUShaderCreateInfo()
+depth_shader_info.push_constant('MAT4', "viewProjectionMatrix")
+depth_shader_info.push_constant('FLOAT', "offset")
+depth_shader_info.vertex_in(0, 'VEC3', "pos")
+depth_shader_info.fragment_out(0, 'VEC4', "fragColor")
+depth_shader_info.vertex_source(basevert)
+depth_shader_info.fragment_source(depthfrag)
+
+depthOnlyshader = gpu.shader.create_from_info(depth_shader_info)
+del depth_shader_info
+
 
 
 class RENDER_PT_MeasureitArch_Panel(Panel):
@@ -226,11 +240,11 @@ def render_main(self, context):
         view_matrix_3d = scene.camera.matrix_world.inverted()
         projection_matrix = scene.camera.calc_matrix_camera(
             context.view_layer.depsgraph, x=width, y=height)
-        
+
         text_update_loop(context, objlist)
         with OpenGL_Settings(None):
             with renderoffscreen.bind():
-                
+
                 # Clear Depth Buffer, set Clear Depth to Cameras Clip Distance
                 fb = gpu.state.active_framebuffer_get()
                 fb.clear(color=(0.0, 0.0, 0.0, 0.0), depth = clipdepth)
@@ -241,10 +255,10 @@ def render_main(self, context):
 
                 # Draw Scene for the depth buffer
                 draw_scene(self, context, projection_matrix)
-                               
+
                 # Clear Color Buffer, we only need the depth info
                 fb.clear(color=(0.0, 0.0, 0.0, 0.0))
- 
+
                 # -----------------------------
                 # Loop to draw all objects
                 # -----------------------------
@@ -295,7 +309,7 @@ def get_view_outpath(scene, view, suffix):
     dir, filename = os.path.split(filepath)
     if not os.path.exists(dir):
         os.mkdir(dir)
-    
+
     #print(dir)
     if view.name_folder:
         bn= bpy.path.basename(bpy.context.blend_data.filepath)
@@ -304,7 +318,7 @@ def get_view_outpath(scene, view, suffix):
         if not os.path.exists(namedir):
             os.mkdir(namedir)
         dir = namedir
-        
+
     #print(dir)
     if view.date_folder:
         today = datetime.now()
@@ -312,11 +326,11 @@ def get_view_outpath(scene, view, suffix):
         if not os.path.exists(datedir):
             os.mkdir(datedir)
         dir = datedir
-    
+
     #print(dir)
     filepath = os.path.join(dir, filename)
     print(filepath)
-    
+
     return filepath
 
 
@@ -422,7 +436,7 @@ def render_main_svg(self, context):
                     # Read Depth Buffer
                     depth_buffer = fb.read_depth(0, 0, width, height)
                     depth_buffer.dimensions = width * height
-                
+
                     buffer_start_time = time.time()
                     if 'depthbuffer' in sceneProps:
                         del sceneProps['depthbuffer']
@@ -438,7 +452,7 @@ def render_main_svg(self, context):
                         scene = context.scene
 
                         depth_buffer = fb.read_depth(0, 0, width, height)
-                
+
                         image_name = "measureit_arch_depth"
                         if image_name not in bpy.data.images:
                             bpy.data.images.new(image_name, width, height)
@@ -457,7 +471,7 @@ def render_main_svg(self, context):
             offscreen.free()
         vector_utils.set_globals()
 
-            
+
 
         # Setup Output Path
         view = get_view()
@@ -589,7 +603,7 @@ def render_main_svg(self, context):
             lines = svg.g(id='edgemap', stroke=svgColor,fill = 'none',
                     stroke_width="1", stroke_linecap='butt')
             for edge in vector_utils.edgemap:
-                
+
                 svg_shaders.draw_single_line(edge.start_coord, edge.end_coord,svg=svg,lines=lines,depth_test=False)
             svg.add(lines)
         svg.save(pretty=True)
@@ -648,7 +662,7 @@ def render_main_dxf(self, context):
 
                     print("Drawing Scene")
                     draw_scene(self, context, projection_matrix)
-                    
+
                     print("Reading to Buffer")
                     depth_buffer = fb.read_depth(0, 0, width, height)
                     depth_buffer.dimensions = width * height
