@@ -156,6 +156,8 @@ line_shader_info = gpu.types.GPUShaderCreateInfo()
 line_shader_info.push_constant('MAT4', "viewProjectionMatrix")
 line_shader_info.push_constant('FLOAT', "offset")
 line_shader_info.push_constant('MAT4', "objectMatrix")
+line_shader_info.push_constant('MAT4', "extMatrix")
+line_shader_info.push_constant('VEC4', "overlay_color")
 line_shader_info.vertex_in(0, 'VEC3', "pos")
 line_shader_info.vertex_in(1, 'VEC4', "col")
 line_shader_info.vertex_out(line_vert_out)
@@ -3944,7 +3946,7 @@ def draw_all_lines(ext_mat = None):
         allLinesShader.uniform_float("offset", hiddenbuffer["offset"])
         allLinesShader.uniform_float("objectMatrix", hiddenbuffer["objMat"])
         allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
-        #allLinesShader.uniform_float("extMatrix",flat_ext_mat)
+        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
         #allLinesShader.uniform_float("dashed", hiddenbuffer["dashed"])
         #allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
         #allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
@@ -3979,12 +3981,12 @@ def draw_all_lines(ext_mat = None):
         allLinesShader.uniform_float("offset", buffer["offset"])
         allLinesShader.uniform_float("objectMatrix", buffer["objMat"])
         allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
-        #allLinesShader.uniform_float("extMatrix",flat_ext_mat)
+        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
         #allLinesShader.uniform_float("dashed", buffer["dashed"])
         #allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
         #allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
-        #allLinesShader.uniform_float("overlay_color", buffer["overlay_color"])
-
+        allLinesShader.uniform_float("overlay_color", buffer["overlay_color"])
+        gpu.state.line_width_set(10.0)
         # Batch VBO
         if buffer['invalid'] or key not in AllLinesBatchs:
             AllLinesBatch = batch_for_shader(
