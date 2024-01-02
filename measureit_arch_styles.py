@@ -407,7 +407,7 @@ def add_line_group_style(context, name='', line_weight=1, line_depth_offset=1):
 
 
 def add_aligned_dimension_style(
-        context, name='', font_size=18, text_alignment='C', line_weight=1):
+        context, name='', font_size=18, text_alignment='C', line_weight=0.25):
     dimension_styles = context.scene.StyleGenerator.alignedDimensions
     wrapper = context.scene.StyleGenerator.wrapper
     scene_props = context.scene.MeasureItArchProps
