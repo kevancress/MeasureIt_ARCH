@@ -2,11 +2,19 @@
 //uniform float offset
 // uniform mat4 objectMatrix
 // uniform mat4 extMatrix
+// uniform vec3 view_dir
 // in vec4 col
+// in vec3 dir
+// in int thick_sign
+// in float weight
 
 void main() {
-    vec4 project = viewProjectionMatrix * objectMatrix *extMatrix* vec4(pos, 1.0);
-    vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
-    gl_Position = project + vecOffset;
+
+    vec3 perp = normalize(cross(dir.xyz,view_dir));
+    vec3 exp_pos = pos + perp * thick_sign * weight/72.0;
+    vec4 l_project = viewProjectionMatrix * objectMatrix *extMatrix* vec4(pos, 1.0);
+
+    vec4 project = viewProjectionMatrix * objectMatrix *extMatrix* vec4(exp_pos, 1.0);
+    gl_Position = vec4(project.x,project.y,l_project.z + offset,l_project.w);
     color = col;
 }

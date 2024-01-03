@@ -64,7 +64,8 @@ bufferVBOKeysList = [
     "weights",
     "colors",
     "rounded",
-
+    "coord_dirs",
+    "coord_signs"
 ]
 
 bufferUniformKeysList = [
@@ -158,8 +159,13 @@ line_shader_info.push_constant('FLOAT', "offset")
 line_shader_info.push_constant('MAT4', "objectMatrix")
 line_shader_info.push_constant('MAT4', "extMatrix")
 line_shader_info.push_constant('VEC4', "overlay_color")
+line_shader_info.push_constant('VEC3', "view_dir")
 line_shader_info.vertex_in(0, 'VEC3', "pos")
 line_shader_info.vertex_in(1, 'VEC4', "col")
+line_shader_info.vertex_in(2, 'VEC3', "dir")
+line_shader_info.vertex_in(3, 'INT', "thick_sign")
+line_shader_info.vertex_in(4, 'FLOAT', "weight")
+
 line_shader_info.vertex_out(line_vert_out)
 line_shader_info.fragment_out(0, 'VEC4', "fragColor")
 line_shader_info.vertex_source(linevert)
@@ -3823,6 +3829,33 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         print('ERROR: Odd Number of Coords, injecting padding to preserve other lines')
         coords.append(Vector((0,0,0)))
 
+    # expand line
+    expanded_coords = []
+    coord_dirs = []
+    coord_signs = []
+    if type(lineWeight) == list:
+        lineWeight = lineWeight[0]
+    for i in range(0,len(coords),2):
+        p1 = Vector(coords[i])
+        p2 = Vector(coords[i+1])
+        dir = p1 - p2
+        #if sceneProps.is_render_draw:
+        #    ss_perp = get_camera_z().cross(dir).normalized()
+        #else:
+        #    modelViewProjectionMatrix = bpy.context.region_data.view_matrix
+        #    view_rot = bpy.context.region_data.view_rotation
+        #    view_z =  Vector((0,0,1))
+        #    view_z.rotate(view_rot)
+        #    ss_perp = view_z.cross(dir).normalized()
+        #fac = px_to_m(pts_to_px(lineWeight),paper_space=True)
+        #c1 = p1 + ss_perp * fac
+        #c2 = p1 - ss_perp * fac
+        #c3 = p2 + ss_perp * fac
+        #c4 = p2 - ss_perp * fac
+        expanded_coords.extend([p1,p1,p2,p2,p2,p1])
+        coord_dirs.extend([dir]*6)
+        coord_signs.extend([1,-1,1,-1,1,-1])
+
     if obj == None:
         objMat = Matrix.Identity(4)
         invalid = True # Just Always Rebatch basic lines
@@ -3860,8 +3893,10 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     if invalid:
         # Set Up VBO properties
         #print('rebuilding vbos')
-        num_coords = len(coords)
-        vboBuffer['coords'].extend(coords)
+        num_coords = len(expanded_coords)
+        vboBuffer['coords'].extend(expanded_coords)
+        vboBuffer['coord_dirs'].extend(coord_dirs)
+        vboBuffer['coord_signs'].extend(coord_signs)
         # Check for list of rgb values
         if type(rgb) == list: buffer['colors'].extend(rgb)
         else: vboBuffer['colors'].extend([rgb]*num_coords)
@@ -3978,23 +4013,32 @@ def draw_all_lines(ext_mat = None):
         vboBuffer = buffer["VBOs"]
 
         # Set up Per line Uniforms
+        if sceneProps.is_render_draw:
+            view_dir = get_camera_z()
+        else:
+            view_rot = bpy.context.region_data.view_rotation
+            view_dir =  Vector((0,0,1))
+            view_dir.rotate(view_rot)
         allLinesShader.uniform_float("offset", buffer["offset"])
         allLinesShader.uniform_float("objectMatrix", buffer["objMat"])
         allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
         allLinesShader.uniform_float("extMatrix",flat_ext_mat)
+        allLinesShader.uniform_float("view_dir",view_dir)
         #allLinesShader.uniform_float("dashed", buffer["dashed"])
         #allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
         #allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
         allLinesShader.uniform_float("overlay_color", buffer["overlay_color"])
-        gpu.state.line_width_set(10.0)
+        gpu.state.line_width_set(1.0)
         # Batch VBO
         if buffer['invalid'] or key not in AllLinesBatchs:
             AllLinesBatch = batch_for_shader(
                 allLinesShader,
-                'LINES',
+                'TRIS',
                 {"pos": vboBuffer["coords"],
-                #"weight":vboBuffer["weights"],
+                "weight":vboBuffer["weights"],
                 "col": vboBuffer["colors"],
+                "dir":vboBuffer["coord_dirs"],
+                "thick_sign":vboBuffer["coord_signs"]
                 #"rounded": vboBuffer["rounded"],
                 })
             #print('re-batching {}. Buffer Invalid: {}, Key Not Found {}'.format(key, buffer['invalid'],key not in AllLinesBatchs))
