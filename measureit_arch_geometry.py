@@ -358,16 +358,23 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
         bm = bmesh.new()
         # polys = mesh.polygons
         if myobj.type == 'MESH':
-
+            
             if myobj.mode == 'OBJECT':
-                bm.from_object(myobj, bpy.context.view_layer.depsgraph)
-                #depsgraph = bpy.context.view_layer.depsgraph
-                #eval_obj = myobj.evaluated_get(depsgraph)
-                #temp_mesh = eval_obj.data
-                #bm.from_mesh(temp_mesh)
+                try:
+                    bm.from_object(myobj, bpy.context.view_layer.depsgraph)
+                    #depsgraph = bpy.context.view_layer.depsgraph
+                    #eval_obj = myobj.evaluated_get(depsgraph)
+                    #temp_mesh = eval_obj.data
+                    #bm.from_mesh(temp_mesh)
+                except ValueError:
+                    mesh = myobj.data
+                    bm.from_mesh(mesh)
             else:
                 mesh = myobj.data
                 bm = bmesh.from_edit_mesh(mesh)
+            
+        if bm == None:
+            return
 
         if myobj.type == 'CURVE' and is_instance_draw:
             return
