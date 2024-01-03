@@ -5,7 +5,7 @@
 void main() {
     vec4 finalColor = color;
 
-    if (overlay_color != vec4(0,0,0,0)){
+    if (overlay_color != vec4(0.0,0.0,0.0,0.0)){
         finalColor = overlay_color;
     }
     float aa = finalColor[3];

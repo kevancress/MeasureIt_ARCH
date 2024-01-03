@@ -2295,7 +2295,7 @@ def get_vertex_group_weights(myobj, vert_list, group_name, filter = False):
 def get_overlay_color(myobj, is_active=True, only_active=False):
     context = bpy.context
     sceneProps = bpy.context.scene.MeasureItArchProps
-    rgb = [0,0,0,0]
+    rgb = [0.0,0.0,0.0,0.0]
 
     if not sceneProps.highlight_selected or sceneProps.is_render_draw:
         return rgb
