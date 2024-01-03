@@ -65,7 +65,8 @@ bufferVBOKeysList = [
     "colors",
     "rounded",
     "coord_dirs",
-    "coord_signs"
+    "coord_signs",
+    "coord_uvs"
 ]
 
 bufferUniformKeysList = [
@@ -152,6 +153,7 @@ linefrag = load_shader_str("cc_line_frag.glsl", directory="CC_Line_Shader")
 
 line_vert_out = gpu.types.GPUStageInterfaceInfo("my_interface")
 line_vert_out.smooth('VEC4', "color")
+line_vert_out.smooth('VEC2', "v_uv")
 
 line_shader_info = gpu.types.GPUShaderCreateInfo()
 line_shader_info.push_constant('MAT4', "viewProjectionMatrix")
@@ -160,11 +162,13 @@ line_shader_info.push_constant('MAT4', "objectMatrix")
 line_shader_info.push_constant('MAT4', "extMatrix")
 line_shader_info.push_constant('VEC4', "overlay_color")
 line_shader_info.push_constant('VEC3', "view_dir")
+line_shader_info.push_constant('BOOL', "depth_pass")
 line_shader_info.vertex_in(0, 'VEC3', "pos")
 line_shader_info.vertex_in(1, 'VEC4', "col")
 line_shader_info.vertex_in(2, 'VEC3', "dir")
 line_shader_info.vertex_in(3, 'INT', "thick_sign")
 line_shader_info.vertex_in(4, 'FLOAT', "weight")
+line_shader_info.vertex_in(5, 'VEC2', "uv")
 
 line_shader_info.vertex_out(line_vert_out)
 line_shader_info.fragment_out(0, 'VEC4', "fragColor")
@@ -3833,6 +3837,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     expanded_coords = []
     coord_dirs = []
     coord_signs = []
+    coord_uvs = []
     if type(lineWeight) == list:
         lineWeight = lineWeight[0]
     for i in range(0,len(coords),2):
@@ -3855,6 +3860,12 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         expanded_coords.extend([p1,p1,p2,p2,p2,p1])
         coord_dirs.extend([dir]*6)
         coord_signs.extend([1,-1,1,-1,1,-1])
+        uv1 = Vector((0,0))
+        uv2 = Vector((0,1))
+        uv3 = Vector((1,0))
+        uv4 = Vector((1,1))
+        coord_uvs.extend([uv1,uv2,uv3,uv4,uv3,uv2])
+        
 
     if obj == None:
         objMat = Matrix.Identity(4)
@@ -3897,6 +3908,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         vboBuffer['coords'].extend(expanded_coords)
         vboBuffer['coord_dirs'].extend(coord_dirs)
         vboBuffer['coord_signs'].extend(coord_signs)
+        vboBuffer['coord_uvs'].extend(coord_uvs)
         # Check for list of rgb values
         if type(rgb) == list: buffer['colors'].extend(rgb)
         else: vboBuffer['colors'].extend([rgb]*num_coords)
@@ -3971,95 +3983,97 @@ def draw_all_lines(ext_mat = None):
     #allLinesShader.uniform_float("camera_coord2", c2)
 
     # DRAW HIDDEN LINES
-    gpu.state.blend_set('NONE')
-    gpu.state.depth_test_set('GREATER')
-    for key in HiddenLinesBuffer.keys():
-        hiddenbuffer = HiddenLinesBuffer[key]
-        hiddenvboBuffer = hiddenbuffer["VBOs"]
+    with OpenGL_Settings(None):
+        gpu.state.depth_test_set('GREATER')
+        for key in HiddenLinesBuffer.keys():
+            hiddenbuffer = HiddenLinesBuffer[key]
+            hiddenvboBuffer = hiddenbuffer["VBOs"]
 
-        # Set up Per line Uniforms
-        allLinesShader.uniform_float("offset", hiddenbuffer["offset"])
-        allLinesShader.uniform_float("objectMatrix", hiddenbuffer["objMat"])
-        allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
-        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
-        #allLinesShader.uniform_float("dashed", hiddenbuffer["dashed"])
-        #allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
-        #allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
-        #allLinesShader.uniform_float("overlay_color", hiddenbuffer["overlay_color"])
+            # Set up Per line Uniforms
+            allLinesShader.uniform_float("offset", hiddenbuffer["offset"])
+            allLinesShader.uniform_float("objectMatrix", hiddenbuffer["objMat"])
+            allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
+            allLinesShader.uniform_float("extMatrix",flat_ext_mat)
+            #allLinesShader.uniform_float("dashed", hiddenbuffer["dashed"])
+            #allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
+            #allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
+            #allLinesShader.uniform_float("overlay_color", hiddenbuffer["overlay_color"])
 
-        # Batch VBO
-        if hiddenbuffer['invalid'] or key not in HiddenLinesBatchs:
-            HiddenLinesBatch = batch_for_shader(
-                allLinesShader,
-                'LINES',
-                {"pos": hiddenvboBuffer["coords"],
-                #"weight":hiddenvboBuffer["weights"],
-                "col": hiddenvboBuffer["colors"],
-                #"rounded": hiddenvboBuffer["rounded"],
-                })
-            HiddenLinesBatchs[key] = HiddenLinesBatch
-        else:
-            HiddenLinesBatch = HiddenLinesBatchs[key]
+            # Batch VBO
+            if hiddenbuffer['invalid'] or key not in HiddenLinesBatchs:
+                HiddenLinesBatch = batch_for_shader(
+                    allLinesShader,
+                    'LINES',
+                    {"pos": hiddenvboBuffer["coords"],
+                    #"weight":hiddenvboBuffer["weights"],
+                    "col": hiddenvboBuffer["colors"],
+                    #"rounded": hiddenvboBuffer["rounded"],
+                    })
+                HiddenLinesBatchs[key] = HiddenLinesBatch
+            else:
+                HiddenLinesBatch = HiddenLinesBatchs[key]
 
-        gpu.state.depth_mask_set(False)
-        #allLinesShader.uniform_float("depthPass", False)
-        HiddenLinesBatch.program_set(allLinesShader)
-        HiddenLinesBatch.draw()
-
-
-    # DRAW REGULAR LINES
-    for key in AllLinesBuffer.keys():
-        buffer = AllLinesBuffer[key]
-        vboBuffer = buffer["VBOs"]
-
-        # Set up Per line Uniforms
-        if sceneProps.is_render_draw:
-            view_dir = get_camera_z()
-        else:
-            view_rot = bpy.context.region_data.view_rotation
-            view_dir =  Vector((0,0,1))
-            view_dir.rotate(view_rot)
-        allLinesShader.uniform_float("offset", buffer["offset"])
-        allLinesShader.uniform_float("objectMatrix", buffer["objMat"])
-        allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
-        allLinesShader.uniform_float("extMatrix",flat_ext_mat)
-        allLinesShader.uniform_float("view_dir",view_dir)
-        #allLinesShader.uniform_float("dashed", buffer["dashed"])
-        #allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
-        #allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
-        allLinesShader.uniform_float("overlay_color", buffer["overlay_color"])
-        gpu.state.line_width_set(1.0)
-        # Batch VBO
-        if buffer['invalid'] or key not in AllLinesBatchs:
-            AllLinesBatch = batch_for_shader(
-                allLinesShader,
-                'TRIS',
-                {"pos": vboBuffer["coords"],
-                "weight":vboBuffer["weights"],
-                "col": vboBuffer["colors"],
-                "dir":vboBuffer["coord_dirs"],
-                "thick_sign":vboBuffer["coord_signs"]
-                #"rounded": vboBuffer["rounded"],
-                })
-            #print('re-batching {}. Buffer Invalid: {}, Key Not Found {}'.format(key, buffer['invalid'],key not in AllLinesBatchs))
-            AllLinesBatchs[key] = AllLinesBatch
-        else:
-            AllLinesBatch = AllLinesBatchs[key]
-
-        # Set Depth Test
-        gpu.state.depth_test_set('LESS_EQUAL')
+            gpu.state.depth_mask_set(False)
+            #allLinesShader.uniform_float("depthPass", False)
+            HiddenLinesBatch.program_set(allLinesShader)
+            HiddenLinesBatch.draw()
 
 
-        # Draw To depth Mask
-        gpu.state.color_mask_set(True, True, True, True)
-        gpu.state.depth_mask_set(True)
-        gpu.state.blend_set('NONE')
-        #allLinesShader.uniform_float("depthPass", False)
-        AllLinesBatch.program_set(allLinesShader)
-        AllLinesBatch.draw()
+        # DRAW REGULAR LINES
+        for key in AllLinesBuffer.keys():
+            buffer = AllLinesBuffer[key]
+            vboBuffer = buffer["VBOs"]
 
-        gpu.state.blend_set('NONE')
-    gpu.shader.unbind()
+            # Set up Per line Uniforms
+            if sceneProps.is_render_draw:
+                view_dir = get_camera_z()
+            else:
+                view_rot = bpy.context.region_data.view_rotation
+                view_dir =  Vector((0,0,1))
+                view_dir.rotate(view_rot)
+            allLinesShader.uniform_float("offset", buffer["offset"])
+            allLinesShader.uniform_float("objectMatrix", buffer["objMat"])
+            allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
+            allLinesShader.uniform_float("extMatrix",flat_ext_mat)
+            allLinesShader.uniform_float("view_dir",view_dir)
+            allLinesShader.uniform_float("view_dir",view_dir)
+            #allLinesShader.uniform_float("dashed", buffer["dashed"])
+            #allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
+            #allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
+            allLinesShader.uniform_float("overlay_color", buffer["overlay_color"])
+            # Batch VBO
+            if buffer['invalid'] or key not in AllLinesBatchs:
+                AllLinesBatch = batch_for_shader(
+                    allLinesShader,
+                    'TRIS',
+                    {"pos": vboBuffer["coords"],
+                    "weight":vboBuffer["weights"],
+                    "col": vboBuffer["colors"],
+                    "dir":vboBuffer["coord_dirs"],
+                    "thick_sign":vboBuffer["coord_signs"],
+                    "uv": vboBuffer["coord_uvs"],
+                    })
+                #print('re-batching {}. Buffer Invalid: {}, Key Not Found {}'.format(key, buffer['invalid'],key not in AllLinesBatchs))
+                AllLinesBatchs[key] = AllLinesBatch
+            else:
+                AllLinesBatch = AllLinesBatchs[key]
+
+            # Set Depth Test
+            gpu.state.depth_test_set('LESS_EQUAL')
+
+            # Draw To depth Mask
+            gpu.state.depth_mask_set(True)
+            allLinesShader.uniform_float("depth_pass", True)
+            AllLinesBatch.program_set(allLinesShader)
+            AllLinesBatch.draw()
+
+            # Draw AA
+            gpu.state.depth_mask_set(False)
+            allLinesShader.uniform_float("depth_pass", False)
+            AllLinesBatch.program_set(allLinesShader)
+            AllLinesBatch.draw()
+
+        gpu.shader.unbind()
     pass
 
 def cap_extension(dirVec, capSize, capAngle):

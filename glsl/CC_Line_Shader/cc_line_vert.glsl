@@ -7,6 +7,10 @@
 // in vec3 dir
 // in int thick_sign
 // in float weight
+// in vec2 uv
+
+// out vec4 color
+// out vec2 v_uv
 
 void main() {
 
@@ -17,4 +21,5 @@ void main() {
     vec4 project = viewProjectionMatrix * objectMatrix *extMatrix* vec4(exp_pos, 1.0);
     gl_Position = vec4(project.x,project.y,l_project.z + offset,l_project.w);
     color = col;
+    v_uv = uv;
 }
