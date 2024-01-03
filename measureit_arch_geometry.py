@@ -3835,6 +3835,14 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     if len(coords) % 2 != 0:
         print('ERROR: Odd Number of Coords, injecting padding to preserve other lines')
         coords.append(Vector((0,0,0)))
+    
+    if obj == None:
+        objMat = Matrix.Identity(4)
+        invalid = True # Just Always Rebatch basic lines
+        bufferKey = 'General Buffer {}'.format(len(buffer.keys()))
+    else:
+        objMat = obj.matrix_world
+        bufferKey = obj.name + name
 
     # expand line
     expanded_coords = []
@@ -3845,7 +3853,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     if type(lineWeight) == list:
         lineWeight = lineWeight[0]
     for i in range(0,len(coords),2):
-        p1 = Vector(coords[i])
+        p1 = Vector(coords[i]) 
         p2 = Vector(coords[i+1])
         dir = p1 - p2
         arc_length = dir.length_squared     

@@ -13,13 +13,15 @@
 // out vec2 uv
 
 void main() {
-
-    vec3 perp = normalize(cross(dir.xyz,view_dir));
-    vec3 exp_pos = pos + perp * thick_sign * weight/72.0;
+    vec4 local_dir = objectMatrix *extMatrix* vec4(dir,0.0);
+    vec4 local_pos = objectMatrix *extMatrix* vec4(pos, 1.0);
+    //vec4 local_view = objectMatrix*vec4(view_dir,0.0);
+    vec3 perp = normalize(cross(local_dir.xyz,view_dir.xyz));
+    vec3 exp_pos = local_pos.xyz + perp * thick_sign * weight/72.0;
     vec4 l_project = viewProjectionMatrix * objectMatrix *extMatrix* vec4(pos, 1.0);
 
-    vec4 project = viewProjectionMatrix * objectMatrix *extMatrix* vec4(exp_pos, 1.0);
-    gl_Position = vec4(project.x,project.y,l_project.z + offset,l_project.w);
+    vec4 project = viewProjectionMatrix * vec4(exp_pos, 1.0);
+    gl_Position = vec4(project.x,project.y,l_project.z + offset, project.w);
     color = col;
     uv = v_uv;
 }
