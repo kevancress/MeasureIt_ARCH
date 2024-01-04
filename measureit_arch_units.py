@@ -56,7 +56,8 @@ BU_TO_FEET = 100.0 / (INCH_TO_CM * INCHES_PER_FEET)
 class SCENE_PT_MARCH_units(Panel):
     """ MeasureIt_ARCH Unit settings """
 
-    bl_parent_id = 'SCENE_PT_unit'
+    if hasattr(bpy.types, "SCENE_PT_unit"):
+        bl_parent_id = 'SCENE_PT_unit'
     bl_idname = "SCENE_PT_MARCH_Units"
     bl_label = "MeasureIt_ARCH Unit Settings"
     bl_space_type = 'PROPERTIES'
