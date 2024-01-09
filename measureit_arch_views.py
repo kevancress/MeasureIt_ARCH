@@ -1192,7 +1192,9 @@ class OpenInBrowser(Operator):
 
     def execute(self,context):
         view = get_view()
-        path = bpy.path.abspath(view.output_path)
+        outpath = get_view_outpath(bpy.context.scene,view,".png")
+        path = bpy.path.abspath(outpath)
+        path = os.path.split(path)[0]
         webbrowser.open(path)
 
         return {'FINISHED'}

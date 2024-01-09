@@ -2268,11 +2268,15 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid)
 
         if sceneProps.is_vector_draw:
-            if not lineProps.chain:
-                svg_shaders.svg_line_shader(
-                    lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat)
-            else:
-                svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False, mat=mat)
+            if myobj.type =='CURVE':
+                svg_shaders.svg_path_from_curve_shader(myobj,lineProps,rgb,svg,parent=svg)
+
+            else: 
+                if not lineProps.chain:
+                    svg_shaders.svg_line_shader(
+                        lineGroup, lineProps, coords, lineWeight, rgb, svg, mat=mat)
+                else:
+                     svg_shaders.svg_poly_fill_shader(lineGroup,coords,(0,0,0,0),svg,line_color = rgb, lineWeight= lineProps.lineWeight, itemProps=lineProps,closed=False, mat=mat)
 
             for dotcoord in dotcoords:
                 if dotcoord:

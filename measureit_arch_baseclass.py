@@ -313,6 +313,11 @@ class ObjProps(PropertyGroup):
         description='Ignore this object in Vector Depth Tests',
         default=False)
 
+    skip_depth_test: BoolProperty(
+        name='Skip Depth Test',
+        description='Skip Depth Tests on this object',
+        default=False)
+
     obj_hatch_pattern: PointerProperty(name='Object Hatch Pattern', type=Collection)
 
     obj_patternSize: FloatProperty(

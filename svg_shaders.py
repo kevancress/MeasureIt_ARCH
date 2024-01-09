@@ -122,6 +122,43 @@ def draw_single_line(p1,p2,mat=Matrix.Identity(4),itemProps=None,svg=None,lines=
             elif not vis and draw_hidden:
                 dashed_lines.add(line_draw)
 
+def svg_path_from_curve_shader(curve, item, color, svg, parent=None):
+    obj_mat = curve.matrix_world
+    weight_scale_fac = 1.3333333333333333 * get_resolution()/96
+    col = get_svg_color(item.color)
+    group = svg.g(id=curve.name, fill='transparent', stroke=col,stroke_width=item.lineWeight*weight_scale_fac)
+    for spline in curve.data.splines:
+        path_strings = []
+        for i in range(len(spline.bezier_points)):
+            point = spline.bezier_points[i]
+            ss_pos = vector_utils.get_render_location(obj_mat@point.co)
+            if i == 0:
+                path_strings.append('M {} {}'.format(ss_pos[0],ss_pos[1]))
+            else:
+                last_handle = spline.bezier_points[i-1].handle_right
+                current_handle = spline.bezier_points[i].handle_left
+                ss_last = vector_utils.get_render_location(obj_mat@last_handle)
+                ss_current = vector_utils.get_render_location(obj_mat@current_handle)
+                path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_pos[0],ss_pos[1]))
+        
+        if spline.use_cyclic_u or spline.use_cyclic_v:
+            point = spline.bezier_points[0]
+            ss_pos = vector_utils.get_render_location(obj_mat@point.co)
+            last_handle = spline.bezier_points[-1].handle_right
+            current_handle = spline.bezier_points[0].handle_left
+            ss_last = vector_utils.get_render_location(obj_mat@last_handle)
+            ss_current = vector_utils.get_render_location(obj_mat@current_handle)
+            path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_pos[0],ss_pos[1]))
+        
+        path_string = ' '.join(path_strings)
+        path = svg.path(d=path_string)
+        group.add(path)
+    parent.add(group)
+
+
+    pass
+    
+
 def svg_fill_shader(item, coords, color, svg, parent=None):
     if vector_utils.camera_cull(coords):
         print("No Points In front of Camera: {} Culled in Fill Shader")

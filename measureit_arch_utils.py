@@ -6,6 +6,7 @@ import os
 from mathutils import Vector
 from addon_utils import check, paths
 from sys import getrecursionlimit, setrecursionlimit
+from datetime import datetime
 
 from .measureit_arch_units import BU_TO_INCHES
 
@@ -225,6 +226,44 @@ def get_view():
     return view
 
 
+def get_view_outpath(scene, view, suffix):
+    # Reset default outpath for older files
+    if view.output_path == "//Renders\\":
+        view.output_path = "//Renders"
+
+    if view.output_path:
+        filenameStr =  "{}_{}".format(view.view_num, view.name)
+        outpath = os.path.join(view.output_path, filenameStr)
+    else:
+        outpath = scene.render.filepath
+    filepath = "{}_{}".format(bpy.path.abspath(outpath), suffix)
+
+    dir, filename = os.path.split(filepath)
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+
+    #print(dir)
+    if view.name_folder:
+        bn= bpy.path.basename(bpy.context.blend_data.filepath)
+        bn = bn.replace('.blend','')
+        namedir = os.path.join(dir,bn)
+        if not os.path.exists(namedir):
+            os.mkdir(namedir)
+        dir = namedir
+
+    #print(dir)
+    if view.date_folder:
+        today = datetime.now()
+        datedir = os.path.join(dir, today.strftime('%Y%m%d'))
+        if not os.path.exists(datedir):
+            os.mkdir(datedir)
+        dir = datedir
+
+    #print(dir)
+    filepath = os.path.join(dir, filename)
+    print(filepath)
+
+    return filepath
 
 def get_scale():
     scene = bpy.context.scene

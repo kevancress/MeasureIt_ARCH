@@ -42,7 +42,7 @@ from . import svg_shaders
 from . import vector_utils
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_main, draw_titleblock, text_update_loop,draw_viewport
-from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render, load_shader_str, get_projection_matrix
+from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render, load_shader_str, get_projection_matrix, get_view_outpath
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -293,45 +293,6 @@ def render_main(self, context):
         sceneProps.is_render_draw = False
     return outpath
 
-
-def get_view_outpath(scene, view, suffix):
-    # Reset default outpath for older files
-    if view.output_path == "//Renders\\":
-        view.output_path = "//Renders"
-
-    if view.output_path:
-        filenameStr =  "{}_{}".format(view.view_num, view.name)
-        outpath = os.path.join(view.output_path, filenameStr)
-    else:
-        outpath = scene.render.filepath
-    filepath = "{}_{}".format(bpy.path.abspath(outpath), suffix)
-
-    dir, filename = os.path.split(filepath)
-    if not os.path.exists(dir):
-        os.mkdir(dir)
-
-    #print(dir)
-    if view.name_folder:
-        bn= bpy.path.basename(bpy.context.blend_data.filepath)
-        bn = bn.replace('.blend','')
-        namedir = os.path.join(dir,bn)
-        if not os.path.exists(namedir):
-            os.mkdir(namedir)
-        dir = namedir
-
-    #print(dir)
-    if view.date_folder:
-        today = datetime.now()
-        datedir = os.path.join(dir, today.strftime('%Y%m%d'))
-        if not os.path.exists(datedir):
-            os.mkdir(datedir)
-        dir = datedir
-
-    #print(dir)
-    filepath = os.path.join(dir, filename)
-    print(filepath)
-
-    return filepath
 
 
 def save_image(self, filepath, image):
