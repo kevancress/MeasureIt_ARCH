@@ -53,7 +53,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         dashed = True
 
     svgColor = get_svg_color(color)
-    
+
     cap = 'butt'
     try:
         if itemProps.pointPass:
@@ -94,14 +94,14 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     else:
         svg.add(dashed_lines)
 
-    # Get Depth Buffer as list and also other common props 
+    # Get Depth Buffer as list and also other common props
     if dashed:
         lines = dashed_lines
-        
+
     for x in range(0, len(coords) - 1, 2):
         draw_single_line(coords[x],coords[x+1],mat,itemProps,svg,lines,dashed_lines,cap,draw_hidden)
- 
- 
+
+
 def draw_single_line(p1,p2,mat=Matrix.Identity(4),itemProps=None,svg=None,lines=None,dashed_lines=None,cap=None,draw_hidden=False,depth_test=True):
     if depth_test:
         line_segs = vector_utils.depth_test(p1, p2, mat, itemProps)
@@ -129,27 +129,44 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None):
     group = svg.g(id=curve.name, fill='transparent', stroke=col,stroke_width=item.lineWeight*weight_scale_fac)
     for spline in curve.data.splines:
         path_strings = []
-        for i in range(len(spline.bezier_points)):
-            point = spline.bezier_points[i]
-            ss_pos = vector_utils.get_render_location(obj_mat@point.co)
-            if i == 0:
-                path_strings.append('M {} {}'.format(ss_pos[0],ss_pos[1]))
-            else:
-                last_handle = spline.bezier_points[i-1].handle_right
-                current_handle = spline.bezier_points[i].handle_left
-                ss_last = vector_utils.get_render_location(obj_mat@last_handle)
-                ss_current = vector_utils.get_render_location(obj_mat@current_handle)
-                path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_pos[0],ss_pos[1]))
-        
-        if spline.use_cyclic_u or spline.use_cyclic_v:
-            point = spline.bezier_points[0]
-            ss_pos = vector_utils.get_render_location(obj_mat@point.co)
-            last_handle = spline.bezier_points[-1].handle_right
-            current_handle = spline.bezier_points[0].handle_left
+        curve_segs = []
+        for i in range(len(spline.bezier_points)-1):
+            p1 = spline.bezier_points[i].co
+            p2 = spline.bezier_points[i+1].co
+            h1 = spline.bezier_points[i].handle_right
+            h2 = spline.bezier_points[i+1].handle_left
+            curve_segs.extend(vector_utils.curve_depth_test(p1,p2,h1,h2,obj_mat, item))
+
+        for i in range(len(curve_segs)):
+            visibility = curve_segs[i][0]
+            if visibility == False:
+                continue
+            curve_chunk = curve_segs[i][1]
+            p1 = curve_chunk[0]
+            p2 = curve_chunk[1]
+            h1 = curve_chunk[2]
+            h2 = curve_chunk[3]
+
+
+            ss_p1 = vector_utils.get_render_location(obj_mat@p1)
+            ss_p2 = vector_utils.get_render_location(obj_mat@p2)
+            path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
+
+            last_handle = h1
+            current_handle = h2
             ss_last = vector_utils.get_render_location(obj_mat@last_handle)
             ss_current = vector_utils.get_render_location(obj_mat@current_handle)
-            path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_pos[0],ss_pos[1]))
-        
+            path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
+
+        #if spline.use_cyclic_u or spline.use_cyclic_v:
+        #    point = spline.bezier_points[0]
+        #    ss_pos = vector_utils.get_render_location(obj_mat@point.co)
+        #    last_handle = spline.bezier_points[-1].handle_right
+        #    current_handle = spline.bezier_points[0].handle_left
+        #    ss_last = vector_utils.get_render_location(obj_mat@last_handle)
+        #    ss_current = vector_utils.get_render_location(obj_mat@current_handle)
+        #    path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_pos[0],ss_pos[1]))
+
         path_string = ' '.join(path_strings)
         path = svg.path(d=path_string)
         group.add(path)
@@ -157,7 +174,7 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None):
 
 
     pass
-    
+
 
 def svg_fill_shader(item, coords, color, svg, parent=None):
     if vector_utils.camera_cull(coords):
@@ -181,7 +198,7 @@ def svg_circle_shader(item, point, rad, color, svg, parent=None):
     if vector_utils.camera_cull([point]):
         print("No Points In front of Camera: {} Culled in Circle Shader")
         return
-    
+
     idName = item.name + "_fills"
     svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
     fills = svg.g(id=idName, fill=svgColor)
@@ -196,7 +213,7 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     weight_scale_fac = 1.3333333333333333 * get_resolution()/96
     if bpy.context.scene.MeasureItArchProps.illustrator_style_svgs:
         weight_scale_fac = 1
-    
+
     if vector_utils.camera_cull(coords,mat):
         print("No Points In front of Camera: {} Culled in Poly Fill Shader")
         return
@@ -211,10 +228,10 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
 
     coords_2d = []
     idName = item.name + "_fills"
-    dashed = False     
+    dashed = False
     if itemProps==None: itemProps = item
     if  "lineDrawDashed" in itemProps and itemProps.lineDrawDashed:
-        dashed = True  
+        dashed = True
 
         try:
             dash_val = ""
@@ -289,7 +306,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     ssp3 = vector_utils.get_render_location(textCard[3])
 
     card = [Vector(ssp0),Vector(ssp1),Vector(ssp2),Vector(ssp3)]
-    
+
     xDirVec = card[3] - card[0]
     yDirVec = card[1] - card[0]
 
@@ -341,7 +358,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
         text_position = rightVec
         text_anchor = 'end'
 
-    
+
     # Get resolution for text size
     view = get_view()
     res = get_resolution()
@@ -370,7 +387,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
     # Draw the text
     line_height = cardHeight / len(lines)
-    
+
     # Height Offset to match the raster texture shift
     heightOffsetAmount = cardHeight - line_height * 0.8
     heightOffset = yDirVec.copy().normalized() * heightOffsetAmount
@@ -446,7 +463,7 @@ def shortName(font):
     """Get the short name from the font's names table"""
     name = ""
     family = ""
-    
+
     for record in font['name'].names:
         if record.nameID == FONT_SPECIFIER_NAME_ID and not name:
             if b'\x00' in record.string:
@@ -460,7 +477,7 @@ def shortName(font):
             else:
                 name_str = record.string.decode('utf-8')
             family = name_str
-       
+
         if name and family: break
     return name, family
 
