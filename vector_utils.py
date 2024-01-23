@@ -620,9 +620,9 @@ def curve_vis_sample(p1,p2,h1,h2,mat,item):
         start_t = t
 
     if len(vis_changes) > 0:
-        curve_segs.append([True,cts])
+        curve_segs.append([last_vis_state,cts])
     else:
-        curve_segs.append([True,cts])
+        curve_segs.append([last_vis_state,cts])
     return curve_segs
 
 

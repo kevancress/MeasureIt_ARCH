@@ -94,7 +94,6 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
     else:
         svg.add(dashed_lines)
 
-    # Get Depth Buffer as list and also other common props
     if dashed:
         lines = dashed_lines
 
@@ -125,10 +124,64 @@ def draw_single_line(p1,p2,mat=Matrix.Identity(4),itemProps=None,svg=None,lines=
 def svg_path_from_curve_shader(curve, item, color, svg, parent=None):
     obj_mat = curve.matrix_world
     weight_scale_fac = 1.3333333333333333 * get_resolution()/96
-    col = get_svg_color(item.color)
-    group = svg.g(id=curve.name, fill='transparent', stroke=col,stroke_width=item.lineWeight*weight_scale_fac)
+    thickness = item.lineWeight
+    if bpy.context.scene.MeasureItArchProps.illustrator_style_svgs:
+        weight_scale_fac = 1
+    idName = item.name + "_lines"
+    dash_id_name = idName = item.name + "_dashed_lines"
+    dashed = False
+
+    if "lineDrawDashed" in item and item.lineDrawDashed:
+        dashed = True
+
+    svgColor = get_svg_color(color)
+
+    cap = 'butt'
+    try:
+        if item.pointPass:
+            cap = 'round'
+    except AttributeError:
+        pass
+
+    lines = svg.g(id=idName, stroke=svgColor,fill = 'none',
+                  stroke_width="{}".format(thickness*weight_scale_fac), stroke_linecap=cap)
+    if parent:
+        parent.add(lines)
+    else:
+        svg.add(lines)
+
+    draw_hidden = 'lineDrawHidden' in item and item.lineDrawHidden
+    dash_col = svgColor
+    dash_weight = thickness
+    if draw_hidden:
+        dash_col = get_svg_color(item.lineHiddenColor)
+        dash_weight = item.lineHiddenWeight
+
+    try:
+        dash_val = ""
+        for i in range(item.num_dashes+1):
+            if i == 0: continue
+            if i > 1: dash_val += ","
+            dash_space = eval('item.d{}_length'.format(i))
+            gap_space = eval('item.g{}_length'.format(i))
+            dash_val += "{},{}".format(dash_space * weight_scale_fac, gap_space* weight_scale_fac)
+    except AttributeError:
+        dash_val = "5,5"
+
+    dashed_lines = svg.g(id=dash_id_name, stroke=dash_col,fill = 'none', stroke_width="{}".format(dash_weight * weight_scale_fac),
+                    stroke_dasharray=dash_val, stroke_linecap='butt')
+
+    if parent:
+        parent.add(dashed_lines)
+    else:
+        svg.add(dashed_lines)
+
+    if dashed:
+        lines = dashed_lines
+
     for spline in curve.data.splines:
         path_strings = []
+        hidden_path_strings = []
         curve_segs = []
         for i in range(len(spline.bezier_points)-1):
             p1 = spline.bezier_points[i].co
@@ -139,8 +192,8 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None):
 
         for i in range(len(curve_segs)):
             visibility = curve_segs[i][0]
-            if visibility == False:
-                continue
+
+
             curve_chunk = curve_segs[i][1]
             p1 = curve_chunk[0]
             p2 = curve_chunk[1]
@@ -150,13 +203,18 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None):
 
             ss_p1 = vector_utils.get_render_location(obj_mat@p1)
             ss_p2 = vector_utils.get_render_location(obj_mat@p2)
-            path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
+
 
             last_handle = h1
             current_handle = h2
             ss_last = vector_utils.get_render_location(obj_mat@last_handle)
             ss_current = vector_utils.get_render_location(obj_mat@current_handle)
-            path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
+            if visibility:
+                path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
+                path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
+            else:
+                hidden_path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
+                hidden_path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
 
         #if spline.use_cyclic_u or spline.use_cyclic_v:
         #    point = spline.bezier_points[0]
@@ -169,8 +227,11 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None):
 
         path_string = ' '.join(path_strings)
         path = svg.path(d=path_string)
-        group.add(path)
-    parent.add(group)
+        lines.add(path)
+        if draw_hidden:
+            hidden_path_string = ' '.join(hidden_path_strings)
+            hidden_path = svg.path(d=hidden_path_string)
+            dashed_lines.add(hidden_path)
 
 
     pass
