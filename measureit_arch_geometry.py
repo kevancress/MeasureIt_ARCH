@@ -2227,49 +2227,45 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     lineWeights[idx] = lineProps.lineWeight
                 #print("Resulting Weight {} . From filter {} , and Group {}".format(lineWeights[idx],filterWeights[idx],groupWeights[idx]))
 
-        if len(coords) == 0:
-            #print("No Coords")
-            return
-
         dotcoords = []
         filledcoords = []
+        if len(coords) > 0:
+            if lineGroup.endcapA != 'NONE':
+                dot,fill =  draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[0])  , mat@Vector(coords[-1]) , rgb, lineGroup.endcapSize)
+                dotcoords.append(dot)
+                filledcoords.append(fill)
 
-        if lineGroup.endcapA != 'NONE':
-            dot,fill =  draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[0])  , mat@Vector(coords[-1]) , rgb, lineGroup.endcapSize)
-            dotcoords.append(dot)
-            filledcoords.append(fill)
+            if lineGroup.endcapB != 'NONE':
+                dot,fill =  draw_annotation_endcaps(lineGroup, lineGroup.endcapB, mat@Vector(coords[-1]) , mat@Vector(coords[-2]) , rgb, lineGroup.endcapSize)
+                dotcoords.append(dot)
+                filledcoords.append(fill)
 
-        if lineGroup.endcapB != 'NONE':
-            dot,fill =  draw_annotation_endcaps(lineGroup, lineGroup.endcapB, mat@Vector(coords[-1]) , mat@Vector(coords[-2]) , rgb, lineGroup.endcapSize)
-            dotcoords.append(dot)
-            filledcoords.append(fill)
-
-        dash_spaces = [0,0,0,0]
-        gap_spaces = [0,0,0,0]
-        if lineProps.lineDrawDashed or drawHidden:
             dash_spaces = [0,0,0,0]
             gap_spaces = [0,0,0,0]
-            dash_props = [lineProps.d1_length,lineProps.d2_length,lineProps.d3_length,lineProps.d4_length]
-            gap_props =  [lineProps.g1_length,lineProps.g2_length,lineProps.g3_length,lineProps.g4_length]
-            for i in range(lineProps.num_dashes):
-                dash_spaces[i] = dash_props[i]
-                gap_spaces[i] = gap_props[i]
+            if lineProps.lineDrawDashed or drawHidden:
+                dash_spaces = [0,0,0,0]
+                gap_spaces = [0,0,0,0]
+                dash_props = [lineProps.d1_length,lineProps.d2_length,lineProps.d3_length,lineProps.d4_length]
+                gap_props =  [lineProps.g1_length,lineProps.g2_length,lineProps.g3_length,lineProps.g4_length]
+                for i in range(lineProps.num_dashes):
+                    dash_spaces[i] = dash_props[i]
+                    gap_spaces[i] = gap_props[i]
 
-        draw_lines(lineWeights,rgb,coords,offset=-offset,
-            pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
-            dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid)
+            draw_lines(lineWeights,rgb,coords,offset=-offset,
+                pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
+                dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid)
 
-        if drawHidden:
-            hiddenLineWeight = lineProps.lineHiddenWeight
-            hiddenRGB = get_color(lineProps.lineHiddenColor, lineProps.cad_col_idx)
+            if drawHidden:
+                hiddenLineWeight = lineProps.lineHiddenWeight
+                hiddenRGB = get_color(lineProps.lineHiddenColor, lineProps.cad_col_idx)
 
-            draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,
-                pointPass= lineProps.pointPass, dashed=True,
-                dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid)
+                draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,
+                    pointPass= lineProps.pointPass, dashed=True,
+                    dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid)
 
         if sceneProps.is_vector_draw:
             if myobj.type =='CURVE':
-                svg_shaders.svg_path_from_curve_shader(myobj,lineProps,rgb,svg,parent=svg)
+                svg_shaders.svg_path_from_curve_shader(myobj,lineProps,rgb,svg,parent=svg,mat = mat)
 
             else: 
                 if not lineProps.chain:
