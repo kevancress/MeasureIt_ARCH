@@ -86,25 +86,43 @@ def get_worldscale_projection(mypoint, units = 'M', is_2d=True):
     v1 = Vector(mypoint)
     camera_matrix = camera.matrix_world
     camera_rot = camera_matrix.to_quaternion()
-    camera_basis = Matrix.Identity(3) 
+    camera_basis = Matrix.Identity(3)
     camera_basis.rotate(camera_rot)
 
     proj_point = (v1 - camera.location) @ camera_basis
-    
+
     if units == 'MM':
         proj_point *= 1000
     elif units == 'CM':
         proj_point *= 100
     elif units == 'M':
         pass
-    
+
     if is_2d:
 
         return proj_point.xy + Vector((sceneProps.offset_x_2d,sceneProps.offset_y_2d))
 
     return proj_point
-    
 
+# uses de Casteljau's algoritim to subdivide a curve at t, and returns the two new curves
+# identicle to the origintal but split at t
+def dc_bezier_subdivision(p1,p2,h1,h2,t):
+    #first lerps
+    a1 = p1.lerp(h1,t)
+    a2 = h1.lerp(h2,t)
+    a3 = h2.lerp(p2,t)
+
+    #Second leps
+    b1 = a1.lerp(a2,t)
+    b2 = a2.lerp(a3,t)
+
+    # split point
+    split_point = b1.lerp(b2,t)
+
+    # endpoint, endpoint, handle, handle
+    c1 = [p1,split_point,a1,b1]
+    c2 = [split_point,p2,b2,a3]
+    return c1,c2
 
 def polygon_occlusion(coords):
     polygon = coords
@@ -115,7 +133,7 @@ def polygon_occlusion(coords):
         generate_facemap()
         end_time = time.time()
         print("Facemap Generation took: " + str(end_time - start_time))
-    
+
     for face in facemap:
         cut_coords = []
         for edge in face.edges:
@@ -156,16 +174,16 @@ def set_globals():
 
     if 'depthbuffer' in sceneProps and depthbuffer is None and view.vector_depthtest:
         #depthbuffer = np.asarray(sceneProps['depthbuffer'], dtype=np.float32) # I feel like this should be faster but its not
-        depthbuffer = sceneProps['depthbuffer'].to_list()   
+        depthbuffer = sceneProps['depthbuffer'].to_list()
         end_time = time.time()
         print("Reading Depthbuffer to list took: " + str(end_time - start_time))
 
     if view.vector_depthtest and sceneProps.depth_test_method == 'GEOMETRIC':
         generate_edgemap()
         #generate_facemap()
-    
 
-    
+
+
 # --------------------------------------------------------------------
 # Get position in final render image
 # (Z < 0 out of camera)
@@ -205,7 +223,7 @@ class IntersectPoint(object):
     def __init__(self, point, factor) -> None:
         self.point = point
         self.factor = factor
-    
+
     def __lt__(self,other):
         return self.factor < other.factor
 
@@ -234,15 +252,15 @@ def generate_edgemap():
             obj_eval = obj.evaluated_get(deps)
             mesh = obj_eval.to_mesh(
                 preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
-            
+
             for edge in mesh.edges:
-                p1 = mat @ mesh.vertices[edge.vertices[0]].co 
-                p2 = mat @ mesh.vertices[edge.vertices[1]].co 
+                p1 = mat @ mesh.vertices[edge.vertices[0]].co
+                p2 = mat @ mesh.vertices[edge.vertices[1]].co
                 map_edge = MapEdge(p1,p2)
                 edgemap.append(map_edge)
 
 def generate_facemap():
-    
+
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -257,13 +275,13 @@ def generate_facemap():
         bm.from_object(obj, bpy.context.view_layer.depsgraph)
         faces = bm.faces
         for face in faces:
-            center = mat @ face.calc_center_bounds() 
+            center = mat @ face.calc_center_bounds()
             depth = get_camera_z_dist(center)
-            normal = mat @ face.normal 
+            normal = mat @ face.normal
             edge_array = []
             for edge in face.edges:
-                start = mat @ edge.verts[0].co 
-                end = mat @ edge.verts[1].co  
+                start = mat @ edge.verts[0].co
+                end = mat @ edge.verts[1].co
                 edge_array.append(MapEdge(start,end))
             facemap.append(MapPolygon(edge_array,depth,center,normal))
 
@@ -312,7 +330,7 @@ def line_segment_intersection_2D(p1,p2,p3,p4):
     if denom == 0: # parallel
         #print('parallel')
         return None
-    
+
     ua = ((p4.x-p3.x) * (p1.y-p3.y) - (p4.y-p3.y) * (p1.x - p3.x)) / denom
     if ua < 0 or ua > 1: # out of range
         #print('out of range')
@@ -322,7 +340,7 @@ def line_segment_intersection_2D(p1,p2,p3,p4):
     if ub < 0 or ub > 1: # out of range
         #print('out of range')
         return None
-    
+
     x = p1.x + ua * (p2.x-p1.x)
     y = p1.y + ua * (p2.y-p1.y)
 
@@ -363,7 +381,7 @@ def get_line_plane_intersection(p0, p1, p_co, p_no, epsilon=1e-6):
         return IntersectPoint(intersect,factor)
 
     # The segment is parallel to plane.
-    return None  
+    return None
 
 
 def get_clip_space_coord(mypoint):
@@ -396,7 +414,7 @@ def true_z_buffer(zValue):
     global near_clip
     global far_clip
     global camera_type
-    
+
     if camera_type == 'ORTHO':
         depth = zValue * (far_clip - near_clip) + near_clip
         return depth
@@ -409,6 +427,22 @@ def true_z_buffer(zValue):
     else:
         return zValue
 
+def curve_depth_test(p1,p2,h1,h2,mat,item):
+    scene = bpy.context.scene
+    sceneProps = bpy.context.scene.MeasureItArchProps
+    if camera_cull([mat @ Vector(p1), mat @ Vector(p2)]):
+        return [[-1, [p1, p2, h1,h2]]]
+
+    view = get_view()
+    if not view.vector_depthtest or item.inFront:
+        return [[True, [p1, p2, h1,h2]]]
+
+    method = sceneProps.depth_test_method
+    if item.depth_test_override != 'NONE':
+        method = item.depth_test_override
+
+    line_segs = curve_vis_sample(p1,p2,h1,h2,mat,item)
+    return line_segs
 
 def depth_test(p1, p2, mat, item):
     scene = bpy.context.scene
@@ -462,11 +496,11 @@ def geometric_vis_calc(p1,p2,mat,item):
         intersection = line_segment_intersection_2D(p1ss,p2ss,p3ss,p4ss)
         if intersection != None:
             intersect_points.append(intersection)
-    
+
     #loop_et = time.time()
     #print("loop time: " + str(loop_et - loop_st) + '. loop count: ' + str(loop_count))
 
-    # Get all 3D face intersections     
+    # Get all 3D face intersections
     for face in facemap:
         intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
         if intersection != None and intersection.factor < 1.0 and intersection.factor > 0.0:
@@ -478,9 +512,9 @@ def geometric_vis_calc(p1,p2,mat,item):
         intersect_points.sort() # Sorts by distance from p1
 
         last_point = Vector(p1)
-        for ip in intersect_points: 
+        for ip in intersect_points:
             dist = (Vector(p2)-Vector(p1)).length * ip.factor
-            point = interpolate3d(Vector(p1),Vector(p2),dist) 
+            point = interpolate3d(Vector(p1),Vector(p2),dist)
 
             vis_sample_point = (last_point + point) / 2
             visible = check_visible(item, mat @ vis_sample_point,ss_norms)
@@ -492,13 +526,13 @@ def geometric_vis_calc(p1,p2,mat,item):
         # Last segment
         vis_sample_point = (last_point + Vector(p2)) / 2
         visible = check_visible(item, mat @ vis_sample_point, ss_norms)
-        
-        line_segs.append([visible,last_point,p2])           
 
-    else:   
+        line_segs.append([visible,last_point,p2])
+
+    else:
         vis_sample_point = (Vector(p1) + Vector(p2)) / 2
         visible = check_visible(item, mat @ vis_sample_point, ss_norms)
-        
+
         line_segs.append([visible,p1,p2])
 
     # Join segments where no visibility change occurs
@@ -521,6 +555,75 @@ def geometric_vis_calc(p1,p2,mat,item):
 
     return joined_line_segs
 
+# Bernstein Polynomial Curve Evaluation
+def bp_curve_eval(p1,p2,h1,h2,t):
+    v0 = p1 * ( -pow(t,3) +3*pow(t,2) - 3*t + 1)
+    v1 = h1 * ( 3*pow(t,3) -6*pow(t,2) + 3*t)
+    v2 = h2 * ( -3*pow(t,3) +3*pow(t,2))
+    v3 = p2 * ( pow(t,3))
+    pt = v0 + v1 + v2 + v3
+    return pt
+
+# Bernstein Polynomial Curve derivative
+def bp_curve_derivative(p1,p2,h1,h2,t):
+    v0 = p1 * ( -3*pow(t,2) +6*t - 3)
+    v1 = h1 * ( 9*pow(t,2) -12*t + 3)
+    v2 = h2 * ( -9*pow(t,2) +6*t)
+    v3 = p2 * ( 3*t)
+    d_pt = v0 + v1 + v2 + v3
+    return d_pt
+
+def curve_vis_sample(p1,p2,h1,h2,mat,item):
+    p1_world = mat @ Vector(p1)
+    p2_world = mat @ Vector(p2)
+    h1_world = mat @ Vector(h1)
+    h2_world = mat @ Vector(h2)
+
+    p1_ss = get_ss_point(p1_world)
+    p2_ss = get_ss_point(p2_world)
+    h1_ss = get_ss_point(h1_world)
+    h2_ss = get_ss_point(h2_world)
+
+    ss_samples = 512
+    p_tan_ss = bp_curve_derivative(p1_ss,p2_ss,h1_ss,h2_ss,0)
+    n1ss = Vector((p_tan_ss.y, -p_tan_ss.x))
+    n2ss = Vector((-p_tan_ss.y, p_tan_ss.x))
+    ss_norms = [n1ss,n2ss]
+    last_vis_state = check_visible(item, p1_world, ss_norms)
+    vis_changes = []
+    for i in range(ss_samples):
+        t = 1/ss_samples * i
+        p_check_world = mat @ bp_curve_eval(p1,p2,h1,h2,t)
+        p_tan_ss = bp_curve_derivative(p1_ss,p2_ss,h1_ss,h2_ss,t)
+        n1ss = Vector((p_tan_ss.y, -p_tan_ss.x))
+        n2ss = Vector((-p_tan_ss.y, p_tan_ss.x))
+        ss_norms = [n1ss,n2ss]
+        p_check_vis = check_visible(item, p_check_world, ss_norms) # Check the visibility of that point
+
+        if p_check_vis != last_vis_state:
+            vis_changes.append([last_vis_state,t])
+
+        last_vis_state = p_check_vis
+
+
+    # Subdivide curve at visibility changes
+    cts = [p1,p2,h1,h2] # Curve to subdivide
+    curve_segs = []
+    start_t = 0.0
+    for vis_change in vis_changes:
+        #map range
+        t = vis_change[1]
+        map_t = (t-start_t) / (1-start_t)
+        sub_curves = dc_bezier_subdivision(cts[0],cts[1],cts[2],cts[3],map_t)
+        curve_segs.append([vis_change[0],sub_curves[0]])
+        cts = sub_curves[1]
+        start_t = t
+
+    if len(vis_changes) > 0:
+        curve_segs.append([last_vis_state,cts])
+    else:
+        curve_segs.append([last_vis_state,cts])
+    return curve_segs
 
 
 def vis_sampling(p1, p2, mat, item,):
@@ -555,7 +658,7 @@ def vis_sampling(p1, p2, mat, item,):
         p_check_vis = check_visible(item, mat @ Vector(p_check), ss_norms) # Check the visibility of that point
 
         if last_vis_state is not p_check_vis:
-            line = [last_vis_state, seg_start, p_check] 
+            line = [last_vis_state, seg_start, p_check]
             line_segs.append(line)
             seg_start = p_check
             last_vis_state = p_check_vis
@@ -609,11 +712,11 @@ def check_visible(item, point, ss_norms):
     # Get Clip space depth
     point_clip = get_clip_space_coord(point)
 
-    # Get Depth buffer Pixel Index based on SS Point    
+    # Get Depth buffer Pixel Index based on SS Point
     db_idx1 = int(((width * math.floor(point_ss[1]))+1 + math.floor(point_ss[0])) -1)
     db_idx2 = int(((width * math.floor(ss2[1]))+1 + math.floor(ss2[0])) -1)
     db_idx3 = int(((width * math.floor(ss3[1]))+1 + math.floor(ss3[0])) -1)
-    
+
     # Get 3 points depths
     bd1 = get_true_z_at_idx(db_idx1)
     bd2 = get_true_z_at_idx(db_idx2)
