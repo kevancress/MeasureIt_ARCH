@@ -190,6 +190,13 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matri
             h2 = spline.bezier_points[i+1].handle_left
             curve_segs.extend(vector_utils.curve_depth_test(p1,p2,h1,h2,obj_mat, item))
 
+        if spline.use_cyclic_u or spline.use_cyclic_v:
+            p1 = spline.bezier_points[-1].co
+            p2 = spline.bezier_points[0].co
+            h1 = spline.bezier_points[-1].handle_right
+            h2 = spline.bezier_points[0].handle_left
+            curve_segs.extend(vector_utils.curve_depth_test(p1,p2,h1,h2,obj_mat, item))
+
         for i in range(len(curve_segs)):
             visibility = curve_segs[i][0]
 
@@ -215,15 +222,6 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matri
             else:
                 hidden_path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
                 hidden_path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
-
-        #if spline.use_cyclic_u or spline.use_cyclic_v:
-        #    point = spline.bezier_points[0]
-        #    ss_pos = vector_utils.get_render_location(obj_mat@point.co)
-        #    last_handle = spline.bezier_points[-1].handle_right
-        #    current_handle = spline.bezier_points[0].handle_left
-        #    ss_last = vector_utils.get_render_location(obj_mat@last_handle)
-        #    ss_current = vector_utils.get_render_location(obj_mat@current_handle)
-        #    path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_pos[0],ss_pos[1]))
 
         path_string = ' '.join(path_strings)
         path = svg.path(d=path_string)
