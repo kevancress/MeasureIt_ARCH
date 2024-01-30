@@ -166,6 +166,7 @@ line_shader_info.push_constant('BOOL', "depth_pass")
 line_shader_info.push_constant('VEC4', "dash_sizes")
 line_shader_info.push_constant('VEC4', "gap_sizes")
 line_shader_info.push_constant('BOOL', "dashed")
+line_shader_info.push_constant('FLOAT', "view_scale")
 line_shader_info.vertex_in(0, 'VEC3', "pos")
 line_shader_info.vertex_in(1, 'VEC4', "col")
 line_shader_info.vertex_in(2, 'VEC3', "dir")
@@ -1838,6 +1839,8 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             dimText.text_updated = True
 
     idx = 0
+    # Draw Fill
+    draw_filled_coords(filledCoords, fillRGB, polySmooth=False)
     for textField in dim.textFields:
         set_text(textField, myobj)
 
@@ -1847,8 +1850,7 @@ def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             draw_text_3D(context, textField, dimProps, myobj)
         idx += 1
 
-    # Draw Fill
-    draw_filled_coords(filledCoords, fillRGB, polySmooth=False)
+  
 
 
 
@@ -2253,7 +2255,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             draw_lines(lineWeights,rgb,coords,offset=-offset,
                 pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
-                dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid)
+                dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat)
 
             if drawHidden:
                 hiddenLineWeight = lineProps.lineHiddenWeight
@@ -2261,7 +2263,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
                 draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,
                     pointPass= lineProps.pointPass, dashed=True,
-                    dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid)
+                    dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid, mat = mat)
 
         if sceneProps.is_vector_draw:
             if myobj.type =='CURVE':
@@ -3822,7 +3824,7 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
         gpu.shader.unbind()
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed = False,
-               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = '', invalid = True, overlay_color=None):
+               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = '', invalid = True, overlay_color=None, mat = Matrix.Identity(4)):
 
     context = bpy.context
     scene = context.scene
@@ -3850,6 +3852,9 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     else:
         objMat = obj.matrix_world
         bufferKey = obj.name + name
+        #if mat != Matrix.Identity:
+        #    objMat = mat
+        
 
     # expand line
     expanded_coords = []
@@ -3892,6 +3897,8 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         bufferKey = 'General Buffer {}'.format(len(buffer.keys()))
     else:
         objMat = obj.matrix_world
+        #if mat != Matrix.Identity:
+        #    objMat = mat
         bufferKey = obj.name + name
 
     # Set up object key if it doesn't Exist
@@ -3958,6 +3965,7 @@ def draw_all_lines(ext_mat = None):
     viewport = get_viewport()
     scale = get_scale()
     view = get_view()
+    scale = get_scale()
 
     if ext_mat == None:
         ext_mat = Matrix.Identity(4)
@@ -3990,7 +3998,7 @@ def draw_all_lines(ext_mat = None):
                 view_rot = bpy.context.region_data.view_rotation
                 view_dir =  Vector((0,0,1))
                 view_dir.rotate(view_rot)
-
+            
             allLinesShader.uniform_float("offset", hiddenbuffer["offset"])
             allLinesShader.uniform_float("objectMatrix", hiddenbuffer["objMat"])
             allLinesShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
@@ -4000,6 +4008,7 @@ def draw_all_lines(ext_mat = None):
             allLinesShader.uniform_float("gap_sizes", hiddenbuffer["gap_sizes"])
             allLinesShader.uniform_float("dash_sizes", hiddenbuffer["dash_sizes"])
             allLinesShader.uniform_float("overlay_color", hiddenbuffer["overlay_color"])
+            allLinesShader.uniform_float("view_scale", scale)
 
             # Batch VBO
             if hiddenbuffer['invalid'] or key not in HiddenLinesBatchs:
@@ -4046,6 +4055,8 @@ def draw_all_lines(ext_mat = None):
             allLinesShader.uniform_float("gap_sizes", buffer["gap_sizes"])
             allLinesShader.uniform_float("dash_sizes", buffer["dash_sizes"])
             allLinesShader.uniform_float("overlay_color", buffer["overlay_color"])
+            allLinesShader.uniform_float("view_scale", scale)
+
             # Batch VBO
             if buffer['invalid'] or key not in AllLinesBatchs:
                 AllLinesBatch = batch_for_shader(

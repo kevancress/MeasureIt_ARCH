@@ -31,7 +31,7 @@ from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
 
 from .measureit_arch_geometry import clear_batches, update_text, draw3d_loop, preview_dual, check_obj_vis
-from .measureit_arch_utils import get_view, get_rv3d
+from .measureit_arch_utils import get_view, get_rv3d, get_scale
 from .gitcommit import prev_commit,date
 
 
@@ -729,6 +729,7 @@ def draw_titleblock(context, svg=None, dxf = None):
     if view is not None and view.titleBlock != "":
         if not sceneProps.is_render_draw:
             if rv3d.view_perspective != 'CAMERA':
+                #pass
                 return
 
         camera = view.camera
@@ -739,16 +740,16 @@ def draw_titleblock(context, svg=None, dxf = None):
         objlist = titleblockScene.objects
 
         cameraMat = camera.matrix_world
-        offsetVec = Vector((0, 0, -1.2))
-        offsetVec *= camera.data.clip_start
+        offsetVec = Vector((0, 0, -1.0)) * camera.data.clip_start
+        offsetVec += Vector ((0,0,-0.2))
 
         transMat = Matrix.Translation(offsetVec)
 
         scaleMat = Matrix.Identity(3)
-        scaleMat *= (view.model_scale / view.paper_scale)
+        scaleMat *= get_scale()
         scaleMat.resize_4x4()
 
-        extMat = cameraMat @ transMat @ scaleMat
+        extMat = cameraMat  @ transMat @ scaleMat
         sceneProps.source_scene = titleblockScene
         if sceneProps.is_render_draw and sceneProps.is_vector_draw:
             text_update_loop(context, objlist)

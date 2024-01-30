@@ -8,6 +8,7 @@
 // in int thick_sign
 // in float weight
 // in vec2 v_uv
+// uniform float view_scale
 
 // out vec4 color
 // out vec2 uv
@@ -17,7 +18,8 @@ void main() {
     vec4 local_pos = objectMatrix *extMatrix* vec4(pos, 1.0);
     //vec4 local_view = objectMatrix*vec4(view_dir,0.0);
     vec3 perp = normalize(cross(local_dir.xyz,view_dir.xyz));
-    vec3 exp_pos = local_pos.xyz + perp * thick_sign * weight/72.0;
+    float paper_space_exp = weight/72/39.37 * view_scale; // weight from p to paper space m for world space expansion
+    vec3 exp_pos = local_pos.xyz + perp * thick_sign * paper_space_exp; 
     vec4 l_project = viewProjectionMatrix * objectMatrix *extMatrix* vec4(pos, 1.0);
 
     vec4 project = viewProjectionMatrix * vec4(exp_pos, 1.0);
