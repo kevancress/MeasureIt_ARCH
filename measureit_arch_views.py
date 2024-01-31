@@ -64,7 +64,6 @@ def scene_text_update_flag(self, context):
     scene.MeasureItArchProps.text_updated = True
     update(self, context)
 
-
 def update(self, context):
     if context is None:
         context = bpy.context
@@ -77,7 +76,6 @@ def update(self, context):
 
     if view.world is not None:
         context.scene.world = view.world
-
 
     if view.end_frame < view.start_frame:
         view.end_frame = view.start_frame
@@ -107,7 +105,8 @@ def update(self, context):
     if view.view_layer != "":
         try:
             vl = context.scene.view_layers[view.view_layer]
-            context.window.view_layer = vl
+            if context.window.view_layer != vl:
+                context.window.view_layer = vl
         except KeyError:
             pass
 
@@ -141,7 +140,6 @@ def update_paper_size(self, context):
     self.width = bpy.utils.units.to_value(unit_system, "LENGTH", width)
     self.height = bpy.utils.units.to_value(unit_system, "LENGTH", height)
 
-
 def update_camera(scene, camera):
     render = scene.render
     ViewGen = scene.ViewGenerator
@@ -164,7 +162,6 @@ def update_camera(scene, camera):
         camera.ortho_scale = (
             render.resolution_y / ppi / BU_TO_INCHES) * (modelScale / paperScale)
 
-
 def update_camera_px(scene, camera):
     render = scene.render
     ViewGen = scene.ViewGenerator
@@ -184,8 +181,8 @@ def update_camera_px(scene, camera):
     else:
         camera.ortho_scale = (render.resolution_y) * (modelScale / (pixelScale * (percentScale / 100)))
 
-
 def change_scene_camera(self, context):
+    print('change_scene_camera_update')
     scene = context.scene
     ViewGen = scene.ViewGenerator
     view = ViewGen.views[ViewGen.active_index]
@@ -194,7 +191,8 @@ def change_scene_camera(self, context):
     update(self, context)
     if camera is not None:
         scene.camera = camera
-        scene.frame_current = view.start_frame
+        if scene.frame_current != view.start_frame:
+            scene.frame_current = view.start_frame
         scene_text_update_flag(self, context)
 
 
@@ -510,7 +508,6 @@ class ViewContainer(PropertyGroup):
     # Array of views
     views: CollectionProperty(type=ViewProperties)
 
-
 class DeleteViewButton(Operator):
     bl_idname = "measureit_arch.deleteviewbutton"
     bl_label = "Delete View"
@@ -526,7 +523,6 @@ class DeleteViewButton(Operator):
         Generator.views.remove(Generator.active_index)
 
         return {'FINISHED'}
-
 
 class DuplicateViewButton(Operator):
     bl_idname = "measureit_arch.duplicateviewbutton"
@@ -639,10 +635,6 @@ class DuplicateViewWithLayerButton(Operator):
                 new_collection.objects.link(new_camera)
                 #context.scene.collection.objects.unlink(new_camera)
 
-
-
-
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -726,7 +718,6 @@ class BatchViewRender(Operator):
         if self._timer != None:
             wm.event_timer_remove(self._timer)
         return {'CANCELLED'}
-
 
 class BatchDXFRender(Operator):
     bl_idname = "measureit_arch.batchdxfrender"
@@ -907,8 +898,6 @@ class BatchDXFRender(Operator):
         print('Finished .dxf Batch Render')
         return {'CANCELLED'}
 
-
-
 class M_ARCH_UL_Views_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -931,7 +920,6 @@ class M_ARCH_UL_Views_list(UIList):
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon='MESH_CUBE')
-
 
 class SCENE_PT_Views(Panel):
     """ A panel in the Object properties window """
@@ -1131,10 +1119,6 @@ class SCENE_PT_Views(Panel):
                 col.active = freestyle_svg_export
                 col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
 
-
-
-
-
             # Notes below Settings
             if ViewGen.show_text_fields:
                 fieldsIcon = 'DISCLOSURE_TRI_DOWN'
@@ -1183,7 +1167,6 @@ class SCENE_MT_Views_menu(bpy.types.Menu):
         layout.operator('measureit_arch.batchdxfrender',
             text = "Batch Render DXF", icon = "DOCUMENTS")
 
-
 class OpenInBrowser(Operator):
     bl_idname = "measureit_arch.openinbrowser"
     bl_label = "Open"
@@ -1198,7 +1181,6 @@ class OpenInBrowser(Operator):
         webbrowser.open(path)
 
         return {'FINISHED'}
-
 
 class AddViewButton(Operator):
     bl_idname = "measureit_arch.addviewbutton"
