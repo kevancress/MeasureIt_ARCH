@@ -25,21 +25,21 @@ void main() {
     if(dashed){
         float pattern_size = 0.0;
         for (int i = 0; i < 4; ++i) {
-            pattern_size += dash_sizes[i];
-            pattern_size += gap_sizes[i];
+            pattern_size += dash_sizes[i]/72/39.37 * view_scale*2;
+            pattern_size += gap_sizes[i]/72/39.37 * view_scale*2;
         }
 
-        float d2 = dash_sizes[1];
-        float d3 = dash_sizes[2];
-        float d1 = dash_sizes[0];
-        float d4 = dash_sizes[3];
+        float d1 = dash_sizes[0]/72/39.37 * view_scale*2;
+        float d2 = dash_sizes[1]/72/39.37 * view_scale*2;
+        float d3 = dash_sizes[2]/72/39.37 * view_scale*2;
+        float d4 = dash_sizes[3]/72/39.37 * view_scale*2;
 
-        float g1 = gap_sizes[0];
-        float g2 = gap_sizes[1];
-        float g3 = gap_sizes[2];
-        float g4 = gap_sizes[3];
+        float g1 = gap_sizes[0]/72/39.37 * view_scale*2;
+        float g2 = gap_sizes[1]/72/39.37 * view_scale*2;
+        float g3 = gap_sizes[2]/72/39.37 * view_scale*2;
+        float g4 = gap_sizes[3]/72/39.37 * view_scale*2;
 
-        float arc_length = fract(uv.x/pattern_size*72.0)*pattern_size;
+        float arc_length = fract(uv.x/pattern_size)*pattern_size;
         // Discard first gap
         float gap_start = d1/2;
         if (arc_length > gap_start && arc_length < gap_start+g1){
@@ -63,5 +63,6 @@ void main() {
     }
 
     vec4 outColor = vec4(finalColor[0],finalColor[1],finalColor[2],aa);
+    //vec4 outColor = vec4(arc_length,finalColor[1],finalColor[2],aa);
     fragColor = outColor;
 }
