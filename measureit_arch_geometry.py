@@ -3868,7 +3868,10 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         p1 = Vector(coords[i]) 
         p2 = Vector(coords[i+1])
         dir = p1 - p2
-        arc_length = dir.length     
+
+        wp1 = p1 @ objMat
+        wp2 = p2 @ objMat
+        arc_length = (wp1 - wp2).length     
         #if sceneProps.is_render_draw:
         #    ss_perp = get_camera_z().cross(dir).normalized()
         #else:
