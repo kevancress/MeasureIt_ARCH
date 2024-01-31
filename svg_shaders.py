@@ -122,7 +122,7 @@ def draw_single_line(p1,p2,mat=Matrix.Identity(4),itemProps=None,svg=None,lines=
                 dashed_lines.add(line_draw)
 
 def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matrix.Identity(4)):
-    obj_mat = mat@curve.matrix_world
+    obj_mat = curve.matrix_world
     weight_scale_fac = 1.3333333333333333 * get_resolution()/96
     thickness = item.lineWeight
     if bpy.context.scene.MeasureItArchProps.illustrator_style_svgs:

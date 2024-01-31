@@ -2543,7 +2543,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             textField['textcard'] = textcard
             fieldIdx += 1
 
-            tf_boundary_coords = get_textField_boundary(context,textField)
+            tf_boundary_coords = get_textField_boundary(context,textField, annotationProps)
             if tf_boundary_coords != None:
                 coords.extend(tf_boundary_coords)
 
@@ -3358,7 +3358,7 @@ def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, mi
     return capCoords, filledCoords
 
 
-def get_textField_boundary(context, textField):
+def get_textField_boundary(context, textField, props=None):
     if textField.boundaryShape == 'NONE': return
     card = None
     try:
@@ -3366,6 +3366,9 @@ def get_textField_boundary(context, textField):
     except KeyError:
         print('Textcard not set before drawing boundary')
         return
+    
+    min_characters = 3
+    size = props.fontSize
 
     # Card Indices:
     #
@@ -3475,7 +3478,11 @@ def get_textField_boundary(context, textField):
         c2 = Vector(card[2]) + padding * x_dir * width + padding * y_dir * height
         c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
 
-        rad = (c2 - center).length
+        rad = props.fontSize * get_scale()/2500 
+        print(rad)
+        if props == None or len(textField.text) > 3:
+            rad = (c2 - center).length
+            print(rad)
 
         rot_axis = x_dir.cross(y_dir)
         angle = math.radians(10)
