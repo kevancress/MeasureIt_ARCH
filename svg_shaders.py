@@ -121,6 +121,65 @@ def draw_single_line(p1,p2,mat=Matrix.Identity(4),itemProps=None,svg=None,lines=
             elif not vis and draw_hidden:
                 dashed_lines.add(line_draw)
 
+def svg_fill_from_curve_shader(curve,svg,parent=None,mat =Matrix.Identity):
+    hatch = curve.material_slots[0].material.Hatch
+
+    
+    for i in range(len(curve.material_slots)):
+        material = curve.material_slots[i].material
+        hatch = material.Hatch
+        if not hatch.visible:
+            continue
+        svgColor = get_svg_color(hatch.fill_color)
+        idName = curve.name + "_fill_" + material.name
+        fillOpacity = hatch.fill_color[3]
+        fills = svg.g(id=idName, stroke='none',fill = svgColor, fill_opacity = fillOpacity,
+                stroke_width="{}".format(0))
+
+        if parent:
+            parent.add(fills)
+        else:
+            svg.add(fills)
+
+        for spline in curve.data.splines:
+            if spline.material_index != i:
+                continue
+            path_strings = []
+            hidden_path_strings = []
+            curve_segs = []
+            for i in range(len(spline.bezier_points)-1):
+                p1 = spline.bezier_points[i].co
+                p2 = spline.bezier_points[i+1].co
+                h1 = spline.bezier_points[i].handle_right
+                h2 = spline.bezier_points[i+1].handle_left
+                ss_p1 = vector_utils.get_render_location(mat@p1)
+                ss_p2 = vector_utils.get_render_location(mat@p2)
+
+                last_handle = h1
+                current_handle = h2
+                ss_last = vector_utils.get_render_location(mat@last_handle)
+                ss_current = vector_utils.get_render_location(mat@current_handle)
+
+                if i == 0:
+                    path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
+                path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
+
+            if spline.use_cyclic_u or spline.use_cyclic_v:
+                p1 = spline.bezier_points[-1].co
+                p2 = spline.bezier_points[0].co
+                h1 = spline.bezier_points[-1].handle_right
+                h2 = spline.bezier_points[0].handle_left
+                ss_p2 = vector_utils.get_render_location(mat@p2)
+                last_handle = h1
+                current_handle = h2
+                ss_last = vector_utils.get_render_location(mat@last_handle)
+                ss_current = vector_utils.get_render_location(mat@current_handle)
+                path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
+
+            path_string = ' '.join(path_strings)
+            path = svg.path(d=path_string)
+            fills.add(path)
+
 def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matrix.Identity(4)):
     obj_mat = mat
     weight_scale_fac = 1.3333333333333333 * get_resolution()/96
@@ -168,6 +227,7 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matri
     except AttributeError:
         dash_val = "5,5"
 
+    # Dashed lines
     dashed_lines = svg.g(id=dash_id_name, stroke=dash_col,fill = 'none', stroke_width="{}".format(dash_weight * weight_scale_fac),
                     stroke_dasharray=dash_val, stroke_linecap='butt')
 

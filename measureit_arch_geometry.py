@@ -381,15 +381,8 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
             return
 
         if myobj.type == 'CURVE':
-            depsgraph = bpy.context.evaluated_depsgraph_get()
-            eval_obj = myobj.evaluated_get(depsgraph)
-
-            mesh =  bpy.data.meshes.new_from_object(eval_obj, depsgraph =  bpy.context.evaluated_depsgraph_get())
-
-            try:
-                bm.from_mesh(mesh)
-            except AttributeError:
-                print('No Mesh Data for Obj: {}'.format(myobj.name))
+            if sceneProps.is_vector_draw:
+                svg_shaders.svg_fill_from_curve_shader(myobj,svg=svg,mat=mat)
 
             #bpy.data.meshes.remove(mesh)
 
