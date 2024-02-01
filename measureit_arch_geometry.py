@@ -3479,10 +3479,9 @@ def get_textField_boundary(context, textField, props=None):
         c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
 
         rad = props.fontSize * get_scale()/2500 
-        print(rad)
         if props == None or len(textField.text) > 3:
             rad = (c2 - center).length
-            print(rad)
+
 
         rot_axis = x_dir.cross(y_dir)
         angle = math.radians(10)
