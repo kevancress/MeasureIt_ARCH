@@ -49,7 +49,7 @@ from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, pts_to_px, recursionlimit,\
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
-    load_shader_str, get_projection_matrix
+    load_shader_str, get_projection_matrix, rgb_gamma_correct
 
 from .vector_utils import get_axis_aligned_bounds
 
@@ -2141,7 +2141,17 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     pointB = edge.verts[1].co
 
                     #Check Filter Vertex Group
-                    if lineGroup.filterGroup != '':
+                    invalid_group = False
+                    try:
+                        eval_obj.vertex_groups[lineGroup.filterGroup]
+                        invalid_group = False
+                    except KeyError:
+                        print('Invalid group {} on {} cleared'.format(lineGroup.filterGroup,myobj.name))
+                        lineGroup.filterGroup != ''
+                        invalid_group = True
+
+
+                    if lineGroup.filterGroup != '' and not invalid_group:
                         #print('has filter group')
                         eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
                         vertex_group = eval_obj.vertex_groups[lineGroup.filterGroup]
@@ -3777,12 +3787,6 @@ def check_vis(item, props):
         return False
 
 
-def rgb_gamma_correct(rawRGB):
-    return Vector((
-        pow(rawRGB[0], (1 / 2.2)),
-        pow(rawRGB[1], (1 / 2.2)),
-        pow(rawRGB[2], (1 / 2.2)),
-        rawRGB[3]))
 
 
 def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False):
@@ -4294,8 +4298,10 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                     mat = extMat
 
             # HATCHES
-            if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
-                draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf)
+            view = get_view()
+            if not view.skip_hatches:
+                if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
+                    draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf)
 
             # DIMS ANNO LINES
             if 'LineGenerator' in myobj:

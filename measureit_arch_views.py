@@ -494,6 +494,12 @@ class ViewProperties(PropertyGroup):
                     " using the scene render resolution",
         default=False,
         update= update)
+    
+    skip_hatches: BoolProperty(
+        name="Skip Hatches",
+        description="Don't Draw hatches in this view",
+        default=False)
+
 
 class ViewContainer(PropertyGroup):
     active_index: IntProperty(
@@ -1113,6 +1119,7 @@ class SCENE_PT_Views(Panel):
                 col.prop(view, "vector_depthtest", text="Use Vector Depth Test")
                 col.prop(SceneProps, "depth_test_method", text = "Scene Depth Test Method")
                 col.prop(view, "skip_instances",)
+                col.prop(view, 'skip_hatches')
 
                 col = box.column(align=True)
                 freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()

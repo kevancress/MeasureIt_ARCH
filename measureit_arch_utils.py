@@ -104,6 +104,14 @@ class recursionlimit:
         setrecursionlimit(self.old_limit)
 
 
+
+def rgb_gamma_correct(rawRGB):
+    return Vector((
+        pow(rawRGB[0], (1 / 2.2)),
+        pow(rawRGB[1], (1 / 2.2)),
+        pow(rawRGB[2], (1 / 2.2)),
+        rawRGB[3]))
+
 # Convert Pts definitions to px
 def pts_to_px(pts):
     INCH_TO_PT = 72

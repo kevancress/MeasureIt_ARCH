@@ -38,7 +38,7 @@ from mathutils import Vector, Matrix
 from sys import getrecursionlimit, setrecursionlimit
 from . import vector_utils
 
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit, get_resolution, get_scale, pts_to_px
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, recursionlimit, get_resolution, get_scale, pts_to_px, rgb_gamma_correct
 
 
 def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None, mat=Matrix.Identity(4)):
@@ -75,16 +75,7 @@ def svg_line_shader(item, itemProps, coords, thickness, color, svg, parent=None,
         dash_col = get_svg_color(itemProps.lineHiddenColor)
         dash_weight = itemProps.lineHiddenWeight
 
-    try:
-        dash_val = ""
-        for i in range(itemProps.num_dashes+1):
-            if i == 0: continue
-            if i > 1: dash_val += ","
-            dash_space = eval('itemProps.d{}_length'.format(i))
-            gap_space = eval('itemProps.g{}_length'.format(i))
-            dash_val += "{},{}".format(dash_space * weight_scale_fac, gap_space* weight_scale_fac)
-    except AttributeError:
-        dash_val = "5,5"
+    dash_val = get_svg_dash(itemProps,weight_scale_fac)
 
     dashed_lines = svg.g(id=dash_id_name, stroke=dash_col,fill = 'none', stroke_width="{}".format(dash_weight * weight_scale_fac),
                     stroke_dasharray=dash_val, stroke_linecap='butt')
@@ -121,20 +112,28 @@ def draw_single_line(p1,p2,mat=Matrix.Identity(4),itemProps=None,svg=None,lines=
             elif not vis and draw_hidden:
                 dashed_lines.add(line_draw)
 
-def svg_fill_from_curve_shader(curve,svg,parent=None,mat =Matrix.Identity):
-    hatch = curve.material_slots[0].material.Hatch
-
-    
+def svg_fill_from_curve_shader(curve,svg,parent=None,mat =Matrix.Identity):    
+    weight_scale_fac = 1.3333333333333333 * get_resolution()/96
+    if bpy.context.scene.MeasureItArchProps.illustrator_style_svgs:
+        weight_scale_fac = 1
     for i in range(len(curve.material_slots)):
         material = curve.material_slots[i].material
         hatch = material.Hatch
         if not hatch.visible:
             continue
-        svgColor = get_svg_color(hatch.fill_color)
-        idName = curve.name + "_fill_" + material.name
+        fillColor = get_svg_color(rgb_gamma_correct(hatch.fill_color))
+        svgColor = get_svg_color(rgb_gamma_correct(hatch.fill_color))
+        fill_idName = curve.name + "_fill_" + material.name
         fillOpacity = hatch.fill_color[3]
-        fills = svg.g(id=idName, stroke='none',fill = svgColor, fill_opacity = fillOpacity,
-                stroke_width="{}".format(0))
+        lineColor = get_svg_color(hatch.line_color)
+        if hatch.lineWeight == 0:
+            lineColor = 'none'
+
+        dash_val='none'
+        if hatch.lineDrawDashed:
+            dash_val = get_svg_dash(hatch,weight_scale_fac)
+
+        fills = svg.g(id=fill_idName, stroke=lineColor, stroke_width="{}".format(hatch.lineWeight * weight_scale_fac),fill = fillColor, fill_opacity = fillOpacity,stroke_dasharray=dash_val)
 
         if parent:
             parent.add(fills)
@@ -216,16 +215,7 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matri
         dash_col = get_svg_color(item.lineHiddenColor)
         dash_weight = item.lineHiddenWeight
 
-    try:
-        dash_val = ""
-        for i in range(item.num_dashes+1):
-            if i == 0: continue
-            if i > 1: dash_val += ","
-            dash_space = eval('item.d{}_length'.format(i))
-            gap_space = eval('item.g{}_length'.format(i))
-            dash_val += "{},{}".format(dash_space * weight_scale_fac, gap_space* weight_scale_fac)
-    except AttributeError:
-        dash_val = "5,5"
+    dash_val = get_svg_dash(item,weight_scale_fac)
 
     # Dashed lines
     dashed_lines = svg.g(id=dash_id_name, stroke=dash_col,fill = 'none', stroke_width="{}".format(dash_weight * weight_scale_fac),
@@ -257,6 +247,7 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matri
             h2 = spline.bezier_points[0].handle_left
             curve_segs.extend(vector_utils.curve_depth_test(p1,p2,h1,h2,obj_mat, item))
 
+        last_vis = not curve_segs[i][0]
         for i in range(len(curve_segs)):
             visibility = curve_segs[i][0]
 
@@ -277,12 +268,15 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matri
             ss_last = vector_utils.get_render_location(obj_mat@last_handle)
             ss_current = vector_utils.get_render_location(obj_mat@current_handle)
             if visibility:
-                path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
+                if visibility != last_vis:
+                    path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
                 path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
             else:
-                hidden_path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
+                if visibility != last_vis:
+                    hidden_path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
                 hidden_path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
-
+            last_vis = visibility
+        
         path_string = ' '.join(path_strings)
         path = svg.path(d=path_string)
         lines.add(path)
@@ -352,19 +346,7 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
     if  "lineDrawDashed" in itemProps and itemProps.lineDrawDashed:
         dashed = True
 
-        try:
-            dash_val = ""
-            for i in range(itemProps.num_dashes+1):
-                if i == 0: continue
-                if i > 1: dash_val += ","
-                dash_space = eval('itemProps.d{}_length'.format(i))
-                gap_space = eval('itemProps.g{}_length'.format(i))
-                dash_val += "{},{}".format(dash_space*weight_scale_fac , gap_space*weight_scale_fac)
-        except AttributeError:
-            if "dash_size" in itemProps:
-                dash_val = "{},{}".format(itemProps.dash_size*weight_scale_fac, itemProps.gap_size*weight_scale_fac)
-            else:
-                dash_val = "5,5"
+        dash_val = get_svg_dash(itemProps,weight_scale_fac)
 
     fill = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
 
@@ -567,6 +549,23 @@ def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
             pattern.add(svg.line(start=tuple(pair[0]), end=tuple(
                 pair[1]), stroke_width="{}".format(weight*weight_scale_fac), stroke=svgColor, stroke_linecap='round'))
 
+
+def get_svg_dash(item,weight_scale_fac):
+    try:
+        dash_val = ""
+        for i in range(item.num_dashes+1):
+            if i == 0: continue
+            if i > 1: dash_val += ","
+            dash_space = eval('item.d{}_length'.format(i))
+            gap_space = eval('item.g{}_length'.format(i))
+            dash_val += "{},{}".format(dash_space * weight_scale_fac, gap_space* weight_scale_fac)
+    except AttributeError:
+        if "dash_size" in item:
+            dash_val = "{},{}".format(item.dash_size*weight_scale_fac, item.gap_size*weight_scale_fac)
+        else:
+            dash_val = "5,5"
+    
+    return dash_val
 
 def polygon_subtract(source, cut):
     return source
