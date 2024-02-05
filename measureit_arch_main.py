@@ -729,8 +729,8 @@ def draw_titleblock(context, svg=None, dxf = None):
     if view is not None and view.titleBlock != "":
         if not sceneProps.is_render_draw:
             if rv3d.view_perspective != 'CAMERA':
-                #pass
-                return
+                pass
+                #return
 
         camera = view.camera
 

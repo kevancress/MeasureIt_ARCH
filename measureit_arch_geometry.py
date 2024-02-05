@@ -2141,17 +2141,18 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     pointB = edge.verts[1].co
 
                     #Check Filter Vertex Group
-                    invalid_group = False
-                    try:
-                        eval_obj.vertex_groups[lineGroup.filterGroup]
-                        invalid_group = False
-                    except KeyError:
-                        print('Invalid group {} on {} cleared'.format(lineGroup.filterGroup,myobj.name))
-                        lineGroup.filterGroup != ''
-                        invalid_group = True
+                    invalid_group = True
+                    if lineGroup.filterGroup != '':
+                        try:
+                            eval_obj.vertex_groups[lineGroup.filterGroup]
+                            invalid_group = False
+                        except KeyError:
+                            print('Invalid group {} on {} cleared'.format(lineGroup.filterGroup,myobj.name))
+                            lineGroup.filterGroup = ''  
+                            invalid_group = True
 
 
-                    if lineGroup.filterGroup != '' and not invalid_group:
+                    if not invalid_group:
                         #print('has filter group')
                         eval_obj = myobj.evaluated_get(bpy.context.view_layer.depsgraph)
                         vertex_group = eval_obj.vertex_groups[lineGroup.filterGroup]
