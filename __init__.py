@@ -176,7 +176,7 @@ classes = (
     measureit_arch_render.RenderImageButton,
     measureit_arch_render.RenderAnimationButton,
     measureit_arch_render.RenderVectorButton,
-    measureit_arch_render.RendervVectorAnimationButton,
+    measureit_arch_render.RenderVectorAnimationButton,
     measureit_arch_render.RenderDXFButton,
 
     # Schedules

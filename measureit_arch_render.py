@@ -189,7 +189,7 @@ class RenderAnimationButton(Operator):
     
 
 
-class RendervVectorAnimationButton(Operator):
+class RenderVectorAnimationButton(Operator):
     """ Operator which runs itself from a timer """
 
     bl_idname = "measureit_arch.rendervectoranimbutton"
@@ -319,8 +319,12 @@ def render_main(self, context):
                 gpu.matrix.load_projection_matrix(projection_matrix)
 
                 # Draw Scene for the depth buffer
+                print('Drawing Scene:')
+                startTime = time.time()
                 draw_scene(self, context, projection_matrix)
-
+                endTime = time.time()
+                print("Draw Scene Time: " + str(endTime - startTime))
+                
                 # Clear Color Buffer, we only need the depth info
                 fb.clear(color=(0.0, 0.0, 0.0, 0.0))
 
