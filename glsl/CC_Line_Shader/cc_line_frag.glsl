@@ -15,13 +15,12 @@ void main() {
 
     float dist = (uv.y - 0.5)*2.0;
 
-    aa = (1.0-smoothstep(0.6,1.0,abs(dist))) / fwidth(dist);
+    aa = clamp((1.0-smoothstep(0.6,1.0,abs(dist))) / fwidth(dist),0.0,1.0);
 
     if (depth_pass && aa < 1.0){
         discard;
     }
 
-    
     if(dashed){
         float pattern_size = 0.0;
         for (int i = 0; i < 4; ++i) {
@@ -62,7 +61,7 @@ void main() {
         }
     }
 
-    vec4 outColor = vec4(finalColor[0],finalColor[1],finalColor[2],aa);
+    vec4 outColor = vec4(finalColor[0],finalColor[1],finalColor[2],finalColor[3] * aa);
     //vec4 outColor = vec4(arc_length,finalColor[1],finalColor[2],aa);
     fragColor = outColor;
 }

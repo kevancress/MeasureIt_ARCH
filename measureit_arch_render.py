@@ -92,7 +92,8 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
                      icon='RENDER_ANIMATION', text="MeasureIt_ARCH Animation")
         col.operator("measureit_arch.rendervectorbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH Vector")
-
+        col.operator("measureit_arch.rendervectoranimbutton",
+                    icon='RENDER_ANIMATION', text="MeasureIt_ARCH Vector Animation")
         if sceneProps.show_dxf_props:
             col.operator("measureit_arch.renderdxfbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH to DXF")
@@ -150,6 +151,70 @@ class RenderAnimationButton(Operator):
                 self.view3d.tag_redraw()
                 print("MeasureIt_ARCH: Rendering frame: " + str(scene.frame_current))
                 render_main(self, context)
+                self._updating = False
+                scene.frame_current += 1
+            else:
+                self.cancel(context)
+                return {'CANCELLED'}
+
+        self.view3d.tag_redraw()
+        return {'PASS_THROUGH'}
+
+    def execute(self, context):
+        # Check camera
+        if not context.scene.camera:
+            self.report({'ERROR'}, "Unable to render: no camera found!")
+            return {'FINISHED'}
+
+        for area in context.screen.areas:
+            if area.type == 'VIEW_3D':
+                self.view3d = area
+
+        if self.view3d is None:
+            self.report(
+                {'ERROR'}, 'A 3D Viewport must be open to render MeasureIt_ARCH Animations')
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.1, window=context.window)
+        context.scene.frame_current = context.scene.frame_start
+        wm.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
+        return {'CANCELLED'}
+    
+
+
+class RendervVectorAnimationButton(Operator):
+    """ Operator which runs itself from a timer """
+
+    bl_idname = "measureit_arch.rendervectoranimbutton"
+    bl_label = "Render Vector animation"
+    bl_description = "Render a vector animation, saved to render output path."
+    bl_category = 'MeasureitArch'
+
+    _timer = None
+    _updating = False
+    view3d = None
+
+    def modal(self, context, event):
+        scene = context.scene
+
+        if event.type in {'RIGHTMOUSE', 'ESC'}:
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        if event.type == 'TIMER' and not self._updating:
+            self._updating = True
+            if scene.frame_current <= scene.frame_end:
+                scene.frame_set(scene.frame_current)
+                self.view3d.tag_redraw()
+                print("MeasureIt_ARCH: Rendering frame: " + str(scene.frame_current))
+                render_main_svg(self, context)
                 self._updating = False
                 scene.frame_current += 1
             else:

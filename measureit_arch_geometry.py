@@ -113,6 +113,7 @@ point_shader_info.push_constant('MAT4', "viewProjectionMatrix")
 point_shader_info.push_constant('FLOAT', "offset")
 point_shader_info.push_constant('FLOAT', "pointSize")
 point_shader_info.push_constant('VEC4',"finalColor")
+point_shader_info.push_constant('FLOAT', "view_scale")
 point_shader_info.vertex_in(0, 'VEC3', "pos")
 point_shader_info.fragment_out(0, 'VEC4', "fragColor")
 point_shader_info.vertex_source(pointvert)
@@ -2260,7 +2261,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             draw_lines(lineWeights,rgb,coords,offset=-offset,
                 pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
                 dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat)
-
+            #draw_points(lineWeights[0],rgb,coords,offset=-offset)
             if drawHidden:
                 hiddenLineWeight = lineProps.lineHiddenWeight
                 hiddenRGB = get_color(lineProps.lineHiddenColor, lineProps.cad_col_idx)
@@ -3792,14 +3793,22 @@ def check_vis(item, props):
 
 def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False):
 
+    expanded_coords = []
+
+    for coord in coords:
+        pass
+
+
     with OpenGL_Settings(None):
         viewport = get_viewport()
         pointShader.bind()
         matrix = get_projection_matrix()
+        scale = get_scale()
         pointShader.uniform_float("viewProjectionMatrix", matrix)
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         pointShader.uniform_float("offset", offset)
-        pointShader.uniform_float("pointSize", lineWeight*72)
+        pointShader.uniform_float("pointSize", lineWeight)
+        pointShader.uniform_float("view_scale", scale)
         gpu.state.program_point_size_set(True)
         batch = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
         batch.program_set(pointShader)
@@ -3970,7 +3979,6 @@ def draw_all_lines(ext_mat = None):
         return
 
     viewport = get_viewport()
-    scale = get_scale()
     view = get_view()
     scale = get_scale()
 
