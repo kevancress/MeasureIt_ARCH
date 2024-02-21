@@ -18,7 +18,7 @@ void main() {
     vec4 local_pos = objectMatrix *extMatrix* vec4(pos, 1.0);
     //vec4 local_view = objectMatrix*vec4(view_dir,0.0);
     vec3 perp = normalize(cross(local_dir.xyz,view_dir.xyz));
-    float paper_space_exp = weight/72/39.37 * view_scale/2; // weight from p to paper space m for world space expansion (devided by two since we expand from center)
+    float paper_space_exp = weight/72/39.37 * view_scale; // weight from p to paper space m for world space expansion (devided by two since we expand from center)
     vec3 exp_pos = local_pos.xyz + perp * thick_sign * paper_space_exp; 
     vec4 l_project = viewProjectionMatrix * objectMatrix *extMatrix* vec4(pos, 1.0);
 

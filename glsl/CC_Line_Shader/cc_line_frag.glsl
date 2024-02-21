@@ -1,6 +1,6 @@
 
 //in vec4 color
-//in vec2 v_uv
+//in vec2 uv
 //uniform vec4 overlay_color
 // uniform bool depth_pass
 

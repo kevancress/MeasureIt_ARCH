@@ -108,13 +108,19 @@ del tri_shader_info
 pointvert = load_shader_str("Point_Vert.glsl", directory="Point_Shader")
 pointfrag = load_shader_str("Point_Frag.glsl", directory="Point_Shader")
 
+point_vert_out = gpu.types.GPUStageInterfaceInfo("my_interface")
+point_vert_out.smooth('VEC2', "uv")
+
 point_shader_info = gpu.types.GPUShaderCreateInfo()
 point_shader_info.push_constant('MAT4', "viewProjectionMatrix")
+point_shader_info.push_constant('VEC3', "view_dir")
 point_shader_info.push_constant('FLOAT', "offset")
 point_shader_info.push_constant('FLOAT', "pointSize")
 point_shader_info.push_constant('VEC4',"finalColor")
 point_shader_info.push_constant('FLOAT', "view_scale")
 point_shader_info.vertex_in(0, 'VEC3', "pos")
+point_shader_info.vertex_in(1, 'VEC2', "exp_dir")
+point_shader_info.vertex_out(point_vert_out)
 point_shader_info.fragment_out(0, 'VEC4', "fragColor")
 point_shader_info.vertex_source(pointvert)
 point_shader_info.fragment_source(pointfrag)
@@ -2261,7 +2267,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             draw_lines(lineWeights,rgb,coords,offset=-offset,
                 pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
                 dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat)
-            #draw_points(lineWeights[0],rgb,coords,offset=-offset)
+            draw_points(lineWeights[0],rgb,coords,offset=-offset,mat=mat)
             if drawHidden:
                 hiddenLineWeight = lineProps.lineHiddenWeight
                 hiddenRGB = get_color(lineProps.lineHiddenColor, lineProps.cad_col_idx)
@@ -2972,8 +2978,8 @@ def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
     if endcap == 'D':
         pointcoords = [p1]
 
-        dotcoord = [p1,size]
-        draw_points(size, rgb, pointcoords, depthpass=True)
+        dotcoord = [p1,endcapSize]
+        draw_points(endcapSize, rgb, pointcoords, depthpass=True)
 
 
     filledCoords = []
@@ -3791,13 +3797,30 @@ def check_vis(item, props):
 
 
 
-def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False):
+def draw_points(lineWeight, rgb, coords, offset=-0.001,mat=None, depthpass=False):
+    context = bpy.context
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+    if sceneProps.is_vector_draw:
+        return
 
     expanded_coords = []
+    dirs = []
 
     for coord in coords:
+        p1 = coord
+        if mat != None:
+            p1 = mat @Vector(coord) 
+        expanded_coords.extend([p1]*6)
+        dirs.extend([(1,1),(1,-1),(-1,-1),(1,1),(-1,-1),(-1,1)])
         pass
 
+    if sceneProps.is_render_draw:
+        view_dir = get_camera_z()
+    else:
+        view_rot = bpy.context.region_data.view_rotation
+        view_dir =  Vector((0,0,1))
+        view_dir.rotate(view_rot)
 
     with OpenGL_Settings(None):
         viewport = get_viewport()
@@ -3805,12 +3828,14 @@ def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False):
         matrix = get_projection_matrix()
         scale = get_scale()
         pointShader.uniform_float("viewProjectionMatrix", matrix)
+        pointShader.uniform_float("view_dir",view_dir)
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
         pointShader.uniform_float("offset", offset)
         pointShader.uniform_float("pointSize", lineWeight)
         pointShader.uniform_float("view_scale", scale)
+        
         gpu.state.program_point_size_set(True)
-        batch = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
+        batch = batch_for_shader(pointShader, 'TRIS', {"pos": expanded_coords,"exp_dir":dirs})
         batch.program_set(pointShader)
         batch.draw()
         gpu.shader.unbind()

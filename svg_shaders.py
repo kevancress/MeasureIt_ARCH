@@ -319,7 +319,7 @@ def svg_circle_shader(item, point, rad, color, svg, parent=None):
 
     point_2d = vector_utils.get_render_location(point)
 
-    circle = svg.circle(center=point_2d,r=rad)
+    circle = svg.circle(center=point_2d,r=rad*2)
     fills.add(circle)
 
 def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL='', itemProps = None, closed=True, mat = Matrix.Identity(4)):
