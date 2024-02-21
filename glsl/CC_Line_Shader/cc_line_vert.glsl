@@ -23,7 +23,7 @@ void main() {
     vec4 l_project = viewProjectionMatrix * objectMatrix *extMatrix* vec4(pos, 1.0);
 
     vec4 project = viewProjectionMatrix * vec4(exp_pos, 1.0);
-    gl_Position = vec4(project.x,project.y,l_project.z + offset, project.w);
+    gl_Position = vec4(project.x,project.y,project.z + offset, project.w);
     color = col;
     uv = v_uv;
 }

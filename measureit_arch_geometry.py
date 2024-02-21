@@ -573,7 +573,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
             dim.is_invalid = True
 
         if [p2.x,p2.y,p2.z] != dim['last_p2'].to_list():
-            print('invalid due to change in p2')
+            #rrprint('invalid due to change in p2')
             dim['last_p2'] = p2
             dim.is_invalid = True
     except KeyError:
@@ -2016,7 +2016,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     return bestNormal
 
 
-def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instance_draw = False):
+def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instance_draw = False, instance = None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     #print('Drawing Line group on {}, is instance: {}'.format(myobj.name, is_instance_draw))
@@ -2086,7 +2086,6 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         else:
             recoord_flag = False
 
-        if is_instance_draw: recoord_flag = False
 
         if recoord_flag and check_mods(myobj) and not is_instance_draw:
             if myobj.type == 'MESH':
@@ -2266,7 +2265,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             draw_lines(lineWeights,rgb,coords,offset=-offset,
                 pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
-                dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat)
+                dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat,instance=instance)
             draw_points(lineWeights[0],rgb,coords,offset=-offset,mat=mat)
             if drawHidden:
                 hiddenLineWeight = lineProps.lineHiddenWeight
@@ -2274,7 +2273,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
                 draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,
                     pointPass= lineProps.pointPass, dashed=True,
-                    dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid, mat = mat)
+                    dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid, mat = mat,instance=instance)
 
         if sceneProps.is_vector_draw:
             if myobj.type =='CURVE':
@@ -3862,7 +3861,7 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
         gpu.shader.unbind()
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed = False,
-               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = '', invalid = True, overlay_color=None, mat = Matrix.Identity(4)):
+               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = '', invalid = True, overlay_color=None, mat = Matrix.Identity(4), instance = None):
 
     context = bpy.context
     scene = context.scene
@@ -3889,7 +3888,10 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         bufferKey = 'General Buffer {}'.format(len(buffer.keys()))
     else:
         objMat = obj.matrix_world
-        bufferKey = obj.name + name
+        inst_str = ''
+        if instance != None:
+            inst_str = instance.parent.name
+        bufferKey = obj.name + inst_str + name
         #if mat != Matrix.Identity:
         #    objMat = mat
         
@@ -3910,19 +3912,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         wp1 = p1 @ objMat
         wp2 = p2 @ objMat
         arc_length = (wp1 - wp2).length     
-        #if sceneProps.is_render_draw:
-        #    ss_perp = get_camera_z().cross(dir).normalized()
-        #else:
-        #    modelViewProjectionMatrix = bpy.context.region_data.view_matrix
-        #    view_rot = bpy.context.region_data.view_rotation
-        #    view_z =  Vector((0,0,1))
-        #    view_z.rotate(view_rot)
-        #    ss_perp = view_z.cross(dir).normalized()
-        #fac = px_to_m(pts_to_px(lineWeight),paper_space=True)
-        #c1 = p1 + ss_perp * fac
-        #c2 = p1 - ss_perp * fac
-        #c3 = p2 + ss_perp * fac
-        #c4 = p2 - ss_perp * fac
+
         expanded_coords.extend([p1,p1,p2,p2,p2,p1])
         coord_dirs.extend([dir]*6)
         coord_signs.extend([1,-1,1,-1,1,-1])
@@ -3940,7 +3930,11 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         objMat = obj.matrix_world
         #if mat != Matrix.Identity:
         #    objMat = mat
-        bufferKey = obj.name + name
+        inst_str = ''
+        if instance != None:
+            inst_str = instance.parent.name
+            objMat = instance.parent.matrix_world @ obj.matrix_world
+        bufferKey = obj.name + inst_str + name
 
     # Set up object key if it doesn't Exist
     if not bufferKey in buffer:
@@ -3968,7 +3962,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     for key in bufferVBOKeysList:
         vboBuffer[key] = []
 
-    if invalid:
+    if invalid or instance!=None:
         # Set Up VBO properties
         #print('rebuilding vbos')
         num_coords = len(expanded_coords)
@@ -4386,20 +4380,18 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
         deps = bpy.context.view_layer.depsgraph
 
         objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
-        #obj_inst_list = deps.object_instances
-
-        #if sceneProps.is_vector_draw:
-        #    objlist = z_order_objs(objlist, extMat, multMat)
         num_instances = len(objlist)
         for idx,obj_int in enumerate(objlist , start=1):
+            if not obj_int.is_instance:
+                continue
             #try:
             #    obj_int = obj_inst_list[idx-1]
             #except IndexError:
             #    print('index error for obj: {}'.format(obj.name))
             #    continue
             if obj_int.is_instance:
-                myobj = obj_int.object
-                parent = obj_int.parent
+                myobj = bpy.data.objects[obj_int.object.name]
+                parent = bpy.data.objects[obj_int.parent.name]
 
                 if myobj.type == 'MESH' and parent.type == 'CURVE':
                     if sceneProps.is_render_draw:
@@ -4420,9 +4412,9 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
 
                 if 'LineGenerator' in myobj:
                     lineGen = myobj.LineGenerator
-                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=True)
+                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=True,instance=obj_int)
 
-                if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
+                if 'AnnotationGenerator' in myobj:
                     annotationGen = myobj.AnnotationGenerator
                     draw_annotation(
                         context, myobj, annotationGen, mat, svg=svg, dxf=dxf, instance=obj_int)
