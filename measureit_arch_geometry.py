@@ -3890,7 +3890,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         objMat = obj.matrix_world
         inst_str = ''
         if instance != None:
-            inst_str = instance.parent.name
+            inst_str = instance.parent
         bufferKey = obj.name + inst_str + name
         #if mat != Matrix.Identity:
         #    objMat = mat
@@ -3932,8 +3932,8 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         #    objMat = mat
         inst_str = ''
         if instance != None:
-            inst_str = instance.parent.name
-            objMat = instance.parent.matrix_world @ obj.matrix_world
+            inst_str =  str(instance.matrix_world)
+            objMat = instance.matrix_world
         bufferKey = obj.name + inst_str + name
 
     # Set up object key if it doesn't Exist
@@ -4268,19 +4268,20 @@ class Dist_Sort(object):
 
 class Inst_Sort(object):
     name = None
-    object = None
+    object = ''
     matrix_world = None
     is_instance = False
-    parent = None
+    parent = ''
     bound_box = None
 
     def __init__(self, obj_int):
         self.name = obj_int.object.name + "_Instance"
-        self.object = obj_int.object
+        self.object = obj_int.object.name
         self.bound_box = obj_int.object.bound_box
         self.matrix_world = obj_int.matrix_world.copy()
         self.is_instance = obj_int.is_instance
-        self.parent = obj_int.parent
+        if obj_int.parent != None:
+            self.parent = obj_int.parent.name
 
 def check_obj_vis(myobj,custom_call):
     scene = bpy.context.scene
@@ -4390,8 +4391,8 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
             #    print('index error for obj: {}'.format(obj.name))
             #    continue
             if obj_int.is_instance:
-                myobj = bpy.data.objects[obj_int.object.name]
-                parent = bpy.data.objects[obj_int.parent.name]
+                myobj = bpy.data.objects[obj_int.object]
+                parent = bpy.data.objects[obj_int.parent]
 
                 if myobj.type == 'MESH' and parent.type == 'CURVE':
                     if sceneProps.is_render_draw:
