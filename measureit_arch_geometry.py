@@ -4384,6 +4384,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
         num_instances = len(objlist)
         for idx,obj_int in enumerate(objlist , start=1):
             if not obj_int.is_instance:
+                print('skipping, not instance' )
                 continue
             #try:
             #    obj_int = obj_inst_list[idx-1]

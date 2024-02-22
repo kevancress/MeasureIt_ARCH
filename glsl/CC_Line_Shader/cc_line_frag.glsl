@@ -15,7 +15,7 @@ void main() {
 
     float dist = (uv.y - 0.5)*2.0;
 
-    aa = clamp((1.0-smoothstep(0.6,1.0,abs(dist))) / fwidth(dist),0.0,1.0);
+    aa = clamp((1.0-smoothstep(0.0,1.0,abs(dist))) / fwidth(dist),0.0,1.0);
 
     if (depth_pass && aa < 1.0){
         discard;

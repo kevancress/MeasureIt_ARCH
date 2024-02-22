@@ -289,7 +289,7 @@ def render_main(self, context):
 
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-
+    RenderStartTime = time.time()
     with Set_Render(sceneProps):
         clipdepth = context.scene.camera.data.clip_end
         objlist = context.view_layer.objects
@@ -324,7 +324,7 @@ def render_main(self, context):
                 draw_scene(self, context, projection_matrix)
                 endTime = time.time()
                 print("Draw Scene Time: " + str(endTime - startTime))
-                
+
                 # Clear Color Buffer, we only need the depth info
                 fb.clear(color=(0.0, 0.0, 0.0, 0.0))
 
@@ -360,6 +360,8 @@ def render_main(self, context):
 
         # Restore default value
         sceneProps.is_render_draw = False
+        RenderEndTime = time.time()
+        print("Full Render Time: " + str(RenderEndTime - RenderStartTime))
     return outpath
 
 
@@ -405,8 +407,8 @@ def draw_scene(self, context, projection_matrix):
 
             if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or ignore):
                 mat = obj_int.matrix_world
-                obj_eval = obj.evaluated_get(deps)
-                mesh = obj_eval.to_mesh(
+                #obj_eval = obj.evaluated_get(deps)
+                mesh = obj.to_mesh(
                     preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
                 mesh.calc_loop_triangles()
                 tris = mesh.loop_triangles
@@ -415,7 +417,7 @@ def draw_scene(self, context, projection_matrix):
                 vertices = [mat @ vert.co for vert in mesh.vertices]
                 indices = [[tri.vertices[0],tri.vertices[1],tri.vertices[2]] for tri in tris]
 
-                obj_eval.to_mesh_clear()
+                obj.to_mesh_clear()
 
             depthOnlyshader.bind()
             depthOnlyshader.uniform_float("viewProjectionMatrix", get_projection_matrix())
