@@ -2086,6 +2086,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         else:
             recoord_flag = False
 
+        if is_instance_draw and not sceneProps.is_render_draw:
+            recoord_flag = False
 
         if recoord_flag and check_mods(myobj) and not is_instance_draw:
             if myobj.type == 'MESH':

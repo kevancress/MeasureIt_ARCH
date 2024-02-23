@@ -322,6 +322,29 @@ def render_main(self, context):
                 print('Drawing Scene:')
                 startTime = time.time()
                 draw_scene(self, context, projection_matrix)
+
+                if sceneProps.debug_depth_pass:
+                    print("Reading Buffer to Image")
+                    scene = context.scene
+
+                    depth_buffer = fb.read_depth(0, 0, width, height)
+
+                    image_name = "measureit_arch_depth"
+                    if image_name not in bpy.data.images:
+                        bpy.data.images.new(image_name, width, height)
+
+                    image = bpy.data.images[image_name]
+                    image.scale(width, height)
+                    pixel_array = []
+                    depth_buffer.dimensions = width * height
+                    for v in depth_buffer:
+                        pixel_array.append(v)
+                        pixel_array.append(v)
+                        pixel_array.append(v)
+                        pixel_array.append(1)
+                    image.pixels = pixel_array
+                    del pixel_array
+                    del depth_buffer
                 endTime = time.time()
                 print("Draw Scene Time: " + str(endTime - startTime))
 
@@ -477,6 +500,7 @@ def render_main_svg(self, context):
                     sceneProps['depthbuffer'] = depth_buffer
 
                     render_end_time = time.time()
+                    del depth_buffer
                     print("Reading Depth Buffer to SceneProps took: " + str(render_end_time - buffer_start_time))
                     print("Rendering Scene To Depth Buffer took: " + str(render_end_time - render_start_time))
                     print("")
@@ -501,6 +525,8 @@ def render_main_svg(self, context):
                             pixel_array.append(v)
                             pixel_array.append(1)
                         image.pixels = pixel_array
+                        del pixel_array
+                        del depth_buffer
 
             offscreen.free()
         vector_utils.set_globals()
@@ -649,6 +675,8 @@ def render_main_svg(self, context):
 
         endTime = time.time()
         print("Full Render SVG Time: " + str(endTime - startTime))
+        del svg
+        vector_utils.clear_db()
 
     return outpath
 
