@@ -315,6 +315,7 @@ def update_text(textobj, props, context, fields=[]):
                 # Write Texture Buffer to ID Property as List
                 texture_buffer =  fb.read_color(0, 0, width, height, 4, 0, 'FLOAT')
                 texture_buffer.dimensions = width*height*4
+                textField['texture'] = []
                 textField['texture'] = texture_buffer
 
                 textField.text_updated = False
@@ -327,6 +328,10 @@ def update_text(textobj, props, context, fields=[]):
                     image = bpy.data.images[str('test')]
                     image.scale(width, height)
                     image.pixels = [v for v in texture_buffer]
+                
+                del texture_buffer
+                textOffscreen.free()
+
     textobj.text_updated = False
 
 
