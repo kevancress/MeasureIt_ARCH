@@ -386,18 +386,17 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 mesh = myobj.data
                 bm = bmesh.from_edit_mesh(mesh)
             
-        if bm == None:
-            return
 
-        if myobj.type == 'CURVE' and is_instance_draw:
-            return
 
         if myobj.type == 'CURVE':
             if sceneProps.is_vector_draw:
                 svg_shaders.svg_fill_from_curve_shader(myobj,svg=svg,mat=mat)
+                return
 
             #bpy.data.meshes.remove(mesh)
 
+        if bm == None:
+            return
 
         bm.edges.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
@@ -4386,7 +4385,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     if not custom_call and not view.skip_instances:
 
         deps = bpy.context.view_layer.depsgraph
-
+        objlist = []
         objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
         num_instances = len(objlist)
         for idx,obj_int in enumerate(objlist , start=1):
