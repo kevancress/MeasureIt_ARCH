@@ -3290,10 +3290,12 @@ def draw_text_3D(context, textobj, textprops, myobj):
             gpu.state.depth_test_set('LESS_EQUAL')
 
             batch.draw(textShader)
+            del tex
         except AttributeError:
             pass
 
     gpu.shader.unbind()
+ 
 
 
 def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, midpoint, posflag, flipCaps):
@@ -4150,19 +4152,22 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     dim.textPosition = 'T'
     dimLineExtension = 0  # add some extension to the line if the dimension is ext
     normDistVector = distVec.normalized()
-    dim.fontSize = dimProps.fontSize
+    if dim.fontSize != dimProps.fontSize:
+        dim.fontSize = dimProps.fontSize
 
     if dim.textAlignment == 'L':
         dim.textPosition = 'M'
         flipCaps = True
         dimLineExtension = dim_line_extension(capSize)
-        origin += Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
+        if cardIdx == 0:
+            origin += Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     elif dim.textAlignment == 'R':
         flipCaps = True
         dim.textPosition = 'M'
         dimLineExtension = dim_line_extension(capSize)
-        origin -= Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
+        if cardIdx == 0:
+            origin -= Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     square = generate_text_card(
         context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance.normalized() ,cardIdx=cardIdx)
@@ -4175,9 +4180,10 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
         if dim.textAlignment == 'C':
             flipCaps = True
             dimLineExtension = dim_line_extension(capSize)
-            origin += distVec * -0.5 - (dimLineExtension * normDistVector) - cardX / 2 - cardY / 2
+            if cardIdx == 0:
+                origin += distVec * -0.5 - (dimLineExtension * normDistVector) - cardX / 2 - cardY / 2
             square = generate_text_card(
-                context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance.normalized())
+                context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance.normalized(),cardIdx=cardIdx)
     textField['textcard'] = square
     return (flipCaps, dimLineExtension, origin)
 
@@ -4385,12 +4391,10 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     if not custom_call and not view.skip_instances:
 
         deps = bpy.context.view_layer.depsgraph
-        objlist = []
         objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
         num_instances = len(objlist)
         for idx,obj_int in enumerate(objlist , start=1):
             if not obj_int.is_instance:
-                print('skipping, not instance' )
                 continue
             #try:
             #    obj_int = obj_inst_list[idx-1]
@@ -4442,7 +4446,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                                 context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
 
     draw_all_lines(ext_mat=extMat)
-
+    objlist = None
     if sceneProps.is_render_draw:
         endTime = time.time()
         print("Draw 3D Loop Time: " + str(endTime - startTime))
@@ -4475,7 +4479,7 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
         if idx == 0:
             flipCaps = placementResults[0]
             dimLineExtension = placementResults[1]
-            origin = placementResults[2]
+            ret_origin = placementResults[2]
 
         textField.textAlignment = dim.textAlignment
         textField.textPosition = dim.textPosition
@@ -4484,4 +4488,4 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
             draw_text_3D(context, textField, dimProps, myobj)
         idx += 1
 
-    return (flipCaps,dimLineExtension,origin)
+    return (flipCaps,dimLineExtension,ret_origin)
