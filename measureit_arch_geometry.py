@@ -4149,7 +4149,7 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     context = bpy.context
     sceneProps = context.scene.MeasureItArchProps
     flipCaps = False
-    dim.textPosition = 'T'
+    dim.textPosition = dim.textPosition
     dimLineExtension = 0  # add some extension to the line if the dimension is ext
     normDistVector = distVec.normalized()
     if dim.fontSize != dimProps.fontSize:
