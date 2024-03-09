@@ -2259,8 +2259,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             draw_lines(lineWeights,rgb,coords,offset=-offset,
                 pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
-                dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat)
-
+                dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat)  
             if drawHidden:
                 hiddenLineWeight = lineProps.lineHiddenWeight
                 hiddenRGB = get_color(lineProps.lineHiddenColor, lineProps.cad_col_idx)
@@ -3790,7 +3789,7 @@ def check_vis(item, props):
 
 
 
-def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False):
+def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False, mat = Matrix.Identity(4), obj=None):
 
     with OpenGL_Settings(None):
         viewport = get_viewport()
@@ -3798,10 +3797,18 @@ def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False):
         matrix = get_projection_matrix()
         pointShader.uniform_float("viewProjectionMatrix", matrix)
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("offset", offset)
-        pointShader.uniform_float("pointSize", lineWeight*72)
+        pointShader.uniform_float("offset", offset/1000)
+        pointShader.uniform_float("pointSize", lineWeight*10)
         gpu.state.program_point_size_set(True)
-        batch = batch_for_shader(pointShader, 'POINTS', {"pos": coords})
+        world_coords = []
+        for coord in coords:
+            world_coord =  Vector(coord) @ obj.matrix_world
+            if obj != None:
+                pass
+                #world_coord = world_coord 
+            world_coords.append(world_coord)
+
+        batch = batch_for_shader(pointShader, 'POINTS', {"pos": world_coords})
         batch.program_set(pointShader)
         batch.draw()
         gpu.shader.unbind()

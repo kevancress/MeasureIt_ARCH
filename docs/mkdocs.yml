@@ -21,7 +21,7 @@ nav:
 
     - Tutorials:
         - Installing MeasureIt_ARCH: tutorials/install.md
-        - Creating a drawing set with MeasureIt_ARCH: tutorials/drawing_set.md
+        - Getting started with MeasureIt_ARCH: tutorials/getting_started.md
         - Set up a Titleblock with MeasureIt_ARCH: tutorials/titleblock_setup.md
         - Cutting Sections with MeasureIt_ARCH: tutorials/sections.md
         - Draw a Wall assembly with Dynamic Line Groups: tutorials/line_group_tut.md
