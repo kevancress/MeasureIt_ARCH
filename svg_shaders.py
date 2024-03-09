@@ -146,11 +146,11 @@ def svg_fill_from_curve_shader(curve,svg,parent=None,mat =Matrix.Identity):
             path_strings = []
             hidden_path_strings = []
             curve_segs = []
-            for i in range(len(spline.bezier_points)-1):
-                p1 = spline.bezier_points[i].co
-                p2 = spline.bezier_points[i+1].co
-                h1 = spline.bezier_points[i].handle_right
-                h2 = spline.bezier_points[i+1].handle_left
+            for j in range(len(spline.bezier_points)-1):
+                p1 = spline.bezier_points[j].co
+                p2 = spline.bezier_points[j+1].co
+                h1 = spline.bezier_points[j].handle_right
+                h2 = spline.bezier_points[j+1].handle_left
                 ss_p1 = vector_utils.get_render_location(mat@p1)
                 ss_p2 = vector_utils.get_render_location(mat@p2)
 
@@ -159,7 +159,7 @@ def svg_fill_from_curve_shader(curve,svg,parent=None,mat =Matrix.Identity):
                 ss_last = vector_utils.get_render_location(mat@last_handle)
                 ss_current = vector_utils.get_render_location(mat@current_handle)
 
-                if i == 0:
+                if j == 0:
                     path_strings.append('M {} {}'.format(ss_p1[0],ss_p1[1]))
                 path_strings.append('C {} {} {} {} {} {}'.format(ss_last[0], ss_last[1], ss_current[0], ss_current[1], ss_p2[0],ss_p2[1]))
 
@@ -319,7 +319,7 @@ def svg_circle_shader(item, point, rad, color, svg, parent=None):
 
     point_2d = vector_utils.get_render_location(point)
 
-    circle = svg.circle(center=point_2d,r=rad)
+    circle = svg.circle(center=point_2d,r=rad*2)
     fills.add(circle)
 
 def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0, 0,0), lineWeight=0, fillURL='', itemProps = None, closed=True, mat = Matrix.Identity(4)):

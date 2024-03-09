@@ -108,12 +108,19 @@ del tri_shader_info
 pointvert = load_shader_str("Point_Vert.glsl", directory="Point_Shader")
 pointfrag = load_shader_str("Point_Frag.glsl", directory="Point_Shader")
 
+point_vert_out = gpu.types.GPUStageInterfaceInfo("my_interface")
+point_vert_out.smooth('VEC2', "uv")
+
 point_shader_info = gpu.types.GPUShaderCreateInfo()
 point_shader_info.push_constant('MAT4', "viewProjectionMatrix")
+point_shader_info.push_constant('VEC3', "view_dir")
 point_shader_info.push_constant('FLOAT', "offset")
 point_shader_info.push_constant('FLOAT', "pointSize")
 point_shader_info.push_constant('VEC4',"finalColor")
+point_shader_info.push_constant('FLOAT', "view_scale")
 point_shader_info.vertex_in(0, 'VEC3', "pos")
+point_shader_info.vertex_in(1, 'VEC2', "exp_dir")
+point_shader_info.vertex_out(point_vert_out)
 point_shader_info.fragment_out(0, 'VEC4', "fragColor")
 point_shader_info.vertex_source(pointvert)
 point_shader_info.fragment_source(pointfrag)
@@ -308,6 +315,7 @@ def update_text(textobj, props, context, fields=[]):
                 # Write Texture Buffer to ID Property as List
                 texture_buffer =  fb.read_color(0, 0, width, height, 4, 0, 'FLOAT')
                 texture_buffer.dimensions = width*height*4
+                textField['texture'] = []
                 textField['texture'] = texture_buffer
 
                 textField.text_updated = False
@@ -320,6 +328,10 @@ def update_text(textobj, props, context, fields=[]):
                     image = bpy.data.images[str('test')]
                     image.scale(width, height)
                     image.pixels = [v for v in texture_buffer]
+                
+                del texture_buffer
+                textOffscreen.free()
+
     textobj.text_updated = False
 
 
@@ -374,18 +386,17 @@ def draw_material_hatches(context, myobj, mat, svg=None, dxf=None, is_instance_d
                 mesh = myobj.data
                 bm = bmesh.from_edit_mesh(mesh)
             
-        if bm == None:
-            return
 
-        if myobj.type == 'CURVE' and is_instance_draw:
-            return
 
         if myobj.type == 'CURVE':
             if sceneProps.is_vector_draw:
                 svg_shaders.svg_fill_from_curve_shader(myobj,svg=svg,mat=mat)
+                return
 
             #bpy.data.meshes.remove(mesh)
 
+        if bm == None:
+            return
 
         bm.edges.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
@@ -566,7 +577,7 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
             dim.is_invalid = True
 
         if [p2.x,p2.y,p2.z] != dim['last_p2'].to_list():
-            print('invalid due to change in p2')
+            #rrprint('invalid due to change in p2')
             dim['last_p2'] = p2
             dim.is_invalid = True
     except KeyError:
@@ -2009,7 +2020,7 @@ def select_normal(myobj, dim, normDistVector, midpoint, dimProps):
     return bestNormal
 
 
-def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instance_draw = False):
+def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instance_draw = False, instance = None):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     #print('Drawing Line group on {}, is instance: {}'.format(myobj.name, is_instance_draw))
@@ -2079,7 +2090,8 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         else:
             recoord_flag = False
 
-        if is_instance_draw: recoord_flag = False
+        if is_instance_draw and not sceneProps.is_render_draw:
+            recoord_flag = False
 
         if recoord_flag and check_mods(myobj) and not is_instance_draw:
             if myobj.type == 'MESH':
@@ -2259,14 +2271,15 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
             draw_lines(lineWeights,rgb,coords,offset=-offset,
                 pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
-                dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat)  
+                dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat,instance=instance)
+            draw_points(lineWeights[0],rgb,coords,offset=-offset,mat=mat)
             if drawHidden:
                 hiddenLineWeight = lineProps.lineHiddenWeight
                 hiddenRGB = get_color(lineProps.lineHiddenColor, lineProps.cad_col_idx)
 
                 draw_lines(hiddenLineWeight,hiddenRGB,coords,offset=-offset,
                     pointPass= lineProps.pointPass, dashed=True,
-                    dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid, mat = mat)
+                    dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid, mat = mat,instance=instance)
 
         if sceneProps.is_vector_draw:
             if myobj.type =='CURVE':
@@ -2970,8 +2983,8 @@ def draw_annotation_endcaps(annotationProps, endcap, p1 , p2, rgb, endcapSize):
     if endcap == 'D':
         pointcoords = [p1]
 
-        dotcoord = [p1,size]
-        draw_points(size, rgb, pointcoords, depthpass=True)
+        dotcoord = [p1,endcapSize]
+        draw_points(endcapSize, rgb, pointcoords, depthpass=True)
 
 
     filledCoords = []
@@ -3277,10 +3290,12 @@ def draw_text_3D(context, textobj, textprops, myobj):
             gpu.state.depth_test_set('LESS_EQUAL')
 
             batch.draw(textShader)
+            del tex
         except AttributeError:
             pass
 
     gpu.shader.unbind()
+ 
 
 
 def generate_end_caps(context, item, capType, capSize, pos, userOffsetVector, midpoint, posflag, flipCaps):
@@ -3789,26 +3804,45 @@ def check_vis(item, props):
 
 
 
-def draw_points(lineWeight, rgb, coords, offset=-0.001, depthpass=False, mat = Matrix.Identity(4), obj=None):
+def draw_points(lineWeight, rgb, coords, offset=-0.001,mat=None, depthpass=False):
+    context = bpy.context
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+    if sceneProps.is_vector_draw:
+        return
+
+    expanded_coords = []
+    dirs = []
+
+    for coord in coords:
+        p1 = coord
+        if mat != None:
+            p1 = mat @Vector(coord) 
+        expanded_coords.extend([p1]*6)
+        dirs.extend([(1,1),(1,-1),(-1,-1),(1,1),(-1,-1),(-1,1)])
+        pass
+
+    if sceneProps.is_render_draw:
+        view_dir = get_camera_z()
+    else:
+        view_rot = bpy.context.region_data.view_rotation
+        view_dir =  Vector((0,0,1))
+        view_dir.rotate(view_rot)
 
     with OpenGL_Settings(None):
         viewport = get_viewport()
         pointShader.bind()
         matrix = get_projection_matrix()
+        scale = get_scale()
         pointShader.uniform_float("viewProjectionMatrix", matrix)
+        pointShader.uniform_float("view_dir",view_dir)
         pointShader.uniform_float("finalColor", (rgb[0], rgb[1], rgb[2], rgb[3]))
-        pointShader.uniform_float("offset", offset/1000)
-        pointShader.uniform_float("pointSize", lineWeight*10)
+        pointShader.uniform_float("offset", offset)
+        pointShader.uniform_float("pointSize", lineWeight)
+        pointShader.uniform_float("view_scale", scale)
+        
         gpu.state.program_point_size_set(True)
-        world_coords = []
-        for coord in coords:
-            world_coord =  Vector(coord) @ obj.matrix_world
-            if obj != None:
-                pass
-                #world_coord = world_coord 
-            world_coords.append(world_coord)
-
-        batch = batch_for_shader(pointShader, 'POINTS', {"pos": world_coords})
+        batch = batch_for_shader(pointShader, 'TRIS', {"pos": expanded_coords,"exp_dir":dirs})
         batch.program_set(pointShader)
         batch.draw()
         gpu.shader.unbind()
@@ -3835,7 +3869,7 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
         gpu.shader.unbind()
 
 def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed = False,
-               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = '', invalid = True, overlay_color=None, mat = Matrix.Identity(4)):
+               hidden=False, dash_sizes=[5,5,0,0], gap_sizes=[5,5,0,0], obj= None, name = '', invalid = True, overlay_color=None, mat = Matrix.Identity(4), instance = None):
 
     context = bpy.context
     scene = context.scene
@@ -3862,7 +3896,10 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         bufferKey = 'General Buffer {}'.format(len(buffer.keys()))
     else:
         objMat = obj.matrix_world
-        bufferKey = obj.name + name
+        inst_str = ''
+        if instance != None:
+            inst_str = instance.parent
+        bufferKey = obj.name + inst_str + name
         #if mat != Matrix.Identity:
         #    objMat = mat
         
@@ -3883,19 +3920,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         wp1 = p1 @ objMat
         wp2 = p2 @ objMat
         arc_length = (wp1 - wp2).length     
-        #if sceneProps.is_render_draw:
-        #    ss_perp = get_camera_z().cross(dir).normalized()
-        #else:
-        #    modelViewProjectionMatrix = bpy.context.region_data.view_matrix
-        #    view_rot = bpy.context.region_data.view_rotation
-        #    view_z =  Vector((0,0,1))
-        #    view_z.rotate(view_rot)
-        #    ss_perp = view_z.cross(dir).normalized()
-        #fac = px_to_m(pts_to_px(lineWeight),paper_space=True)
-        #c1 = p1 + ss_perp * fac
-        #c2 = p1 - ss_perp * fac
-        #c3 = p2 + ss_perp * fac
-        #c4 = p2 - ss_perp * fac
+
         expanded_coords.extend([p1,p1,p2,p2,p2,p1])
         coord_dirs.extend([dir]*6)
         coord_signs.extend([1,-1,1,-1,1,-1])
@@ -3913,7 +3938,11 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         objMat = obj.matrix_world
         #if mat != Matrix.Identity:
         #    objMat = mat
-        bufferKey = obj.name + name
+        inst_str = ''
+        if instance != None:
+            inst_str =  str(instance.matrix_world)
+            objMat = instance.matrix_world
+        bufferKey = obj.name + inst_str + name
 
     # Set up object key if it doesn't Exist
     if not bufferKey in buffer:
@@ -3941,7 +3970,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     for key in bufferVBOKeysList:
         vboBuffer[key] = []
 
-    if invalid:
+    if invalid or instance!=None:
         # Set Up VBO properties
         #print('rebuilding vbos')
         num_coords = len(expanded_coords)
@@ -3977,7 +4006,6 @@ def draw_all_lines(ext_mat = None):
         return
 
     viewport = get_viewport()
-    scale = get_scale()
     view = get_view()
     scale = get_scale()
 
@@ -4121,22 +4149,25 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     context = bpy.context
     sceneProps = context.scene.MeasureItArchProps
     flipCaps = False
-    dim.textPosition = 'T'
+    dim.textPosition = dim.textPosition
     dimLineExtension = 0  # add some extension to the line if the dimension is ext
     normDistVector = distVec.normalized()
-    dim.fontSize = dimProps.fontSize
+    if dim.fontSize != dimProps.fontSize:
+        dim.fontSize = dimProps.fontSize
 
     if dim.textAlignment == 'L':
         dim.textPosition = 'M'
         flipCaps = True
         dimLineExtension = dim_line_extension(capSize)
-        origin += Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
+        if cardIdx == 0:
+            origin += Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     elif dim.textAlignment == 'R':
         flipCaps = True
         dim.textPosition = 'M'
         dimLineExtension = dim_line_extension(capSize)
-        origin -= Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
+        if cardIdx == 0:
+            origin -= Vector((dist / 2 + dimLineExtension * 1.2) * normDistVector)
 
     square = generate_text_card(
         context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance.normalized() ,cardIdx=cardIdx)
@@ -4149,9 +4180,10 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
         if dim.textAlignment == 'C':
             flipCaps = True
             dimLineExtension = dim_line_extension(capSize)
-            origin += distVec * -0.5 - (dimLineExtension * normDistVector) - cardX / 2 - cardY / 2
+            if cardIdx == 0:
+                origin += distVec * -0.5 - (dimLineExtension * normDistVector) - cardX / 2 - cardY / 2
             square = generate_text_card(
-                context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance.normalized())
+                context, textField, dim, basePoint=origin, xDir=normDistVector, yDir=offsetDistance.normalized(),cardIdx=cardIdx)
     textField['textcard'] = square
     return (flipCaps, dimLineExtension, origin)
 
@@ -4248,19 +4280,20 @@ class Dist_Sort(object):
 
 class Inst_Sort(object):
     name = None
-    object = None
+    object = ''
     matrix_world = None
     is_instance = False
-    parent = None
+    parent = ''
     bound_box = None
 
     def __init__(self, obj_int):
         self.name = obj_int.object.name + "_Instance"
-        self.object = obj_int.object
+        self.object = obj_int.object.name
         self.bound_box = obj_int.object.bound_box
         self.matrix_world = obj_int.matrix_world.copy()
         self.is_instance = obj_int.is_instance
-        self.parent = obj_int.parent
+        if obj_int.parent != None:
+            self.parent = obj_int.parent.name
 
 def check_obj_vis(myobj,custom_call):
     scene = bpy.context.scene
@@ -4358,22 +4391,19 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     if not custom_call and not view.skip_instances:
 
         deps = bpy.context.view_layer.depsgraph
-
         objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
-        #obj_inst_list = deps.object_instances
-
-        #if sceneProps.is_vector_draw:
-        #    objlist = z_order_objs(objlist, extMat, multMat)
         num_instances = len(objlist)
         for idx,obj_int in enumerate(objlist , start=1):
+            if not obj_int.is_instance:
+                continue
             #try:
             #    obj_int = obj_inst_list[idx-1]
             #except IndexError:
             #    print('index error for obj: {}'.format(obj.name))
             #    continue
             if obj_int.is_instance:
-                myobj = obj_int.object
-                parent = obj_int.parent
+                myobj = bpy.data.objects[obj_int.object]
+                parent = bpy.data.objects[obj_int.parent]
 
                 if myobj.type == 'MESH' and parent.type == 'CURVE':
                     if sceneProps.is_render_draw:
@@ -4394,9 +4424,9 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
 
                 if 'LineGenerator' in myobj:
                     lineGen = myobj.LineGenerator
-                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=True)
+                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=True,instance=obj_int)
 
-                if 'AnnotationGenerator' in myobj and myobj.AnnotationGenerator.num_annotations != 0:
+                if 'AnnotationGenerator' in myobj:
                     annotationGen = myobj.AnnotationGenerator
                     draw_annotation(
                         context, myobj, annotationGen, mat, svg=svg, dxf=dxf, instance=obj_int)
@@ -4416,7 +4446,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                                 context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
 
     draw_all_lines(ext_mat=extMat)
-
+    objlist = None
     if sceneProps.is_render_draw:
         endTime = time.time()
         print("Draw 3D Loop Time: " + str(endTime - startTime))
@@ -4449,7 +4479,7 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
         if idx == 0:
             flipCaps = placementResults[0]
             dimLineExtension = placementResults[1]
-            origin = placementResults[2]
+            ret_origin = placementResults[2]
 
         textField.textAlignment = dim.textAlignment
         textField.textPosition = dim.textPosition
@@ -4458,4 +4488,4 @@ def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_
             draw_text_3D(context, textField, dimProps, myobj)
         idx += 1
 
-    return (flipCaps,dimLineExtension,origin)
+    return (flipCaps,dimLineExtension,ret_origin)

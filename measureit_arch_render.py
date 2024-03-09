@@ -92,7 +92,8 @@ class RENDER_PT_MeasureitArch_Panel(Panel):
                      icon='RENDER_ANIMATION', text="MeasureIt_ARCH Animation")
         col.operator("measureit_arch.rendervectorbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH Vector")
-
+        col.operator("measureit_arch.rendervectoranimbutton",
+                    icon='RENDER_ANIMATION', text="MeasureIt_ARCH Vector Animation")
         if sceneProps.show_dxf_props:
             col.operator("measureit_arch.renderdxfbutton",
                      icon='DOCUMENTS', text="MeasureIt_ARCH to DXF")
@@ -185,6 +186,70 @@ class RenderAnimationButton(Operator):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
         return {'CANCELLED'}
+    
+
+
+class RenderVectorAnimationButton(Operator):
+    """ Operator which runs itself from a timer """
+
+    bl_idname = "measureit_arch.rendervectoranimbutton"
+    bl_label = "Render Vector animation"
+    bl_description = "Render a vector animation, saved to render output path."
+    bl_category = 'MeasureitArch'
+
+    _timer = None
+    _updating = False
+    view3d = None
+
+    def modal(self, context, event):
+        scene = context.scene
+
+        if event.type in {'RIGHTMOUSE', 'ESC'}:
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        if event.type == 'TIMER' and not self._updating:
+            self._updating = True
+            if scene.frame_current <= scene.frame_end:
+                scene.frame_set(scene.frame_current)
+                self.view3d.tag_redraw()
+                print("MeasureIt_ARCH: Rendering frame: " + str(scene.frame_current))
+                render_main_svg(self, context)
+                self._updating = False
+                scene.frame_current += 1
+            else:
+                self.cancel(context)
+                return {'CANCELLED'}
+
+        self.view3d.tag_redraw()
+        return {'PASS_THROUGH'}
+
+    def execute(self, context):
+        # Check camera
+        if not context.scene.camera:
+            self.report({'ERROR'}, "Unable to render: no camera found!")
+            return {'FINISHED'}
+
+        for area in context.screen.areas:
+            if area.type == 'VIEW_3D':
+                self.view3d = area
+
+        if self.view3d is None:
+            self.report(
+                {'ERROR'}, 'A 3D Viewport must be open to render MeasureIt_ARCH Animations')
+            self.cancel(context)
+            return {'CANCELLED'}
+
+        wm = context.window_manager
+        self._timer = wm.event_timer_add(0.1, window=context.window)
+        context.scene.frame_current = context.scene.frame_start
+        wm.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def cancel(self, context):
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
+        return {'CANCELLED'}
 
 
 class RenderVectorButton(Operator):
@@ -224,7 +289,7 @@ def render_main(self, context):
 
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-
+    RenderStartTime = time.time()
     with Set_Render(sceneProps):
         clipdepth = context.scene.camera.data.clip_end
         objlist = context.view_layer.objects
@@ -254,7 +319,34 @@ def render_main(self, context):
                 gpu.matrix.load_projection_matrix(projection_matrix)
 
                 # Draw Scene for the depth buffer
+                print('Drawing Scene:')
+                startTime = time.time()
                 draw_scene(self, context, projection_matrix)
+
+                if sceneProps.debug_depth_pass:
+                    print("Reading Buffer to Image")
+                    scene = context.scene
+
+                    depth_buffer = fb.read_depth(0, 0, width, height)
+
+                    image_name = "measureit_arch_depth"
+                    if image_name not in bpy.data.images:
+                        bpy.data.images.new(image_name, width, height)
+
+                    image = bpy.data.images[image_name]
+                    image.scale(width, height)
+                    pixel_array = []
+                    depth_buffer.dimensions = width * height
+                    for v in depth_buffer:
+                        pixel_array.append(v)
+                        pixel_array.append(v)
+                        pixel_array.append(v)
+                        pixel_array.append(1)
+                    image.pixels = pixel_array
+                    del pixel_array
+                    del depth_buffer
+                endTime = time.time()
+                print("Draw Scene Time: " + str(endTime - startTime))
 
                 # Clear Color Buffer, we only need the depth info
                 fb.clear(color=(0.0, 0.0, 0.0, 0.0))
@@ -291,6 +383,8 @@ def render_main(self, context):
 
         # Restore default value
         sceneProps.is_render_draw = False
+        RenderEndTime = time.time()
+        print("Full Render Time: " + str(RenderEndTime - RenderStartTime))
     return outpath
 
 
@@ -336,8 +430,8 @@ def draw_scene(self, context, projection_matrix):
 
             if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or ignore):
                 mat = obj_int.matrix_world
-                obj_eval = obj.evaluated_get(deps)
-                mesh = obj_eval.to_mesh(
+                #obj_eval = obj.evaluated_get(deps)
+                mesh = obj.to_mesh(
                     preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
                 mesh.calc_loop_triangles()
                 tris = mesh.loop_triangles
@@ -346,7 +440,7 @@ def draw_scene(self, context, projection_matrix):
                 vertices = [mat @ vert.co for vert in mesh.vertices]
                 indices = [[tri.vertices[0],tri.vertices[1],tri.vertices[2]] for tri in tris]
 
-                obj_eval.to_mesh_clear()
+                obj.to_mesh_clear()
 
             depthOnlyshader.bind()
             depthOnlyshader.uniform_float("viewProjectionMatrix", get_projection_matrix())
@@ -406,6 +500,7 @@ def render_main_svg(self, context):
                     sceneProps['depthbuffer'] = depth_buffer
 
                     render_end_time = time.time()
+                    del depth_buffer
                     print("Reading Depth Buffer to SceneProps took: " + str(render_end_time - buffer_start_time))
                     print("Rendering Scene To Depth Buffer took: " + str(render_end_time - render_start_time))
                     print("")
@@ -430,6 +525,8 @@ def render_main_svg(self, context):
                             pixel_array.append(v)
                             pixel_array.append(1)
                         image.pixels = pixel_array
+                        del pixel_array
+                        del depth_buffer
 
             offscreen.free()
         vector_utils.set_globals()
@@ -578,6 +675,8 @@ def render_main_svg(self, context):
 
         endTime = time.time()
         print("Full Render SVG Time: " + str(endTime - startTime))
+        del svg
+        vector_utils.clear_db()
 
     return outpath
 

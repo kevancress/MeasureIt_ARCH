@@ -1,13 +1,14 @@
 void main() {
     float aa = finalColor[3];
 
-    vec2 dist_center = gl_PointCoord - vec2(0.5);
+    vec2 dist_center = uv;
     float dist = length(dist_center);
-    if (dist > 0.5){
+
+   
+    aa = clamp((1.0-smoothstep(0.6,1.0,abs(dist))) / fwidth(dist),0.0,1.0);
+    if (aa < 1.0){
         discard;
     }
-
-    aa = smoothstep(0.5,0.51,1.0-dist);
-    vec4 outColor = vec4(finalColor[0],finalColor[1],finalColor[2],aa);
+    vec4 outColor = vec4(finalColor[0],finalColor[1],finalColor[2],finalColor[3]*aa);
     fragColor = outColor;
 }
