@@ -4405,10 +4405,10 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
                 myobj = bpy.data.objects[obj_int.object]
                 parent = bpy.data.objects[obj_int.parent]
 
-                if myobj.type == 'MESH' and parent.type == 'CURVE':
-                    if sceneProps.is_render_draw:
-                        print(f'Skipping: {myobj.name}')
-                    continue
+                #if myobj.type == 'MESH' and parent.type == 'CURVE':
+                #    if sceneProps.is_render_draw:
+                #        print(f'Skipping: {myobj.name}')
+                #    continue
 
                 mat = obj_int.matrix_world
 

@@ -415,14 +415,17 @@ def draw_scene(self, context, projection_matrix):
         deps = bpy.context.view_layer.depsgraph
         num_instances = len(deps.object_instances)
         idx = 0
-        vertices = []
-        indices = []
+
 
         for obj_int in deps.object_instances:
             idx += 1
-            #print("Rendering Obj {} of {} to Depth Buffer".format(idx,num_instances))
+            vertices = []
+            indices = []
             obj = obj_int.object
             parent = obj_int.parent
+            print("Rendering Object: " + str(idx) + " of: " +
+                  str(num_instances) + " Name: " + obj.name + " To Depth Buffer")
+            
 
             ignore = obj.MeasureItArchProps.ignore_in_depth_test
             if parent != None:
@@ -449,6 +452,8 @@ def draw_scene(self, context, projection_matrix):
             batch.program_set(depthOnlyshader)
             batch.draw()
             gpu.shader.unbind()
+            del vertices
+            del indices
 
 
 def render_main_svg(self, context):
