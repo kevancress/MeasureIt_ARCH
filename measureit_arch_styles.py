@@ -309,16 +309,17 @@ class ListDeletePropButton(Operator):
 
         Generator.wrapper.remove(wrapperTag)
 
-        if self.is_style:
-            recalc_index(self, context)
-        else:
-            recalc_dimWrapper_index(self, context)
-
         DeletePropButton.tag = self.tag
         DeletePropButton.genPath = self.genPath
         DeletePropButton.item_type = self.item_type
         DeletePropButton.is_style = self.is_style
         DeletePropButton.execute(self, context)
+
+        if self.is_style:
+            recalc_index(self, context)
+        else:
+            recalc_dimWrapper_index(self, context)
+
         return {'FINISHED'}
 
 

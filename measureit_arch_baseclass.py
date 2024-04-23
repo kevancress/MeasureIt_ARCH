@@ -17,6 +17,13 @@ def recalc_index(self, context):
     id_l = 0
     id_a = 0
     id_d = 0
+
+    # Check Count of items to wrap
+    total_dims_wrapped = len(StyleGen.alignedDimensions)
+    total_lines_wrapped = len(StyleGen.line_groups)
+    total_annos_wrapped = len(StyleGen.annotations)
+
+
     for style in wrapper:
         if style.itemType == 'line_groups':
             style.itemIndex = id_l
@@ -30,6 +37,27 @@ def recalc_index(self, context):
             style.itemIndex = id_a
             style.name = StyleGen.annotations[id_a].name
             id_a += 1
+
+    while total_lines_wrapped > id_l:
+        new_wrapper = wrapper.add()
+        new_wrapper.itemType = 'line_groups'
+        new_wrapper.itemIndex = id_l
+        new_wrapper.name = StyleGen.line_groups[id_l].name
+        id_l += 1
+    
+    while total_dims_wrapped > id_d:
+        new_wrapper = wrapper.add()
+        new_wrapper.itemType = 'alignedDimensions'
+        new_wrapper.itemIndex = id_d
+        new_wrapper.name = StyleGen.line_groups[id_d].name
+        id_d += 1
+    
+    while total_annos_wrapped > id_a:
+        new_wrapper = wrapper.add()
+        new_wrapper.itemType = 'annotations'
+        new_wrapper.itemIndex = id_a
+        new_wrapper.name = StyleGen.line_groups[id_a].name
+        id_a += 1
 
 
 class StyleWrapper(PropertyGroup):
