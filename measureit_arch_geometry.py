@@ -2229,7 +2229,10 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
 
         # Get Coords from Buffer
         coords = []
-        coords = lineGroup['coordBuffer']
+        if 'coordBuffer' in lineGroup:
+            coords = lineGroup['coordBuffer']
+        else:
+            return
 
         # Get Line Weights
         groupWeights = [1.0] * len(coords)
@@ -2375,6 +2378,8 @@ def get_style(item, type_str):
 
     source_scene = sceneProps.source_scene
     itemProps = item
+    if source_scene == None:
+        source_scene = scene
     style_source = eval("source_scene.StyleGenerator.{}".format(type_str))
     if item.uses_style:
         for style_item in style_source:

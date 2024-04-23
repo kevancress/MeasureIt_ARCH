@@ -247,7 +247,10 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matri
             h2 = spline.bezier_points[0].handle_left
             curve_segs.extend(vector_utils.curve_depth_test(p1,p2,h1,h2,obj_mat, item))
 
-        last_vis = not curve_segs[i][0]
+        try:
+            last_vis = not curve_segs[i][0]
+        except IndexError:
+            return
         for i in range(len(curve_segs)):
             visibility = curve_segs[i][0]
 
