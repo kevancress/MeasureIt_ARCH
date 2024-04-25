@@ -572,13 +572,14 @@ def render_main_svg(self, context):
                     'render.filepath']):
 
                 image_path = get_view_outpath(
-                    scene, view, "{:04d}.svg".format(scene.frame_current))
+                    scene, view, "{:04d}".format(scene.frame_current))
                 scene.render.filepath =  image_path
                 scene.render.image_settings.file_format = 'PNG'
                 scene.render.use_file_extension = True
                 bpy.ops.render.render(write_still=True)
 
-                png_image_path = os.path.basename("{}.png".format(image_path))
+                png_image_path = get_view_outpath(
+                    scene, view, "{:04d}.png".format(scene.frame_current))
                 svg.add(svg.image(
                     png_image_path, **{
                         'width': width,

@@ -3,7 +3,7 @@ import bmesh
 import gpu
 import os
 
-from mathutils import Vector
+from mathutils import Vector, Matrix
 from addon_utils import check, paths
 from sys import getrecursionlimit, setrecursionlimit
 from datetime import datetime
@@ -318,7 +318,16 @@ def get_resolution(update_flag = False):
 def get_camera_z():
     camera = bpy.context.scene.camera
     mat = camera.matrix_world
-    camera_rot = mat.to_quaternion()
+
+    # Account for scale
+    scale = camera.scale
+    scale_mat_x = Matrix.Scale(scale.x,4,Vector((1,0,0)))
+    scale_mat_y = Matrix.Scale(scale.y,4,Vector((0,1,0)))
+    scale_mat_z = Matrix.Scale(scale.z,4,Vector((0,0,1)))
+
+    scale_mat = scale_mat_z @ scale_mat_y @ scale_mat_x
+
+    camera_rot = (scale_mat@ mat).to_quaternion()
     camera_z = Vector((0, 0, -1))
     camera_z.rotate(camera_rot)
     camera_z.normalize()
@@ -328,7 +337,8 @@ def get_camera_z_dist(location):
     camera = bpy.context.scene.camera
     location = Vector(location)
     camera_z = get_camera_z()
-    dist_vec = location - camera.matrix_world.to_translation()
+    camera_trans_mat = camera.matrix_world.to_translation()
+    dist_vec = location - camera_trans_mat
     dist_along_camera_z = dist_vec.dot(camera_z)
     return dist_along_camera_z
 
