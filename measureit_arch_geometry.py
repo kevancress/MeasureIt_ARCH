@@ -2485,7 +2485,18 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             # use Camera rot for the rest
             camera = context.scene.camera
             cameraMat = camera.matrix_world
-            cameraRot = cameraMat.decompose()[1]
+
+                # Account for negative scale
+            scale = camera.scale
+            scale_mat_x = Matrix.Scale(scale.x,4,Vector((1,0,0)))
+            scale_mat_y = Matrix.Scale(scale.y,4,Vector((0,1,0)))
+            scale_mat_z = Matrix.Scale(scale.z,4,Vector((0,0,1)))
+
+            scale_mat = scale_mat_z @ scale_mat_y @ scale_mat_x
+
+            cameraRot = (scale_mat@ mat).to_quaternion()
+
+            #cameraRot = cameraMat.decompose()[1]
             cameraRotMat = Matrix.Identity(3)
             cameraRotMat.rotate(cameraRot)
             cameraRotMat = cameraRotMat.to_4x4()

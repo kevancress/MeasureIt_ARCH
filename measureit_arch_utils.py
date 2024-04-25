@@ -319,7 +319,7 @@ def get_camera_z():
     camera = bpy.context.scene.camera
     mat = camera.matrix_world
 
-    # Account for scale
+    # Account for negative scale
     scale = camera.scale
     scale_mat_x = Matrix.Scale(scale.x,4,Vector((1,0,0)))
     scale_mat_y = Matrix.Scale(scale.y,4,Vector((0,1,0)))

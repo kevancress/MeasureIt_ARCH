@@ -739,7 +739,17 @@ def draw_titleblock(context, svg=None, dxf = None):
 
         objlist = titleblockScene.objects
 
-        cameraMat = camera.matrix_world
+        cm = camera.matrix_world
+
+        # Account for negative scale
+        scale = camera.scale
+        scale_mat_x = Matrix.Scale(scale.x,4,Vector((1,0,0)))
+        scale_mat_y = Matrix.Scale(scale.y,4,Vector((0,1,0)))
+        scale_mat_z = Matrix.Scale(scale.z,4,Vector((0,0,1)))
+
+        scale_mat = scale_mat_z @ scale_mat_y @ scale_mat_x
+        cameraMat = cm @ scale_mat       
+
         offsetVec = Vector((0, 0, -1.0)) * camera.data.clip_start
         offsetVec += Vector ((0,0,-0.2))
 
