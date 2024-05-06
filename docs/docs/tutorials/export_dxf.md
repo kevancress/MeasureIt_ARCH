@@ -1,4 +1,4 @@
-# Exporting to .DFX Files
+# Exporting to .DXF Files
 
 To support exchange with AutoCAD, MeasureIt_ARCH includes an option to render views out as .dxf files.
 
