@@ -4334,135 +4334,82 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     if sceneProps.is_render_draw:
         startTime = time.time()
 
-    totalobjs = len(objlist)
-    #preview_dual(context)
-    if sceneProps.is_vector_draw:
-        objlist = z_order_objs(objlist, extMat, multMat)
+    # Draw All Objects
+    view = get_view()
+    skip_viewport = False
+    if not sceneProps.is_render_draw and sceneProps.skip_instances_viewport:
+        skip_viewport = True
 
+    if not custom_call and not view.skip_instances:
 
+        deps = bpy.context.view_layer.depsgraph
+        objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
+        if sceneProps.is_vector_draw:
+            objlist = z_order_objs(objlist, extMat, multMat)
+        num_instances = len(objlist)
+        for idx,obj_int in enumerate(objlist , start=1):
+            myobj = bpy.data.objects[obj_int.object]
+            mat = None
+            inst_draw = False
+            if obj_int.is_instance:
+                if skip_viewport: continue
+                inst_draw = True
+                mat = obj_int.matrix_world
+            else:
+                mat = myobj.matrix_world
 
-    for idx, myobj in enumerate(objlist, start=1):
-        if sceneProps.is_render_draw:
-            print("Rendering Object: " + str(idx) + " of: " +
-                  str(totalobjs) + " Name: " + safe_name(myobj.name))
-
-        if check_obj_vis(myobj,custom_call):
-            mat = myobj.matrix_world
             if extMat is not None:
                 if multMat:
                     mat = extMat @ mat
                 else:
                     mat = extMat
 
-            # HATCHES
-            view = get_view()
+
+            if sceneProps.is_render_draw:
+                try:
+                    print("Rendering Instance Object: " + str(idx) + " of: " +
+                        str(num_instances) + " Name: " + safe_name(myobj.name + '_Instance'))
+                except UnicodeDecodeError:
+                    print("UNICODE ERROR ON OBJECT NAME")
             if not view.skip_hatches:
                 if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
-                    draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf)
+                    draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw)
 
-            # DIMS ANNO LINES
             if 'LineGenerator' in myobj:
                 lineGen = myobj.LineGenerator
-                if not sceneProps.hide_linework or sceneProps.is_render_draw:
-                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf)
+                draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw,instance=obj_int)
 
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator
-                draw_annotation(context, myobj, annotationGen, mat, svg=svg, dxf=dxf)
-
+                draw_annotation(
+                    context, myobj, annotationGen, mat, svg=svg, dxf=dxf, instance=obj_int)
+            
             if 'TableGenerator' in myobj:
                 tableGen = myobj.TableGenerator
                 draw_table(context, myobj, tableGen, mat, svg=svg, dxf=dxf)
 
-            if 'DimensionGenerator' in myobj:
-                DimGen = myobj.DimensionGenerator
+            if sceneProps.instance_dims:
+                if 'DimensionGenerator' in myobj and myobj.DimensionGenerator.measureit_arch_num != 0:
+                    DimGen = myobj.DimensionGenerator
+                    mat = obj_int.matrix_world
+                    for alignedDim in DimGen.alignedDimensions:
+                        draw_alignedDimension(
+                            context, myobj, DimGen, alignedDim, mat=mat, svg=svg, dxf=dxf)
+                    for angleDim in DimGen.angleDimensions:
+                        draw_angleDimension(
+                            context, myobj, DimGen, angleDim, mat, svg=svg, dxf=dxf)
+                    for axisDim in DimGen.axisDimensions:
+                        draw_axisDimension(
+                            context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
+                    for boundsDim in DimGen.boundsDimensions:
+                        draw_boundsDimension(
+                            context, myobj, DimGen, boundsDim, mat, svg=svg, dxf=dxf)
 
-                for alignedDim in DimGen.alignedDimensions:
-                    draw_alignedDimension(
-                        context, myobj, DimGen, alignedDim, svg=svg, dxf=dxf)
+                    for arcDim in DimGen.arcDimensions:
+                        draw_arcDimension(context, myobj, DimGen, arcDim, mat, svg=svg, dxf=dxf)
 
-                for angleDim in DimGen.angleDimensions:
-                    draw_angleDimension(
-                        context, myobj, DimGen, angleDim, mat, svg=svg, dxf=dxf)
-
-                for axisDim in DimGen.axisDimensions:
-                    draw_axisDimension(context, myobj, DimGen,
-                                       axisDim, mat, svg=svg,dxf=dxf )
-
-                for boundsDim in DimGen.boundsDimensions:
-                    draw_boundsDimension(
-                        context, myobj, DimGen, boundsDim, mat, svg=svg, dxf=dxf)
-
-                for arcDim in DimGen.arcDimensions:
-                    draw_arcDimension(context, myobj, DimGen,
-                                      arcDim, mat, svg=svg, dxf=dxf)
-
-                for areaDim in DimGen.areaDimensions:
-                    draw_areaDimension(context, myobj, DimGen,
-                                       areaDim, mat, svg=svg, dxf=dxf)
-
-
-    # Draw Instanced Objects
-    view = get_view()
-    skip_viewport = False
-    if not sceneProps.is_render_draw and sceneProps.skip_instances_viewport:
-        skip_viewport = True
-    if not custom_call and not view.skip_instances and not skip_viewport:
-
-        deps = bpy.context.view_layer.depsgraph
-        objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
-        num_instances = len(objlist)
-        for idx,obj_int in enumerate(objlist , start=1):
-            if not obj_int.is_instance:
-                continue
-            #try:
-            #    obj_int = obj_inst_list[idx-1]
-            #except IndexError:
-            #    print('index error for obj: {}'.format(obj.name))
-            #    continue
-            if obj_int.is_instance:
-                myobj = bpy.data.objects[obj_int.object]
-                parent = bpy.data.objects[obj_int.parent]
-
-                #if myobj.type == 'MESH' and parent.type == 'CURVE':
-                #    if sceneProps.is_render_draw:
-                #        print(f'Skipping: {myobj.name}')
-                #    continue
-
-                mat = obj_int.matrix_world
-
-                if sceneProps.is_render_draw:
-                    try:
-                        print("Rendering Instance Object: " + str(idx) + " of: " +
-                            str(num_instances) + " Name: " + safe_name(myobj.name + '_Instance'))
-                    except UnicodeDecodeError:
-                        print("UNICODE ERROR ON OBJECT NAME")
-
-                if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
-                    draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=True)
-
-                if 'LineGenerator' in myobj:
-                    lineGen = myobj.LineGenerator
-                    draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=True,instance=obj_int)
-
-                if 'AnnotationGenerator' in myobj:
-                    annotationGen = myobj.AnnotationGenerator
-                    draw_annotation(
-                        context, myobj, annotationGen, mat, svg=svg, dxf=dxf, instance=obj_int)
-
-                if sceneProps.instance_dims:
-                    if 'DimensionGenerator' in myobj and myobj.DimensionGenerator.measureit_arch_num != 0:
-                        DimGen = myobj.DimensionGenerator
-                        mat = obj_int.matrix_world
-                        for alignedDim in DimGen.alignedDimensions:
-                            draw_alignedDimension(
-                                context, myobj, DimGen, alignedDim, mat=mat, svg=svg, dxf=dxf)
-                        for angleDim in DimGen.angleDimensions:
-                            draw_angleDimension(
-                                context, myobj, DimGen, angleDim, mat, svg=svg, dxf=dxf)
-                        for axisDim in DimGen.axisDimensions:
-                            draw_axisDimension(
-                                context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
+                    for areaDim in DimGen.areaDimensions:
+                        draw_areaDimension(context, myobj, DimGen, areaDim, mat, svg=svg, dxf=dxf)
 
     draw_all_lines(ext_mat=extMat)
     objlist = None
