@@ -4404,7 +4404,10 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
 
     # Draw Instanced Objects
     view = get_view()
-    if not custom_call and not view.skip_instances:
+    skip_viewport = False
+    if not sceneProps.is_render_draw and sceneProps.skip_instances_viewport:
+        skip_viewport = True
+    if not custom_call and not view.skip_instances and not skip_viewport:
 
         deps = bpy.context.view_layer.depsgraph
         objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]

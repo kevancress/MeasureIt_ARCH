@@ -294,6 +294,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(sceneProps, 'hide_units')
         col.prop(sceneProps, 'hide_titleblock')
         col.prop(sceneProps, 'hide_linework')
+        col.prop(sceneProps, "skip_instances_viewport")
         col.prop(sceneProps, "eval_mods")
         col.prop(sceneProps, "use_text_autoplacement")
         col.prop(sceneProps, 'use_preview_res', text="Use Preview Resolution (3D Viewport Only)")

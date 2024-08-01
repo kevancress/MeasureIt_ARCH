@@ -834,6 +834,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="Skip Text Draw",
         description="Flag skip text drawing for debug",
         default=False)
+
+    skip_instances_viewport: BoolProperty(
+        name="Skip Instances in Viewport",
+        description="Flag Skip Drawing Instances in viewport",
+        default=False)
     
     debug_depth_pass: BoolProperty(
         name="Debug Depth Pass",
