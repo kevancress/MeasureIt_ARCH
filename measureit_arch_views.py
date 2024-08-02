@@ -81,7 +81,13 @@ def update(self, context):
         view.end_frame = view.start_frame
     scene.frame_end = view.end_frame
     scene.frame_start = view.start_frame
-    scene.render.engine = view.render_engine
+    if bpy.app.version_string == '4.2.0':
+        if view.render_engine == 'BLENDER_EEVEE':
+            scene.render.engine = 'BLENDER_EEVEE_NEXT'
+        else:
+            scene.render.engine = view.render_engine
+    else:
+        scene.render.engine = view.render_engine
     scene.view_settings.view_transform = view.view_transform
     scene.render.film_transparent = view.film_transparent
     # scene.frame_current = view.start_frame

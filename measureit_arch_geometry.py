@@ -4302,14 +4302,31 @@ class Inst_Sort(object):
     parent = ''
     bound_box = None
 
-    def __init__(self, obj_int):
-        self.name = obj_int.object.name + "_Instance"
-        self.object = obj_int.object.name
-        self.bound_box = obj_int.object.bound_box
-        self.matrix_world = obj_int.matrix_world.copy()
-        self.is_instance = obj_int.is_instance
-        if obj_int.parent != None:
-            self.parent = obj_int.parent.name
+    def __init__(self, obj):
+        #Depsgraph Objects
+        if hasattr(obj,'is_instance'):
+            self.is_instance = obj.is_instance
+            if self.is_instance:
+                self.name = obj.object.name + "_Instance"
+            else:
+                self.name = obj.object.name
+            self.object = obj.object.name
+            self.bound_box = obj.object.bound_box
+            self.matrix_world = obj.matrix_world.copy()
+            
+            if obj.parent != None:
+                self.parent = obj.parent.name
+
+        #Normal Obj List
+        else:
+            self.is_instance = False
+            self.name = obj.name
+            self.object = obj.name
+            self.bound_box = obj.bound_box
+            self.matrix_world = obj.matrix_world.copy()
+            if obj.parent != None:
+                self.parent = obj.parent.name
+
 
 def check_obj_vis(myobj,custom_call):
     scene = bpy.context.scene
@@ -4322,7 +4339,7 @@ def check_obj_vis(myobj,custom_call):
 
 
 
-def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=False,custom_call=False):
+def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=False, custom_call=False):
     """
     Generate all OpenGL calls
     """
@@ -4340,9 +4357,12 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     if not sceneProps.is_render_draw and sceneProps.skip_instances_viewport:
         skip_viewport = True
 
-
-    deps = bpy.context.view_layer.depsgraph
-    objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
+    if not custom_call:
+        deps = bpy.context.view_layer.depsgraph
+        objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
+    else:
+        objlist = [Inst_Sort(obj) for obj in objlist]
+    
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
     num_instances = len(objlist)
@@ -4367,7 +4387,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
         if sceneProps.is_render_draw:
             try:
                 print("Rendering Object: " + str(idx) + " of: " +
-                    str(num_instances) + " Name: " + safe_name(myobj.name) + 'Instance: ' + str(inst_draw))
+                    str(num_instances) + " Name: " + safe_name(myobj.name) + ' Is instance: ' + str(inst_draw))
             except UnicodeDecodeError:
                 print("UNICODE ERROR ON OBJECT NAME")
 

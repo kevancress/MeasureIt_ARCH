@@ -1,4 +1,4 @@
-prev_commit='a8b32f4'
+prev_commit='4793e41'
 date='2024-08-01'
 branch=''
 
