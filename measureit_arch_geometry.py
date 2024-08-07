@@ -4359,11 +4359,14 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
 
     # Create the obj List
     if scene_objlist == [] or sceneProps.update_object_list or True:
-        if not custom_call:
+        if not custom_call and sceneProps.show_all:
             deps = bpy.context.view_layer.depsgraph
             objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
-        else:
+        elif not sceneProps.show_all:
+            objlist =  [Inst_Sort(obj) for obj in context.selected_objects] 
+        elif custom_call:
             objlist = [Inst_Sort(obj) for obj in objlist]
+       
         scene_objlist = objlist
 
         # Purge instances from loop if we're not using them
@@ -4371,16 +4374,21 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
             no_inst_objlist = [obj for obj in objlist if obj.is_instance == False]
             objlist = no_inst_objlist
             scene_objlist = no_inst_objlist
-        sceneProps.update_object_list = False
+        sceneProps.update_object_list = False            
     else:
         objlist = scene_objlist
     
-
+    # Sort all for vector draw
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
+    
+    
     num_instances = len(objlist)
     for idx,obj_int in enumerate(objlist , start=1):
         myobj = bpy.data.objects[obj_int.object]
+
+        if not check_obj_vis(myobj,custom_call): continue
+
         mat = None
         inst_draw = False
         if obj_int.is_instance:
