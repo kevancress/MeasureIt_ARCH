@@ -65,6 +65,7 @@ def scene_text_update_flag(self, context):
     update(self, context)
 
 def update(self, context):
+    context.scene.MeasureItArchProps.update_object_list = True
     if context is None:
         context = bpy.context
     scene = context.scene

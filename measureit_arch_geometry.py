@@ -80,7 +80,7 @@ bufferUniformKeysList = [
 
 AllLinesBatchs = {}
 HiddenLinesBatchs = {}
-
+scene_objlist = []
 
 offscreen_text_buffers = {}
 
@@ -2494,7 +2494,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
             scale_mat = scale_mat_z @ scale_mat_y @ scale_mat_x
 
-            cameraRot = (scale_mat@ mat).to_quaternion()
+            cameraRot = (scale_mat@ cameraMat).to_quaternion()
 
             #cameraRot = cameraMat.decompose()[1]
             cameraRotMat = Matrix.Identity(3)
@@ -4345,7 +4345,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     """
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-
+    global scene_objlist
     clear_line_buffers()
 
     if sceneProps.is_render_draw:
@@ -4357,12 +4357,25 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     if not sceneProps.is_render_draw and sceneProps.skip_instances_viewport:
         skip_viewport = True
 
-    if not custom_call:
-        deps = bpy.context.view_layer.depsgraph
-        objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
+    # Create the obj List
+    if scene_objlist == [] or sceneProps.update_object_list or True:
+        if not custom_call:
+            deps = bpy.context.view_layer.depsgraph
+            objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
+        else:
+            objlist = [Inst_Sort(obj) for obj in objlist]
+        scene_objlist = objlist
+
+        # Purge instances from loop if we're not using them
+        if skip_viewport or view.skip_instances:
+            no_inst_objlist = [obj for obj in objlist if obj.is_instance == False]
+            objlist = no_inst_objlist
+            scene_objlist = no_inst_objlist
+        sceneProps.update_object_list = False
     else:
-        objlist = [Inst_Sort(obj) for obj in objlist]
+        objlist = scene_objlist
     
+
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
     num_instances = len(objlist)
@@ -4438,6 +4451,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
     objlist = None
     if sceneProps.is_render_draw:
         endTime = time.time()
+        print("Objects in Draw List: " + str(len(scene_objlist)))
         print("Draw 3D Loop Time: " + str(endTime - startTime))
 
 def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):

@@ -680,6 +680,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
     bound_y: BoolProperty()
     bound_z: BoolProperty()
 
+    update_object_list: BoolProperty()
+
     project_name: StringProperty(
         name="Project Name",
         description="Name of this Project")
