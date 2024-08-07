@@ -4362,7 +4362,7 @@ def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=Fal
         if not custom_call and sceneProps.show_all:
             deps = bpy.context.view_layer.depsgraph
             objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
-        elif not sceneProps.show_all:
+        elif not sceneProps.show_all and not sceneProps.is_render_draw:
             objlist =  [Inst_Sort(obj) for obj in context.selected_objects] 
         elif custom_call:
             objlist = [Inst_Sort(obj) for obj in objlist]
