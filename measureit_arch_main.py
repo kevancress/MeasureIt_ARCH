@@ -627,14 +627,8 @@ def draw_main_3d(context):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
-    # Display selected or all
-    if not sceneProps.show_all:
-        objlist = context.selected_objects
-    else:
-        objlist = context.view_layer.objects
-
     sceneProps.source_scene = scene
-    draw3d_loop(context, objlist)
+    draw3d_loop(context)
     #preview_dual(context)
 
     # VIEWPORTS
@@ -736,7 +730,9 @@ def draw_titleblock(context, svg=None, dxf = None):
         camera = view.camera
 
         titleblockScene = bpy.data.scenes[view.titleBlock]
-        titleblockView = titleblockScene.ViewGenerator.views[0]
+
+        #update titleblock viewlayer before drawing
+        titleblockScene.view_layers[0].update()
 
         objlist = titleblockScene.objects
 

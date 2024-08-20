@@ -4340,7 +4340,7 @@ def check_obj_vis(myobj,custom_call):
 
 
 
-def draw3d_loop(context, objlist, svg=None, dxf = None, extMat=None, multMat=False, custom_call=False):
+def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMat=False, custom_call=False):
     """
     Generate all OpenGL calls
     """
