@@ -2276,6 +2276,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 pointPass= lineProps.pointPass, dashed=lineProps.lineDrawDashed,
                 dash_sizes=dash_spaces, gap_sizes=gap_spaces, obj=myobj,name=lineGroup.name,invalid = lineGroup.is_invalid, mat = mat,instance=instance)
             draw_points(lineWeights[0],rgb,coords,offset=-offset,mat=mat)
+            
             if drawHidden:
                 hiddenLineWeight = lineProps.lineHiddenWeight
                 hiddenRGB = get_color(lineProps.lineHiddenColor, lineProps.cad_col_idx)

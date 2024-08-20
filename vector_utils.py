@@ -182,7 +182,7 @@ def set_globals():
 
     if view.vector_depthtest and sceneProps.depth_test_method == 'GEOMETRIC':
         generate_edgemap()
-        #generate_facemap()
+        generate_facemap()
 
 
 
@@ -200,23 +200,60 @@ class MapEdge(object):
     ss_start_coord : Vector = Vector((0,0,0))
     ss_end_coord : Vector = Vector((0,0,0))
 
+    maxX:float = 0
+    minX:float = 0
+    maxY:float = 0
+    minY:float = 0
+
     def __init__(self, start, end):
         self.start_coord =start
         self.end_coord = end
         self.ss_start_coord = get_ss_point(start)
-        self.ss_end_coord = get_ss_point(end)
+        self.ss_end_coord = get_ss_point(end)   
+        self.maxX, self.minX, self.maxY, self.minY = ss_line_min_max(self.ss_start_coord,self.ss_end_coord)
+    
+
+def ss_line_min_max(start_coord, end_coord):
+    maxX = 0
+    minX = 0
+    maxY = 0
+    minY = 0
+
+    if start_coord.x > end_coord.x:
+        maxX = start_coord.x
+        minX = end_coord.x
+    else:
+        maxX = end_coord.x
+        minX = start_coord.x
+    
+    if start_coord.y > end_coord.y:
+        maxY = start_coord.y
+        minY = end_coord.y
+    else:
+        maxY = end_coord.y
+        minY = start_coord.y
+
+    return [maxX,minX,maxY,minY]
 
 class MapPolygon(object):
     edges = []
     depth = None
     center = Vector((0,0,0))
     normal = Vector((0,0,1))
+    minX = 0
+    maxX = 0
+    minY = 0
+    maxY = 0
 
-    def __init__(self, edge_array, depth, center, normal):
+    def __init__(self, edge_array, depth, center, normal,minX,maxX,minY,maxY):
         self.edges = edge_array
         self.depth = depth
         self.center = center
         self.normal = normal
+        self.minX = minX
+        self.maxX = maxX
+        self.minY = minY
+        self.maxY = maxY
 
 class IntersectPoint(object):
     point: Vector = Vector((0,0))
@@ -240,6 +277,7 @@ class LineSegment(object):
         self.visible = visible
 
 def generate_edgemap():
+    startTime = time.time()
     deps = bpy.context.view_layer.depsgraph
     for obj_int in deps.object_instances:
         obj = obj_int.object
@@ -260,9 +298,11 @@ def generate_edgemap():
                 p2 = mat @ mesh.vertices[edge.vertices[1]].co
                 map_edge = MapEdge(p1,p2)
                 edgemap.append(map_edge)
+    endTime = time.time()
+    print('EdgeMap Generated with: {} Edges in: {}'.format(len(edgemap), str(endTime - startTime)))
 
 def generate_facemap():
-
+    startTime = time.time()
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
@@ -274,18 +314,34 @@ def generate_facemap():
             continue
         mat = obj.matrix_world
         bm = bmesh.new()
-        bm.from_object(obj, bpy.context.view_layer.depsgraph)
+        try:
+            bm.from_object(obj, bpy.context.view_layer.depsgraph)
+        except ValueError:
+            print("Error generating face map from: {} Skipping".format(obj.name))
+        
         faces = bm.faces
         for face in faces:
             center = mat @ face.calc_center_bounds()
             depth = get_camera_z_dist(center)
             normal = mat @ face.normal
             edge_array = []
+            minX = math.inf
+            maxX = -math.inf
+            minY = math.inf
+            maxY = -math.inf
             for edge in face.edges:
                 start = mat @ edge.verts[0].co
                 end = mat @ edge.verts[1].co
-                edge_array.append(MapEdge(start,end))
-            facemap.append(MapPolygon(edge_array,depth,center,normal))
+                edge = MapEdge(start,end)
+                if edge.minX < minX: minX = edge.minX
+                if edge.minY < minY: minY = edge.minY
+                if edge.maxX > maxX: maxX = edge.maxX
+                if edge.maxY > maxY: maxY = edge.maxY
+                edge_array.append(edge)
+            facemap.append(MapPolygon(edge_array,depth,center,normal,minX,maxX,minY,maxY))
+    
+    endTime = time.time()
+    print('FaceMap Generated with: {} Faces in: {}'.format(len(facemap), str(endTime - startTime)))
 
 
 # takes a set of co-ordinates returns the min and max value for each axis
@@ -469,6 +525,10 @@ def depth_test(p1, p2, mat, item):
 
     return line_segs
 
+def bounds_overlap(x1min,x1max,x2min,x2max,y1min,y1max,y2min,y2max):
+    isOverlapping = ((x1min < x2max) & (x2min < x1max) & (y1min < y2max) & (y2min < y1max))
+    return isOverlapping
+
 def geometric_vis_calc(p1,p2,mat,item):
     p1Global = mat @ Vector(p1)
     p2Global = mat @ Vector(p2)
@@ -484,26 +544,27 @@ def geometric_vis_calc(p1,p2,mat,item):
 
     ss_norms = [n1ss,n2ss]
 
-
     intersect_points = []
 
-    # Get all 2D edge intersections
-    #loop_st = time.time()
-    #loop_count = 0
-    for edge in edgemap:
+    # Only test for intersection if bounding boxes overlap.
+    maxX, minX, maxY, minY = ss_line_min_max(p1ss,p2ss)
+    overlap_edgemap = [edge for edge in edgemap if bounds_overlap(minX,maxX,edge.minX,edge.maxX,minY,maxY,edge.minY,edge.maxY)]
+
+    # Get all 2D edge intersections with overlapping edges
+    for edge in overlap_edgemap:
         p3ss = edge.ss_start_coord
         p4ss = edge.ss_end_coord
 
-        #aloop_count += 1
         intersection = line_segment_intersection_2D(p1ss,p2ss,p3ss,p4ss)
         if intersection != None:
             intersect_points.append(intersection)
 
-    #loop_et = time.time()
-    #print("loop time: " + str(loop_et - loop_st) + '. loop count: ' + str(loop_count))
+   
+    # Only test for intersection if bounding boxes overlap.
+    overlap_facemap = [face for face in facemap if bounds_overlap(minX,maxX,face.minX,face.maxX,minY,maxY,face.minY,face.maxY)]
 
     # Get all 3D face intersections
-    for face in facemap:
+    for face in overlap_facemap:
         intersection = get_line_plane_intersection(p1Global,p2Global,face.center,face.normal)
         if intersection != None and intersection.factor < 1.0 and intersection.factor > 0.0:
             intersect_points.append(intersection)
