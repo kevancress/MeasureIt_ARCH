@@ -71,6 +71,8 @@ def update(self, context):
     scene = context.scene
     ViewGen = scene.ViewGenerator
     view = ViewGen.views[ViewGen.active_index]
+    titleblockScene = bpy.data.scenes[view.titleBlock]
+    titleblockScene.view_layers[0].update()
     camera = view.camera.data
     if camera is not None:
         camera.type = view.cameraType

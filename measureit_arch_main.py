@@ -732,7 +732,9 @@ def draw_titleblock(context, svg=None, dxf = None):
         titleblockScene = bpy.data.scenes[view.titleBlock]
 
         #update titleblock viewlayer before drawing
-        titleblockScene.view_layers[0].update()
+        # Otherwise sometimes object World matrices are stuck on the Identity Matrix
+        if sceneProps.is_render_draw:
+            titleblockScene.view_layers[0].update()
 
         objlist = titleblockScene.objects
 
