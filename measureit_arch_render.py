@@ -661,6 +661,8 @@ def render_main_svg(self, context):
 
             tb_group = svg.g(id="Titleblock")
             draw_titleblock(context, svg=svg)
+            for viewport in get_view().viewports:
+                draw_viewport(context,viewport=viewport,svg=svg)
             svg.add(tb_group)
 
         #DEBUG CHECK EDGEMAP

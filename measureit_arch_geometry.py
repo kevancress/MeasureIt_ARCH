@@ -2072,7 +2072,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
             offset /= 15
         offset /= 1000
 
-        # Get line data to be drawn
+
         evalMods = lineProps.evalMods
 
         # Flag for re-evaluation of batches & mesh data
@@ -2252,7 +2252,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         filledcoords = []
         if len(coords) > 0:
             if lineGroup.endcapA != 'NONE':
-                dot,fill =  draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[0])  , mat@Vector(coords[-1]) , rgb, lineGroup.endcapSize)
+                dot,fill =  draw_annotation_endcaps(lineGroup,lineGroup.endcapA, mat@Vector(coords[0])  , mat@Vector(coords[1]) , rgb, lineGroup.endcapSize)
                 dotcoords.append(dot)
                 filledcoords.append(fill)
 
@@ -3170,6 +3170,7 @@ def preview_dual(context):
 
 def draw_text_3D(context, textobj, textprops, myobj):
     sceneProps = context.scene.MeasureItArchProps
+
     if sceneProps.is_vector_draw or sceneProps.skip_text:
         return
 
@@ -3869,6 +3870,8 @@ def draw_filled_coords(filledCoords, rgb, offset=-0.001, polySmooth=True):
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
+    
+    if sceneProps.is_vector_draw: return
 
     with OpenGL_Settings(None):
         if rgb[3] != 1:
@@ -3891,6 +3894,9 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
     context = bpy.context
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
+
+    if sceneProps.is_vector_draw: return
+
     viewport = get_viewport()
     global AllLinesBuffer
     global HiddenLinesBuffer

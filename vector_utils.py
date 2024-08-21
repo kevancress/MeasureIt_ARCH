@@ -748,8 +748,6 @@ def get_ss_point(point):
 
 def check_visible(item, point, ss_norms):
     epsilon = 0.0001
-    context = bpy.context
-    scene = context.scene
     global width
 
     #Set Z-offset
