@@ -1058,10 +1058,10 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
         geoOffset = dimProps.dimLeaderOffset
 
         # get points positions from indicies
-        aMatrix = mat
-        bMatrix = mat
-        if dim.dimObjectB != dim.dimObjectA:
-            bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat
+        aMatrix = dim.dimObjectA.matrix_world @ mat
+        bMatrix = dim.dimObjectB.matrix_world @ mat
+        #if dim.dimObjectB != dim.dimObjectA:
+        #    bMatrix = dim.dimObjectB.matrix_world - dim.dimObjectA.matrix_world + mat
 
         p1Local = None
         p2Local = None
