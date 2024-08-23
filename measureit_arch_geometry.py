@@ -812,20 +812,30 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                 try:
                     if myobj.matrix_world.to_quaternion() != Quaternion(dim['lastRot']):
                         obverts = get_mesh_vertices(myobj)
-                        worldObverts = [myobj.matrix_world @
-                                        coord for coord in obverts]
-                        maxX, minX, maxY, minY, maxZ, minZ = get_axis_aligned_bounds(
-                            worldObverts)
+                        rot = myobj.matrix_world.to_quaternion()
+
+                        # Compose Rotation Matrix
+                        rotMatrix = Matrix.Identity(3)
+                        rotMatrix.rotate(rot)
+                        rotMatrix.resize_4x4()
+
+                        rotVerts = [rotMatrix @ coord for coord in obverts]
+                        maxX, minX, maxY, minY, maxZ, minZ = get_axis_aligned_bounds(rotVerts)
                         dim['bounds'] = [maxX, minX, maxY, minY, maxZ, minZ]
                         dim['lastRot'] = myobj.matrix_world.to_quaternion()
                     else:
-                        maxX, minX, maxY, minY, maxZ, minZ = dim['bounds']
+                        maxX, minX, maxY, minY, maxZ, minZ = dim['bounds'] 
                 except KeyError:
                     obverts = get_mesh_vertices(myobj)
-                    worldObverts = [myobj.matrix_world @
-                                    coord for coord in obverts]
-                    maxX, minX, maxY, minY, maxZ, minZ = get_axis_aligned_bounds(
-                        worldObverts)
+                    rot = myobj.matrix_world.to_quaternion()
+
+                    # Compose Rotation Matrix
+                    rotMatrix = Matrix.Identity(3)
+                    rotMatrix.rotate(rot)
+                    rotMatrix.resize_4x4()
+
+                    rotVerts = [rotMatrix @ coord for coord in obverts]
+                    maxX, minX, maxY, minY, maxZ, minZ = get_axis_aligned_bounds(rotVerts)
                     dim['bounds'] = [maxX, minX, maxY, minY, maxZ, minZ]
                     dim['lastRot'] = myobj.matrix_world.to_quaternion()
 
@@ -833,14 +843,20 @@ def draw_boundsDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=Non
                 # distY = maxY - minY
                 # distZ = maxZ - minZ
 
-                p0 = Vector((minX, minY, minZ))
-                p1 = Vector((minX, minY, maxZ))
-                p2 = Vector((minX, maxY, maxZ))
-                p3 = Vector((minX, maxY, minZ))
-                p4 = Vector((maxX, minY, minZ))
-                p5 = Vector((maxX, minY, maxZ))
-                p6 = Vector((maxX, maxY, maxZ))
-                p7 = Vector((maxX, maxY, minZ))
+                locMatrix = Matrix.Translation(myobj.location)
+                xscaleMatrix = Matrix.Scale(myobj.scale.x,4,Vector((1,0,0)))
+                yscaleMatrix = Matrix.Scale(myobj.scale.y,4,Vector((0,1,0)))
+                zscaleMatrix = Matrix.Scale(myobj.scale.z,4,Vector((0,0,1)))
+                locScaleMat = locMatrix @ xscaleMatrix @ yscaleMatrix @ zscaleMatrix
+
+                p0 = locScaleMat @ Vector((minX, minY, minZ))
+                p1 = locScaleMat @ Vector((minX, minY, maxZ))
+                p2 = locScaleMat @ Vector((minX, maxY, maxZ))
+                p3 = locScaleMat @ Vector((minX, maxY, minZ))
+                p4 = locScaleMat @ Vector((maxX, minY, minZ))
+                p5 = locScaleMat @ Vector((maxX, minY, maxZ))
+                p6 = locScaleMat @ Vector((maxX, maxY, maxZ))
+                p7 = locScaleMat @ Vector((maxX, maxY, minZ))
 
                 bounds = [p0, p1, p2, p3, p4, p5, p6, p7]
 
