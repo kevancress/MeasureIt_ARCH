@@ -283,7 +283,7 @@ def get_scale():
     if view is None or view.camera is None:
         return scale
 
-    if view.camera.data.type == 'ORTHO' and view.res_type == 'res_type_paper':
+    if view.camera.data.type == 'ORTHO' and view.res_type == 'PAPER':
         scale = view.model_scale / view.paper_scale
 
     return scale
@@ -293,7 +293,7 @@ def get_resolution(update_flag = False):
     sceneProps = scene.MeasureItArchProps
     view = get_view()
 
-    view_valid = view is not None and view.camera is not None and view.res_type == 'res_type_paper'
+    view_valid = view is not None and view.camera is not None and view.res_type == 'PAPER'
 
     # RENDER, SVG, or DXF DRAW:
     if sceneProps.is_render_draw or sceneProps.is_vector_draw or sceneProps.is_dxf_draw or update_flag:

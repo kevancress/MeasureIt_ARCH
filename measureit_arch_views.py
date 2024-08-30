@@ -107,7 +107,7 @@ def update(self, context):
             pass
 
 
-    if view.res_type == 'res_type_paper':
+    if view.res_type == 'PAPER':
         update_camera(scene, camera)
     else:
         update_camera_px(scene, camera)
@@ -353,14 +353,14 @@ class ViewProperties(PropertyGroup):
     # Resolution Type
     res_type: EnumProperty(
         items=[
-            ('res_type_paper', 'Paper',
+            ('PAPER', 'Paper',
              'Define Resolution by Paper Size and Pixels Per Inch'),
-            ('res_type_pixels', 'Pixels',
+            ('PIXEL', 'Pixels',
              'Blender Standard, Define Resolution in Pixels')
         ],
         name="Resolution Type",
         description='Method For Defining Render Size',
-        default='res_type_paper',
+        default='PAPER',
         update=update)
 
     paper_size: EnumProperty(
@@ -810,7 +810,7 @@ class BatchDXFRender(Operator):
                         vector_utils.set_globals()
 
    
-                        if view and view.res_type == 'res_type_paper':
+                        if view and view.res_type == 'PAPER':
                             paperWidth = round(view.width * BU_TO_INCHES, 3)
                             paperHeight = round(view.height * BU_TO_INCHES, 3)
                         else:
@@ -1035,7 +1035,7 @@ class SCENE_PT_Views(Panel):
 
                 col = box.column(align=True)
                 col.row().prop(view, 'res_type', expand=True)
-                if view.res_type == 'res_type_paper':
+                if view.res_type == 'PAPER':
                     split = box.split(factor=0.4)
                     col = split.column()
                     col.alignment = 'RIGHT'
@@ -1082,7 +1082,7 @@ class SCENE_PT_Views(Panel):
                 # Scale Settings
                 col = box.column(align=True)
                 col.active = view.camera.data.type == 'ORTHO'
-                if view.res_type == 'res_type_paper':
+                if view.res_type == 'PAPER':
                     # row = col.row(align=True)
                     # row.menu(CAMERA_PAPER_SCALE_Presets.__name__, text=CAMERA_PAPER_SCALE_Presets.bl_label)
                     # row.operator(AddPaperScalePreset.bl_idname, text="", icon='ADD')

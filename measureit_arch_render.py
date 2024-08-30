@@ -545,7 +545,7 @@ def render_main_svg(self, context):
 
         res = get_resolution()
 
-        if view and view.res_type == 'res_type_paper':
+        if view and view.res_type == 'PAPER':
             paperWidth = round(view.width * BU_TO_INCHES, 3)
             paperHeight = round(view.height * BU_TO_INCHES, 3)
         else:
@@ -749,7 +749,7 @@ def render_main_dxf(self, context):
             scene, view, "{:04d}.dxf".format(scene.frame_current))
         res = get_resolution()
 
-        if view and view.res_type == 'res_type_paper':
+        if view and view.res_type == 'PAPER':
             paperWidth = round(view.width * BU_TO_INCHES, 3)
             paperHeight = round(view.height * BU_TO_INCHES, 3)
         else:
