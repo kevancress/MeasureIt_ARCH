@@ -85,7 +85,11 @@ def update(self, context):
         view.end_frame = view.start_frame
     scene.frame_end = view.end_frame
     scene.frame_start = view.start_frame
-    if bpy.app.version_string == '4.2.0':
+    print(bpy.app.version_string)
+    v_major = int(bpy.app.version_string.split(".")[0])
+    v_minor = int(bpy.app.version_string.split(".")[1])
+    v_sub = int(bpy.app.version_string.split(".")[2].split(" ")[0])
+    if v_major >= 4 and v_minor >=2 and v_sub >= 0:
         if view.render_engine == 'BLENDER_EEVEE':
             scene.render.engine = 'BLENDER_EEVEE_NEXT'
         else:
