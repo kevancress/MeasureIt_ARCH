@@ -579,6 +579,8 @@ def render_main_svg(self, context):
                 bpy.ops.render.render(write_still=True)
 
                 png_image_path = get_view_outpath(scene, view, "{:04d}.png".format(scene.frame_current), sceneProps.relative_svg_paths)
+                if sceneProps.relative_svg_paths:
+                    png_image_path.replace("//Renders\\","")
 
                 svg.add(svg.image(
                     png_image_path, **{
