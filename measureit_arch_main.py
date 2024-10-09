@@ -306,6 +306,7 @@ class SCENE_PT_MARCH_Settings(Panel):
         col.prop(sceneProps, 'show_dxf_props', text="Show DXF Options")
         col.prop(sceneProps, 'use_cad_col')
         col.prop(sceneProps, 'illustrator_style_svgs')
+        col.prop(sceneProps, 'relative_svg_paths')
 
         col = layout.column(align=True, heading='Debug')
         col.prop(sceneProps, "measureit_arch_debug_text")

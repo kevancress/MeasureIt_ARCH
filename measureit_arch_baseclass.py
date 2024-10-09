@@ -981,6 +981,11 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name="Default Auto Alignment",
         default = "CAMERA",
         description="Default Auto Alignment for Dimensions with no View Plane specified")
+    
+    relative_svg_paths: BoolProperty(
+        name="Relative SVG Paths",
+        description="When Embeding renders or other files in svg renders, use a relative path",
+        default=False,)
 
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"

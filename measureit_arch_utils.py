@@ -234,7 +234,7 @@ def get_view():
     return view
 
 
-def get_view_outpath(scene, view, suffix):
+def get_view_outpath(scene, view, suffix, relative = False):
     # Reset default outpath for older files
     if view.output_path == "//Renders\\":
         view.output_path = "//Renders"
@@ -244,6 +244,8 @@ def get_view_outpath(scene, view, suffix):
         outpath = os.path.join(view.output_path, filenameStr)
     else:
         outpath = scene.render.filepath
+    
+
     filepath = "{}_{}".format(bpy.path.abspath(outpath), suffix)
 
     dir, filename = os.path.split(filepath)
@@ -269,8 +271,10 @@ def get_view_outpath(scene, view, suffix):
 
     #print(dir)
     filepath = os.path.join(dir, filename)
+    if relative:
+        bpy.path.relpath(filepath)
+    
     print(filepath)
-
     return filepath
 
 def get_scale():
