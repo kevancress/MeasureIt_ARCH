@@ -272,7 +272,7 @@ def get_view_outpath(scene, view, suffix, relative = False):
     #print(dir)
     filepath = os.path.join(dir, filename)
     if relative:
-        filepath = bpy.path.relpath(filepath)
+        filepath = filenameStr
     
     print(filepath)
     return filepath

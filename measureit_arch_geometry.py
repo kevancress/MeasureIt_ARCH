@@ -4439,7 +4439,7 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
             if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                 draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw)
 
-        if 'LineGenerator' in myobj:
+        if 'LineGenerator' in myobj and not sceneProps.hide_linework:
             lineGen = myobj.LineGenerator
             draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw,instance=obj_int)
 
