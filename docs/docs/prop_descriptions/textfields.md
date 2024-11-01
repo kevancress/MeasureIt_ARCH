@@ -46,7 +46,7 @@ A common use for this is accessing the Blender's [Custom Object Propeties](https
 
 Other example include:
 
-- `[<Property Name]` would autofill the value of the custom property with matching `<Property Name>`
+- `[<Property Name>]` would autofill the value of the custom property with matching `<Property Name>`
 - `.name` would autofill the name of the object
 - `.location[0]` would autofill the X location of the object
 - `.material_slots[0].name` would autofill the name of the first material on the object
