@@ -2571,10 +2571,9 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
         num_fields = len(fields)
         for textField in fields:
-            if instance is None:
-                set_text(textField, myobj, style = annotationProps, item = annotation)
-            else:
-                set_text(textField,instance.parent, style = annotationProps, item = annotation)
+   
+            set_text(textField, myobj, style = annotationProps, item = annotation)
+
             origin = p3.copy()
             if annotationProps.leader_length > 0:
                 pass
@@ -3134,17 +3133,16 @@ def set_text(textField, obj, style=None, item=None):
         # CUSTOM PROP
         elif text_source == 'RNAPROP':
             if textField.rnaProp != '':
+                eval_str = 'bpy.data.objects[\'' + obj.name + '\']' + textField.rnaProp
                 try:
-                    # TODO: `eval` is evil
-                    data = eval(
-                        'bpy.data.objects[\'' + obj.name + '\']' + textField.rnaProp)
+                    data = eval(eval_str)
                     text = str(data)
                     if "location" in textField.rnaProp:
                         text = format_distance(data)
 
                     textField.text = text
                 except:
-                    textField.text = 'Bad Data Path'
+                    textField.text = 'Could not evaluate: {}'.format(eval_str)
 
         if old_text == textField.text:
             textField.text_updated = False
@@ -4439,7 +4437,8 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
             if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                 draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw)
 
-        if 'LineGenerator' in myobj and not sceneProps.hide_linework:
+        if 'LineGenerator' in myobj:
+            if not sceneProps.is_render_draw and sceneProps.hide_linework: continue
             lineGen = myobj.LineGenerator
             draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw,instance=obj_int)
 
