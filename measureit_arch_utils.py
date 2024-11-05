@@ -272,7 +272,7 @@ def get_view_outpath(scene, view, suffix, relative = False):
     #print(dir)
     filepath = os.path.join(dir, filename)
     if relative:
-        filepath = filenameStr
+        filepath = filenameStr + '_' + suffix
     
     print(filepath)
     return filepath
