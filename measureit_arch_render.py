@@ -40,7 +40,7 @@ from datetime import datetime
 
 from . import svg_shaders
 from . import vector_utils
-from .measureit_arch_geometry import draw3d_loop, batch_for_shader
+from .measureit_arch_geometry import draw3d_loop, batch_for_shader, Inst_Sort
 from .measureit_arch_main import draw_main, draw_titleblock, text_update_loop,draw_viewport
 from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render, load_shader_str, get_projection_matrix, get_view_outpath
 from .measureit_arch_units import BU_TO_INCHES
@@ -413,18 +413,25 @@ def draw_scene(self, context, projection_matrix):
     with OpenGL_Settings(None):
         # Get List of Mesh Objects
         deps = bpy.context.view_layer.depsgraph
-        num_instances = len(deps.object_instances)
+        
         idx = 0
+        obj_ints = [Inst_Sort(obj) for obj in deps.object_instances]
 
+        if get_view().depth_buffer_skip_instances:
+            obj_ints = [Inst_Sort(obj) for obj in deps.object_instances if not obj.is_instance]
 
-        for obj_int in deps.object_instances:
+        num_instances = len(obj_ints)
+        print("Drawing Depth Buffer")
+        for obj_int in obj_ints:
             idx += 1
             vertices = []
             indices = []
-            obj = obj_int.object
-            parent = obj_int.parent
-            print("Rendering Object: " + str(idx) + " of: " +
-                  str(num_instances) + " Name: " + obj.name + " To Depth Buffer")
+            obj = bpy.data.objects[obj_int.object]
+            try:
+                parent =  bpy.data.objects[obj_int.parent]
+            except KeyError:
+                parent = None
+            print("Rendering Object: " + str(idx) + " of: " + str(num_instances) + " Name: " + obj.name + " To Depth Buffer")
             
 
             ignore = obj.MeasureItArchProps.ignore_in_depth_test
@@ -434,8 +441,7 @@ def draw_scene(self, context, projection_matrix):
             if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or ignore):
                 mat = obj_int.matrix_world
                 #obj_eval = obj.evaluated_get(deps)
-                mesh = obj.to_mesh(
-                    preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
+                mesh = obj.to_mesh(preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
                 mesh.calc_loop_triangles()
                 tris = mesh.loop_triangles
 
@@ -660,10 +666,12 @@ def render_main_svg(self, context):
             svg.add(drawing_group)
 
             tb_group = svg.g(id="Titleblock")
+            print("Drawing Titleblock")
             draw_titleblock(context, svg=svg)
+            svg.add(tb_group)
             for viewport in get_view().viewports:
                 draw_viewport(context,viewport=viewport,svg=svg)
-            svg.add(tb_group)
+
 
         #DEBUG CHECK EDGEMAP
         if False:
@@ -674,6 +682,8 @@ def render_main_svg(self, context):
 
                 svg_shaders.draw_single_line(edge.start_coord, edge.end_coord,svg=svg,lines=lines,depth_test=False)
             svg.add(lines)
+        
+        print("Saving Svg")
         svg.save(pretty=True)
 
         # restore default value

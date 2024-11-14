@@ -4325,9 +4325,9 @@ class Inst_Sort(object):
 
     def __init__(self, obj):
         #Depsgraph Objects
-        if hasattr(obj,'is_instance'):
+        if type(obj) == bpy.types.DepsgraphObjectInstance:
             self.is_instance = obj.is_instance
-            if self.is_instance:
+            if obj.is_instance:
                 self.name = obj.object.name + "_Instance"
             else:
                 self.name = obj.object.name
@@ -4336,7 +4336,10 @@ class Inst_Sort(object):
             self.matrix_world = obj.matrix_world.copy()
             
             if obj.parent != None:
-                self.parent = obj.parent.name
+                if type(obj.parent) == str:
+                    self.parent = obj.parent
+                else:
+                    self.parent = obj.parent.name
 
         #Normal Obj List
         else:
@@ -4346,7 +4349,10 @@ class Inst_Sort(object):
             self.bound_box = obj.bound_box
             self.matrix_world = obj.matrix_world.copy()
             if obj.parent != None:
-                self.parent = obj.parent.name
+                if type(obj.parent) == str:
+                    self.parent = obj.parent
+                else:
+                    self.parent = obj.parent.name
 
 
 def check_obj_vis(myobj,custom_call):
@@ -4369,35 +4375,30 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
     global scene_objlist
     clear_line_buffers()
 
+    print("Running 3D Loop!!!")
+
     if sceneProps.is_render_draw:
         startTime = time.time()
 
     # Draw All Objects
     view = get_view()
-    skip_viewport = False
-    if not sceneProps.is_render_draw and sceneProps.skip_instances_viewport:
-        skip_viewport = True
+    skip_inst = False
+    if (sceneProps.is_render_draw and view.skip_instances) or (not sceneProps.is_render_draw and (sceneProps.skip_instances_viewport or view.skip_instances)):
+        skip_inst = True
 
     # Create the obj List
-    if scene_objlist == [] or sceneProps.update_object_list or True:
-        if not custom_call and sceneProps.show_all:
-            deps = bpy.context.view_layer.depsgraph
-            objlist = [Inst_Sort(obj_int) for obj_int in deps.object_instances]
-        elif not sceneProps.show_all and not sceneProps.is_render_draw:
-            objlist =  [Inst_Sort(obj) for obj in context.selected_objects] 
-        elif custom_call:
-            objlist = [Inst_Sort(obj) for obj in objlist]
-       
-        scene_objlist = objlist
-
-        # Purge instances from loop if we're not using them
-        if skip_viewport or view.skip_instances:
-            no_inst_objlist = [obj for obj in objlist if obj.is_instance == False]
-            objlist = no_inst_objlist
-            scene_objlist = no_inst_objlist
-        sceneProps.update_object_list = False            
+    deps = bpy.context.view_layer.depsgraph
+    if custom_call:
+        objlist = [Inst_Sort(obj) for obj in objlist]
     else:
-        objlist = scene_objlist
+        if skip_inst:
+            objlist = [Inst_Sort(obj) for obj in deps.object_instances if not obj.is_instance]
+        else:
+            objlist = [Inst_Sort(obj) for obj in deps.object_instances]
+
+
+    scene_objlist = objlist
+    sceneProps.update_object_list = False            
     
     # Sort all for vector draw
     if sceneProps.is_vector_draw:
@@ -4406,6 +4407,8 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
     
     num_instances = len(objlist)
     for idx,obj_int in enumerate(objlist , start=1):
+        if type(obj_int) == bpy.types.Object:
+            obj_int = Inst_Sort(obj_int)
         myobj = bpy.data.objects[obj_int.object]
 
         if not check_obj_vis(myobj,custom_call): continue
@@ -4477,7 +4480,9 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
             for areaDim in DimGen.areaDimensions:
                 draw_areaDimension(context, myobj, DimGen, areaDim, mat, svg=svg, dxf=dxf)
 
+    print("Drawing All Lines")
     draw_all_lines(ext_mat=extMat)
+    print("Drawing All Lines Complete")
     objlist = None
     if sceneProps.is_render_draw:
         endTime = time.time()

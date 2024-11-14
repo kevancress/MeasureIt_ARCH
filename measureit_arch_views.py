@@ -501,6 +501,11 @@ class ViewProperties(PropertyGroup):
         name="Skip Instances",
         description="Will skip drawing Measureit_ARCH elements from instanced Collections",
         default=False)
+    
+    depth_buffer_skip_instances: BoolProperty(
+        name="Skip Instances (Depth Buffer)",
+        description="Will skip drawing Instanced Objects to the depth buffer used for vector depth testing ",
+        default=False)
 
     use_resolution_override: BoolProperty(
         name="Use Resolution Override",
@@ -1133,6 +1138,7 @@ class SCENE_PT_Views(Panel):
                 col.prop(view, "vector_depthtest", text="Use Vector Depth Test")
                 col.prop(SceneProps, "depth_test_method", text = "Scene Depth Test Method")
                 col.prop(view, "skip_instances",)
+                col.prop(view, "depth_buffer_skip_instances",)
                 col.prop(view, 'skip_hatches')
 
                 col = box.column(align=True)
