@@ -34,7 +34,7 @@ import numpy as np
 
 from math import fabs, sqrt
 from mathutils import Vector, Matrix
-from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist
+from .measureit_arch_utils import get_view, interpolate3d, get_camera_z_dist, Inst_Sort
 from multiprocessing import Pool
 
 depthbuffer = None
@@ -279,9 +279,18 @@ class LineSegment(object):
 def generate_edgemap():
     startTime = time.time()
     deps = bpy.context.view_layer.depsgraph
-    for obj_int in deps.object_instances:
-        obj = obj_int.object
-        parent = obj_int.parent
+
+    obj_ints = [Inst_Sort(obj) for obj in deps.object_instances]
+
+    if get_view().depth_buffer_skip_instances:
+        obj_ints = [Inst_Sort(obj) for obj in deps.object_instances if not obj.is_instance]
+
+    for obj_int in obj_ints:
+        obj = bpy.data.objects[obj_int.object]
+        try:
+            parent =  bpy.data.objects[obj_int.parent]
+        except KeyError:
+            parent = None
 
         ignore = obj.MeasureItArchProps.ignore_in_depth_test
         if parent != None:
@@ -307,9 +316,20 @@ def generate_facemap():
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     global facemap
-    objlist = context.view_layer.objects
+  
+    deps = bpy.context.view_layer.depsgraph
+    obj_ints = [Inst_Sort(obj) for obj in deps.object_instances]
 
-    for obj in objlist:
+    if get_view().depth_buffer_skip_instances:
+        obj_ints = [Inst_Sort(obj) for obj in deps.object_instances if not obj.is_instance]
+
+    for obj_int in obj_ints:
+        obj = bpy.data.objects[obj_int.object]
+        try:
+            parent =  bpy.data.objects[obj_int.parent]
+        except KeyError:
+            parent = None
+
         if obj.type != 'MESH':
             continue
         mat = obj.matrix_world

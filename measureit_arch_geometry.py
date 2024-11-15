@@ -49,7 +49,7 @@ from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, pts_to_px, recursionlimit,\
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
-    load_shader_str, get_projection_matrix, rgb_gamma_correct
+    load_shader_str, get_projection_matrix, rgb_gamma_correct, Inst_Sort
 
 from .vector_utils import get_axis_aligned_bounds
 
@@ -4315,46 +4315,6 @@ class Dist_Sort(object):
     def __eq__(self,other):
         return self.dist == other.dist
 
-class Inst_Sort(object):
-    name = None
-    object = ''
-    matrix_world = None
-    is_instance = False
-    parent = ''
-    bound_box = None
-
-    def __init__(self, obj):
-        #Depsgraph Objects
-        if type(obj) == bpy.types.DepsgraphObjectInstance:
-            self.is_instance = obj.is_instance
-            if obj.is_instance:
-                self.name = obj.object.name + "_Instance"
-            else:
-                self.name = obj.object.name
-            self.object = obj.object.name
-            self.bound_box = obj.object.bound_box
-            self.matrix_world = obj.matrix_world.copy()
-            
-            if obj.parent != None:
-                if type(obj.parent) == str:
-                    self.parent = obj.parent
-                else:
-                    self.parent = obj.parent.name
-
-        #Normal Obj List
-        else:
-            self.is_instance = False
-            self.name = obj.name
-            self.object = obj.name
-            self.bound_box = obj.bound_box
-            self.matrix_world = obj.matrix_world.copy()
-            if obj.parent != None:
-                if type(obj.parent) == str:
-                    self.parent = obj.parent
-                else:
-                    self.parent = obj.parent.name
-
-
 def check_obj_vis(myobj,custom_call):
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps
@@ -4375,7 +4335,6 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
     global scene_objlist
     clear_line_buffers()
 
-    print("Running 3D Loop!!!")
 
     if sceneProps.is_render_draw:
         startTime = time.time()
@@ -4416,7 +4375,7 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
         mat = None
         inst_draw = False
         if obj_int.is_instance:
-            if skip_viewport or view.skip_instances: continue
+            if skip_inst: continue
             inst_draw = True
             mat = obj_int.matrix_world
         else:
@@ -4480,9 +4439,7 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
             for areaDim in DimGen.areaDimensions:
                 draw_areaDimension(context, myobj, DimGen, areaDim, mat, svg=svg, dxf=dxf)
 
-    print("Drawing All Lines")
     draw_all_lines(ext_mat=extMat)
-    print("Drawing All Lines Complete")
     objlist = None
     if sceneProps.is_render_draw:
         endTime = time.time()

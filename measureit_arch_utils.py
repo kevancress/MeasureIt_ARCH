@@ -215,6 +215,49 @@ def get_projection_matrix():
 
     return modelViewProjectionMatrix
 
+
+class Inst_Sort(object):
+    name = None
+    object = ''
+    matrix_world = None
+    is_instance = False
+    parent = ''
+    bound_box = None
+
+    def __init__(self, obj):
+        #Depsgraph Objects
+        if type(obj) == bpy.types.DepsgraphObjectInstance:
+            self.is_instance = obj.is_instance
+            if obj.is_instance:
+                self.name = obj.object.name + "_Instance"
+            else:
+                self.name = obj.object.name
+            self.object = obj.object.name
+            self.bound_box = obj.object.bound_box
+            self.matrix_world = obj.matrix_world.copy()
+            
+            if obj.parent != None:
+                if type(obj.parent) == str:
+                    self.parent = obj.parent
+                else:
+                    self.parent = obj.parent.name
+
+        #Normal Obj List
+        else:
+            self.is_instance = False
+            self.name = obj.name
+            self.object = obj.name
+            self.bound_box = obj.bound_box
+            self.matrix_world = obj.matrix_world.copy()
+            if obj.parent != None:
+                if type(obj.parent) == str:
+                    self.parent = obj.parent
+                else:
+                    self.parent = obj.parent.name
+
+
+
+
 def get_view():
     scene = bpy.context.scene
     ViewGen = scene.ViewGenerator
