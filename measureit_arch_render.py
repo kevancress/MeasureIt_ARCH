@@ -440,8 +440,8 @@ def draw_scene(self, context, projection_matrix):
 
             if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or ignore):
                 mat = obj_int.matrix_world
-                #obj_eval = obj.evaluated_get(deps)
-                mesh = obj.to_mesh(preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
+                obj_eval = obj.evaluated_get(deps)
+                mesh = obj_eval.to_mesh(preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
                 mesh.calc_loop_triangles()
                 tris = mesh.loop_triangles
 
@@ -449,7 +449,7 @@ def draw_scene(self, context, projection_matrix):
                 vertices = [mat @ vert.co for vert in mesh.vertices]
                 indices = [[tri.vertices[0],tri.vertices[1],tri.vertices[2]] for tri in tris]
 
-                obj.to_mesh_clear()
+                obj_eval.to_mesh_clear()
 
             depthOnlyshader.bind()
             depthOnlyshader.uniform_float("viewProjectionMatrix", get_projection_matrix())
