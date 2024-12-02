@@ -438,10 +438,13 @@ def draw_scene(self, context, projection_matrix):
             if parent != None:
                 ignore = obj.MeasureItArchProps.ignore_in_depth_test or parent.MeasureItArchProps.ignore_in_depth_test
 
-            if obj.type == 'MESH' and not(obj.hide_render or obj.display_type == "WIRE" or ignore):
+            if (obj.type == 'MESH' or obj.type == 'CURVE') and not(obj.hide_render or obj.display_type == "WIRE" or ignore):
                 mat = obj_int.matrix_world
-                #obj_eval = obj.evaluated_get(deps)
-                mesh = obj.to_mesh(preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
+                obj_eval = obj.evaluated_get(deps)
+                mesh = obj_eval.to_mesh(preserve_all_data_layers=False, depsgraph=bpy.context.view_layer.depsgraph)
+                if mesh == None: 
+                    obj.to_mesh_clear()
+                    continue
                 mesh.calc_loop_triangles()
                 tris = mesh.loop_triangles
 
