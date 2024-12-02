@@ -2106,8 +2106,13 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
         else:
             recoord_flag = False
 
+
         if is_instance_draw and not sceneProps.is_render_draw:
             recoord_flag = False
+        
+        if lineGroup.dynamic_sil:
+            recoord_flag = True
+            
 
         if recoord_flag and check_mods(myobj) and not is_instance_draw:
             if myobj.type == 'MESH':
@@ -2134,7 +2139,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                 lineGroup['coordBuffer'] = tempCoords
 
             # Calculate dynamic lines or curve lines (only for non instances)
-            if lineGroup.useDynamicCrease or lineGroup.dynamic_sil and not is_instance_draw:
+            if lineGroup.useDynamicCrease or lineGroup.dynamic_sil:
                 tempCoords = []
                 tempIdxs = []
                 # Create a Bmesh Instance from the selected object

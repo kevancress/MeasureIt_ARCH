@@ -452,7 +452,7 @@ def draw_scene(self, context, projection_matrix):
                 vertices = [mat @ vert.co for vert in mesh.vertices]
                 indices = [[tri.vertices[0],tri.vertices[1],tri.vertices[2]] for tri in tris]
 
-                obj.to_mesh_clear()
+                obj_eval.to_mesh_clear()
 
             depthOnlyshader.bind()
             depthOnlyshader.uniform_float("viewProjectionMatrix", get_projection_matrix())
