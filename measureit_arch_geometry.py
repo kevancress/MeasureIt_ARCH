@@ -2307,7 +2307,7 @@ def draw_line_group(context, myobj, lineGen, mat, svg=None, dxf=None, is_instanc
                     dash_sizes=dash_spaces, gap_sizes=gap_spaces, hidden=True, obj=myobj, name=lineGroup.name, invalid = lineGroup.is_invalid, mat = mat,instance=instance)
 
         if sceneProps.is_vector_draw:
-            if myobj.type =='CURVE':
+            if myobj.type =='CURVE' and not myobj.is_modified(scene,'RENDER'):
                 svg_shaders.svg_path_from_curve_shader(myobj,lineProps,rgb,svg,parent=svg,mat = mat)
 
             else: 

@@ -251,6 +251,9 @@ def svg_path_from_curve_shader(curve, item, color, svg, parent=None, mat = Matri
             last_vis = not curve_segs[i][0]
         except IndexError:
             return
+        except UnboundLocalError:
+            last_vis = False
+
         for i in range(len(curve_segs)):
             visibility = curve_segs[i][0]
 
