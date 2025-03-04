@@ -146,14 +146,15 @@ class AnnotationProperties(BaseWithText, PropertyGroup):
 
     leader_length: FloatProperty(
         name='Leader Offset',
-        description='Leader Length',
+        description='Leader Offset',
         subtype = 'DISTANCE',
         default=0.0,)
 
-    annotationTextSource: StringProperty(
-        name='annotationTextSource',
-        description="Text Source",
-        update=annotation_update_flag)
+    leader_offset_tweak: FloatProperty(
+        name='Leader Offset Tweak',
+        description='Leader Offset Tweak',
+        subtype = 'DISTANCE',
+        default=0.0,)
 
     annotationAnchorObject: PointerProperty(type=Object)
 
@@ -498,7 +499,8 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col = box.column(align=True)
                             col.prop(annotation, 'fontSize', text="Font Size")
 
-
+                        col.prop(annotation, 'overrideTextAlignment')
+                        if annotation.overrideTextAlignment or not annotation.uses_style:
                             col.prop(annotation, 'textAlignment', text='Justification')
                             col.prop(annotation, 'textPosition', text='Position')
 
@@ -513,7 +515,10 @@ class OBJECT_PT_UIAnnotations(Panel):
                             col.prop(annotation, 'draw_leader', text='Draw Leader')
 
                         col = box.column()
-                        col.prop(annotation, 'leader_length')
+                        if not annotation.uses_style:
+                            col.prop(annotation, 'leader_length')
+                        else:
+                            col.prop(annotation, 'leader_offset_tweak')
 
                         col = box.column()
                         col.prop(annotation, 'annotationOffset', text='Offset')

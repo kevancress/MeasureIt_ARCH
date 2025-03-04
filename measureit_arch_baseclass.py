@@ -392,6 +392,9 @@ class TextField(PropertyGroup):
                ('PROJECT_NAME', "Project Name", "", 'TEXT', 11),
                ('PROJECT_NUMBER', "Project Number", "", 'TEXT', 12),
                ('PROJECT_ADDRESS', "Project Address", "", 'TEXT', 13),
+               ('LOCAL_X', "Local X","",'TRACKING_CLEAR_FORWARDS',14),
+               ('LOCAL_Y', "Local Y","",'TRACKING_CLEAR_FORWARDS',15),
+               ('LOCAL_Z', "Local Z","",'TRACKING_CLEAR_FORWARDS',16),
                ('RNAPROP', "Custom Property", "", 'RNA', 99)),
         name="Text Source",
         default='RNAPROP',
@@ -511,6 +514,10 @@ class BaseWithText(BaseProp):
         default=False)
 
     textFields: CollectionProperty(type=TextField)
+
+    overrideTextAlignment: BoolProperty(
+        name = 'Override Text Alignment',
+        default = False)
 
     textAlignment: EnumProperty(
         items=(('L', "Left", "", 'ALIGN_LEFT', 1),

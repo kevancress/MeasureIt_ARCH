@@ -2495,7 +2495,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
         extMat = noScaleMat @ offsetMat @ rotMat @ customScale
 
-        leaderDist = annotationProps.leader_length
+        leaderDist = annotationProps.leader_length + annotation.leader_offset_tweak
         mult = 1
         if annotationProps.align_to_camera:
             # Only use the z rot of the annotation rotation
@@ -2580,15 +2580,19 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             set_text(textField, myobj, style = annotationProps, item = annotation)
 
             origin = p3.copy()
-            if annotationProps.leader_length > 0:
+            if leaderDist > 0:
                 pass
                 origin += p3dir * (0.0015*get_scale()) * mult
             xDir = fullRotMat @ Vector((1 * mult, 0, 0))
             yDir = fullRotMat @ Vector((0, 1, 0))
 
-            # draw_lines(1,(0,1,0,1),[(0,0,0),xDir,(0,0,0),yDir])
-            textField.textAlignment = annotationProps.textAlignment
-            textField.textPosition = annotationProps.textPosition
+
+            if not annotation.overrideTextAlignment:
+                textField.textAlignment = annotationProps.textAlignment
+                textField.textPosition = annotationProps.textPosition
+            else:
+                textField.textAlignment = annotation.textAlignment
+                textField.textPosition = annotation.textPosition
             cardIdx = fieldIdx
 
             textcard = generate_text_card(
@@ -3088,6 +3092,24 @@ def set_text(textField, obj, style=None, item=None):
                 textField.text = ""
             elif "p1anchorCoord" in item:
                 textField.text = format_distance(item['p1anchorCoord'][2])
+        
+        elif text_source == 'LOCAL_X':
+            if item == None:
+                textField.text = ""
+            elif "p1anchorCoord" in item:
+                textField.text = format_distance(item['p1anchorCoord'][0] - obj.location[0])
+        
+        elif text_source == 'LOCAL_Y':
+            if item == None:
+                textField.text = ""
+            elif "p1anchorCoord" in item:
+                textField.text = format_distance(item['p1anchorCoord'][1] - obj.location[1])
+        
+        elif text_source == 'LOCAL_Z':
+            if item == None:
+                textField.text = ""
+            elif "p1anchorCoord" in item:
+                textField.text = format_distance(item['p1anchorCoord'][2] - obj.location[2])
 
 
         elif text_source == 'C_LENGTH': ## TODO: Remove this when I add a curve dimension
