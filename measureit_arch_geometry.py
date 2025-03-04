@@ -1291,6 +1291,9 @@ def draw_axisDimension(context, myobj, measureGen, dim, mat, svg=None, dxf=None)
 def draw_angleDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
     dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
+
+    #mat = mat @ myobj.matrix_world
+
     with OpenGL_Settings(dimProps):
 
         if not check_vis(dim, dimProps):
@@ -1433,6 +1436,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
     dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
 
+    #mat = mat @ myobj.matrix_world
 
     with OpenGL_Settings(dimProps):
 
@@ -1707,6 +1711,8 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
 def draw_areaDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
     dimProps = get_style(dim,'alignedDimensions')
     sceneProps = context.scene.MeasureItArchProps
+
+    #mat = mat @ myobj.matrix_world
 
     # Check Visibility Conditions
     if not check_vis(dim, dimProps):
@@ -4445,17 +4451,18 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
             if inst_draw and not sceneProps.instance_dims:
                 continue
             DimGen = myobj.DimensionGenerator
-            if not inst_draw:
-                mat = Matrix.Identity(4)
-            
+            ident_mat = Matrix.Identity(4)
+            if inst_draw:
+                ident_mat = ident_mat @ obj_int.matrix_world
+      
             for alignedDim in DimGen.alignedDimensions:
-                draw_alignedDimension(context, myobj, DimGen, alignedDim, mat=mat, svg=svg, dxf=dxf)
+                draw_alignedDimension(context, myobj, DimGen, alignedDim, mat=ident_mat, svg=svg, dxf=dxf)
             
             for angleDim in DimGen.angleDimensions:
                 draw_angleDimension(context, myobj, DimGen, angleDim, mat, svg=svg, dxf=dxf)
             
             for axisDim in DimGen.axisDimensions:
-                draw_axisDimension(context, myobj, DimGen, axisDim, mat, svg=svg, dxf=dxf)
+                draw_axisDimension(context, myobj, DimGen, axisDim, ident_mat, svg=svg, dxf=dxf)
             
             for boundsDim in DimGen.boundsDimensions:
                 draw_boundsDimension(context, myobj, DimGen, boundsDim, mat, svg=svg, dxf=dxf)
