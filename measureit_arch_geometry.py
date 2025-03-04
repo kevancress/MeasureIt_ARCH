@@ -3059,12 +3059,12 @@ def set_text(textField, obj, style=None, item=None):
         text_source = textField.textSource
 
         if text_source == 'DATE':
-            textField.text = datetime.now().strftime('%y/%m/%d')
+            textField.text = textField.autoFillPrefix + datetime.now().strftime('%y/%m/%d')
 
         elif text_source == 'VIEW':
             view = get_view()
             if view is not None:
-                textField.text = view.name
+                textField.text = textField.autoFillPrefix + view.name
 
         elif text_source == 'NOTES':
             view = get_view()
@@ -3077,39 +3077,39 @@ def set_text(textField, obj, style=None, item=None):
         elif text_source == 'SCALE':
             view = get_view()
             scaleStr = "{}:{}".format(view.paper_scale, view.model_scale)
-            textField.text = scaleStr
+            textField.text = textField.autoFillPrefix + scaleStr
 
             if view.paper_scale_mode == 'IMPERIAL':
-                textField.text = view.imp_scale
+                textField.text = textField.autoFillPrefix + view.imp_scale
 
         elif text_source == 'VIEWNUM':
             view = get_view()
-            textField.text = view.view_num
+            textField.text = textField.autoFillPrefix + view.view_num
 
 
         elif text_source == 'ELEVATION':
             if item == None:
                 textField.text = ""
             elif "p1anchorCoord" in item:
-                textField.text = format_distance(item['p1anchorCoord'][2])
+                textField.text = textField.autoFillPrefix + format_distance(item['p1anchorCoord'][2])
         
         elif text_source == 'LOCAL_X':
             if item == None:
                 textField.text = ""
             elif "p1anchorCoord" in item:
-                textField.text = format_distance(item['p1anchorCoord'][0] - obj.location[0])
+                textField.text = textField.autoFillPrefix + format_distance(item['p1anchorCoord'][0] - obj.location[0])
         
         elif text_source == 'LOCAL_Y':
             if item == None:
                 textField.text = ""
             elif "p1anchorCoord" in item:
-                textField.text = format_distance(item['p1anchorCoord'][1] - obj.location[1])
+                textField.text = textField.autoFillPrefix + format_distance(item['p1anchorCoord'][1] - obj.location[1])
         
         elif text_source == 'LOCAL_Z':
             if item == None:
                 textField.text = ""
             elif "p1anchorCoord" in item:
-                textField.text = format_distance(item['p1anchorCoord'][2] - obj.location[2])
+                textField.text = textField.autoFillPrefix + format_distance(item['p1anchorCoord'][2] - obj.location[2])
 
 
         elif text_source == 'C_LENGTH': ## TODO: Remove this when I add a curve dimension
@@ -3129,9 +3129,9 @@ def set_text(textField, obj, style=None, item=None):
                     for edge in bm.edges:
                         total_length += edge.calc_length()
                     text = format_distance(total_length)
-                textField.text = text
+                textField.text = textField.autoFillPrefix + text
             else:
-                textField.text = "Not a Curve"
+                textField.text = textField.autoFillPrefix + "Not a Curve"
 
         elif text_source == 'TEXT_FILE':
             textField.text = ''
@@ -3145,17 +3145,17 @@ def set_text(textField, obj, style=None, item=None):
         elif text_source == 'PROJECT_NAME':
             textField.text = ''
             sceneProps = bpy.context.scene.MeasureItArchProps
-            textField.text = sceneProps.project_name
+            textField.text = textField.autoFillPrefix + sceneProps.project_name
 
         elif text_source == 'PROJECT_NUMBER':
             textField.text = ''
             sceneProps = bpy.context.scene.MeasureItArchProps
-            textField.text = sceneProps.project_number
+            textField.text = textField.autoFillPrefix + sceneProps.project_number
 
         elif text_source == 'PROJECT_ADDRESS':
             textField.text = ''
             sceneProps = bpy.context.scene.MeasureItArchProps
-            textField.text = sceneProps.project_address
+            textField.text = textField.autoFillPrefix + sceneProps.project_address
 
         # CUSTOM PROP
         elif text_source == 'RNAPROP':
@@ -3167,9 +3167,9 @@ def set_text(textField, obj, style=None, item=None):
                     if "location" in textField.rnaProp:
                         text = format_distance(data)
 
-                    textField.text = text
+                    textField.text = textField.autoFillPrefix + text
                 except:
-                    textField.text = 'Could not evaluate: {}'.format(eval_str)
+                    textField.text = textField.autoFillPrefix + 'Could not evaluate: {}'.format(eval_str)
 
         if old_text == textField.text:
             textField.text_updated = False

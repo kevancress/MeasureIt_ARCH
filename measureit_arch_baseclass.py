@@ -367,10 +367,16 @@ class TextField(PropertyGroup):
         name='text_updated',
         description='flag when text needs to be redrawn',
         default=False)
-
+    
     text: StringProperty(
         name="Text",
         description="Text Associated With Item",
+        default="",
+        update=update_flag)
+
+    autoFillPrefix: StringProperty(
+        name="Prefix",
+        description="Prefix for Autofill Text",
         default="",
         update=update_flag)
 
@@ -466,6 +472,7 @@ def draw_textfield_settings(item, box, prop_path, dim_skip_length = False, entry
                     text="", icon="FILE_TEXT")
 
         if textField.autoFillText:
+            row.prop(textField, "autoFillPrefix", text="")
             row.prop(textField, 'textSource', text="")
         else:
             if entry_disabled:
