@@ -4433,9 +4433,9 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
                 draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw)
 
         if 'LineGenerator' in myobj:
-            if not sceneProps.is_render_draw and sceneProps.hide_linework: continue
-            lineGen = myobj.LineGenerator
-            draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw,instance=obj_int)
+            if not sceneProps.hide_linework or sceneProps.is_render_draw:
+                lineGen = myobj.LineGenerator
+                draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw,instance=obj_int)
 
         if 'AnnotationGenerator' in myobj:
             annotationGen = myobj.AnnotationGenerator
