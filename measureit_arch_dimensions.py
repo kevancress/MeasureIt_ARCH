@@ -996,6 +996,57 @@ class RemoveFaceFromArea(Operator):
             return {'CANCELLED'}
 
 
+class M_ARCH_UL_AlignedDimension_list(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        scene = bpy.context.scene
+
+        StyleGen = scene.StyleGenerator
+        hasGen = True
+
+        # I should define this in the dimension container itself so that I dont
+        # have to edit this each time I define a new dimension type...
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.use_property_decorate = False
+            # Get correct item and icon
+            dim = item
+            nameIcon = 'DRIVER_DISTANCE'
+
+            row = layout.row()
+            subrow = row.row()
+
+            subrow.prop(dim, "name", text="", emboss=False, icon=nameIcon)
+
+            if dim.visible:
+                visIcon = 'HIDE_OFF'
+            else:
+                visIcon = 'HIDE_ON'
+
+            if dim.uses_style:
+                styleIcon = 'LINKED'
+            else:
+                styleIcon = 'UNLINKED'
+
+            if not dim.uses_style:
+                subrow = row.row(align=True)
+                subrow.scale_x = 0.6
+                subrow.prop(dim, 'color', text="")
+            else:
+                row.prop_search(dim, 'style', StyleGen,
+                                'alignedDimensions', text="", icon='COLOR')
+                row.separator()
+
+            if hasGen and not dim.is_style:
+                row = row.row(align=True)
+                row.prop(dim, 'uses_style', text="", toggle=True,
+                         icon=styleIcon, emboss=False)
+
+            row.prop(dim, "visible", text="", icon=visIcon, emboss=False)
+
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon='MESH_CUBE')
+
 class M_ARCH_UL_dimension_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
         dimGen = context.object.DimensionGenerator

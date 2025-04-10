@@ -416,12 +416,12 @@ class M_ARCH_UL_lines_list(UIList):
                 
                 row.separator()
 
-            if hasGen:
+            if hasGen and not line.is_style:
                 row = row.row(align=True)
                 row.prop(line, 'uses_style', text="", toggle=True,
                          icon=styleIcon, emboss=False)
 
-            row.prop(line, "visible", text="", icon=visIcon)
+            row.prop(line, "visible", text="", icon=visIcon,emboss=False)
 
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'

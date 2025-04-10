@@ -149,6 +149,7 @@ classes = (
     measureit_arch_dimensions.RemoveFaceFromArea,
     measureit_arch_dimensions.TranslateDimensionOp,
     measureit_arch_dimensions.M_ARCH_UL_dimension_list,
+    measureit_arch_dimensions.M_ARCH_UL_AlignedDimension_list,
     measureit_arch_dimensions.OBJECT_MT_dimension_menu,
     measureit_arch_dimensions.SelectLinkedAnchor,
 
@@ -225,6 +226,9 @@ classes = (
     measureit_arch_orientations.M_ARCH_UL_Transform_Orientation_list,
     measureit_arch_viewports.SCENE_PT_Viewport,
     measureit_arch_styles.SCENE_PT_UIStyles,
+    measureit_arch_styles.SCENE_PT_UIAnnoStyles,
+    measureit_arch_styles.SCENE_PT_UILineStyles,
+    measureit_arch_styles.SCENE_PT_UIDimStyles,
     measureit_arch_styles.M_ARCH_UL_styles_list,
     measureit_arch_styles.SCENE_MT_styles_menu,
     measureit_arch_schedules.SCENE_PT_Schedules,

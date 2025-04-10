@@ -71,20 +71,32 @@ def create_preset_styles(dummy):
     if not has_line_group_styles:
         add_line_group_style(context)
 
-class StyleContainer(PropertyGroup):
-    active_index: IntProperty(
-        name='Active Style Index', min=0, max=1000, default=0,
-        description='Index of the current Style')
+class StyleContainer(PropertyGroup):    
+    active_annotation_index: IntProperty(
+        name='Active Annotation Style Index', min=0, max=1000, default=0,
+        description='Index of the current Annotation Style')
+    
+    active_linegroup_index: IntProperty(
+        name='Active LineGroup Style Index', min=0, max=1000, default=0,
+        description='Index of the current LineGroup Style')
+    
+    active_dimension_index: IntProperty(
+        name='Active Dimension Style Index', min=0, max=1000, default=0,
+        description='Index of the current Dimension Style')
+    
+    show_dimension_style_settings: BoolProperty(
+        name='Show Style Settings', default=False)
 
-    show_style_settings: BoolProperty(
+    show_annotation_style_settings: BoolProperty(
+        name='Show Style Settings', default=False)
+    
+    show_linegroup_style_settings: BoolProperty(
         name='Show Style Settings', default=False)
 
     # Array of styles
     alignedDimensions: CollectionProperty(type=AlignedDimensionProperties)
     annotations: CollectionProperty(type=AnnotationProperties)
     line_groups: CollectionProperty(type=LineProperties)
-
-    wrapper: CollectionProperty(type=StyleWrapper)
 
 
 class M_ARCH_UL_styles_list(UIList):
@@ -134,6 +146,26 @@ class SCENE_PT_UIStyles(Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
+
+class SCENE_PT_UIDimStyles(Panel):
+    """ A panel in the Object properties window """
+
+    bl_parent_id = 'SCENE_PT_UIStyles'
+    bl_label = "Dimension Styles"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "scene"
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon='DRIVER_DISTANCE')
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         scene = context.scene
         StyleGen = scene.StyleGenerator
 
@@ -141,46 +173,197 @@ class SCENE_PT_UIStyles(Panel):
 
         # Draw The UI List
         row.template_list(
-            "M_ARCH_UL_styles_list", "", StyleGen, "wrapper",
-            StyleGen, "active_index", rows=2, type='DEFAULT')
+            "M_ARCH_UL_AlignedDimension_list", "", StyleGen, "alignedDimensions",
+            StyleGen, "active_dimension_index", rows=2, type='DEFAULT')
 
         # Operators Next to List
         col = row.column(align=True)
-        col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
+        op = col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
+        op.styleType = 'alignedDimensions'
         op = col.operator(
-            "measureit_arch.listdeletepropbutton", text="", icon="X")
+            "measureit_arch.deletepropbutton", text="", icon="X")
         op.genPath = 'bpy.context.scene.StyleGenerator'
-        op.tag = StyleGen.active_index  # saves internal data
+        op.item_type = "alignedDimensions"
+        op.tag = StyleGen.active_dimension_index  # saves internal data
         op.is_style = True
 
         col.separator()
         up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
         up.genPath = 'bpy.context.scene.StyleGenerator'
-        up.item_type = "wrapper"
+        up.active_idx_path = 'active_dimension_index'
+        up.item_type = "alignedDimensions"
         up.upDown = -1
 
         down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
         down.genPath = 'bpy.context.scene.StyleGenerator'
-        down.item_type = "wrapper"
+        down.active_idx_path = 'active_dimension_index'
+        down.item_type = "alignedDimensions"
         down.upDown = 1
 
         col.separator()
         col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
 
         # Settings Below List
-        if (len(StyleGen.wrapper) > 0 and
-            StyleGen.active_index < len(StyleGen.wrapper)):
+        if (len(StyleGen.line_groups) > 0 and
+            StyleGen.active_dimension_index < len(StyleGen.line_groups)):
 
-            activeWrapperItem = StyleGen.wrapper[StyleGen.active_index]
+            item = StyleGen.alignedDimensions[StyleGen.active_dimension_index]
 
-            if activeWrapperItem.itemType == 'line_groups':
-                item = StyleGen.line_groups[activeWrapperItem.itemIndex]
-            if activeWrapperItem.itemType == 'annotations':
-                item = StyleGen.annotations[activeWrapperItem.itemIndex]
-            if activeWrapperItem.itemType == 'alignedDimensions':
-                item = StyleGen.alignedDimensions[activeWrapperItem.itemIndex]
 
-            if StyleGen.show_style_settings:
+            if StyleGen.show_linegroup_style_settings:
+                settingsIcon = 'DISCLOSURE_TRI_DOWN'
+            else:
+                settingsIcon = 'DISCLOSURE_TRI_RIGHT'
+
+            box = layout.box()
+            col = box.column()
+            row = col.row()
+            row.prop(StyleGen, 'show_dimension_style_settings', text="", icon=settingsIcon, emboss=False)
+
+            row.label(text='{} Settings:'.format(item.name))
+            if StyleGen.show_dimension_style_settings:
+                draw_alignedDimensions_settings(item, box)
+
+class SCENE_PT_UILineStyles(Panel):
+    """ A panel in the Object properties window """
+
+    bl_parent_id = 'SCENE_PT_UIStyles'
+    bl_label = "Line Styles"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "scene"
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon='MESH_CUBE')
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        StyleGen = scene.StyleGenerator
+
+        row = layout.row()
+
+        # Draw The UI List
+        row.template_list(
+            "M_ARCH_UL_lines_list", "", StyleGen, "line_groups",
+            StyleGen, "active_linegroup_index", rows=2, type='DEFAULT')
+
+        # Operators Next to List
+        col = row.column(align=True)
+        op= col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
+        op.styleType = 'line_groups'
+        op = col.operator(
+            "measureit_arch.deletepropbutton", text="", icon="X")
+        op.genPath = 'bpy.context.scene.StyleGenerator'
+        op.item_type = "line_groups"
+        op.tag = StyleGen.active_linegroup_index  # saves internal data
+        op.is_style = True
+
+        col.separator()
+        up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+        up.genPath = 'bpy.context.scene.StyleGenerator'
+        up.active_idx_path = 'active_linegroup_index'
+        up.item_type = "line_groups"
+        up.upDown = -1
+
+        down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+        down.genPath = 'bpy.context.scene.StyleGenerator'
+        down.item_type = "line_groups"
+        down.active_idx_path = 'active_linegroup_index'
+        down.upDown = 1
+
+        col.separator()
+        col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+
+        # Settings Below List
+        if (len(StyleGen.line_groups) > 0 and
+            StyleGen.active_linegroup_index < len(StyleGen.line_groups)):
+
+            item = StyleGen.line_groups[StyleGen.active_linegroup_index]
+
+
+            if StyleGen.show_linegroup_style_settings:
+                settingsIcon = 'DISCLOSURE_TRI_DOWN'
+            else:
+                settingsIcon = 'DISCLOSURE_TRI_RIGHT'
+
+            box = layout.box()
+            col = box.column()
+            row = col.row()
+            row.prop(StyleGen, 'show_linegroup_style_settings', text="", icon=settingsIcon, emboss=False)
+
+            row.label(text='{} Settings:'.format(item.name))
+            if StyleGen.show_linegroup_style_settings:
+                draw_line_style_settings(item, box)
+
+class SCENE_PT_UIAnnoStyles(Panel):
+    """ A panel in the Object properties window """
+
+    bl_parent_id = 'SCENE_PT_UIStyles'
+    bl_label = "Annotation Styles"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "scene"
+
+    def draw_header(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="", icon='FONT_DATA')
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        StyleGen = scene.StyleGenerator
+
+        row = layout.row()
+
+        # Draw The UI List
+        row.template_list(
+            "M_ARCH_UL_annotations_list", "", StyleGen, "annotations",
+            StyleGen, "active_annotation_index", rows=2, type='DEFAULT')
+
+        # Operators Next to List
+        col = row.column(align=True)
+        op = col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
+        op.styleType = 'annotations'
+        op = col.operator(
+            "measureit_arch.deletepropbutton", text="", icon="X")
+        op.genPath = 'bpy.context.scene.StyleGenerator'
+        op.item_type = "annotations"
+        op.tag = StyleGen.active_annotation_index  # saves internal data
+        op.is_style = True
+
+        col.separator()
+        up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+        up.genPath = 'bpy.context.scene.StyleGenerator'
+        up.item_type = "annotations"
+        up.active_idx_path = 'active_annotation_index'
+        up.upDown = -1
+
+        down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+        down.genPath = 'bpy.context.scene.StyleGenerator'
+        down.active_idx_path = 'active_annotation_index'
+        down.item_type = "annotations"
+        down.upDown = 1
+
+        col.separator()
+        col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+
+        # Settings Below List
+        if (len(StyleGen.annotations) > 0 and
+            StyleGen.active_annotation_index < len(StyleGen.annotations)):
+
+            item = StyleGen.annotations[StyleGen.active_annotation_index]
+
+            if StyleGen.show_annotation_style_settings:
                 settingsIcon = 'DISCLOSURE_TRI_DOWN'
             else:
                 settingsIcon = 'DISCLOSURE_TRI_RIGHT'
@@ -189,20 +372,13 @@ class SCENE_PT_UIStyles(Panel):
             col = box.column()
             row = col.row()
             row.prop(
-                StyleGen, 'show_style_settings', text="", icon=settingsIcon,
+                StyleGen, 'show_annotation_style_settings', text="", icon=settingsIcon,
                 emboss=False)
 
             row.label(text='{} Settings:'.format(item.name))
-            if StyleGen.show_style_settings:
-                # Show Line Settings
-                if activeWrapperItem.itemType == 'line_groups':
-                    draw_line_style_settings(item, box)
-                # Show Annotation Settings
-                if activeWrapperItem.itemType == 'annotations':
-                    draw_annotation_style_settings(item, box)
-                # Show Dimension Settings
-                if activeWrapperItem.itemType == 'alignedDimensions':
-                    draw_alignedDimensions_settings(item, box)
+            if StyleGen.show_annotation_style_settings:
+                draw_annotation_style_settings(item, box)
+    
 
 
 class SCENE_MT_styles_menu(bpy.types.Menu):
@@ -227,6 +403,7 @@ class DuplicateStyleButton(Operator):
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'}
     tag: IntProperty()
+    
 
     @classmethod
     def poll(cls, context):
@@ -352,15 +529,10 @@ class AddStyleButton(Operator):
                     return {'FINISHED'}
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
-
 
 def add_annotation_style(
         context, name='', font_size=18, line_weight=1, text_alignment='L'):
     annotation_styles = context.scene.StyleGenerator.annotations
-    wrapper = context.scene.StyleGenerator.wrapper
     scene_props = context.scene.MeasureItArchProps
 
     if not name:
@@ -372,20 +544,17 @@ def add_annotation_style(
     new_style.fontSize = font_size
     new_style.lineWeight = line_weight
     new_style.textAlignment = text_alignment
+    new_style.is_style = True
 
-    new_wrapper = wrapper.add()
-    new_wrapper.itemType = 'annotations'
 
     if not scene_props.default_annotation_style:
         scene_props.default_annotation_style = new_style.name
 
-    recalc_index(None, context)
     return new_style
 
 
 def add_line_group_style(context, name='', line_weight=1, line_depth_offset=1):
     line_styles = context.scene.StyleGenerator.line_groups
-    wrapper = context.scene.StyleGenerator.wrapper
     scene_props = context.scene.MeasureItArchProps
 
     if not name:
@@ -397,20 +566,16 @@ def add_line_group_style(context, name='', line_weight=1, line_depth_offset=1):
     new_style.lineWeight = line_weight
     new_style.is_style = True
 
-    new_wrapper = wrapper.add()
-    new_wrapper.itemType = 'line_groups'
 
     if not scene_props.default_line_style:
         scene_props.default_line_style = new_style.name
 
-    recalc_index(None, context)
     return new_style
 
 
 def add_aligned_dimension_style(
         context, name='', font_size=18, text_alignment='C', line_weight=0.25):
     dimension_styles = context.scene.StyleGenerator.alignedDimensions
-    wrapper = context.scene.StyleGenerator.wrapper
     scene_props = context.scene.MeasureItArchProps
 
     if not name:
@@ -424,13 +589,9 @@ def add_aligned_dimension_style(
     new_style.lineWeight = line_weight
     new_style.is_style = True
 
-    new_wrapper = wrapper.add()
-    new_wrapper.itemType = 'alignedDimensions'
-
     if not scene_props.default_dimension_style:
         scene_props.default_dimension_style = new_style.name
 
-    recalc_index(None, context)
     return new_style
 
 

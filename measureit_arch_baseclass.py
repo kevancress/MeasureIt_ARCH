@@ -1045,15 +1045,19 @@ class MovePropButton(Operator):
     genPath: StringProperty()
     item_type: StringProperty()
     upDown: IntProperty()  # 1 or -1 for direction
+    active_idx_path: StringProperty()
 
     def execute(self, context):
         # Add properties
 
         Generator = eval(self.genPath)
-        itemGroup = eval('Generator.' + self.item_type)
-        idx = Generator.active_index
+        itemGroup = getattr(Generator, self.item_type)
+        if self.active_idx_path == None or self.active_idx_path == "":
+            self.active_idx_path = 'active_idx'
+             
+        idx = getattr(Generator, self.active_idx_path)
         itemGroup.move(idx, idx + self.upDown)
-        Generator.active_index = idx + self.upDown
+        setattr(Generator , self.active_idx_path, idx + self.upDown)
 
         return {'FINISHED'}
 

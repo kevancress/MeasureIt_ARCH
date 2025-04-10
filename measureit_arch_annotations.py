@@ -304,10 +304,11 @@ class M_ARCH_UL_annotations_list(UIList):
             else:
                 visIcon = 'HIDE_ON'
 
-            if annotation.uses_style:
-                styleIcon = 'LINKED'
-            else:
-                styleIcon = 'UNLINKED'
+            if not annotation.is_style:
+                if annotation.uses_style:
+                    styleIcon = 'LINKED'
+                else:
+                    styleIcon = 'UNLINKED'
 
             subrow = row.row(align=True)
             if not annotation.uses_style:
@@ -320,12 +321,12 @@ class M_ARCH_UL_annotations_list(UIList):
                     text="", icon='COLOR')
                 row.separator()
 
-            if hasGen:
+            if hasGen and not annotation.is_style:
                 row = row.row(align=True)
                 row.prop(annotation, 'uses_style', text="",
                          toggle=True, icon=styleIcon, emboss=False)
 
-            row.prop(annotation, "visible", text="", icon=visIcon)
+            row.prop(annotation, "visible", text="", icon=visIcon,emboss=False)
 
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'

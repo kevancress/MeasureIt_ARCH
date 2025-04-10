@@ -80,7 +80,6 @@ bufferUniformKeysList = [
 
 AllLinesBatchs = {}
 HiddenLinesBatchs = {}
-scene_objlist = []
 
 offscreen_text_buffers = {}
 
@@ -4348,7 +4347,11 @@ class Dist_Sort(object):
     def __eq__(self,other):
         return self.dist == other.dist
 
-def check_obj_vis(myobj,custom_call):
+def check_obj_vis(obj_int,custom_call):
+    if type(obj_int) == bpy.types.Object:
+        myobj = obj_int
+    else:
+        myobj = bpy.data.objects[obj_int.object]
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps
 
@@ -4365,11 +4368,10 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
     """
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-    global scene_objlist
     clear_line_buffers()
+    debug_prints = False
 
-
-    if sceneProps.is_render_draw:
+    if sceneProps.is_render_draw or debug_prints:
         startTime = time.time()
 
     # Draw All Objects
@@ -4387,23 +4389,22 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
             objlist = [Inst_Sort(obj) for obj in deps.object_instances if not obj.is_instance]
         else:
             objlist = [Inst_Sort(obj) for obj in deps.object_instances]
-
-
-    scene_objlist = objlist
-    sceneProps.update_object_list = False            
+   
     
+    #cull invisible objects
+    objlist = [obj for obj in objlist if check_obj_vis(obj,custom_call)]
+
     # Sort all for vector draw
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
-    
-    
+
     num_instances = len(objlist)
     for idx,obj_int in enumerate(objlist , start=1):
         if type(obj_int) == bpy.types.Object:
             obj_int = Inst_Sort(obj_int)
         myobj = bpy.data.objects[obj_int.object]
 
-        if not check_obj_vis(myobj,custom_call): continue
+        
 
         mat = None
         inst_draw = False
@@ -4474,11 +4475,12 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
                 draw_areaDimension(context, myobj, DimGen, areaDim, mat, svg=svg, dxf=dxf)
 
     draw_all_lines(ext_mat=extMat)
-    objlist = None
-    if sceneProps.is_render_draw:
+
+    if sceneProps.is_render_draw or debug_prints:
         endTime = time.time()
-        print("Objects in Draw List: " + str(len(scene_objlist)))
+        print("Objects in Draw List: " + str(len(objlist)))
         print("Draw 3D Loop Time: " + str(endTime - startTime))
+    objlist = None
 
 def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):
     context =bpy.context
