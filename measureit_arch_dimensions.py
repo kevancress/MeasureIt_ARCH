@@ -23,7 +23,6 @@
 # Author: Antonio Vazquez (antonioya), Kevan Cress
 #
 # ----------------------------------------------------------
-from typing import List
 import bpy
 import bmesh
 import random
