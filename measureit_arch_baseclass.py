@@ -1053,7 +1053,7 @@ class MovePropButton(Operator):
         Generator = eval(self.genPath)
         itemGroup = getattr(Generator, self.item_type)
         if self.active_idx_path == None or self.active_idx_path == "":
-            self.active_idx_path = 'active_idx'
+            self.active_idx_path = 'active_index'
              
         idx = getattr(Generator, self.active_idx_path)
         itemGroup.move(idx, idx + self.upDown)

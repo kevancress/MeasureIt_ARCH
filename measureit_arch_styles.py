@@ -180,6 +180,12 @@ class SCENE_PT_UIDimStyles(Panel):
         col = row.column(align=True)
         op = col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
         op.styleType = 'alignedDimensions'
+
+        op = col.operator("measureit_arch.duplicatestylebutton", text="", icon="DUPLICATE")
+        op.item_type = 'alignedDimensions'
+        op.active_idx_path = 'active_dimension_index'
+
+
         op = col.operator(
             "measureit_arch.deletepropbutton", text="", icon="X")
         op.genPath = 'bpy.context.scene.StyleGenerator'
@@ -193,6 +199,7 @@ class SCENE_PT_UIDimStyles(Panel):
         up.active_idx_path = 'active_dimension_index'
         up.item_type = "alignedDimensions"
         up.upDown = -1
+        
 
         down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
         down.genPath = 'bpy.context.scene.StyleGenerator'
@@ -202,6 +209,8 @@ class SCENE_PT_UIDimStyles(Panel):
 
         col.separator()
         col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+
+
 
         # Settings Below List
         if (len(StyleGen.line_groups) > 0 and
@@ -257,6 +266,12 @@ class SCENE_PT_UILineStyles(Panel):
         col = row.column(align=True)
         op= col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
         op.styleType = 'line_groups'
+
+        op = col.operator("measureit_arch.duplicatestylebutton", text="", icon="DUPLICATE")
+        op.item_type = 'line_groups'
+        op.active_idx_path = 'active_linegroup_index'
+
+
         op = col.operator(
             "measureit_arch.deletepropbutton", text="", icon="X")
         op.genPath = 'bpy.context.scene.StyleGenerator'
@@ -279,6 +294,8 @@ class SCENE_PT_UILineStyles(Panel):
 
         col.separator()
         col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+
+
 
         # Settings Below List
         if (len(StyleGen.line_groups) > 0 and
@@ -334,6 +351,12 @@ class SCENE_PT_UIAnnoStyles(Panel):
         col = row.column(align=True)
         op = col.operator("measureit_arch.addstylebutton", icon='ADD', text="")
         op.styleType = 'annotations'
+
+        op = col.operator("measureit_arch.duplicatestylebutton", text="", icon="DUPLICATE")
+        op.item_type = 'annotations'
+        op.active_idx_path = 'active_annotation_index'
+
+
         op = col.operator(
             "measureit_arch.deletepropbutton", text="", icon="X")
         op.genPath = 'bpy.context.scene.StyleGenerator'
@@ -356,6 +379,8 @@ class SCENE_PT_UIAnnoStyles(Panel):
 
         col.separator()
         col.menu("SCENE_MT_styles_menu", icon='DOWNARROW_HLT', text="")
+
+        
 
         # Settings Below List
         if (len(StyleGen.annotations) > 0 and
@@ -393,8 +418,6 @@ class SCENE_MT_styles_menu(bpy.types.Menu):
         delOp.genPath = 'bpy.context.scene.StyleGenerator'
         delOp.is_style = True
 
-        op = layout.operator("measureit_arch.duplicatestylebutton", text="Duplicate Style", icon="DUPLICATE")
-
 
 class DuplicateStyleButton(Operator):
     bl_idname = "measureit_arch.duplicatestylebutton"
@@ -403,45 +426,35 @@ class DuplicateStyleButton(Operator):
     bl_category = 'MeasureitArch'
     bl_options = {'REGISTER'}
     tag: IntProperty()
+    item_type: StringProperty()
+    active_idx_path: StringProperty()
     
-
-    @classmethod
-    def poll(cls, context):
-        Generator = context.scene.StyleGenerator
-        try:
-            Generator.wrapper[Generator.active_index]
-        except:
-            return False
-        return True
-
     def execute(self, context):
         # Add properties
 
         StyleGen = context.scene.StyleGenerator
-        activeWrapper = StyleGen.wrapper[StyleGen.active_index]
-        #newView = Generator.views.add()
-        #newView.name = ActiveView.name + ' copy'
+        itemGroup = getattr(StyleGen, self.item_type)
+        idx = getattr(StyleGen, self.active_idx_path)
 
 
 
         item = None
         new_item = None
-        new_wrapper = StyleGen.wrapper.add()
 
-        if activeWrapper.itemType == 'line_groups':
-            item = StyleGen.line_groups[activeWrapper.itemIndex]
+        if self.item_type == 'line_groups':
+            item = StyleGen.line_groups[idx]
             new_item = StyleGen.line_groups.add()
-            new_wrapper.itemType = 'line_groups'
 
-        if activeWrapper.itemType == 'annotations':
-            item = StyleGen.annotations[activeWrapper.itemIndex]
+
+        if self.item_type == 'annotations':
+            item = StyleGen.annotations[idx]
             new_item = StyleGen.annotations.add()
-            new_wrapper.itemType = 'annotations'
 
-        if activeWrapper.itemType == 'alignedDimensions':
-            item = StyleGen.alignedDimensions[activeWrapper.itemIndex]
+
+        if self.item_type == 'alignedDimensions':
+            item = StyleGen.alignedDimensions[idx]
             new_item = StyleGen.alignedDimensions.add()
-            new_wrapper.itemType = 'alignedDimensions'
+
 
         # Get props to loop through
         k1 = BaseProp.__annotations__.keys()
@@ -457,7 +470,6 @@ class DuplicateStyleButton(Operator):
             except:
                 pass
         new_item.name = item.name + "_Copy"
-        recalc_index(None, context)
 
         return {'FINISHED'}
 
