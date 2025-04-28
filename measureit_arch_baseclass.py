@@ -401,6 +401,7 @@ class TextField(PropertyGroup):
                ('LOCAL_X', "Local X","",'TRACKING_CLEAR_FORWARDS',14),
                ('LOCAL_Y', "Local Y","",'TRACKING_CLEAR_FORWARDS',15),
                ('LOCAL_Z', "Local Z","",'TRACKING_CLEAR_FORWARDS',16),
+               ('FILE_PATH', "File Path", "", 'TEXT', 17),
                ('RNAPROP', "Custom Property", "", 'RNA', 99)),
         name="Text Source",
         default='RNAPROP',

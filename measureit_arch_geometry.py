@@ -321,10 +321,10 @@ def update_text(textobj, props, context, fields=[]):
                 textField.texture_updated = True
 
                 # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
-                if sceneProps.measureit_arch_debug_text:
-                    if not str('test') in bpy.data.images:
-                        bpy.data.images.new(str('test'), width, height)
-                    image = bpy.data.images[str('test')]
+                if sceneProps.measureit_arch_debug_text and text != "":
+                    if not str(text) in bpy.data.images:
+                        bpy.data.images.new(str(text), width, height)
+                    image = bpy.data.images[str(text)]
                     image.scale(width, height)
                     image.pixels = [v for v in texture_buffer]
                 
@@ -3161,6 +3161,10 @@ def set_text(textField, obj, style=None, item=None):
             textField.text = ''
             sceneProps = bpy.context.scene.MeasureItArchProps
             textField.text = textField.autoFillPrefix + sceneProps.project_address
+        
+        elif text_source == 'FILE_PATH':
+            textField.text = ''
+            textField.text = bpy.data.filepath
 
         # CUSTOM PROP
         elif text_source == 'RNAPROP':
@@ -3319,7 +3323,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
     if sceneProps.show_text_cards:
         coords = [card[0], card[1], card[1], card[2],
                   card[2], card[3], card[3], card[0]]
-        draw_lines(1.0, (0.0, 1.0, 0.0, 1.0), coords)
+        draw_lines(0.25, (0.0, 1.0, 0.0, 1.0), coords)
 
 
     # Gets Texture from Object

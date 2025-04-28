@@ -41,7 +41,7 @@ from bpy.props import (
     EnumProperty
 )
 
-from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index, StyleWrapper, recalc_index, BaseProp, BaseWithText, BaseDim
+from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index, recalc_index, BaseProp, BaseWithText, BaseDim
 from .measureit_arch_dimensions import AlignedDimensionProperties, \
     draw_alignedDimensions_settings
 from .measureit_arch_annotations import AnnotationProperties
@@ -53,21 +53,15 @@ def create_preset_styles(dummy):
     """ Handler called when a Blend file is loaded to create default styles. """
     context = bpy.context
 
-    has_dimension_styles = any(
-        style.itemType == 'alignedDimensions'
-        for style in context.scene.StyleGenerator.wrapper)
+    has_dimension_styles = any(style.itemType == 'alignedDimensions' for style in context.scene.StyleGenerator.alignedDimensions)
     if not has_dimension_styles:
         add_aligned_dimension_style(context)
 
-    has_annotation_styles = any(
-        style.itemType == 'annotations'
-        for style in context.scene.StyleGenerator.wrapper)
+    has_annotation_styles = any(style.itemType == 'annotations' for style in context.scene.StyleGenerator.annotations)
     if not has_annotation_styles:
         add_annotation_style(context)
 
-    has_line_group_styles = any(
-        style.itemType == 'line_groups'
-        for style in context.scene.StyleGenerator.wrapper)
+    has_line_group_styles = any( style.itemType == 'line_groups' for style in context.scene.StyleGenerator.line_groups)
     if not has_line_group_styles:
         add_line_group_style(context)
 
@@ -585,8 +579,7 @@ def add_line_group_style(context, name='', line_weight=1, line_depth_offset=1):
     return new_style
 
 
-def add_aligned_dimension_style(
-        context, name='', font_size=18, text_alignment='C', line_weight=0.25):
+def add_aligned_dimension_style(context, name='', font_size=18, text_alignment='C', line_weight=0.25):
     dimension_styles = context.scene.StyleGenerator.alignedDimensions
     scene_props = context.scene.MeasureItArchProps
 

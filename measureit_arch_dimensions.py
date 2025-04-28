@@ -529,7 +529,6 @@ class PerimeterEdge():
             print('No Shared Vert!!!')
             return-1
 
-
 # Sorts perimeter edges into a continuous loop
 def sort_perimeter_edges(perimeter_edges):
     sorted_list = []
@@ -555,6 +554,7 @@ def sort_perimeter_edges(perimeter_edges):
 
     return sorted_list
 
+
 def get_perimeter_verts(sorted_perimeter_edges):
     edges = sorted_perimeter_edges.copy()
     sorted_verts = []
@@ -577,9 +577,6 @@ def get_perimeter_verts(sorted_perimeter_edges):
     sorted_verts.append(first_vert)
 
     return sorted_verts
-
-
-
 
 
 class AddAreaButton(Operator):
@@ -1045,6 +1042,7 @@ class M_ARCH_UL_AlignedDimension_list(UIList):
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon='MESH_CUBE')
+
 
 class M_ARCH_UL_dimension_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):

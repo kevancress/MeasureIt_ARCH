@@ -88,6 +88,7 @@ def custom_shape_poll(self, collection):
     except:
         return collection
 
+
 class SecondaryLeader(PropertyGroup):
     anchor: PointerProperty(type = Object)
 
