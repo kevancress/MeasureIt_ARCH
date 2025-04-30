@@ -510,6 +510,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     idx = 0
     for line in lines:
         offset_line_position = offset_text_position + Vector((0,line_height*1.1 * idx))
+        style_str = '-inkscape-font-specification:\'{family}, {weight}\'; font-family:{family};font-weight:{weight_lc};'.format(family=font_family,weight=font_weight_str, weight_lc = font_weight_str.lower())
         svg.add(svg.text(line, insert=tuple(offset_line_position), fill=svgColor, **{
             #'transform-origin': '{}px {}px'.format(offset_text_position[0], offset_text_position[1]),
             'transform': 'rotate({} {} {})'.format(
@@ -522,6 +523,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
             'font-weight': font_weight_str,
             'text-anchor': text_anchor,
             'text-align': text_anchor,
+            'style': style_str,
             'xml:space' : "preserve"
         }))
 
