@@ -473,12 +473,18 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
     # Try to get font
     font_family = "Open Sans"
+    font_weight_str = "Regular"
     if style.font != None:
         font_file = style.font.filepath
         font_file = bpy.path.abspath(font_file)
         try:
             tt = ttLib.TTFont(font_file, verbose=1)
-            font_family = shortName(tt)[0]
+            name_table = tt['name']
+            for record in name_table.names:
+                if record.nameID == 1: #font family
+                    font_family = record.toUnicode() 
+                elif record.nameID == 2: # font subfamily w weight
+                    font_weight_str = record.toUnicode()
         except Exception as e:
             font_family = style.font.name
             print(e)
@@ -513,6 +519,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
             ),
             'font-size': '{}px'.format(pts_to_px(style.fontSize)),
             'font-family':  font_family,
+            'font-weight': font_weight_str,
             'text-anchor': text_anchor,
             'text-align': text_anchor,
             'xml:space' : "preserve"

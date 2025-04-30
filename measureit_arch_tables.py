@@ -210,8 +210,6 @@ class M_ARCH_UL_Tables_List(UIList):
             layout.label(text="", icon='MESH_CUBE')
 
             
-
-
 class OBJECT_PT_Tables(Panel):
     """ A panel in the Scene properties window """
     bl_parent_id = 'OBJECT_PT_Panel'
