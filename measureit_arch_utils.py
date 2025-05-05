@@ -128,8 +128,6 @@ class recursionlimit:
     def __exit__(self, type, value, tb):
         setrecursionlimit(self.old_limit)
 
-
-
 def rgb_gamma_correct(rawRGB):
     return Vector((
         pow(rawRGB[0], (1 / 2.2)),
@@ -224,7 +222,7 @@ def get_projection_matrix():
 
     if sceneProps.is_render_draw:
         deps = bpy.context.evaluated_depsgraph_get()
-        modelview_matrix = camera.matrix_world.inverted()
+        modelview_matrix = camera.matrggix_world.inverted()
         projection_matrix = camera.calc_matrix_camera(
             deps,
             x=render.resolution_x,
@@ -280,9 +278,6 @@ class Inst_Sort(object):
                 else:
                     self.parent = obj.parent.name
 
-
-
-
 def get_view():
     scene = bpy.context.scene
     ViewGen = scene.ViewGenerator
@@ -300,7 +295,6 @@ def get_view():
         except AttributeError:
             print('Could not create view in get_view()')
     return view
-
 
 def get_view_outpath(scene, view, suffix, relative = False):
     # Reset default outpath for older files

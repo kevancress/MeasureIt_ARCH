@@ -24,13 +24,18 @@
 #
 # ----------------------------------------------------------
 import bpy
+import blf
 import time
+import math
+import gpu
 
 from bpy.types import Panel, Operator, SpaceView3D
 from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
 
-from .measureit_arch_geometry import clear_batches, update_text, draw3d_loop, preview_dual, check_obj_vis
+from fontTools import ttLib
+
+from .measureit_arch_geometry import clear_batches, draw3d_loop, preview_dual, check_obj_vis
 from .measureit_arch_utils import get_view, get_rv3d, get_scale, has_measureit_props
 from .gitcommit import prev_commit,date
 
@@ -389,247 +394,96 @@ class ShowHideViewportButton(Operator):
 def draw_main(context):
     """ Handle all 2D draw routines (Text Updating mostly) """
 
-    region = bpy.context.region
-    # Detect if Quadview to get drawing area
-    if context.space_data.region_quadviews:
-        # verify area
-        if context.area.type != 'VIEW_3D' or context.space_data.type != 'VIEW_3D':
-            return
-        i = -1
-        for region in context.area.regions:
-            if region.type == 'WINDOW':
-                i += 1
-                if context.region.id == region.id:
-                    break
-        else:
-            return
-
-    scene = bpy.context.scene
-    sceneProps = scene.MeasureItArchProps
-
-    # Display selected or all
-    if not sceneProps.show_all:
-        objlist = context.selected_objects
-    else:
-        objlist = context.view_layer.objects
-
-    # cull objects without measureit Props
-    objlist = [obj for obj in objlist if has_measureit_props(obj)] 
-
-    # ---------------------------------------
-    # Generate all Draw calls for measures
-    # ---------------------------------------
-    
-    text_update_loop(context, objlist)
+    for font in bpy.data.fonts:
+        draw_font_atlas(font,context)
+    ### Draw font Atlas's if updates are needed.
 
 
-    view = get_view()
-    if view is not None and view.titleBlock != "" and not sceneProps.hide_titleblock:
-        titleblockScene = bpy.data.scenes[view.titleBlock]
-        objlist = titleblockScene.objects
-        text_update_loop(context, objlist, force_update=True, custom_call = True)
-
-    # Reset Style & Scene Update Flags
-    StyleGen = context.scene.StyleGenerator
-    dimStyles = StyleGen.alignedDimensions
-    annoStyles = StyleGen.annotations
-    for style in annoStyles:
-        style.text_updated = False
-    for style in dimStyles:
-        style.text_updated = False
-
-    sceneProps = scene.MeasureItArchProps
-    sceneProps.text_updated = False
-
-
-def text_update_loop(context, objlist, force_update = False, custom_call = False):
+def draw_font_atlas(font, context):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
-    if sceneProps.skip_text:
+    resolution = 300
+
+    # Get Font Id
+    badfonts = [None]
+    if 'Bfont Regular' in bpy.data.fonts or 'Bfont' in bpy.data.fonts:
+        try:
+            badfonts.append(bpy.data.fonts['Bfont Regular'])
+            badfonts.append(bpy.data.fonts['Bfont'])
+        except KeyError:
+            pass
+    if font not in badfonts:
+        fontPath = font.filepath
+        fontPath = bpy.path.abspath(fontPath)
+        font_id = blf.load(fontPath)
+    else:
+        font_id = 0
+
+    # Set BLF font Properties
+    blf.color(font_id, 1.0,1.0,1.0,1.0)
+    blf.size(font_id,  12.0 * resolution/72.0)
+
+    font_file = bpy.path.abspath(font.filepath)
+    tt = None
+    try:
+        tt = ttLib.TTFont(font_file, verbose=1)
+    except Exception as e:
+        print('Problem loading font!')
         return
+    
+    glyphs = ''
+    for key, value in tt['cmap'].getBestCmap().items():
+        print(chr(key))
+        glyphs += chr(key)
+    
 
-    if sceneProps.is_render_draw:
-        startTime = time.time()
-    scene = bpy.context.scene
-    sceneProps = scene.MeasureItArchProps
-    for myobj in objlist:
-        if check_obj_vis(myobj,custom_call):
-            if 'DimensionGenerator' in myobj:
-                DimGen = myobj.DimensionGenerator
-                for alignedDim in DimGen.alignedDimensions:
-
-                    alignedDimProps = alignedDim
-                    if alignedDim.uses_style:
-                        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if alignedDimStyle.name == alignedDim.style:
-                                alignedDimProps = alignedDimStyle
-
-                    update_text(textobj=alignedDim,
-                                props=alignedDimProps, context=context, force_update=force_update)
-
-                for angleDim in DimGen.angleDimensions:
-                    dimProps = angleDim
-                    if angleDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if dimStyle.name == angleDim.style:
-                                dimProps = dimStyle
-                    update_text(textobj=angleDim,
-                                props=dimProps, context=context, force_update=force_update)
-
-                for axisDim in DimGen.axisDimensions:
-                    dimProps = axisDim
-                    if axisDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if dimStyle.name == axisDim.style:
-                                dimProps = dimStyle
-                    update_text(textobj=axisDim,
-                                props=dimProps, context=context, force_update=force_update)
-
-                for boundsDim in DimGen.boundsDimensions:
-                    dimProps = boundsDim
-                    if boundsDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if dimStyle.name == boundsDim.style:
-                                dimProps = dimStyle
-                    update_text(textobj=boundsDim,
-                                props=dimProps, context=context, force_update=force_update)
-
-                for arcDim in DimGen.arcDimensions:
-                    dimProps = arcDim
-                    if arcDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if dimStyle.name == arcDim.style:
-                                dimProps = dimStyle
-                    update_text(textobj=arcDim, props=dimProps, context=context, force_update=force_update)
-
-                for areaDim in DimGen.areaDimensions:
-                    dimProps = areaDim
-                    if areaDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if dimStyle.name == areaDim.style:
-                                dimProps = dimStyle
-                    update_text(textobj=areaDim,
-                                props=dimProps, context=context, force_update=force_update)
-
-            if 'AnnotationGenerator' in myobj:
-                annotationGen = myobj.AnnotationGenerator
-                for annotation in annotationGen.annotations:
-                    annotationProps = annotation
-                    if annotation.uses_style:
-                        for annotationStyle in context.scene.StyleGenerator.annotations:
-                            if annotationStyle.name == annotation.style:
-                                annotationProps = annotationStyle
-
-                    fields = []
-                    notesFlag = False
-                    for textField in annotation.textFields:
-                        fields.append(textField)
-                        if textField.autoFillText and textField.textSource == 'NOTES':
-                            notesFlag = True
-
-                    if notesFlag:
-                        view = get_view()
-                        for textField in view.textFields:
-                            fields.append(textField)
-
-                    update_text(textobj=annotation, props=annotationProps, context=context, fields=fields, force_update=force_update)
-
-            if 'TableGenerator' in myobj:
-                tableGen = myobj.TableGenerator
-                for table in tableGen.tables:
-                    fields = []
-                    for row in table.rows:
-                        fields.extend(row.textFields)
-                    update_text(textobj=table, props=table, context=context, fields=fields, force_update=force_update)
-
-            if 'BarScaleGenerator' in myobj:
-                BarScaleGen = myobj.BarScaleGenerator
-                for barscale in BarScaleGen.barScales:
-                    update_text(textobj=barscale, props=barscale, context=context, force_update=force_update)
-
-    #Draw Instances
-    deps = bpy.context.view_layer.depsgraph
-    for obj_int in deps.object_instances:
-        if obj_int.is_instance:
-            myobj = obj_int.object
-
-            annotationGen = myobj.AnnotationGenerator
-            for annotation in annotationGen.annotations:
-                annotationProps = annotation
-                if annotation.uses_style:
-                    for annotationStyle in context.scene.StyleGenerator.annotations:
-                        if annotationStyle.name == annotation.style:
-                            annotationProps = annotationStyle
-
-                fields = []
-                notesFlag = False
-                for textField in annotation.textFields:
-                    fields.append(textField)
-                    if textField.autoFillText and textField.textSource == 'NOTES':
-                        notesFlag = True
-
-                if notesFlag:
-                    view = get_view()
-                    for textField in view.textFields:
-                        fields.append(textField)
-
-                update_text(
-                    textobj=annotation, props=annotationProps,
-                    context=context, fields=fields, force_update=force_update)
+    text = glyphs
 
 
-            if sceneProps.instance_dims:
-                DimGen = myobj.DimensionGenerator
-                for alignedDim in DimGen.alignedDimensions:
+    # Calculate Optimal Dimensions for Text Texture.
 
-                    alignedDimProps = alignedDim
-                    if alignedDim.uses_style:
-                        for alignedDimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if alignedDimStyle.name == alignedDim.style:
-                                alignedDimProps = alignedDimStyle
+    fheight = blf.dimensions(font_id, 'Tpg')[1] *1.2
+    fwidth = blf.dimensions(font_id, text)[0]
 
-                    update_text(textobj=alignedDim,
-                                props=alignedDimProps, context=context,force_update=force_update)
+    width = math.ceil(fwidth)
+    height = math.ceil(fheight)
 
-                for angleDim in DimGen.angleDimensions:
-                    dimProps = angleDim
-                    if angleDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if dimStyle.name == angleDim.style:
-                                dimProps = dimStyle
-                    update_text(textobj=angleDim,
-                                props=dimProps, context=context, force_update=force_update)
 
-                for axisDim in DimGen.axisDimensions:
-                    dimProps = axisDim
-                    if axisDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if dimStyle.name == axisDim.style:
-                                dimProps = dimStyle
-                    update_text(textobj=axisDim,
-                                props=dimProps, context=context, force_update=force_update)
+    # Start Offscreen Draw
+    if width != 0 and height != 0:
+        textOffscreen = gpu.types.GPUOffScreen(width, height)
 
-                for boundsDim in DimGen.boundsDimensions:
-                    dimProps = boundsDim
-                    if boundsDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if dimStyle.name == boundsDim.style:
-                                dimProps = dimStyle
-                    update_text(textobj=boundsDim,
-                                props=dimProps, context=context, force_update=force_update)
+        with textOffscreen.bind():
+            fb = gpu.state.active_framebuffer_get()
+            fb.clear(color=(0.0, 0.0, 0.0, 0.0))
 
-                for arcDim in DimGen.arcDimensions:
-                    dimProps = arcDim
-                    if arcDim.uses_style:
-                        for dimStyle in context.scene.StyleGenerator.alignedDimensions:
-                            if dimStyle.name == arcDim.style:
-                                dimProps = dimStyle
-                    update_text(textobj=arcDim, props=dimProps,
-                                context=context, force_update=force_update)
+            view_matrix = Matrix([
+                [2 / width, 0, 0, -1],
+                [0, 2 / height, 0, -1],
+                [0, 0, 1, 0],
+                [0, 0, 0, 1]])
 
-    if sceneProps.is_render_draw:
-        endTime = time.time()
-        print("Text Update Loop Time: " + str(endTime - startTime))
+            gpu.matrix.reset()
+            gpu.matrix.load_matrix(view_matrix)
+            gpu.matrix.load_projection_matrix(Matrix.Identity(4))
+
+            blf.position(font_id, 0, 0, 0)
+            blf.draw(font_id, text)
+
+        # Write Texture Buffer to ID Property as List
+        texture_buffer =  fb.read_color(0, 0, width, height, 4, 0, 'FLOAT')
+        texture_buffer.dimensions = width*height*4
+
+        # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
+        if sceneProps.measureit_arch_debug_text and text != "":
+            if not 'atlas_debug' in bpy.data.images:
+                bpy.data.images.new('atlas_debug', width, height)
+            image = bpy.data.images['atlas_debug']
+            image.scale(width, height)
+            image.pixels = [v for v in texture_buffer]
+        
+        del texture_buffer
+        textOffscreen.free()
 
 
 
@@ -716,9 +570,6 @@ def draw_viewport(context, viewport=None, svg=None, dxf = None):
     extMat = anchorObjMat @ transMat @ scaleMat @ viewportMat
     sceneProps.source_scene = viewportScene
 
-    if sceneProps.is_vector_draw:
-        text_update_loop(context, objlist)
-
     draw3d_loop(context, objlist, extMat=extMat, svg=svg, dxf = dxf, multMat=True, custom_call=True)
 
     # Return Source scene to the current scene
@@ -771,8 +622,6 @@ def draw_titleblock(context, svg=None, dxf = None):
 
         extMat = cameraMat  @ transMat @ scaleMat
         sceneProps.source_scene = titleblockScene
-        if sceneProps.is_render_draw and sceneProps.is_vector_draw:
-            text_update_loop(context, objlist)
         draw3d_loop(context, objlist, extMat=extMat, svg=svg, dxf = dxf, multMat=True, custom_call=True)
         sceneProps.source_scene = context.scene
 

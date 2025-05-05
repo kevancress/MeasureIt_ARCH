@@ -40,7 +40,7 @@ from datetime import datetime
 from . import svg_shaders
 from . import vector_utils
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
-from .measureit_arch_main import draw_main, draw_titleblock, text_update_loop,draw_viewport
+from .measureit_arch_main import draw_main, draw_titleblock, draw_viewport
 from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render, load_shader_str, get_projection_matrix, get_view_outpath, Inst_Sort
 from .measureit_arch_units import BU_TO_INCHES
 
@@ -305,7 +305,6 @@ def render_main(self, context):
         projection_matrix = scene.camera.calc_matrix_camera(
             context.view_layer.depsgraph, x=width, y=height)
 
-        text_update_loop(context, objlist)
         with OpenGL_Settings(None):
             with renderoffscreen.bind():
 
@@ -662,7 +661,6 @@ def render_main_svg(self, context):
         # Loop to draw all objects
         # -----------------------------
         with OpenGL_Settings(None):
-            text_update_loop(context, objlist)
             drawing_group = svg.g(id="Drawing")
             draw3d_loop(context, objlist, svg=svg)
             svg.add(drawing_group)
