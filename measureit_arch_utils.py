@@ -65,6 +65,25 @@ _cad_col_dict = {
 }
 
 
+
+def has_measureit_props(obj_int):
+    if type(obj_int) == bpy.types.Object:
+        myobj = obj_int
+    else:
+        myobj = bpy.data.objects[obj_int.object]
+
+    if len(myobj.DimensionGenerator.wrapper) > 0:
+        return True
+    if len(myobj.LineGenerator.line_groups) > 0:
+        return True
+    if len(myobj.AnnotationGenerator.annotations) > 0:
+        return True
+    if len(myobj.TableGenerator.tables) > 0:
+        return True
+    if len(myobj.BarScaleGenerator.barScales) > 0:
+        return True
+    return False
+
 def load_shader_str(file, directory = ""):
     path = os.path.dirname(os.path.abspath(__file__))
     shader_path = os.path.join(path,"glsl")

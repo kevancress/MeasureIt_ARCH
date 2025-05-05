@@ -31,7 +31,7 @@ from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
 
 from .measureit_arch_geometry import clear_batches, update_text, draw3d_loop, preview_dual, check_obj_vis
-from .measureit_arch_utils import get_view, get_rv3d, get_scale
+from .measureit_arch_utils import get_view, get_rv3d, get_scale, has_measureit_props
 from .gitcommit import prev_commit,date
 
 
@@ -413,10 +413,15 @@ def draw_main(context):
     else:
         objlist = context.view_layer.objects
 
+    # cull objects without measureit Props
+    objlist = [obj for obj in objlist if has_measureit_props(obj)] 
+
     # ---------------------------------------
     # Generate all Draw calls for measures
     # ---------------------------------------
+    
     text_update_loop(context, objlist)
+
 
     view = get_view()
     if view is not None and view.titleBlock != "" and not sceneProps.hide_titleblock:

@@ -49,7 +49,7 @@ from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, pts_to_px, recursionlimit,\
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
-    load_shader_str, get_projection_matrix, rgb_gamma_correct, Inst_Sort
+    load_shader_str, get_projection_matrix, rgb_gamma_correct, Inst_Sort, has_measureit_props
 
 from .vector_utils import get_axis_aligned_bounds
 
@@ -4484,7 +4484,6 @@ def check_obj_vis(obj_int,custom_call):
         return custom_call or not myobj.hide_render
 
 
-
 def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMat=False, custom_call=False):
     """
     Generate all OpenGL calls
@@ -4509,13 +4508,16 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
         objlist = [Inst_Sort(obj) for obj in objlist]
     else:
         if skip_inst:
-            objlist = [Inst_Sort(obj) for obj in deps.object_instances if not obj.is_instance]
+            objlist = [Inst_Sort(obj) for obj in context.view_layer.objects]
         else:
             objlist = [Inst_Sort(obj) for obj in deps.object_instances]
    
     
-    #cull invisible objects
-    objlist = [obj for obj in objlist if check_obj_vis(obj,custom_call)]
+
+    #objlist = [obj for obj in objlist if check_obj_vis(obj,custom_call)] #for some reason this call is incredibly slow, faster to leave it out
+ 
+    #cull objs with no measureit_arch_items
+    objlist = [obj for obj in objlist if has_measureit_props(obj)] 
 
     # Sort all for vector draw
     if sceneProps.is_vector_draw:
@@ -4601,12 +4603,15 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
             for areaDim in DimGen.areaDimensions:
                 draw_areaDimension(context, myobj, DimGen, areaDim, mat, svg=svg, dxf=dxf)
 
+
+        end = time.time()
+    
     draw_all_lines(ext_mat=extMat)
 
     if sceneProps.is_render_draw or debug_prints:
         endTime = time.time()
         print("Objects in Draw List: " + str(len(objlist)))
-        print("Draw 3D Loop Time: " + str(endTime - startTime))
+        print("Draw 3D Loop Time: " + str((endTime - startTime)* 1000) )
     objlist = None
 
 def setup_dim_text(myobj,dim,dimProps,dist,origin,distVector,offsetDistance, is_area=False):
