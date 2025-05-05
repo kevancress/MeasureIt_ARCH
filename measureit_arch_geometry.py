@@ -217,7 +217,7 @@ def clear_batches():
     HiddenLinesBatch = None
 
 
-def update_text(textobj, props, context, fields=[]):
+def update_text(textobj, props, context, fields=[], force_update = False):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
 
@@ -228,7 +228,7 @@ def update_text(textobj, props, context, fields=[]):
     textField_idx = -1
     for textField in textFields:
         textField_idx += 1
-        if textobj.text_updated or props.text_updated or sceneProps.is_render_draw:
+        if textobj.text_updated or props.text_updated or sceneProps.is_render_draw or force_update:
             textField.text_updated = True
 
         if textField.text_updated or sceneProps.text_updated:
@@ -4071,6 +4071,125 @@ def clear_line_buffers():
 
     pass
 
+def draw_barScale(context, myobj, BarScaleGen, mat, svg=None, dxf=None):
+    view = get_view()
+    scale = get_scale()
+    scene = context.scene
+    sceneProps = scene.MeasureItArchProps
+
+    for barScale in BarScaleGen.barScales:
+        coords = []
+        current_height = 0
+        coords.append(Vector((0,current_height,0)))
+        current_height = barScale.height
+        coords.append(Vector((0,current_height,0)))
+
+        coords.append(Vector((0,current_height,0)))
+        coords.append(Vector((barScale.first_increment,current_height,0)))
+
+        coords.append(Vector((barScale.first_increment,current_height,0)))
+        current_height = 0
+        coords.append(Vector((barScale.first_increment,current_height,0)))
+
+        coords.append(Vector((barScale.first_increment,current_height,0)))
+        coords.append(Vector((barScale.second_increment,current_height,0)))
+
+        coords.append(Vector((barScale.second_increment,current_height,0)))
+        current_height = barScale.height
+        coords.append(Vector((barScale.second_increment,current_height,0)))
+        last_pos = barScale.second_increment
+
+        if barScale.third_increment != -1:
+            coords.append(Vector((barScale.second_increment,current_height,0)))
+            coords.append(Vector((barScale.third_increment,current_height,0)))
+
+            coords.append(Vector((barScale.third_increment,current_height,0)))
+            current_height = 0
+            coords.append(Vector((barScale.third_increment,current_height,0)))
+            last_pos = barScale.third_increment
+        
+        coords.append(Vector((last_pos,current_height,0)))
+        coords.append(Vector((barScale.final_increment,current_height,0)))
+
+        coords.append(Vector((barScale.final_increment,current_height,0)))
+        if current_height != 0:
+            current_height = 0
+        else:
+            current_height = barScale.height
+        coords.append(Vector((barScale.final_increment,current_height,0)))
+
+        ## Text
+        i = myobj.matrix_world@Vector((1,0,0)) - myobj.location
+        j = myobj.matrix_world@Vector((0,1,0)) - myobj.location
+        # Increment 1
+        try:
+            tf = barScale.textFields[0]
+        except IndexError:
+            barScale.textFields.add()
+            tf = barScale.textFields[0]
+
+        tf.text = '0'
+        tf.textAlignment = 'C'
+        tf.textPosition = 'B'
+        tf['textcard'] = generate_text_card(context, tf, barScale, basePoint=mat @ myobj.matrix_world@Vector((0,0,0)), xDir=i, yDir=j)
+        if sceneProps.show_dim_text:
+            draw_text_3D(context, tf, barScale, myobj)
+
+        try:
+            tf = barScale.textFields[1]
+        except IndexError:
+            barScale.textFields.add()
+            tf = barScale.textFields[1]
+
+        # Increment 1
+        tf.text = str(barScale.first_increment)
+        tf.textAlignment = 'C'
+        tf.textPosition = 'B'
+        tf['textcard'] = generate_text_card(context, tf, barScale, basePoint=mat @myobj.matrix_world@Vector((barScale.first_increment,0,0)), xDir=i, yDir=j)
+        if sceneProps.show_dim_text:
+            draw_text_3D(context, tf, barScale, myobj)
+
+        
+        try:
+            tf = barScale.textFields[2]
+        except IndexError:
+            barScale.textFields.add()
+            tf = barScale.textFields[2]
+
+        # Increment 1
+        tf.text = str(barScale.second_increment)
+        tf.textAlignment = 'C'
+        tf.textPosition = 'B'
+        tf['textcard'] = generate_text_card(context, tf, barScale, basePoint=mat @ myobj.matrix_world@Vector((barScale.second_increment,0,0)), xDir=i, yDir=j)
+        if sceneProps.show_dim_text:
+            draw_text_3D(context, tf, barScale, myobj)
+
+        
+        try:
+            tf = barScale.textFields[3]
+        except IndexError:
+            barScale.textFields.add()
+            tf = barScale.textFields[3]
+
+        # Increment 1
+        tf.text = str(barScale.final_increment)
+        tf.textAlignment = 'C'
+        tf.textPosition = 'B'
+        tf['textcard'] = generate_text_card(context, tf, barScale, basePoint=mat @myobj.matrix_world@Vector((barScale.final_increment,0,0)), xDir=i, yDir=j)
+        if sceneProps.show_dim_text:
+            draw_text_3D(context, tf, barScale, myobj)
+
+        draw_lines(barScale.lineWeight, barScale.color,coords,  pointPass= True, obj = myobj, mat=mat @ myobj.matrix_world)
+        draw_points(barScale.lineWeight, barScale.color,coords, mat=mat @ myobj.matrix_world)
+
+        if sceneProps.is_vector_draw:
+            svg_barscale = svg.add(svg.g(id=barScale.name))
+            svg_shaders.svg_line_shader(
+                barScale, barScale, coords, barScale.lineWeight, barScale.color, svg, parent=svg_barscale)
+    
+    pass
+
+
 def draw_all_lines(ext_mat = None):
     context = bpy.context
     scene = context.scene
@@ -4450,6 +4569,10 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
         if 'TableGenerator' in myobj:
             tableGen = myobj.TableGenerator
             draw_table(context, myobj, tableGen, mat, svg=svg, dxf=dxf)
+
+        if 'BarScaleGenerator' in myobj:
+            BarScaleGen = myobj.BarScaleGenerator
+            draw_barScale(context, myobj, BarScaleGen, mat, svg=svg, dxf=dxf)
 
 
         if 'DimensionGenerator' in myobj:

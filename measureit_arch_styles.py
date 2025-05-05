@@ -41,7 +41,7 @@ from bpy.props import (
     EnumProperty
 )
 
-from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index, recalc_index, BaseProp, BaseWithText, BaseDim
+from .measureit_arch_baseclass import DeletePropButton, recalc_dimWrapper_index, BaseProp, BaseWithText, BaseDim
 from .measureit_arch_dimensions import AlignedDimensionProperties, \
     draw_alignedDimensions_settings
 from .measureit_arch_annotations import AnnotationProperties
@@ -498,10 +498,7 @@ class ListDeletePropButton(Operator):
         DeletePropButton.is_style = self.is_style
         DeletePropButton.execute(self, context)
 
-        if self.is_style:
-            recalc_index(self, context)
-        else:
-            recalc_dimWrapper_index(self, context)
+        recalc_dimWrapper_index(self, context)
 
         return {'FINISHED'}
 

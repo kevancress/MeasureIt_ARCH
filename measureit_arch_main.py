@@ -240,6 +240,8 @@ class MEASUREIT_PT_main_panel(Panel):
         col = box.column(align=True)
         col.operator("measureit_arch.addtablebutton",
                      text="Table", icon="SPREADSHEET")
+        col.operator("measureit_arch.addbarscalebutton",
+                     text="Bar Scale", icon="SNAP_INCREMENT")
 
 
 
@@ -420,7 +422,7 @@ def draw_main(context):
     if view is not None and view.titleBlock != "" and not sceneProps.hide_titleblock:
         titleblockScene = bpy.data.scenes[view.titleBlock]
         objlist = titleblockScene.objects
-        text_update_loop(context, objlist)
+        text_update_loop(context, objlist, force_update=True, custom_call = True)
 
     # Reset Style & Scene Update Flags
     StyleGen = context.scene.StyleGenerator
@@ -435,7 +437,7 @@ def draw_main(context):
     sceneProps.text_updated = False
 
 
-def text_update_loop(context, objlist):
+def text_update_loop(context, objlist, force_update = False, custom_call = False):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     if sceneProps.skip_text:
@@ -446,7 +448,7 @@ def text_update_loop(context, objlist):
     scene = bpy.context.scene
     sceneProps = scene.MeasureItArchProps
     for myobj in objlist:
-        if check_obj_vis(myobj,False):
+        if check_obj_vis(myobj,custom_call):
             if 'DimensionGenerator' in myobj:
                 DimGen = myobj.DimensionGenerator
                 for alignedDim in DimGen.alignedDimensions:
@@ -458,7 +460,7 @@ def text_update_loop(context, objlist):
                                 alignedDimProps = alignedDimStyle
 
                     update_text(textobj=alignedDim,
-                                props=alignedDimProps, context=context)
+                                props=alignedDimProps, context=context, force_update=force_update)
 
                 for angleDim in DimGen.angleDimensions:
                     dimProps = angleDim
@@ -467,7 +469,7 @@ def text_update_loop(context, objlist):
                             if dimStyle.name == angleDim.style:
                                 dimProps = dimStyle
                     update_text(textobj=angleDim,
-                                props=dimProps, context=context)
+                                props=dimProps, context=context, force_update=force_update)
 
                 for axisDim in DimGen.axisDimensions:
                     dimProps = axisDim
@@ -476,7 +478,7 @@ def text_update_loop(context, objlist):
                             if dimStyle.name == axisDim.style:
                                 dimProps = dimStyle
                     update_text(textobj=axisDim,
-                                props=dimProps, context=context)
+                                props=dimProps, context=context, force_update=force_update)
 
                 for boundsDim in DimGen.boundsDimensions:
                     dimProps = boundsDim
@@ -485,7 +487,7 @@ def text_update_loop(context, objlist):
                             if dimStyle.name == boundsDim.style:
                                 dimProps = dimStyle
                     update_text(textobj=boundsDim,
-                                props=dimProps, context=context)
+                                props=dimProps, context=context, force_update=force_update)
 
                 for arcDim in DimGen.arcDimensions:
                     dimProps = arcDim
@@ -493,7 +495,7 @@ def text_update_loop(context, objlist):
                         for dimStyle in context.scene.StyleGenerator.alignedDimensions:
                             if dimStyle.name == arcDim.style:
                                 dimProps = dimStyle
-                    update_text(textobj=arcDim, props=dimProps, context=context)
+                    update_text(textobj=arcDim, props=dimProps, context=context, force_update=force_update)
 
                 for areaDim in DimGen.areaDimensions:
                     dimProps = areaDim
@@ -502,7 +504,7 @@ def text_update_loop(context, objlist):
                             if dimStyle.name == areaDim.style:
                                 dimProps = dimStyle
                     update_text(textobj=areaDim,
-                                props=dimProps, context=context)
+                                props=dimProps, context=context, force_update=force_update)
 
             if 'AnnotationGenerator' in myobj:
                 annotationGen = myobj.AnnotationGenerator
@@ -525,7 +527,7 @@ def text_update_loop(context, objlist):
                         for textField in view.textFields:
                             fields.append(textField)
 
-                    update_text(textobj=annotation, props=annotationProps, context=context, fields=fields)
+                    update_text(textobj=annotation, props=annotationProps, context=context, fields=fields, force_update=force_update)
 
             if 'TableGenerator' in myobj:
                 tableGen = myobj.TableGenerator
@@ -533,10 +535,14 @@ def text_update_loop(context, objlist):
                     fields = []
                     for row in table.rows:
                         fields.extend(row.textFields)
-                    update_text(textobj=table, props=table, context=context, fields=fields)
-                # Draw Instanced Objects
+                    update_text(textobj=table, props=table, context=context, fields=fields, force_update=force_update)
 
+            if 'BarScaleGenerator' in myobj:
+                BarScaleGen = myobj.BarScaleGenerator
+                for barscale in BarScaleGen.barScales:
+                    update_text(textobj=barscale, props=barscale, context=context, force_update=force_update)
 
+    #Draw Instances
     deps = bpy.context.view_layer.depsgraph
     for obj_int in deps.object_instances:
         if obj_int.is_instance:
@@ -564,11 +570,10 @@ def text_update_loop(context, objlist):
 
                 update_text(
                     textobj=annotation, props=annotationProps,
-                    context=context, fields=fields)
+                    context=context, fields=fields, force_update=force_update)
 
 
             if sceneProps.instance_dims:
-
                 DimGen = myobj.DimensionGenerator
                 for alignedDim in DimGen.alignedDimensions:
 
@@ -579,7 +584,7 @@ def text_update_loop(context, objlist):
                                 alignedDimProps = alignedDimStyle
 
                     update_text(textobj=alignedDim,
-                                props=alignedDimProps, context=context)
+                                props=alignedDimProps, context=context,force_update=force_update)
 
                 for angleDim in DimGen.angleDimensions:
                     dimProps = angleDim
@@ -588,7 +593,7 @@ def text_update_loop(context, objlist):
                             if dimStyle.name == angleDim.style:
                                 dimProps = dimStyle
                     update_text(textobj=angleDim,
-                                props=dimProps, context=context)
+                                props=dimProps, context=context, force_update=force_update)
 
                 for axisDim in DimGen.axisDimensions:
                     dimProps = axisDim
@@ -597,7 +602,7 @@ def text_update_loop(context, objlist):
                             if dimStyle.name == axisDim.style:
                                 dimProps = dimStyle
                     update_text(textobj=axisDim,
-                                props=dimProps, context=context)
+                                props=dimProps, context=context, force_update=force_update)
 
                 for boundsDim in DimGen.boundsDimensions:
                     dimProps = boundsDim
@@ -606,7 +611,7 @@ def text_update_loop(context, objlist):
                             if dimStyle.name == boundsDim.style:
                                 dimProps = dimStyle
                     update_text(textobj=boundsDim,
-                                props=dimProps, context=context)
+                                props=dimProps, context=context, force_update=force_update)
 
                 for arcDim in DimGen.arcDimensions:
                     dimProps = arcDim
@@ -615,7 +620,7 @@ def text_update_loop(context, objlist):
                             if dimStyle.name == arcDim.style:
                                 dimProps = dimStyle
                     update_text(textobj=arcDim, props=dimProps,
-                                context=context)
+                                context=context, force_update=force_update)
 
     if sceneProps.is_render_draw:
         endTime = time.time()

@@ -10,67 +10,6 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
 from .measureit_arch_units import BU_TO_INCHES
 from .measureit_arch_utils import get_resolution
 
-def recalc_index(self, context):
-    # ensure index's are accurate
-    StyleGen = context.scene.StyleGenerator
-    wrapper = StyleGen.wrapper
-    id_l = 0
-    id_a = 0
-    id_d = 0
-
-    # Check Count of items to wrap
-    total_dims_wrapped = len(StyleGen.alignedDimensions)
-    total_lines_wrapped = len(StyleGen.line_groups)
-    total_annos_wrapped = len(StyleGen.annotations)
-
-
-    for style in wrapper:
-        if style.itemType == 'line_groups':
-            style.itemIndex = id_l
-            style.name = StyleGen.line_groups[id_l].name
-            id_l += 1
-        elif style.itemType == 'alignedDimensions':
-            style.itemIndex = id_d
-            style.name = StyleGen.alignedDimensions[id_d].name
-            id_d += 1
-        elif style.itemType == 'annotations':
-            style.itemIndex = id_a
-            style.name = StyleGen.annotations[id_a].name
-            id_a += 1
-
-    while total_lines_wrapped > id_l:
-        new_wrapper = wrapper.add()
-        new_wrapper.itemType = 'line_groups'
-        new_wrapper.itemIndex = id_l
-        new_wrapper.name = StyleGen.line_groups[id_l].name
-        id_l += 1
-    
-    while total_dims_wrapped > id_d:
-        new_wrapper = wrapper.add()
-        new_wrapper.itemType = 'alignedDimensions'
-        new_wrapper.itemIndex = id_d
-        new_wrapper.name = StyleGen.line_groups[id_d].name
-        id_d += 1
-    
-    while total_annos_wrapped > id_a:
-        new_wrapper = wrapper.add()
-        new_wrapper.itemType = 'annotations'
-        new_wrapper.itemIndex = id_a
-        new_wrapper.name = StyleGen.line_groups[id_a].name
-        id_a += 1
-
-
-class StyleWrapper(PropertyGroup):
-    itemType: EnumProperty(
-        items=(
-            ('line_groups', "Line", ""),
-            ('annotations', "Annotation", ""),
-            ('alignedDimensions', "Dimension", "")),
-        name="Style Item Type",
-        update=recalc_index)
-
-    itemIndex: IntProperty(name='Item Index')
-
 def update_flag(self, context):
     self.text_updated = True
     self.is_invalid = True
@@ -228,11 +167,6 @@ class BaseProp:
         description="Item Name",
         default="",
         update=update_flag)
-
-    style_pointer: PointerProperty(
-        type = StyleWrapper,
-        update = update_flag
-    )
 
     itemType: StringProperty(
         name="Item Type",

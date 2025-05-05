@@ -509,6 +509,8 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
     idx = 0
     for line in lines:
+        if ("all_caps" in style and style.all_caps) or ("all_caps" in item and item.all_caps):
+            line = line.upper()
         offset_line_position = offset_text_position + Vector((0,line_height*1.1 * idx))
         style_str = '-inkscape-font-specification:\'{family}, {weight}\'; font-family:{family};font-weight:{weight_lc};'.format(family=font_family,weight=font_weight_str, weight_lc = font_weight_str.lower())
         svg.add(svg.text(line, insert=tuple(offset_line_position), fill=svgColor, **{

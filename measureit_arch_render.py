@@ -27,7 +27,6 @@ from random import randint
 import bpy
 import gpu
 import os
-from .measureit_arch_baseclass import recalc_index
 import svgwrite
 import xml.etree.ElementTree as ET
 import time
@@ -786,22 +785,17 @@ def render_main_dxf(self, context):
 
 
         # Setup Layers based on styles
-        recalc_index(self, context)
-        styles = scene.StyleGenerator.wrapper
 
-        for style_wrapper in styles:
-            name = style_wrapper.name
-            type_str = style_wrapper.itemType
-            idx = style_wrapper.itemIndex
+        for line_style in scene.StyleGenerator.line_groups:
+            name = line_style.name
 
             source_scene = sceneProps.source_scene
-            style = eval("source_scene.StyleGenerator.{}[{}]".format(type_str,idx))
-            cad_col_id = style.cad_col_idx
+            cad_col_id = line_style.cad_col_idx
 
             if cad_col_id == 256:
                 cad_col_id = randint(0,255)
 
-            if "lineDrawDashed" in style and style.lineDrawDashed:
+            if "lineDrawDashed" in line_style and line_style.lineDrawDashed:
                 doc.layers.add(name, color=cad_col_id, linetype="DASHED2")
             else:
                 doc.layers.add(name, color=cad_col_id)

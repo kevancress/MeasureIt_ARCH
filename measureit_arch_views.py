@@ -21,7 +21,7 @@ from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
 
 from . import vector_utils
-from .measureit_arch_render import render_main, render_main_svg, recalc_index, get_view_outpath, draw_scene
+from .measureit_arch_render import render_main, render_main_svg, get_view_outpath, draw_scene
 from .measureit_arch_baseclass import TextField, draw_textfield_settings
 from .measureit_arch_geometry import draw3d_loop
 from .measureit_arch_viewports import Viewport
@@ -883,23 +883,15 @@ class BatchDXFRender(Operator):
         m_arch_style.dimscale = 1
         m_arch_style.dimtxt = 100
 
-        # Setup Layers based on styles
-        recalc_index(self, context)
-        styles = context.scene.StyleGenerator.wrapper
+        for line_style in context.scene.StyleGenerator.line_groups:
+            name = line_style.name
 
-        for style_wrapper in styles:
-            name = style_wrapper.name
-            type_str = style_wrapper.itemType
-            idx = style_wrapper.itemIndex
-
-            source_scene = sceneProps.source_scene
-            style = eval("source_scene.StyleGenerator.{}[{}]".format(type_str,idx))
-            cad_col_id = style.cad_col_idx
+            cad_col_id = line_style.cad_col_idx
 
             if cad_col_id == 256:
                 cad_col_id = randint(0,255)
 
-            if "lineDrawDashed" in style and style.lineDrawDashed:
+            if "lineDrawDashed" in line_style and line_style.lineDrawDashed:
                 self.doc.layers.add(name, color=cad_col_id, linetype="DASHED2")
             else:
                 self.doc.layers.add(name, color=cad_col_id)

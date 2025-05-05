@@ -66,6 +66,7 @@ if "measureit_arch_main" in locals():
     importlib.reload(measureit_arch_object)
     importlib.reload(measureit_arch_orientations)
     importlib.reload(measureit_arch_tables)
+    importlib.reload(measureit_arch_barscales)
 else:
     print("M_ARCH import modules")
     from . import measureit_arch_baseclass
@@ -84,6 +85,7 @@ else:
     from . import measureit_arch_object
     from . import measureit_arch_orientations
     from . import measureit_arch_tables
+    from . import measureit_arch_barscales
 
 classes = (
     measureit_arch_main.ShowHideViewportButton,
@@ -104,7 +106,6 @@ classes = (
     measureit_arch_baseclass.MoveItem,
     measureit_arch_baseclass.DeleteAllItemsButton,
     measureit_arch_baseclass.MovePropButton,
-    measureit_arch_baseclass.StyleWrapper,
     measureit_arch_baseclass.LinkStyles,
 
     # Annotations
@@ -127,6 +128,14 @@ classes = (
     measureit_arch_tables.TableProperties,
     measureit_arch_tables.TableContainer,
     measureit_arch_tables.AddTableButton,
+
+    
+    # Bar Scales
+    measureit_arch_barscales.OBJECT_PT_BarScales,
+    measureit_arch_barscales.M_ARCH_UL_BarScale_List,
+    measureit_arch_barscales.BarScaleProperties,
+    measureit_arch_barscales.BarScaleContainer,
+    measureit_arch_barscales.AddBarScaleButton,
 
     # Dimensions
     measureit_arch_dimensions.OBJECT_PT_UIDimensions,
@@ -281,6 +290,8 @@ def register():
         type=measureit_arch_annotations.AnnotationContainer)
     Object.TableGenerator = bpy.props.PointerProperty(
         type=measureit_arch_tables.TableContainer)
+    Object.BarScaleGenerator = bpy.props.PointerProperty(
+        type=measureit_arch_barscales.BarScaleContainer)
     Material.Hatch = bpy.props.PointerProperty(
         type=measureit_arch_material_hatches.HatchProperties)
 
