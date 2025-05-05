@@ -783,9 +783,6 @@ def render_main_dxf(self, context):
         m_arch_style.dimtxt = 100
 
 
-
-        # Setup Layers based on styles
-
         for line_style in scene.StyleGenerator.line_groups:
             name = line_style.name
 

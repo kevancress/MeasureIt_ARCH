@@ -82,6 +82,12 @@ def has_measureit_props(obj_int):
         return True
     if len(myobj.BarScaleGenerator.barScales) > 0:
         return True
+    
+    for material_slot in myobj.material_slots:
+        material = bpy.data.materials[material_slot.name]
+        if material.Hatch.visible:
+            return True
+
     return False
 
 def load_shader_str(file, directory = ""):
