@@ -3213,7 +3213,8 @@ def draw_text_3D(context, textobj, textprops, myobj):
 
     # get font key 
     global all_font_data
-    font_name_res = get_font_name(textprops.font)
+    font = textprops.font
+    font_name_res = get_font_name(textprops.font.filepath)
     font_key = font_name_res[0] + font_name_res[1]
     #if key in offscreen_text_buffers:
     if font_key in all_font_data and textobj.text != "":

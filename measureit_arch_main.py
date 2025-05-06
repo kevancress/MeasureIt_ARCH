@@ -393,8 +393,9 @@ class ShowHideViewportButton(Operator):
 def draw_main(context):
     """ Handle all 2D draw routines (Text Updating mostly) """
 
+    draw_font_atlas('//bfont.ttf',context)
     for font in bpy.data.fonts:
-        draw_font_atlas(font,context)
+        draw_font_atlas(font.filepath,context)
     ### Draw font Atlas's if updates are needed.
 
 

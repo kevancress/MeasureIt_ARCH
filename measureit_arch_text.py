@@ -38,7 +38,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 
 all_font_data = {}
 
-def draw_font_atlas(font, context):
+def draw_font_atlas(font_path, context):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     global all_font_data
@@ -46,8 +46,9 @@ def draw_font_atlas(font, context):
         all_font_data = {}
         
 
-    font_name_res = get_font_name(font)
+    font_name_res = get_font_name(font_path)
     font_key = font_name_res[0] + font_name_res[1]
+
     if not font_key in all_font_data:
         all_font_data[font_key] = {
             'regen':True,
@@ -64,28 +65,17 @@ def draw_font_atlas(font, context):
 
     
 
-    resolution = 300
+    resolution = sceneProps.preview_resolution
 
-    # Get Font Id
-    badfonts = [None]
-    if 'Bfont Regular' in bpy.data.fonts or 'Bfont' in bpy.data.fonts:
-        try:
-            badfonts.append(bpy.data.fonts['Bfont Regular'])
-            badfonts.append(bpy.data.fonts['Bfont'])
-        except KeyError:
-            pass
-    if font not in badfonts:
-        fontPath = font.filepath
-        fontPath = bpy.path.abspath(fontPath)
-        font_id = blf.load(fontPath)
-    else:
-        font_id = 0
+    font_file = bpy.path.abspath(font_path)
+    font_id = blf.load(font_file)
+   
 
     # Set BLF font Properties
     blf.color(font_id, 1.0,1.0,1.0,1.0)
     blf.size(font_id,  12.0 * resolution/72.0)
 
-    font_file = bpy.path.abspath(font.filepath)
+    
     tt = None
     try:
         tt = ttLib.TTFont(font_file, verbose=1)
@@ -171,8 +161,13 @@ def draw_font_atlas(font, context):
         textOffscreen.free()
 
 
-def get_font_name(blend_font):
-    font_file = bpy.path.abspath(blend_font.filepath)
+def get_font_name(font_filepath = None):
+
+    if font_filepath == None:
+        font_filepath = '//bfont.ttf'
+
+    font_file = bpy.path.abspath(font_filepath)
+
     tt = None
     try:
         tt = ttLib.TTFont(font_file, verbose=1)
