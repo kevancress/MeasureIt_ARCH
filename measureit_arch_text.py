@@ -49,6 +49,9 @@ def draw_font_atlas(font_path, context):
     font_name_res = get_font_name(font_path)
     font_key = font_name_res[0] + font_name_res[1]
 
+    if font_path == None or font_path == '<builtin>':
+        font_path = '//bfont.ttf'
+
     if not font_key in all_font_data:
         all_font_data[font_key] = {
             'regen':True,
@@ -163,7 +166,7 @@ def draw_font_atlas(font_path, context):
 
 def get_font_name(font_filepath = None):
 
-    if font_filepath == None:
+    if font_filepath == None or font_filepath == '<builtin>':
         font_filepath = '//bfont.ttf'
 
     font_file = bpy.path.abspath(font_filepath)

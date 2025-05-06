@@ -47,7 +47,7 @@ from fontTools import ttLib
 from . import svg_shaders
 from . import dxf_shaders
 from .measureit_arch_baseclass import recalc_dimWrapper_index,TextField
-from .measureit_arch_text import all_font_data, get_font_name
+from . import measureit_arch_text as mtext
 from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, pts_to_px, recursionlimit,\
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
@@ -3212,15 +3212,14 @@ def draw_text_3D(context, textobj, textprops, myobj):
 
 
     # get font key 
-    global all_font_data
     font = textprops.font
-    font_name_res = get_font_name(textprops.font.filepath)
+    font_name_res = mtext.get_font_name(textprops.font.filepath)
     font_key = font_name_res[0] + font_name_res[1]
     #if key in offscreen_text_buffers:
-    if font_key in all_font_data and textobj.text != "":
+    if font_key in mtext.all_font_data and textobj.text != "":
 
         try:
-            tex = all_font_data[font_key]['texture_buffer']
+            tex = mtext.all_font_data[font_key]['texture_buffer']
             textobj.texture_updated = False
 
             # Draw Shader
