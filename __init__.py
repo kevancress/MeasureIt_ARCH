@@ -67,6 +67,8 @@ if "measureit_arch_main" in locals():
     importlib.reload(measureit_arch_orientations)
     importlib.reload(measureit_arch_tables)
     importlib.reload(measureit_arch_barscales)
+    importlib.reload(measureit_arch_text)
+
 else:
     print("M_ARCH import modules")
     from . import measureit_arch_baseclass
@@ -86,6 +88,8 @@ else:
     from . import measureit_arch_orientations
     from . import measureit_arch_tables
     from . import measureit_arch_barscales
+    from . import measureit_arch_text
+
 
 classes = (
     measureit_arch_main.ShowHideViewportButton,
@@ -98,8 +102,8 @@ classes = (
 
 
     # Base Classes
-    measureit_arch_baseclass.TextField,
     measureit_arch_baseclass.ObjProps,
+    measureit_arch_baseclass.TextField,
     measureit_arch_baseclass.MeasureItARCHSceneProps,
     measureit_arch_baseclass.DeletePropButton,
     measureit_arch_baseclass.AddItem,
@@ -107,6 +111,8 @@ classes = (
     measureit_arch_baseclass.DeleteAllItemsButton,
     measureit_arch_baseclass.MovePropButton,
     measureit_arch_baseclass.LinkStyles,
+
+
 
     # Annotations
     measureit_arch_annotations.OBJECT_PT_UIAnnotations,

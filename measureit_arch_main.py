@@ -33,9 +33,8 @@ from bpy.types import Panel, Operator, SpaceView3D
 from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
 
-from fontTools import ttLib
-
 from .measureit_arch_geometry import clear_batches, draw3d_loop, preview_dual, check_obj_vis
+from .measureit_arch_text import draw_font_atlas
 from .measureit_arch_utils import get_view, get_rv3d, get_scale, has_measureit_props
 from .gitcommit import prev_commit,date
 
@@ -398,92 +397,6 @@ def draw_main(context):
         draw_font_atlas(font,context)
     ### Draw font Atlas's if updates are needed.
 
-
-def draw_font_atlas(font, context):
-    scene = context.scene
-    sceneProps = scene.MeasureItArchProps
-    resolution = 300
-
-    # Get Font Id
-    badfonts = [None]
-    if 'Bfont Regular' in bpy.data.fonts or 'Bfont' in bpy.data.fonts:
-        try:
-            badfonts.append(bpy.data.fonts['Bfont Regular'])
-            badfonts.append(bpy.data.fonts['Bfont'])
-        except KeyError:
-            pass
-    if font not in badfonts:
-        fontPath = font.filepath
-        fontPath = bpy.path.abspath(fontPath)
-        font_id = blf.load(fontPath)
-    else:
-        font_id = 0
-
-    # Set BLF font Properties
-    blf.color(font_id, 1.0,1.0,1.0,1.0)
-    blf.size(font_id,  12.0 * resolution/72.0)
-
-    font_file = bpy.path.abspath(font.filepath)
-    tt = None
-    try:
-        tt = ttLib.TTFont(font_file, verbose=1)
-    except Exception as e:
-        print('Problem loading font!')
-        return
-    
-    glyphs = ''
-    for key, value in tt['cmap'].getBestCmap().items():
-        print(chr(key))
-        glyphs += chr(key)
-    
-
-    text = glyphs
-
-
-    # Calculate Optimal Dimensions for Text Texture.
-
-    fheight = blf.dimensions(font_id, 'Tpg')[1] *1.2
-    fwidth = blf.dimensions(font_id, text)[0]
-
-    width = math.ceil(fwidth)
-    height = math.ceil(fheight)
-
-
-    # Start Offscreen Draw
-    if width != 0 and height != 0:
-        textOffscreen = gpu.types.GPUOffScreen(width, height)
-
-        with textOffscreen.bind():
-            fb = gpu.state.active_framebuffer_get()
-            fb.clear(color=(0.0, 0.0, 0.0, 0.0))
-
-            view_matrix = Matrix([
-                [2 / width, 0, 0, -1],
-                [0, 2 / height, 0, -1],
-                [0, 0, 1, 0],
-                [0, 0, 0, 1]])
-
-            gpu.matrix.reset()
-            gpu.matrix.load_matrix(view_matrix)
-            gpu.matrix.load_projection_matrix(Matrix.Identity(4))
-
-            blf.position(font_id, 0, 0, 0)
-            blf.draw(font_id, text)
-
-        # Write Texture Buffer to ID Property as List
-        texture_buffer =  fb.read_color(0, 0, width, height, 4, 0, 'FLOAT')
-        texture_buffer.dimensions = width*height*4
-
-        # ONLY USE FOR DEBUG. SERIOUSLY SLOWS PREFORMANCE
-        if sceneProps.measureit_arch_debug_text and text != "":
-            if not 'atlas_debug' in bpy.data.images:
-                bpy.data.images.new('atlas_debug', width, height)
-            image = bpy.data.images['atlas_debug']
-            image.scale(width, height)
-            image.pixels = [v for v in texture_buffer]
-        
-        del texture_buffer
-        textOffscreen.free()
 
 
 

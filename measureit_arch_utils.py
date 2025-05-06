@@ -222,7 +222,7 @@ def get_projection_matrix():
 
     if sceneProps.is_render_draw:
         deps = bpy.context.evaluated_depsgraph_get()
-        modelview_matrix = camera.matrggix_world.inverted()
+        modelview_matrix = camera.matrix_world.inverted()
         projection_matrix = camera.calc_matrix_camera(
             deps,
             x=render.resolution_x,

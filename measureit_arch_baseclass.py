@@ -4,8 +4,7 @@ import math
 
 
 from bpy.types import PropertyGroup, Operator, Collection
-from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, \
-    BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
+from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, BoolProperty, StringProperty, FloatProperty, EnumProperty, PointerProperty
 
 from .measureit_arch_units import BU_TO_INCHES
 from .measureit_arch_utils import get_resolution
@@ -291,6 +290,9 @@ class ObjProps(PropertyGroup):
         name='Object Hatch Rotation',
         description="Object Hatch Rotation",
         default=0.0, min=0.0,subtype='ANGLE')
+
+
+
     
 class TextField(PropertyGroup):
     is_invalid: BoolProperty(
@@ -391,6 +393,7 @@ class TextField(PropertyGroup):
         description='flag when text texture need to be redrawn',
         default=False)
 
+
 def draw_textfield_settings(item, box, prop_path, dim_skip_length = False, entry_disabled = False, show_buttons = True):
     col = box.column(align=True)
     idx = 0
@@ -445,6 +448,8 @@ def draw_textfield_settings(item, box, prop_path, dim_skip_length = False, entry
 
 
         idx += 1
+
+
 
 class BaseWithText(BaseProp):
 

@@ -42,11 +42,13 @@ from mathutils import Vector, Matrix, Euler, Quaternion
 from mathutils.geometry import area_tri
 from sys import getrecursionlimit, setrecursionlimit
 
+from fontTools import ttLib
+
 from . import svg_shaders
 from . import dxf_shaders
-from .measureit_arch_baseclass import TextField, recalc_dimWrapper_index
-from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
-    format_area
+from .measureit_arch_baseclass import recalc_dimWrapper_index,TextField
+from .measureit_arch_text import all_font_data, get_font_name
+from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, pts_to_px, recursionlimit,\
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
     load_shader_str, get_projection_matrix, rgb_gamma_correct, Inst_Sort, has_measureit_props
@@ -3209,19 +3211,15 @@ def draw_text_3D(context, textobj, textprops, myobj):
         draw_lines(0.25, (0.0, 1.0, 0.0, 1.0), coords)
 
 
-    # Gets Texture from Object
-    width = textobj.textWidth
-    height = textobj.textHeight
-    dim = width * height * 4
-
+    # get font key 
+    global all_font_data
+    font_name_res = get_font_name(textprops.font)
+    font_key = font_name_res[0] + font_name_res[1]
     #if key in offscreen_text_buffers:
-    if 'texture' in textobj and textobj.text != "":
+    if font_key in all_font_data and textobj.text != "":
 
         try:
-            dims = width * height * 4
-            raw_props = textobj['texture']
-            buffer = gpu.types.Buffer('FLOAT',dims,raw_props)
-            tex = gpu.types.GPUTexture((width,height),layers=0, is_cubemap= False, format='RGBA8',data=buffer)
+            tex = all_font_data[font_key]['texture_buffer']
             textobj.texture_updated = False
 
             # Draw Shader
@@ -3241,8 +3239,8 @@ def draw_text_3D(context, textobj, textprops, myobj):
             gpu.state.depth_test_set('LESS_EQUAL')
 
             batch.draw(textShader)
-            del tex
-        except AttributeError:
+        except AttributeError as e:
+            print('Attribute Error using Texture' + e)
             pass
 
     gpu.shader.unbind()
@@ -3474,8 +3472,8 @@ def generate_text_card(context, textobj, textProps, rotation=Vector((0, 0, 0)), 
     Returns a list of 4 Vectors
     """
 
-    width = textobj.textWidth
-    height = textobj.textHeight
+    width = 500
+    height = 500
 
 
 
