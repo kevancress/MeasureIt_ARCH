@@ -668,8 +668,8 @@ def draw_alignedDimension(context, myobj, measureGen, dim, mat=None, svg=None, d
         for i, cap in enumerate(caps):
             capCoords = generate_end_caps(
                 context, dimProps, cap, capSize, pos[i], userOffsetVector, textLoc, i, flipCaps)
-            coords.extend(capCoords[0])
-            filledCoords.extend(capCoords[1])
+            coords += capCoords[0]
+            filledCoords += capCoords[1]
 
         dim['filled_coords'] = filledCoords
         dim['coords'] = coords
@@ -2607,7 +2607,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
             tf_boundary_coords = get_textField_boundary(context,textField, annotationProps)
             if tf_boundary_coords != None:
-                coords.extend(tf_boundary_coords)
+                coords += tf_boundary_coords
 
         # Set Gizmo Properties
         annotation.gizLoc = p2
@@ -2946,7 +2946,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
                         cell_coords.extend([c2,c3])
 
                 # Add to full coords list
-                coords.extend(cell_coords)
+                coords += cell_coords
 
                 text_height = px_to_m(pts_to_px(textField.textHeight),paper_space=True)  * 72/res
 
@@ -2976,7 +2976,7 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
 
                 tf_boundary_coords = get_textField_boundary(context,textField)
                 if tf_boundary_coords != None:
-                    coords.extend(tf_boundary_coords)
+                    coords += tf_boundary_coords
 
                 cell_x += padded_width
 
@@ -3508,7 +3508,7 @@ def get_textField_boundary(context, textField, props=None):
             r_next_point = quat @ rstart_point
             l_next_point = quat @ lstart_point
 
-            coords.extend([lstart_point+left_mid,l_next_point+left_mid,rstart_point+right_mid,r_next_point + right_mid])
+            coords += [lstart_point+left_mid,l_next_point+left_mid,rstart_point+right_mid,r_next_point + right_mid]
             lstart_point = l_next_point
             rstart_point = r_next_point
 
@@ -3553,7 +3553,7 @@ def get_textField_boundary(context, textField, props=None):
         coords = []
         for i in range(0,6):
             next_point = quat @ start_point
-            coords.extend([start_point + center, next_point+center])
+            coords += [start_point + center, next_point+center]
             start_point = next_point
 
     if textField.boundaryShape == 'CIRCLE':
@@ -3577,7 +3577,7 @@ def get_textField_boundary(context, textField, props=None):
         coords = []
         for i in range(0,36):
             next_point = quat @ start_point
-            coords.extend([start_point + center, next_point+center])
+            coords += [start_point + center, next_point+center]
             start_point = next_point
 
     return coords
@@ -3886,8 +3886,8 @@ def draw_points(lineWeight, rgb, coords, offset=-0.001,mat=None, depthpass=False
         p1 = coord
         if mat != None:
             p1 = mat @Vector(coord) 
-        expanded_coords.extend([p1]*6)
-        dirs.extend([(1,1),(1,-1),(-1,-1),(1,1),(-1,-1),(-1,1)])
+        expanded_coords += [p1]*6
+        dirs += [(1,1),(1,-1),(-1,-1),(1,1),(-1,-1),(-1,1)]
         pass
 
     if sceneProps.is_render_draw:
@@ -3994,14 +3994,14 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         wp2 = p2 @ objMat
         arc_length = (wp1 - wp2).length     
 
-        expanded_coords.extend([p1,p1,p2,p2,p2,p1])
-        coord_dirs.extend([dir]*6)
-        coord_signs.extend([1,-1,1,-1,1,-1])
+        expanded_coords += [p1,p1,p2,p2,p2,p1]
+        coord_dirs += [dir]*6
+        coord_signs += [1,-1,1,-1,1,-1]
         uv1 = Vector((0,0))
         uv2 = Vector((0,1))
         uv3 = Vector((arc_length,0))
         uv4 = Vector((arc_length,1))
-        coord_uvs.extend([uv1,uv2,uv3,uv4,uv3,uv2])
+        coord_uvs += [uv1,uv2,uv3,uv4,uv3,uv2]
 
     if obj == None:
         objMat = Matrix.Identity(4)
@@ -4047,16 +4047,16 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         # Set Up VBO properties
         #print('rebuilding vbos')
         num_coords = len(expanded_coords)
-        vboBuffer['coords'].extend(expanded_coords)
-        vboBuffer['coord_dirs'].extend(coord_dirs)
-        vboBuffer['coord_signs'].extend(coord_signs)
-        vboBuffer['coord_uvs'].extend(coord_uvs)
+        vboBuffer['coords'] += expanded_coords
+        vboBuffer['coord_dirs']+=coord_dirs
+        vboBuffer['coord_signs']+=coord_signs
+        vboBuffer['coord_uvs']+=coord_uvs
         # Check for list of rgb values
-        if type(rgb) == list: buffer['colors'].extend(rgb)
-        else: vboBuffer['colors'].extend([rgb]*num_coords)
+        if type(rgb) == list: buffer['colors']+=rgb
+        else: vboBuffer['colors']+=[rgb]*num_coords
         # Check for list of weight values
-        if type(lineWeight) == list: vboBuffer['weights'].extend(lineWeight)
-        else:vboBuffer['weights'].extend([lineWeight]*num_coords)
+        if type(lineWeight) == list: vboBuffer['weights']+=lineWeight
+        else:vboBuffer['weights']+=[lineWeight]*num_coords
 
 
 
