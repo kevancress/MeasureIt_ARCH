@@ -33,6 +33,7 @@ from bpy.types import Panel, Operator, SpaceView3D
 from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
 
+from . import measureit_arch_text as mtext
 from .measureit_arch_geometry import clear_batches, draw3d_loop, preview_dual, check_obj_vis
 from .measureit_arch_text import draw_font_atlas
 from .measureit_arch_utils import get_view, get_rv3d, get_scale, has_measureit_props
@@ -393,9 +394,14 @@ class ShowHideViewportButton(Operator):
 def draw_main(context):
     """ Handle all 2D draw routines (Text Updating mostly) """
 
-    draw_font_atlas('//bfont.ttf',context)
+    if len(mtext.all_font_data.keys()) == 0:
+        draw_font_atlas(None,context)
     for font in bpy.data.fonts:
-        draw_font_atlas(font.filepath,context)
+        if not font.name in mtext.all_font_data:
+            draw_font_atlas(font,context)
+        elif font.name in mtext.all_font_data and mtext.all_font_data[font.name]['regen']:
+            draw_font_atlas(font,context)
+
     ### Draw font Atlas's if updates are needed.
 
 

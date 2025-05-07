@@ -38,35 +38,26 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 
 all_font_data = {}
 
-def draw_font_atlas(font_path, context):
+def draw_font_atlas(font, context):
     scene = context.scene
     sceneProps = scene.MeasureItArchProps
     global all_font_data
-    if not 'all_font_data' in scene:
-        all_font_data = {}
-        
+    
+    if font == None:
+        font_key = 'bfont'
+    else:
+        font_key = font.name
 
-    font_name_res = get_font_name(font_path)
-    font_key = font_name_res[0] + font_name_res[1]
-
-    if font_path == None or font_path == '<builtin>':
+    if font == None:
         font_path = '//bfont.ttf'
+    else:
+        font_path = font.filepath
 
     if not font_key in all_font_data:
         all_font_data[font_key] = {
             'regen':True,
             'glyph_positions': {}
         }
-
-
-    #if sceneProps.measureit_arch_debug_text:
-    #    all_font_data[font_key]['regen'] = True
-
-    if not all_font_data[font_key]['regen']:
-        #print(all_font_data[font_key]['texture_buffer'])
-        return
-
-    
 
     resolution = sceneProps.preview_resolution
 
@@ -163,26 +154,3 @@ def draw_font_atlas(font_path, context):
         del texture_buffer
         textOffscreen.free()
 
-
-def get_font_name(font_filepath = None):
-
-    if font_filepath == None or font_filepath == '<builtin>':
-        font_filepath = '//bfont.ttf'
-
-    font_file = bpy.path.abspath(font_filepath)
-
-    tt = None
-    try:
-        tt = ttLib.TTFont(font_file, verbose=1)
-    except Exception as e:
-        print('Problem loading font!')
-        return
-    
-    name_table = tt['name']
-    for record in name_table.names:
-        if record.nameID == 1: #font family
-            font_family = record.toUnicode() 
-        elif record.nameID == 2: # font subfamily w weight
-            font_weight_str = record.toUnicode()
-        
-    return [font_family, font_weight_str]
