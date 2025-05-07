@@ -394,6 +394,8 @@ class ShowHideViewportButton(Operator):
 def draw_main(context):
     """ Handle all 2D draw routines (Text Updating mostly) """
 
+    sceneProps = context.scene.MeasureItArchProps
+
     if len(mtext.all_font_data.keys()) == 0:
         draw_font_atlas(None,context)
     for font in bpy.data.fonts:
@@ -401,7 +403,11 @@ def draw_main(context):
             draw_font_atlas(font,context)
         elif font.name in mtext.all_font_data and mtext.all_font_data[font.name]['regen']:
             draw_font_atlas(font,context)
-
+        elif sceneProps.text_updated:
+             draw_font_atlas(font,context)
+            
+    if sceneProps.text_updated:
+        sceneProps.text_updated = False
     ### Draw font Atlas's if updates are needed.
 
 

@@ -27,6 +27,7 @@ import bpy
 import blf
 import math
 import gpu
+import os
 
 from mathutils import Vector, Matrix
 
@@ -49,9 +50,11 @@ def draw_font_atlas(font, context):
         font_key = font.name
 
     if font == None:
-        font_path = '//bfont.ttf'
+        font_path = 'bfont.ttf'
+        font_file = os.path.abspath(font_path)
     else:
         font_path = font.filepath
+        font_file = bpy.path.abspath(font_path)
 
     if not font_key in all_font_data:
         all_font_data[font_key] = {
@@ -61,7 +64,7 @@ def draw_font_atlas(font, context):
 
     resolution = sceneProps.preview_resolution
 
-    font_file = bpy.path.abspath(font_path)
+    
     font_id = blf.load(font_file)
    
 

@@ -9,6 +9,7 @@ from bpy.props import IntProperty, CollectionProperty, FloatVectorProperty, Bool
 from .measureit_arch_units import BU_TO_INCHES
 from .measureit_arch_utils import get_resolution
 
+
 def update_flag(self, context):
     self.text_updated = True
     self.is_invalid = True

@@ -3222,28 +3222,30 @@ def draw_text_3D(context, textobj, textprops, myobj):
 
         try:
             tex = mtext.all_font_data[font_key]['texture_buffer']
-            textobj.texture_updated = False
+        except KeyError as e:
+            repr(e)
+            mtext.all_font_data[font_key]['regen'] = True
+            return
+        textobj.texture_updated = False
 
-            # Draw Shader
-            textShader.bind()
-            textShader.uniform_sampler("image", tex)
-            textShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
+        # Draw Shader
+        textShader.bind()
+        textShader.uniform_sampler("image", tex)
+        textShader.uniform_float("viewProjectionMatrix", get_projection_matrix())
 
-            # Batch Geometry
-            batch = batch_for_shader(
-                textShader, 'TRI_FAN',
-                {
-                    "pos": card,
-                    "uv": uvs,
-                },
-            )
-            gpu.state.blend_set('ALPHA_PREMULT')
-            gpu.state.depth_test_set('LESS_EQUAL')
+        # Batch Geometry
+        batch = batch_for_shader(
+            textShader, 'TRI_FAN',
+            {
+                "pos": card,
+                "uv": uvs,
+            },
+        )
+        gpu.state.blend_set('ALPHA_PREMULT')
+        gpu.state.depth_test_set('LESS_EQUAL')
 
-            batch.draw(textShader)
-        except AttributeError as e:
-            print('Attribute Error using Texture' + e)
-            pass
+        batch.draw(textShader)
+
 
     gpu.shader.unbind()
  
