@@ -717,6 +717,10 @@ def vis_sampling(p1, p2, mat, item,):
     p1ss = get_ss_point(p1Local)
     p2ss = get_ss_point(p2Local)
 
+    #Get Clip Space Points
+    p1_clip = get_clip_space_coord(p1Local)
+    p2_clip = get_clip_space_coord(p2Local)
+
     # Get ss normal vectorsP
     dir_vec = p1ss - p2ss
     n1ss = Vector((dir_vec.y, -dir_vec.x))
@@ -729,16 +733,17 @@ def vis_sampling(p1, p2, mat, item,):
     ss_samples = math.floor(ss_length_vec.length)
     if ss_samples < 1: ss_samples = 1
 
-    last_vis_state = check_visible(item, p1Local, ss_norms)
+    last_vis_state = check_visible(item, p1Local, ss_norms,ss_point=p1ss,clip_point=p1_clip)
     line_segs = []
     seg_start = p1
-    distVector = Vector(p1) - Vector(p2)
-    dist = distVector.length
-    iter_dist = fabs((dist / ss_samples))
 
     for i in range(1,ss_samples):
-        p_check = interpolate3d(Vector(p1), Vector(p2), iter_dist * i) # interpolate line to get point to check
-        p_check_vis = check_visible(item, mat @ Vector(p_check), ss_norms) # Check the visibility of that point
+        fac = i / ss_samples
+        p_check = Vector(p1).lerp(Vector(p2), fac) # interpolate line to get point to check
+        local_p_check = p1Local.lerp(p2Local,fac)
+        ss_p_check = p1ss.lerp(p2ss,fac)
+        clip_p_check = p1_clip.lerp(p2_clip,fac)
+        p_check_vis = check_visible(item, local_p_check,ss_norms, ss_point=ss_p_check, clip_point=clip_p_check ) # Check the visibility of that point
 
         if last_vis_state is not p_check_vis:
             line = [last_vis_state, seg_start, p_check]
@@ -766,7 +771,7 @@ def get_ss_point(point):
     return p1ss
 
 
-def check_visible(item, point, ss_norms):
+def check_visible(item, point, ss_norms, ss_point=None, clip_point = None):
     epsilon = 0.0001
     global width
 
@@ -786,12 +791,19 @@ def check_visible(item, point, ss_norms):
     #Get Render info
 
     # Get ss_point and adjacent normal points
-    point_ss = get_ss_point(point)
+    if ss_point == None:
+        point_ss = get_ss_point(point)
+    else:
+        point_ss = ss_point
+
     ss2 = point_ss + ss_norms[0].normalized()
     ss3 = point_ss + ss_norms[1].normalized()
 
     # Get Clip space depth
-    point_clip = get_clip_space_coord(point)
+    if clip_point == None:
+        point_clip = get_clip_space_coord(point)
+    else:
+        point_clip = clip_point
 
     # Get Depth buffer Pixel Index based on SS Point
     db_idx1 = int(((width * math.floor(point_ss[1]))+1 + math.floor(point_ss[0])) -1)
@@ -816,12 +828,12 @@ def check_visible(item, point, ss_norms):
     return pointVisible
 
 def get_true_z_at_idx(idx):
-    val = get_bufffer_at_idx(idx)
+    val = get_buffer_at_idx(idx)
     true_val = true_z_buffer(val)
     return true_val
 
 
-def get_bufffer_at_idx(idx):
+def get_buffer_at_idx(idx):
     # Get Depth Buffer Value buffer value
     try:
         point_depth = depthbuffer[idx]
