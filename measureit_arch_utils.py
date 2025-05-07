@@ -84,9 +84,10 @@ def has_measureit_props(obj_int):
         return True
     
     for material_slot in myobj.material_slots:
-        material = bpy.data.materials[material_slot.name]
-        if material.Hatch.visible:
-            return True
+        if material_slot.name in bpy.data.materials:
+            material = bpy.data.materials[material_slot.name]
+            if material.Hatch.visible:
+                return True
 
     return False
 
@@ -100,7 +101,6 @@ def load_shader_str(file, directory = ""):
     shader_str = shader_file.read()
     shader_file.close()
     return shader_str
-
 
 def safe_name(name, is_dxf = False):
 
@@ -555,7 +555,7 @@ def get_selected_vertex_history(myobject):
 
     bm = bmesh.from_edit_mesh(myobject.data)
     for v in bm.select_history:
-        mylist.extend([v.index])
+        mylist+=[v.index]
 
     if in_edit_mode:
         bpy.ops.object.editmode_toggle()
