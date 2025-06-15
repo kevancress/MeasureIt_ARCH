@@ -59,7 +59,6 @@ def draw_font_atlas(font, context):
     if not font_key in all_font_data:
         all_font_data[font_key] = {
             'regen':True,
-            'glyph_positions': {}
         }
 
     resolution = sceneProps.preview_resolution
@@ -81,8 +80,12 @@ def draw_font_atlas(font, context):
         return
     
     glyphs = ''
+    glyph_set = tt.getGlyphSet()
+    units_per_em = tt['head'].unitsPerEm
+
     num_glyphs = 0
-    for key, value in tt['cmap'].getBestCmap().items():
+    cmap =  tt['cmap'].getBestCmap()
+    for key, value in cmap.items():
         #print(chr(key))
         num_glyphs += 1
         glyphs += chr(key)
@@ -134,9 +137,13 @@ def draw_font_atlas(font, context):
                     current_glyph_idx = i*sq_size + j
                     if current_glyph_idx < len(glyphs):
                         current_glyph = glyphs[current_glyph_idx]
+                        glyph_name = cmap[ord(current_glyph)]
+                        glyph_data = glyph_set[glyph_name]
                         uv_x = x_pos/height
                         uv_y = y_pos/width
-                        all_font_data[font_key]['glyph_positions'][current_glyph] = [uv_x,uv_y]
+                        all_font_data[font_key][current_glyph] = {}
+                        all_font_data[font_key][current_glyph]['width'] = glyph_data.width
+                        all_font_data[font_key][current_glyph]['uv'] = [uv_x,uv_y]
                         blf.draw(font_id, current_glyph)
 
         # Write Texture Buffer to ID Property as List
