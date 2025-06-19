@@ -368,7 +368,7 @@ def render_main(self, context):
             image = bpy.data.images[image_name]
             image.scale(width, height)
             buffer.dimensions = width * height * 4
-            image.pixels = [v / 255 for v in buffer]
+            image.pixels = [pow((v / 255),(1 / 2.2)) for v in buffer]
 
             renderoffscreen.free()
 
