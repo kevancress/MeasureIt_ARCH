@@ -41,7 +41,7 @@ from . import svg_shaders
 from . import vector_utils
 from .measureit_arch_geometry import draw3d_loop, batch_for_shader
 from .measureit_arch_main import draw_main, draw_titleblock, text_update_loop,draw_viewport
-from .measureit_arch_utils import get_resolution, get_view, local_attrs, get_loaded_addons, OpenGL_Settings, Set_Render, load_shader_str, get_projection_matrix, get_view_outpath, Inst_Sort
+from .measureit_arch_utils import freestyle_svg_enabled, get_resolution, get_view, local_attrs, OpenGL_Settings, Set_Render, load_shader_str, get_projection_matrix, get_view_outpath, Inst_Sort
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -597,7 +597,7 @@ def render_main_svg(self, context):
 
 
         ## Freestyle Embed
-        freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
+        freestyle_svg_export = freestyle_svg_enabled()
         if view.embed_freestyle_svg and freestyle_svg_export:
             # If "FreeStyle SVG export" addon is loaded, we render the scene to SVG
             # and embed the output in the final SVG.
