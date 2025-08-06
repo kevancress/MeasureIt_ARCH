@@ -934,7 +934,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
     relative_svg_paths: BoolProperty(
         name="Relative SVG Paths",
         description="When Embeding renders or other files in svg renders, use a relative path",
-        default=False,)
+        default=True,)
 
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"
