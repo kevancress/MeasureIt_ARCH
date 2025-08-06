@@ -25,7 +25,7 @@ from .measureit_arch_render import render_main, render_main_svg, get_view_outpat
 from .measureit_arch_baseclass import TextField, draw_textfield_settings
 from .measureit_arch_geometry import draw3d_loop
 from .measureit_arch_viewports import Viewport
-from . measureit_arch_utils import get_loaded_addons, get_resolution, get_view, _imp_scales_dict, _metric_scales_dict,OpenGL_Settings, Set_Render
+from . measureit_arch_utils import freestyle_svg_enabled, get_resolution, get_view, _imp_scales_dict, _metric_scales_dict,OpenGL_Settings, Set_Render
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -1134,7 +1134,7 @@ class SCENE_PT_Views(Panel):
                 col.prop(view, 'skip_hatches')
 
                 col = box.column(align=True)
-                freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
+                freestyle_svg_export = freestyle_svg_enabled()
                 col.active = freestyle_svg_export
                 col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
 
