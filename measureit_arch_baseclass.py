@@ -515,6 +515,13 @@ class BaseDim(BaseWithText):
         update = mark_invalid
     )
 
+    textBackground: BoolProperty(
+        name= 'Text Background',
+        description= "Text Background",
+        default= False,
+        update = mark_invalid
+    )
+
     dimOffset: FloatProperty(
         name='Dimension Offset',
         description='Offset for Dimension',

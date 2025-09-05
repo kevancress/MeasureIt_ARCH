@@ -1285,6 +1285,7 @@ def draw_alignedDimensions_settings(dim, layout):
             col.prop(dim, 'textAlignment', text='Alignment')
             col.prop(dim, 'textPosition', text='Position')
 
+        col.prop(dim,'textBackground',text='Background')
         # Line Weight
         col = layout.column(align=True)
         col.prop(dim, 'lineWeight', text='Line Weight')
@@ -1370,7 +1371,7 @@ def draw_boundsDimensions_settings(dim, layout):
         col = layout.column(align=True)
         col.prop(dim, 'fontSize', text='Font Size')
         col.prop(dim, 'textAlignment', text='Alignment')
-        # col.prop(dim,'textPosition',text='Position')
+        col.prop(dim,'textBackground',text='Background')
 
         col = layout.column(align=True)
         col.prop(dim, 'endcapA', text='Arrow Start')

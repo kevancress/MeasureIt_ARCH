@@ -3325,6 +3325,10 @@ def draw_text_3D(context, textobj, textprops, myobj):
                   card[2], card[3], card[3], card[0]]
         draw_lines(0.25, (0.0, 1.0, 0.0, 1.0), coords)
 
+    if 'textBackground' in textprops and textprops.textBackground:
+        coords = [card[0], card[1], card[3], card[1],
+                  card[2], card[3]]
+        draw_filled_coords(coords,(1,1,1,1))
 
     # Gets Texture from Object
     width = textobj.textWidth

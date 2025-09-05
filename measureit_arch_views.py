@@ -485,6 +485,11 @@ class ViewProperties(PropertyGroup):
         items=(
             ('Standard', 'Standard', ''),
             ('Filmic', 'Filmic', ''),
+            ('Khronos PBR Neutral','Khronos PBR Neutral',''),
+            ('AgX','AgX',''),
+            ('Filmic Log','Filmic Log',''),
+            ('False Color','False Color',''),
+            ('Raw','Raw',''),
         ),
         name="View Transform",
         description="View (Color) Transform used for rendering",
