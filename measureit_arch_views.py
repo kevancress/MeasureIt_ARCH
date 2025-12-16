@@ -101,14 +101,14 @@ def update(self, context):
     # scene.frame_current = view.start_frame
 
     #Update Compositior Render Layer if it exists
-    tree = bpy.context.scene.node_tree
-    if tree != None and view.view_layer != '':
-        try:
-            render_node = tree.nodes['Render Layers']
-            render_node.layer = view.view_layer
-        except KeyError:
-            print('No Render Layers Node in Compositor')
-            pass
+    #tree = bpy.context.scene.node_tree
+    #if tree != None and view.view_layer != '':
+    #    try:
+    #        render_node = tree.nodes['Render Layers']
+    #        render_node.layer = view.view_layer
+    #    except KeyError:
+    #        print('No Render Layers Node in Compositor')
+    #        pass
 
 
     if view.res_type == 'PAPER':
@@ -939,9 +939,6 @@ class M_ARCH_UL_Views_list(UIList):
             row.separator()
             row.prop(view, 'include_in_batch', text="",emboss=False, icon=icon)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 class SCENE_PT_Views(Panel):
     """ A panel in the Object properties window """

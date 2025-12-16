@@ -184,9 +184,6 @@ class M_ARCH_UL_BarScale_List(UIList):
             subrow.scale_x = 0.6
             subrow.prop(table, 'color', text="")
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
             
 class OBJECT_PT_BarScales(Panel):

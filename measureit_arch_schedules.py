@@ -323,9 +323,6 @@ class M_ARCH_UL_Schedules_list(UIList):
             subrow = row.row()
             subrow.prop(schedule, "name", text="", emboss=False)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 
 class SCENE_PT_Schedules(Panel):

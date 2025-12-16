@@ -63,7 +63,7 @@ def blenderBIM_get_coords(context, offset_pos=True):
             #    annotationGen = myobj.AnnotationGenerator
             #    draw_annotation(context,myobj,annotationGen,mat)
 
-            if 'DimensionGenerator' in myobj:
+            if hasattr(myobj,'DimensionGenerator'):
                 DimGen = myobj.DimensionGenerator
 
                 for alignedDim in DimGen.alignedDimensions:

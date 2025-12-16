@@ -63,9 +63,6 @@ class M_ARCH_UL_Sheets_list(UIList):
             subrow = row.row()
             subrow.prop(view, "name", text="", emboss=False)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 
 class SCENE_PT_Viewport(Panel):

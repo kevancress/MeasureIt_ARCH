@@ -242,9 +242,6 @@ class M_ARCH_UL_Transform_Orientation_list(UIList):
             row = layout.row(align=True)
             row.prop(transform, 'orientation_basis_object', text="", icon='OBJECT_DATA', emboss = True)
         
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 
 class SCENE_PT_Transform(Panel):
