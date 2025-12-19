@@ -215,6 +215,26 @@ class OBJECT_PT_BarScales(Panel):
 
         col = row.column(align=True)
 
+        # Operators Next to List
+        col = row.column(align=True)
+        op = col.operator(
+            "measureit_arch.deletepropbutton", text="", icon="X")
+        op.genPath = 'context.object.BarScaleGenerator'
+        op.tag = barScaleGen.active_index  # saves internal data
+        op.item_type = 'barScales'
+        op.is_style = False
+
+        col.separator()
+        up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+        up.genPath = 'context.object.BarScaleGenerator'
+        up.item_type = 'barScales'
+        up.upDown = -1
+
+        down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+        down.genPath = 'context.object.BarScaleGenerator'
+        down.item_type = 'barScales'
+        down.upDown = 1
+
         if len(barScaleGen.barScales) > 0 and barScaleGen.active_index < len(barScaleGen.barScales):
             barScale = barScaleGen.barScales[barScaleGen.active_index]
 

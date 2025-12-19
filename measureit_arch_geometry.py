@@ -3971,7 +3971,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         buffer = HiddenLinesBuffer
 
     if len(coords) % 2 != 0:
-        print('ERROR: Odd Number of Coords, injecting padding to preserve other lines')
+        print('ERROR: Odd Number of Coords on: {}, injecting padding to preserve other lines'.format(obj.name))
         coords.append(Vector((0,0,0)))
     
     if obj == None:
