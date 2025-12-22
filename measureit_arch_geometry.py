@@ -49,7 +49,7 @@ from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, pts_to_px, recursionlimit,\
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
-    load_shader_str, get_projection_matrix, rgb_gamma_correct, Inst_Sort, has_measureit_props
+    load_shader_str, get_projection_matrix, rgb_gamma_correct, Inst_Sort, has_measureit_props, is_visible_in_viewport
 
 from .vector_utils import get_axis_aligned_bounds
 
@@ -2575,6 +2575,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
         fields = []
         coords = []
+        background_filled_coords = []
         notesFlag = False
         for textField in annotation.textFields:
             fields.append(textField)
@@ -2608,6 +2609,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             tf_boundary_coords = get_textField_boundary(context,textField, annotationProps)
             if tf_boundary_coords != None:
                 coords += tf_boundary_coords
+                background_filled_coords.append(tf_boundary_coords)
 
         # Set Gizmo Properties
         annotation.gizLoc = p2
@@ -2677,6 +2679,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             for fill in filledcoords:
                 svg_shaders.svg_fill_shader(
                     annotation, fill, rgb, svg, parent=svg_anno)
+            
+            for fill in background_filled_coords:
+                svg_shaders.svg_poly_fill_shader(
+                    annotation, fill, [1.0,1.0,1.0,0.8], svg, parent=svg_anno)
+
             for textField in fields:
                 textcard = textField['textcard']
                 svg_shaders.svg_text_shader(
@@ -3325,6 +3332,10 @@ def draw_text_3D(context, textobj, textprops, myobj):
                   card[2], card[3], card[3], card[0]]
         draw_lines(0.25, (0.0, 1.0, 0.0, 1.0), coords)
 
+    if 'textBackground' in textprops and textprops.textBackground:
+        coords = [card[0], card[1], card[3], card[1],
+                  card[2], card[3]]
+        draw_filled_coords(coords,(1,1,1,1))
 
     # Gets Texture from Object
     width = textobj.textWidth
@@ -3483,12 +3494,13 @@ def get_textField_boundary(context, textField, props=None):
         coords = [c0,c1,c1,c2,c2,c3,c3,c0]
 
     if textField.boundaryShape == 'ROUNDED':
-        padding = 0.25 * height
+        x_padding = -1 * height
+        y_padding = 0.75 * height
 
-        c0 = Vector(card[0]) - padding * x_dir * width - padding * y_dir * height
-        c1 = Vector(card[1]) - padding * x_dir * width + padding * y_dir * height
-        c2 = Vector(card[2]) + padding * x_dir * width + padding * y_dir * height
-        c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
+        c0 = Vector(card[0]) - x_padding * x_dir * width - y_padding * y_dir * height
+        c1 = Vector(card[1]) - x_padding * x_dir * width + y_padding * y_dir * height
+        c2 = Vector(card[2]) + x_padding * x_dir * width + y_padding * y_dir * height
+        c3 = Vector(card[3]) + x_padding * x_dir * width - y_padding * y_dir * height
 
         coords = [c1,c2,c3,c0]
 
@@ -3860,8 +3872,7 @@ def check_mods(myobj):
 def check_vis(item, props):
     context = bpy.context
     inView = False
-    if (props.visibleInView == "" or
-            props.visibleInView == context.window.view_layer.name):
+    if (props.visibleInView == "" or props.visibleInView == context.window.view_layer.name):
         inView = True
 
     if item.visible and props.visible and inView:
@@ -3960,7 +3971,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         buffer = HiddenLinesBuffer
 
     if len(coords) % 2 != 0:
-        print('ERROR: Odd Number of Coords, injecting padding to preserve other lines')
+        print('ERROR: Odd Number of Coords on: {}, injecting padding to preserve other lines'.format(obj.name))
         coords.append(Vector((0,0,0)))
     
     if obj == None:
@@ -4519,6 +4530,9 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
     #cull objs with no measureit_arch_items
     objlist = [obj for obj in objlist if has_measureit_props(obj)] 
 
+    # cull objects not in viewport
+    objlist = [obj for obj in objlist if is_visible_in_viewport(obj)]
+
     # Sort all for vector draw
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
@@ -4558,26 +4572,26 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
             if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                 draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw)
 
-        if 'LineGenerator' in myobj:
+        if hasattr(myobj, 'LineGenerator'):
             if not sceneProps.hide_linework or sceneProps.is_render_draw:
                 lineGen = myobj.LineGenerator
                 draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw,instance=obj_int)
 
-        if 'AnnotationGenerator' in myobj:
+        if hasattr(myobj, 'AnnotationGenerator'):
             annotationGen = myobj.AnnotationGenerator
             draw_annotation(
                 context, myobj, annotationGen, mat, svg=svg, dxf=dxf, instance=obj_int)
         
-        if 'TableGenerator' in myobj:
+        if hasattr(myobj, 'TableGenerator'):
             tableGen = myobj.TableGenerator
             draw_table(context, myobj, tableGen, mat, svg=svg, dxf=dxf)
 
-        if 'BarScaleGenerator' in myobj:
+        if hasattr(myobj, 'BarScaleGenerator'):
             BarScaleGen = myobj.BarScaleGenerator
             draw_barScale(context, myobj, BarScaleGen, mat, svg=svg, dxf=dxf)
 
 
-        if 'DimensionGenerator' in myobj:
+        if hasattr(myobj,'DimensionGenerator'):
             if inst_draw and not sceneProps.instance_dims:
                 continue
             DimGen = myobj.DimensionGenerator

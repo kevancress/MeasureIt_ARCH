@@ -66,28 +66,28 @@ def save_handler(dummy):
                 pass
             else:
                 print(str(obj.name) + ' Data Removed')
-                if 'DimensionGenerator' in obj:
+                if hasattr(obj, 'DimensionGenerator'):
                     dimgen = obj.DimensionGenerator
-                    if 'alignedDimensions' in dimgen:
+                    if hasattr(dimgen,'alignedDimensions'):
                         for alignedDim in obj.DimensionGenerator.alignedDimensions:
                             obj.DimensionGenerator.alignedDimensions.remove(0)
                             obj.DimensionGenerator.measureit_arch_num = 0
-                    if 'angleDimensions' in dimgen:
+                    if hasattr(dimgen,'angleDimensions'):
                         for angleDim in obj.DimensionGenerator.angleDimensions:
                             obj.DimensionGenerator.angleDimensions.remove(0)
                             obj.DimensionGenerator.measureit_arch_num = 0
-                    if 'axisDimensions' in dimgen:
+                    if hasattr(dimgen,'axisDimensions'):
                         for axisDim in obj.DimensionGenerator.axisDimensions:
                             obj.DimensionGenerator.axisDimensions.remove(0)
                             obj.DimensionGenerator.measureit_arch_num = 0
-                    if 'boundsDimensions' in dimgen:
+                    if hasattr(dimgen,'boundsDimensions'):
                         for boundsDim in obj.DimensionGenerator.boundsDimensions:
                             obj.DimensionGenerator.boundsDimensions.remove(0)
                             obj.DimensionGenerator.measureit_arch_num = 0
-                    if 'wrappedDimensions' in dimgen:
+                    if hasattr(dimgen,'wrappedDimensions'):
                         for wrapper in obj.DimensionGenerator.wrappedDimensions:
                             obj.DimensionGenerator.wrappedDimensions.remove(0)
-                if 'AnnotationGenerator' in obj:
+                if hasattr(obj,'AnnotationGenerator'):
                     for annotation in obj.AnnotationGenerator.annotations:
                         obj.AnnotationGenerator.annotations.remove(0)
                         obj.AnnotationGenerator.num_annotations = 0
@@ -454,7 +454,7 @@ def text_update_loop(context, objlist, force_update = False, custom_call = False
     sceneProps = scene.MeasureItArchProps
     for myobj in objlist:
         if check_obj_vis(myobj,custom_call):
-            if 'DimensionGenerator' in myobj:
+            if hasattr(myobj,'DimensionGenerator'):
                 DimGen = myobj.DimensionGenerator
                 for alignedDim in DimGen.alignedDimensions:
 
@@ -511,7 +511,7 @@ def text_update_loop(context, objlist, force_update = False, custom_call = False
                     update_text(textobj=areaDim,
                                 props=dimProps, context=context, force_update=force_update)
 
-            if 'AnnotationGenerator' in myobj:
+            if hasattr(myobj,'AnnotationGenerator'):
                 annotationGen = myobj.AnnotationGenerator
                 for annotation in annotationGen.annotations:
                     annotationProps = annotation
@@ -534,7 +534,7 @@ def text_update_loop(context, objlist, force_update = False, custom_call = False
 
                     update_text(textobj=annotation, props=annotationProps, context=context, fields=fields, force_update=force_update)
 
-            if 'TableGenerator' in myobj:
+            if hasattr(myobj,'TableGenerator'):
                 tableGen = myobj.TableGenerator
                 for table in tableGen.tables:
                     fields = []
@@ -542,7 +542,7 @@ def text_update_loop(context, objlist, force_update = False, custom_call = False
                         fields.extend(row.textFields)
                     update_text(textobj=table, props=table, context=context, fields=fields, force_update=force_update)
 
-            if 'BarScaleGenerator' in myobj:
+            if hasattr(myobj,'BarScaleGenerator'):
                 BarScaleGen = myobj.BarScaleGenerator
                 for barscale in BarScaleGen.barScales:
                     update_text(textobj=barscale, props=barscale, context=context, force_update=force_update)

@@ -4,7 +4,7 @@ import gpu
 import os
 
 from mathutils import Vector, Matrix
-from addon_utils import check, paths
+from addon_utils import check, modules
 from sys import getrecursionlimit, setrecursionlimit
 from datetime import datetime
 
@@ -91,6 +91,25 @@ def has_measureit_props(obj_int):
 
     return False
 
+def is_visible_in_viewport(obj_int):
+    if type(obj_int) == bpy.types.Object:
+        myobj = obj_int
+    else:
+        if obj_int.parent != "":
+            myobj = bpy.data.objects[obj_int.parent]
+        else:
+            myobj = bpy.data.objects[obj_int.object]
+
+
+    sceneProps = bpy.context.scene.MeasureItArchProps
+    if sceneProps.is_render_draw:
+        return True
+
+    if myobj.visible_get():
+        return True
+
+    return False
+
 def load_shader_str(file, directory = ""):
     path = os.path.dirname(os.path.abspath(__file__))
     shader_path = os.path.join(path,"glsl")
@@ -131,11 +150,7 @@ class recursionlimit:
 
 
 def rgb_gamma_correct(rawRGB):
-    return Vector((
-        pow(rawRGB[0], (1 / 2.2)),
-        pow(rawRGB[1], (1 / 2.2)),
-        pow(rawRGB[2], (1 / 2.2)),
-        rawRGB[3]))
+    return rawRGB
 
 # Convert Pts definitions to px
 def pts_to_px(pts):
@@ -415,14 +430,16 @@ def get_camera_z_dist(location):
     return dist_along_camera_z
 
 def get_loaded_addons():
-    paths_list = paths()
     addon_list = []
-    for path in paths_list:
-        for mod_name, mod_path in bpy.path.module_names(path):
-            is_enabled, is_loaded = check(mod_name)
-            if is_enabled and is_loaded:
-                addon_list.append(mod_name)
+    for mod in modules():
+        is_enabled, is_loaded = check(mod.__name__)
+        if is_enabled and is_loaded:
+            addon_list.append(mod.__name__)
     return addon_list
+
+def freestyle_svg_enabled():
+    freestyle_svg_module_names = ['render_freestyle_svg', 'bl_ext.blender_org.freestyle_svg_exporter']
+    return any(freestyle_svg_name in get_loaded_addons() for freestyle_svg_name in freestyle_svg_module_names)
 
 def get_rv3d():
     spaces = bpy.context.area.spaces

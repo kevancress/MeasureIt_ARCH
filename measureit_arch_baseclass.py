@@ -515,6 +515,13 @@ class BaseDim(BaseWithText):
         update = mark_invalid
     )
 
+    textBackground: BoolProperty(
+        name= 'Text Background',
+        description= "Text Background",
+        default= False,
+        update = mark_invalid
+    )
+
     dimOffset: FloatProperty(
         name='Dimension Offset',
         description='Offset for Dimension',
@@ -934,7 +941,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
     relative_svg_paths: BoolProperty(
         name="Relative SVG Paths",
         description="When Embeding renders or other files in svg renders, use a relative path",
-        default=False,)
+        default=True,)
 
 class DeletePropButton(Operator):
     bl_idname = "measureit_arch.deletepropbutton"

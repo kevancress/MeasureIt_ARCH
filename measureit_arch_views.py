@@ -25,7 +25,7 @@ from .measureit_arch_render import render_main, render_main_svg, get_view_outpat
 from .measureit_arch_baseclass import TextField, draw_textfield_settings
 from .measureit_arch_geometry import draw3d_loop
 from .measureit_arch_viewports import Viewport
-from . measureit_arch_utils import get_loaded_addons, get_resolution, get_view, _imp_scales_dict, _metric_scales_dict,OpenGL_Settings, Set_Render
+from . measureit_arch_utils import freestyle_svg_enabled, get_resolution, get_view, _imp_scales_dict, _metric_scales_dict,OpenGL_Settings, Set_Render
 from .measureit_arch_units import BU_TO_INCHES
 
 
@@ -101,14 +101,14 @@ def update(self, context):
     # scene.frame_current = view.start_frame
 
     #Update Compositior Render Layer if it exists
-    tree = bpy.context.scene.node_tree
-    if tree != None and view.view_layer != '':
-        try:
-            render_node = tree.nodes['Render Layers']
-            render_node.layer = view.view_layer
-        except KeyError:
-            print('No Render Layers Node in Compositor')
-            pass
+    #tree = bpy.context.scene.node_tree
+    #if tree != None and view.view_layer != '':
+    #    try:
+    #        render_node = tree.nodes['Render Layers']
+    #        render_node.layer = view.view_layer
+    #    except KeyError:
+    #        print('No Render Layers Node in Compositor')
+    #        pass
 
 
     if view.res_type == 'PAPER':
@@ -485,6 +485,11 @@ class ViewProperties(PropertyGroup):
         items=(
             ('Standard', 'Standard', ''),
             ('Filmic', 'Filmic', ''),
+            ('Khronos PBR Neutral','Khronos PBR Neutral',''),
+            ('AgX','AgX',''),
+            ('Filmic Log','Filmic Log',''),
+            ('False Color','False Color',''),
+            ('Raw','Raw',''),
         ),
         name="View Transform",
         description="View (Color) Transform used for rendering",
@@ -934,9 +939,6 @@ class M_ARCH_UL_Views_list(UIList):
             row.separator()
             row.prop(view, 'include_in_batch', text="",emboss=False, icon=icon)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 class SCENE_PT_Views(Panel):
     """ A panel in the Object properties window """
@@ -1134,7 +1136,7 @@ class SCENE_PT_Views(Panel):
                 col.prop(view, 'skip_hatches')
 
                 col = box.column(align=True)
-                freestyle_svg_export = 'render_freestyle_svg' in get_loaded_addons()
+                freestyle_svg_export = freestyle_svg_enabled()
                 col.active = freestyle_svg_export
                 col.prop(view, "embed_freestyle_svg", text="Embed FreeStyle SVG")
 

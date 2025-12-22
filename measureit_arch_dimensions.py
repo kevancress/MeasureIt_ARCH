@@ -1039,9 +1039,6 @@ class M_ARCH_UL_AlignedDimension_list(UIList):
 
             row.prop(dim, "visible", text="", icon=visIcon, emboss=False)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 
 class M_ARCH_UL_dimension_list(UIList):
@@ -1122,9 +1119,6 @@ class M_ARCH_UL_dimension_list(UIList):
 
             row.prop(dim, "visible", text="", icon=visIcon, emboss=False)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 
 class OBJECT_PT_UIDimensions(Panel):
@@ -1146,7 +1140,7 @@ class OBJECT_PT_UIDimensions(Panel):
         layout.use_property_decorate = False
 
         obj = context.object
-        if 'DimensionGenerator' in context.object:
+        if hasattr(context.object, 'DimensionGenerator'):
             dimGen = obj.DimensionGenerator
 
             row = layout.row()
@@ -1285,6 +1279,7 @@ def draw_alignedDimensions_settings(dim, layout):
             col.prop(dim, 'textAlignment', text='Alignment')
             col.prop(dim, 'textPosition', text='Position')
 
+        col.prop(dim,'textBackground',text='Background')
         # Line Weight
         col = layout.column(align=True)
         col.prop(dim, 'lineWeight', text='Line Weight')
@@ -1370,7 +1365,7 @@ def draw_boundsDimensions_settings(dim, layout):
         col = layout.column(align=True)
         col.prop(dim, 'fontSize', text='Font Size')
         col.prop(dim, 'textAlignment', text='Alignment')
-        # col.prop(dim,'textPosition',text='Position')
+        col.prop(dim,'textBackground',text='Background')
 
         col = layout.column(align=True)
         col.prop(dim, 'endcapA', text='Arrow Start')

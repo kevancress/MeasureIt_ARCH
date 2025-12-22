@@ -506,6 +506,9 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
     heightOffset = yDirVec.copy().normalized() * heightOffsetAmount
     offset_text_position = text_position + heightOffset
 
+    if 'textBackground' in style and style.textBackground:
+        svg.add(svg.polygon(points=[card[0],card[1],card[2],card[3]],fill=svgwrite.rgb(100,100,100,'%'),fill_opacity='75%'))
+
 
     idx = 0
     for line in lines:
@@ -546,6 +549,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
 
         svg.add(svg.line(start=tuple((0,0)), end=tuple((50,0)), stroke="red", stroke_width="1pt"))
         svg.add(svg.line(start=tuple((0,0)), end=tuple((0,50)), stroke="green", stroke_width="1pt"))
+
 
 
 def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
