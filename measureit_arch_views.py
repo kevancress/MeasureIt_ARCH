@@ -524,6 +524,17 @@ class ViewProperties(PropertyGroup):
         description="Don't Draw hatches in this view",
         default=False)
 
+    include_in_toc: BoolProperty(
+        name = "Include In TOC",
+        description = "Marks this view to be included in a Table Of Contents Text Autofill",
+        default=False
+    )
+
+    phase_override: StringProperty(
+        name = "Phase Override",
+        description = "If set, overrides Phase Autofill Text for this view",
+        default=""
+    )
 
 class ViewContainer(PropertyGroup):
     active_index: IntProperty(
@@ -932,12 +943,22 @@ class M_ARCH_UL_Views_list(UIList):
             row.prop(view, 'camera', text="", icon='CAMERA_DATA')
 
             if view.include_in_batch:
-                icon = "RESTRICT_RENDER_OFF"
+                batchicon = "RESTRICT_RENDER_OFF"
             else:
-                icon = "RESTRICT_RENDER_ON"
+                batchicon = "RESTRICT_RENDER_ON"
 
             row.separator()
-            row.prop(view, 'include_in_batch', text="",emboss=False, icon=icon)
+            row.prop(view, 'include_in_batch', text="",emboss=False, icon=batchicon)
+
+            if view.include_in_toc:
+                tocicon = "LONGDISPLAY"
+            else:
+                tocicon = "SELECT_SET"
+            
+            row.separator()
+            row.prop(view, 'include_in_toc', text="",emboss=False, icon=tocicon)
+
+
 
 
 class SCENE_PT_Views(Panel):
@@ -1023,6 +1044,8 @@ class SCENE_PT_Views(Panel):
                 col.prop(view, "name")
                 col.prop_search(view, 'titleBlock', bpy.data,
                                 'scenes', text='Title Block')
+                
+                col.prop(view,"phase_override")
 
                 col = box.column(align=True)
                 col.prop(view, "cameraType", text="Camera Type")

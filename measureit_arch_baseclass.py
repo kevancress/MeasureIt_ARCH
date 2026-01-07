@@ -332,6 +332,7 @@ class TextField(PropertyGroup):
                ('PROJECT_NAME', "Project Name", "", 'TEXT', 11),
                ('PROJECT_NUMBER', "Project Number", "", 'TEXT', 12),
                ('PROJECT_ADDRESS', "Project Address", "", 'TEXT', 13),
+               ('PROJECT_PHASE', "Project Phase", "", 'TEXT', 18),
                ('LOCAL_X', "Local X","",'TRACKING_CLEAR_FORWARDS',14),
                ('LOCAL_Y', "Local Y","",'TRACKING_CLEAR_FORWARDS',15),
                ('LOCAL_Z', "Local Z","",'TRACKING_CLEAR_FORWARDS',16),
@@ -649,6 +650,10 @@ class MeasureItARCHSceneProps(PropertyGroup):
     project_address: StringProperty(
         name="Project Address",
         description="Address for this Project")
+    
+    project_phase: StringProperty(
+        name="Project Phase",
+        description="Project Phase (Can be overriden per View)")
 
     depth_samples: EnumProperty(
         items=(

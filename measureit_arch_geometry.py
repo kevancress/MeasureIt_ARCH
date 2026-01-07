@@ -2724,14 +2724,31 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
         tableProps = table
 
         # Populate Text Fields from source file
-        if table.textFile == None:
+        if table.textFile == None and not table.is_toc:
             continue
+        
+        text_string = ""
+        if table.textFile != None:
+            # Re generate text if file is modified
+            text_string = table.textFile.as_string()
+            if table.textFile.is_dirty:
+                table.text_file_updated = True
+            
+        # Populate TextFields from TOC Views
+        if table.is_toc:
+            table.text_file_updated = True
+            
+            for view in scene.ViewGenerator.views:
+                if view.include_in_toc:
+                    phase = sceneProps.project_phase
+                    if view.phase_override != "":
+                        phase = view.phase_override
+                    text_string += "{},{},{} \n".format(view.view_num,view.name,phase)
+    
 
-        # Re generate text if file is modified
-        text_string = table.textFile.as_string()
         text_lines = text_string.splitlines()
 
-        if table.textFile.is_dirty or table.text_file_updated:
+        if table.text_file_updated:
             table.text_file_updated = False
             # Figure out max rows and max columns
             max_rows = len(text_lines)
@@ -3168,6 +3185,15 @@ def set_text(textField, obj, style=None, item=None):
             textField.text = ''
             sceneProps = bpy.context.scene.MeasureItArchProps
             textField.text = textField.autoFillPrefix + sceneProps.project_address
+        
+        elif text_source == 'PROJECT_PHASE':
+            textField.text = ''
+            sceneProps = bpy.context.scene.MeasureItArchProps
+            view = get_view()
+            if view.phase_override != "":
+                textField.text = textField.autoFillPrefix + view.phase_override
+            else:
+                textField.text = textField.autoFillPrefix + sceneProps.project_phase
         
         elif text_source == 'FILE_PATH':
             textField.text = ''

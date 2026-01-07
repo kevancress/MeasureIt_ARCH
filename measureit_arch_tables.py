@@ -113,6 +113,12 @@ class TableProperties(PropertyGroup, BaseWithText):
         name="Line Weight",
         description="Line Weight",
         default=1.0)
+    
+    is_toc: BoolProperty(
+        name = "Is Table of Contents",
+        description = "Autofill Table as Table of Contents",
+        default = False
+    )
 
 
 class TableContainer(PropertyGroup):
@@ -257,6 +263,7 @@ class OBJECT_PT_Tables(Panel):
                 col = box.column()
 
                 col.prop(table,'textFile')
+                col.prop(table,'is_toc')
 
                 col = box.column()
                 split = box.split(factor=0.485)
