@@ -121,8 +121,8 @@ def svg_fill_from_curve_shader(curve,svg,parent=None,mat =Matrix.Identity):
         hatch = material.Hatch
         if not hatch.visible:
             continue
-        fillColor = get_svg_color(rgb_gamma_correct(hatch.fill_color))
-        svgColor = get_svg_color(rgb_gamma_correct(hatch.fill_color))
+        fillColor = get_svg_color(hatch.fill_color)
+        svgColor = get_svg_color(hatch.fill_color)
         fill_idName = curve.name + "_fill_" + material.name
         fillOpacity = hatch.fill_color[3]
         lineColor = get_svg_color(hatch.line_color)
@@ -301,7 +301,7 @@ def svg_fill_shader(item, coords, color, svg, parent=None):
         return
     coords_2d = []
     idName = item.name + "_fills"
-    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
+    svgColor = get_svg_color(color)
     fills = svg.g(id=idName, fill=svgColor)
     parent.add(fills)
 
@@ -319,7 +319,7 @@ def svg_circle_shader(item, point, rad, color, svg, parent=None):
         return
 
     idName = item.name + "_fills"
-    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
+    svgColor = get_svg_color(color)
     fills = svg.g(id=idName, fill=svgColor)
     parent.add(fills)
 
@@ -354,12 +354,11 @@ def svg_poly_fill_shader(item, coords, color, svg, parent=None, line_color=(0, 0
 
         dash_val = get_svg_dash(itemProps,weight_scale_fac)
 
-    fill = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
+    fill = get_svg_color(color)
 
     fillOpacity = color[3]
-    lineColor = svgwrite.rgb(
-        line_color[0] * 100, line_color[1] * 100, line_color[2] * 100, '%')
-    lineOpacity = lineColor[3]
+    lineColor = get_svg_color(line_color)
+    lineOpacity = line_color[3]
     if dashed:
         solidfill = svg.g(id=idName, fill=fill, fill_opacity=fillOpacity,
                         stroke=lineColor, stroke_width="{}".format(lineWeight*weight_scale_fac), stroke_opacity=lineOpacity,stroke_linejoin="round",  stroke_dasharray=dash_val, stroke_linecap= cap)
@@ -406,7 +405,7 @@ def svg_text_shader(item, style, text, mid, textCard, color, svg, parent=None):
         print("No Points In front of Camera: {} Culled Text Card")
         return
 
-    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
+    svgColor = get_svg_color(color)
     ssp0 = vector_utils.get_render_location(textCard[0])
     ssp1 = vector_utils.get_render_location(textCard[1])
     ssp2 = vector_utils.get_render_location(textCard[2])
@@ -556,7 +555,7 @@ def svg_line_pattern_shader(pattern, svg, objs, weight, color, size):
     weight_scale_fac = 1.3333333333333333 * get_resolution()/96
     if bpy.context.scene.MeasureItArchProps.illustrator_style_svgs:
         weight_scale_fac = 1
-    svgColor = svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
+    svgColor = get_svg_color(color)
 
     for obj in objs:
         mesh = obj.data
@@ -622,4 +621,4 @@ def shortName(font):
 
 
 def get_svg_color(color):
-    return svgwrite.rgb(color[0] * 100, color[1] * 100, color[2] * 100, '%')
+    return svgwrite.rgb(pow(color[0],1/2.2) * 100, pow(color[1],1/2.2) * 100, pow(color[2],1/2.2) * 100, '%')
