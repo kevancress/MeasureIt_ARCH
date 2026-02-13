@@ -245,6 +245,26 @@ class OBJECT_PT_Tables(Panel):
         if len(tableGen.tables) > 0 and tableGen.active_index < len(tableGen.tables):
             table = tableGen.tables[tableGen.active_index]
 
+            # Operators Next to List
+            col = row.column(align=True)
+            op = col.operator(
+                "measureit_arch.deletepropbutton", text="", icon="X")
+            op.genPath = 'bpy.context.object.TableGenerator'
+            op.tag = tableGen.active_index  # saves internal data
+            op.item_type = 'tables'
+            op.is_style = False
+
+            col.separator()
+            up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+            up.genPath = 'bpy.context.object.TableGenerator'
+            up.item_type = 'tables'
+            up.upDown = -1
+
+            down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+            down.genPath = 'bpy.context.object.TableGenerator'
+            down.item_type = 'tables'
+            down.upDown = 1
+
             # Settings Below List
             if tableGen.show_settings:
                 settingsIcon = 'DISCLOSURE_TRI_DOWN'
