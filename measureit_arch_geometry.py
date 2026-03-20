@@ -2513,7 +2513,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             camera = context.scene.camera
             cameraMat = camera.matrix_world
 
-                # Account for negative scale
+            # Account for negative scale
             scale = camera.scale
             scale_mat_x = Matrix.Scale(scale.x,4,Vector((1,0,0)))
             scale_mat_y = Matrix.Scale(scale.y,4,Vector((0,1,0)))
@@ -2521,7 +2521,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
             scale_mat = scale_mat_z @ scale_mat_y @ scale_mat_x
 
-            cameraRot = (scale_mat@ cameraMat).to_quaternion()
+            cameraRot = (cameraMat).to_quaternion()
 
             #cameraRot = cameraMat.decompose()[1]
             cameraRotMat = Matrix.Identity(3)
@@ -2531,7 +2531,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             fullRotMat = annoMat @ cameraRotMat
             extMat = locMatrix @ fullRotMat @ customScale
 
-            cameraX = cameraRotMat @ Vector((1, 0, 0))
+            cameraX = cameraRotMat@ scale_mat @ Vector((1, 0, 0))
             leader1 = p1 - p2
             proj = leader1.dot(cameraX)
             if proj > 0:
@@ -3280,9 +3280,9 @@ def draw_text_3D(context, textobj, textprops, myobj):
     # Get View rotation
     debug_camera = False
     if sceneProps.is_render_draw or debug_camera:
-        viewRot = context.scene.camera.rotation_euler.to_quaternion()
+        view_mat = context.scene.camera.matrix_world
     else:
-        viewRot = context.area.spaces[0].region_3d.view_rotation
+        view_mat = context.area.spaces[0].region_3d.view_matrix
 
     # Define Flip Matrix's
     flipMatrixX = Matrix([
@@ -3294,6 +3294,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
         [1, 0],
         [0, -1]
     ])
+
 
     # Check Text Cards Direction Relative to view Vector
     # Card Indices:
@@ -3311,9 +3312,10 @@ def draw_text_3D(context, textobj, textprops, myobj):
     viewAxisY = j.copy()
     viewAxisZ = k.copy()
 
-    viewAxisX.rotate(viewRot)
-    viewAxisY.rotate(viewRot)
-    viewAxisZ.rotate(viewRot)
+    viewAxisX = viewAxisX @ view_mat 
+    viewAxisY = viewAxisY @ view_mat 
+    viewAxisZ = viewAxisZ @ view_mat 
+
 
     # Skew Rotation slightly to avoid errors that occur
     # when the view Axis are perfectly orthogonal to the
@@ -3321,6 +3323,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
     rot = Quaternion(viewAxisZ, radians(0.01))
     viewAxisX.rotate(rot)
     viewAxisY.rotate(rot)
+    
 
     if cardDirZ.dot(viewAxisZ) > 0:
         viewDif = viewAxisZ.rotation_difference(cardDirZ)
