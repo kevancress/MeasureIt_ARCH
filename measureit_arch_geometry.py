@@ -3277,12 +3277,13 @@ def draw_text_3D(context, textobj, textprops, myobj):
     j = Vector((0, 1, 0))
     k = Vector((0, 0, 1))
 
-    # Get View rotation
+    # Get view rotation in world space.  The render path uses the camera
+    # matrix, while viewport drawing uses the inverse region view matrix.
     debug_camera = False
     if sceneProps.is_render_draw or debug_camera:
-        view_mat = context.scene.camera.matrix_world
+        view_mat = context.scene.camera.matrix_world.to_3x3()
     else:
-        view_mat = context.area.spaces[0].region_3d.view_matrix
+        view_mat = context.area.spaces[0].region_3d.view_matrix.inverted().to_3x3()
 
     # Define Flip Matrix's
     flipMatrixX = Matrix([
@@ -3312,9 +3313,9 @@ def draw_text_3D(context, textobj, textprops, myobj):
     viewAxisY = j.copy()
     viewAxisZ = k.copy()
 
-    viewAxisX = viewAxisX @ view_mat 
-    viewAxisY = viewAxisY @ view_mat 
-    viewAxisZ = viewAxisZ @ view_mat 
+    viewAxisX = (view_mat @ viewAxisX).normalized()
+    viewAxisY = (view_mat @ viewAxisY).normalized()
+    viewAxisZ = (view_mat @ viewAxisZ).normalized()
 
 
     # Skew Rotation slightly to avoid errors that occur
