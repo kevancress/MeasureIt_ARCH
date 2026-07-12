@@ -3350,6 +3350,13 @@ def draw_text_3D(context, textobj, textprops, myobj):
             flippedUVs.append(uv)
         normalizedDeviceUVs = flippedUVs
 
+    if not sceneProps.is_render_draw:
+        flippedUVs = []
+        for uv in normalizedDeviceUVs:
+            uv = flipMatrixY @ Vector(uv)
+            flippedUVs.append(uv)
+        normalizedDeviceUVs = flippedUVs
+
     uvs = []
     for normUV in normalizedDeviceUVs:
         uv = (Vector(normUV) + Vector((1, 1))) * 0.5
