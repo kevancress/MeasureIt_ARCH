@@ -345,7 +345,8 @@ class AddAlignedDimensionButton(Operator):
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
-                newDimension.use_secondary_units = sceneProps.default_use_secondary_units
+                newDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDimension.use_secondary_units = newDimension.secondary_unit_mode != 'OFF'
 
                 newDimension.lineWeight = 1
                 newDimension.dimViewPlane = sceneProps.viewPlane
@@ -416,7 +417,8 @@ class AddBoundingDimensionButton(Operator):
                     newBoundsDimension.uses_style = True
                 else:
                     newBoundsDimension.uses_style = False
-                newBoundsDimension.use_secondary_units = sceneProps.default_use_secondary_units
+                newBoundsDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newBoundsDimension.use_secondary_units = newBoundsDimension.secondary_unit_mode != 'OFF'
 
                 newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'boundsDimensions'
@@ -508,7 +510,8 @@ class AddAxisDimensionButton(Operator):
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
-                newDimension.use_secondary_units = sceneProps.default_use_secondary_units
+                newDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDimension.use_secondary_units = newDimension.secondary_unit_mode != 'OFF'
 
                 newDimension.dimViewPlane = sceneProps.viewPlane
 
@@ -683,7 +686,8 @@ class AddAreaButton(Operator):
                     newDim.uses_style = True
                 else:
                     newDim.uses_style = False
-                newDim.use_secondary_units = sceneProps.default_use_secondary_units
+                newDim.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDim.use_secondary_units = newDim.secondary_unit_mode != 'OFF'
 
 
 
@@ -750,7 +754,8 @@ class AddAngleButton(Operator):
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
-                newDimension.use_secondary_units = sceneProps.default_use_secondary_units
+                newDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDimension.use_secondary_units = newDimension.secondary_unit_mode != 'OFF'
 
                 newDimension.dimPointA = mylist[0]
                 newDimension.dimPointB = mylist[1]
@@ -815,7 +820,8 @@ class AddArcButton(Operator):
                 newDimension.dimPointA = mylist[0]
                 newDimension.dimPointB = mylist[1]
                 newDimension.dimPointC = mylist[2]
-                newDimension.use_secondary_units = sceneProps.default_use_secondary_units
+                newDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDimension.use_secondary_units = newDimension.secondary_unit_mode != 'OFF'
 
                 # redraw
                 context.area.tag_redraw()
@@ -1349,7 +1355,11 @@ def draw_alignedDimensions_settings(dim, layout):
         # Toggles
         col = layout.column(align=True)
         col.prop(dim, 'inFront', text='Draw in Front')
-        col.prop(dim, 'use_secondary_units', text='Use Secondary Units')
+        col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+        if dim.secondary_unit_mode == 'METRIC':
+            col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+        elif dim.secondary_unit_mode == 'IMPERIAL':
+            col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
         col.prop(dim, 'evalMods')
 
     else:
@@ -1426,7 +1436,11 @@ def draw_boundsDimensions_settings(dim, layout):
 
     col.prop(dim, 'calcAxisAligned', text='Always Use Axis Aligned Bounds')
     col = layout.column(align=True)
-    col.prop(dim, 'use_secondary_units', text='Use Secondary Units')
+    col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+    if dim.secondary_unit_mode == 'METRIC':
+        col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+    elif dim.secondary_unit_mode == 'IMPERIAL':
+        col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
 
 
 def draw_axisDimensions_settings(dim, layout):
@@ -1472,7 +1486,11 @@ def draw_axisDimensions_settings(dim, layout):
         # Toggles
         col = layout.column(align=True)
         col.prop(dim, 'inFront', text='Draw in Front')
-        col.prop(dim, 'use_secondary_units', text='Use Secondary Units')
+        col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+        if dim.secondary_unit_mode == 'METRIC':
+            col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+        elif dim.secondary_unit_mode == 'IMPERIAL':
+            col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
         col.prop(dim, 'evalMods')
 
     else:
@@ -1487,7 +1505,11 @@ def draw_axisDimensions_settings(dim, layout):
         col = layout.column(align=True)
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
         col.prop(dim, 'textAlignment', text='Alignment')
-        col.prop(dim, 'use_secondary_units', text='Use Secondary Units')
+        col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+        if dim.secondary_unit_mode == 'METRIC':
+            col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+        elif dim.secondary_unit_mode == 'IMPERIAL':
+            col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
 
     # Unit Overrides
     col = layout.column(align=True)
@@ -1533,7 +1555,7 @@ def draw_angleDimensions_settings(dim, layout):
     # col.prop(dim, 'textPosition', text='Position')
 
     col = layout.column(align=True)
-    col.prop(dim, 'use_secondary_units', text='Use Secondary Units')
+    col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
 
 
 def draw_arcDimensions_settings(dim, layout):
@@ -1574,7 +1596,7 @@ def draw_arcDimensions_settings(dim, layout):
     col.prop(dim, 'inFront', text='Draw in Front')
 
     col = layout.column(align=True)
-    col.prop(dim, 'use_secondary_units', text='Use Secondary Units')
+    col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
 
 
 def draw_areaDimensions_settings(dim, layout):
@@ -1624,7 +1646,7 @@ def draw_areaDimensions_settings(dim, layout):
         col.prop(dim, 'evalMods')
 
     col = layout.column(align=True)
-    col.prop(dim, 'use_secondary_units', text='Use Secondary Units')
+    col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
 
 
 class TranslateDimensionOp(bpy.types.Operator):

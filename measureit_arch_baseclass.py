@@ -610,6 +610,46 @@ class BaseDim(BaseWithText):
         update = mark_invalid
     )
 
+    secondary_unit_mode: EnumProperty(
+        items=(
+            ('OFF', 'Off', 'Do not append secondary units to this dimension'),
+            ('AUTO', 'Automatic', 'Use the opposite of the primary unit system for this dimension'),
+            ('METRIC', 'Metric', 'Always append metric units for this dimension'),
+            ('IMPERIAL', 'Imperial', 'Always append imperial units for this dimension'),
+        ),
+        name='Secondary Units',
+        description='Controls the secondary unit display for this dimension',
+        default='OFF',
+        update=mark_invalid
+    )
+
+    secondary_metric_length: EnumProperty(
+        items=(
+            ('METERS', 'Meters', 'Use meters for secondary metric length formatting'),
+            ('CENTIMETERS', 'Centimeters', 'Use centimeters for secondary metric length formatting'),
+            ('MILLIMETERS', 'Millimeters', 'Use millimeters for secondary metric length formatting'),
+            ('MICROMETERS', 'Micrometers', 'Use micrometers for secondary metric length formatting'),
+            ('KILOMETERS', 'Kilometers', 'Use kilometers for secondary metric length formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary metric unit automatically'),
+        ),
+        name='Secondary Metric Length',
+        description='Metric unit to use when converting this dimension to a secondary value',
+        default='MILLIMETERS',
+        update=mark_invalid
+    )
+
+    secondary_imperial_length: EnumProperty(
+        items=(
+            ('FEET', 'Feet & Inches', 'Show feet and inches for secondary imperial length formatting'),
+            ('INCHES', 'Inches', 'Show inches for secondary imperial length formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary imperial unit automatically'),
+        ),
+        name='Secondary Imperial Length',
+        description='Imperial unit to use when converting this dimension to a secondary value',
+        default='FEET',
+        update=mark_invalid
+    )
+
     override_unit_system: EnumProperty(
         items = (('NONE', '--', "None"),
                  ('METRIC', 'Metric', "Metric"),
