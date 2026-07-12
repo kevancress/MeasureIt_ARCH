@@ -235,6 +235,8 @@ def update_text(textobj, props, context, fields=[], force_update = False):
             # Get textitem Properties
             rgb = rgb_gamma_correct(props.color)
             size = props.fontSize
+            if getattr(textobj, 'uses_style', False) and getattr(textobj, 'overrideFontSize', False):
+                size = textobj.fontSize
             resolution = get_resolution()
 
             # Get Font Id
@@ -1616,7 +1618,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         lengthText.textAlignment = 'C'
 
         # format text and update if necessary
-        lengthStr = format_distance(arc_length)
+        lengthStr = format_distance(arc_length, dim=dim)
 
         if dim.displayAsAngle:
             lengthStr = format_angle(arc_angle)
@@ -1626,7 +1628,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             lengthText.text_updated = True
 
         if dim.showRadius:
-            radStr = 'r ' + format_distance(radius)
+            radStr = 'r ' + format_distance(radius, dim=dim)
             if radiusText.text != radStr:
                 radiusText.text = radStr
                 radiusText.text_updated = True
@@ -3458,7 +3460,9 @@ def get_textField_boundary(context, textField, props=None):
         return
     
     min_characters = 3
-    size = props.fontSize
+    size = props.fontSize if props is not None else 0
+    if props is not None and getattr(textField, 'uses_style', False) and getattr(textField, 'overrideFontSize', False):
+        size = textField.fontSize
 
     # Card Indices:
     #
@@ -3568,7 +3572,7 @@ def get_textField_boundary(context, textField, props=None):
         c2 = Vector(card[2]) + padding * x_dir * width + padding * y_dir * height
         c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
 
-        rad = props.fontSize * get_scale()/2500 
+        rad = size * get_scale()/2500 
         if props == None or len(textField.text) > 3:
             rad = (c2 - center).length
 
@@ -4348,7 +4352,9 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     dim.textPosition = dim.textPosition
     dimLineExtension = 0  # add some extension to the line if the dimension is ext
     normDistVector = distVec.normalized()
-    if dim.fontSize != dimProps.fontSize:
+    if not dim.uses_style or dim.overrideFontSize:
+        pass
+    elif dim.fontSize != dimProps.fontSize:
         dim.fontSize = dimProps.fontSize
 
     if dim.textAlignment == 'L':

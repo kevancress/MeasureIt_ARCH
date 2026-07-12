@@ -46,7 +46,11 @@ def has_dimension_generator(context):
         len(context.object.DimensionGenerator) > 0
 
 def update_active_dim(self, context):
-    dimGen = context.object.DimensionGenerator
+    obj = getattr(context, "object", None)
+    if obj is None or not hasattr(obj, "DimensionGenerator"):
+        return
+
+    dimGen = obj.DimensionGenerator
     itemType = self.itemType
     idx = 0
     mark_invalid(self,context)
@@ -537,6 +541,11 @@ class BaseDim(BaseWithText):
         subtype='DISTANCE',
         update=update_active_dim)
 
+    overrideFontSize: BoolProperty(
+        name='Override Font Size',
+        description='Use an individual font size instead of the linked style font size',
+        default=False)
+
     dimLeaderOffset: FloatProperty(
         name='Dimension Offset',
         description='Offset for Dimension',
@@ -719,6 +728,73 @@ class MeasureItARCHSceneProps(PropertyGroup):
         name='Use Unit Scale',
         description='',
         default=False)
+
+    secondary_unit_mode: EnumProperty(
+        items=(
+            ('OFF', 'Off', 'Do not append secondary units to dimension text'),
+            ('AUTO', 'Automatic', 'Use the opposite of the primary unit system for the secondary display'),
+            ('METRIC', 'Metric', 'Always append metric units as the secondary display'),
+            ('IMPERIAL', 'Imperial', 'Always append imperial units as the secondary display'),
+        ),
+        name='Secondary Unit Mode',
+        description='Controls how secondary units are generated for dimension text',
+        default='OFF',
+        update=update_flag)
+
+    secondary_metric_length: EnumProperty(
+        items=(
+            ('METERS', 'Meters', 'Use meters for secondary metric length formatting'),
+            ('CENTIMETERS', 'Centimeters', 'Use centimeters for secondary metric length formatting'),
+            ('MILLIMETERS', 'Millimeters', 'Use millimeters for secondary metric length formatting'),
+            ('MICROMETERS', 'Micrometers', 'Use micrometers for secondary metric length formatting'),
+            ('KILOMETERS', 'Kilometers', 'Use kilometers for secondary metric length formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary metric unit automatically'),
+        ),
+        name='Secondary Metric Length',
+        description='Metric unit to use when converting dimension text to a secondary metric value',
+        default='MILLIMETERS',
+        update=update_flag)
+
+    secondary_imperial_length: EnumProperty(
+        items=(
+            ('FEET', 'Feet & Inches', 'Show feet and inches for secondary imperial length formatting'),
+            ('INCHES', 'Inches', 'Show inches for secondary imperial length formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary imperial unit automatically'),
+        ),
+        name='Secondary Imperial Length',
+        description='Imperial unit to use when converting dimension text to a secondary imperial value',
+        default='FEET',
+        update=update_flag)
+
+    secondary_metric_area_units: EnumProperty(
+        items=(
+            ('KILOMETERS', 'Square Kilometers', 'Use square kilometers for secondary metric area formatting'),
+            ('METERS', 'Square Meters', 'Use square meters for secondary metric area formatting'),
+            ('CENTIMETERS', 'Square Centimeters', 'Use square centimeters for secondary metric area formatting'),
+            ('MILLIMETERS', 'Square Millimeters', 'Use square millimeters for secondary metric area formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary metric area unit automatically'),
+        ),
+        name='Secondary Metric Area Units',
+        description='Metric unit to use when converting area measurements to a secondary value',
+        default='METERS',
+        update=update_flag)
+
+    secondary_imperial_area_units: EnumProperty(
+        items=(
+            ('HECTARE', 'Hectares', 'Use hectares for secondary imperial area formatting'),
+            ('ACRE', 'Acres', 'Use acres for secondary imperial area formatting'),
+            ('FEET', 'Square Feet', 'Use square feet for secondary imperial area formatting'),
+        ),
+        name='Secondary Imperial Area Units',
+        description='Imperial unit to use when converting area measurements to a secondary value',
+        default='FEET',
+        update=update_flag)
+
+    default_use_secondary_units: BoolProperty(
+        name='Enable Secondary Units on New Dimensions',
+        description='Automatically enable secondary unit output whenever a new dimension is created',
+        default=False,
+        update=update_flag)
 
     text_updated: BoolProperty(
         name='text_updated',
@@ -960,8 +1036,12 @@ class DeletePropButton(Operator):
         Generator = eval(self.genPath)
         itemGroup = eval('Generator.' + self.item_type)
         print(self.genPath)
+        try:
+            item = itemGroup[self.tag]
+        except (IndexError, TypeError):
+            return {'CANCELLED'}
         # Delete element
-        itemGroup[self.tag].free = True
+        item.free = True
         itemGroup.remove(self.tag)
 
         # Redraw
