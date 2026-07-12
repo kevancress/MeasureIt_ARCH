@@ -121,7 +121,7 @@ def draw_font_atlas(font, context):
 
             view_matrix = Matrix([
                 [2 / width, 0, 0, -1],
-                [0, 2 / height, 0, -1],
+                [0, -2 / height, 0, 1],
                 [0, 0, 1, 0],
                 [0, 0, 0, 1]])
 
@@ -139,8 +139,8 @@ def draw_font_atlas(font, context):
                         current_glyph = glyphs[current_glyph_idx]
                         glyph_name = cmap[ord(current_glyph)]
                         glyph_data = glyph_set[glyph_name]
-                        uv_x = x_pos/height
-                        uv_y = y_pos/width
+                        uv_x = x_pos/width
+                        uv_y = y_pos/height
                         all_font_data[font_key][current_glyph] = {}
                         all_font_data[font_key][current_glyph]['width'] = glyph_data.width
                         all_font_data[font_key][current_glyph]['uv'] = [uv_x,uv_y]

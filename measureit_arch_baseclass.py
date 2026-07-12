@@ -610,6 +610,46 @@ class BaseDim(BaseWithText):
         update = mark_invalid
     )
 
+    use_scene_precision_scale: BoolProperty(
+        name = "Auto Precision / Scale",
+        description = "Use the scene precision and unit scale settings for this dimension",
+        default = True,
+        update = mark_invalid
+    )
+
+    metric_precision_override: IntProperty(
+        name='Metric Precision', min=0, max=5, default=2,
+        description='Metric decimal precision override for this dimension',
+        update=mark_invalid)
+
+    imperial_precision_override: EnumProperty(
+        items=(
+            ('0', '1', 'Use whole inches for this dimension'),
+            ('1', '1/2', 'Use half inch precision for this dimension'),
+            ('2', '1/4', 'Use quarter inch precision for this dimension'),
+            ('4', '1/8', 'Use eighth inch precision for this dimension'),
+            ('8', '1/16', 'Use sixteenth inch precision for this dimension'),
+            ('16', '1/32', 'Use thirty-second inch precision for this dimension'),
+            ('32', '1/64', 'Use sixty-fourth inch precision for this dimension'),
+            ('64', '1/128', 'Use one-hundred-twenty-eighth inch precision for this dimension'),
+        ),
+        name="Imperial Precision",
+        description="Measurement precision override for imperial dimensions",
+        default='16',
+        update=mark_invalid)
+
+    area_precision_override: IntProperty(
+        name='Area Precision', min=0, max=5, default=2,
+        description='Area precision override for this dimension',
+        update=mark_invalid)
+
+    use_unit_scale_override: BoolProperty(
+        name = "Use Unit Scale",
+        description = "Apply the scene unit scale override for this dimension",
+        default = False,
+        update = mark_invalid
+    )
+
     secondary_unit_mode: EnumProperty(
         items=(
             ('OFF', 'Off', 'Do not append secondary units to this dimension'),

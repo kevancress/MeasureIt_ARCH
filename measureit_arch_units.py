@@ -93,6 +93,12 @@ class SCENE_PT_MARCH_units(Panel):
         col.prop(sceneProps, 'metric_area_units')
         col.prop(sceneProps, 'area_precision')
         col.prop(sceneProps, 'default_use_secondary_units')
+        col.label(text='Secondary Unit Defaults:')
+        col.prop(sceneProps, 'secondary_unit_mode')
+        if sceneProps.secondary_unit_mode == 'METRIC':
+            col.prop(sceneProps, 'secondary_metric_length')
+        elif sceneProps.secondary_unit_mode == 'IMPERIAL':
+            col.prop(sceneProps, 'secondary_imperial_length')
         col.label(text='Scale:')
         col.prop(sceneProps, 'use_unit_scale')
 
@@ -119,11 +125,13 @@ def format_distance(distance: float, dim = None, allow_negative = False) -> str:
 
     unit_system, unit_length = get_dim_unit_override(dim, unit_system, unit_length)
 
-    if scene.MeasureItArchProps.use_unit_scale:
+    precision, use_unit_scale = _resolve_dim_precision_and_scale(
+        scene.MeasureItArchProps, dim, unit_system)
+
+    if use_unit_scale:
         distance *= unit_scale
 
     if unit_system == 'METRIC':
-        precision = scene.MeasureItArchProps.metric_precision
         if not unit_length == 'ADAPTIVE':
             primary_text = _format_metric_length(
                 distance, precision, unit_length, hide_units)
@@ -137,11 +145,11 @@ def format_distance(distance: float, dim = None, allow_negative = False) -> str:
 
     elif unit_system == 'IMPERIAL':
         if not unit_length == 'ADAPTIVE':
-            precision = int(scene.MeasureItArchProps.imperial_precision)
+            precision = int(precision)
             primary_text = _format_imperial_length(distance, precision, unit_length)
         else:
             primary_text = bpy.utils.units.to_string(
-                'IMPERIAL', 'LENGTH', distance, precision=int(scene.MeasureItArchProps.imperial_precision), split_unit=separate_units,
+                'IMPERIAL', 'LENGTH', distance, precision=int(precision), split_unit=separate_units,
                 compatible_unit=False)
 
     else:
@@ -168,11 +176,36 @@ def get_dim_unit_override(dim, unit_system, unit_length = None):
     return unit_system, unit_length
 
 
+def _resolve_dim_precision_and_scale(scene_props, dim, unit_system, is_area=False):
+    if dim is not None and not getattr(dim, 'use_scene_precision_scale', True):
+        if unit_system == 'IMPERIAL':
+            precision = getattr(
+                dim,
+                'area_precision_override' if is_area else 'imperial_precision_override',
+                scene_props.area_precision if is_area else scene_props.imperial_precision)
+        elif unit_system == 'METRIC':
+            precision = getattr(
+                dim,
+                'area_precision_override' if is_area else 'metric_precision_override',
+                scene_props.area_precision if is_area else scene_props.metric_precision)
+        else:
+            precision = scene_props.area_precision if is_area else scene_props.metric_precision
+        use_unit_scale = getattr(dim, 'use_unit_scale_override', scene_props.use_unit_scale)
+    else:
+        if unit_system == 'IMPERIAL':
+            precision = scene_props.imperial_precision
+        elif unit_system == 'METRIC':
+            precision = scene_props.area_precision if is_area else scene_props.metric_precision
+        else:
+            precision = scene_props.area_precision if is_area else scene_props.metric_precision
+        use_unit_scale = scene_props.use_unit_scale
+
+    return precision, use_unit_scale
+
+
 def _resolve_secondary_unit_system(primary_unit_system, dim=None):
     if dim is not None and hasattr(dim, 'secondary_unit_mode'):
         secondary_mode = dim.secondary_unit_mode
-        if secondary_mode == 'OFF' and getattr(dim, 'use_secondary_units', False):
-            secondary_mode = 'AUTO'
     else:
         secondary_mode = 'OFF'
 
@@ -199,7 +232,8 @@ def _format_secondary_distance(distance, dim) -> str:
         return ""
 
     if secondary_unit_system == 'METRIC':
-        precision = scene_props.metric_precision
+        precision, _ = _resolve_dim_precision_and_scale(
+            scene_props, dim, secondary_unit_system)
         secondary_unit_length = getattr(dim, 'secondary_metric_length', scene_props.secondary_metric_length)
         if secondary_unit_length != 'ADAPTIVE':
             return _format_metric_length(distance, precision, secondary_unit_length)
@@ -208,7 +242,9 @@ def _format_secondary_distance(distance, dim) -> str:
             split_unit=scene.unit_settings.use_separate, compatible_unit=False)
 
     if secondary_unit_system == 'IMPERIAL':
-        precision = int(scene_props.imperial_precision)
+        precision, _ = _resolve_dim_precision_and_scale(
+            scene_props, dim, secondary_unit_system)
+        precision = int(precision)
         secondary_unit_length = getattr(dim, 'secondary_imperial_length', scene_props.secondary_imperial_length)
         if secondary_unit_length != 'ADAPTIVE':
             return _format_imperial_length(
@@ -230,7 +266,8 @@ def _format_secondary_area(area, dim) -> str:
         return ""
 
     if secondary_unit_system == 'METRIC':
-        precision = scene_props.area_precision
+        precision, _ = _resolve_dim_precision_and_scale(
+            scene_props, dim, secondary_unit_system, is_area=True)
         secondary_unit_length = scene_props.secondary_metric_area_units
         if secondary_unit_length != 'ADAPTIVE':
             return _format_metric_area(area, precision, secondary_unit_length)
@@ -239,7 +276,8 @@ def _format_secondary_area(area, dim) -> str:
             split_unit=scene.unit_settings.use_separate, compatible_unit=False)
 
     if secondary_unit_system == 'IMPERIAL':
-        precision = scene_props.area_precision
+        precision, _ = _resolve_dim_precision_and_scale(
+            scene_props, dim, secondary_unit_system, is_area=True)
         secondary_unit_length = scene_props.secondary_imperial_area_units
         if secondary_unit_length != 'ADAPTIVE':
             return _format_imperial_area(area, precision, secondary_unit_length)
@@ -263,10 +301,8 @@ def format_area(area: float, dim) -> str:
     sceneProps = scene.MeasureItArchProps
     unit_scale = scene.unit_settings.scale_length
 
-    if scene.MeasureItArchProps.use_unit_scale:
-        area *= unit_scale
-
     unit_system = scene.unit_settings.system
+
     if unit_system == 'METRIC':
         unit_length = sceneProps.metric_area_units
     else:
@@ -276,8 +312,13 @@ def format_area(area: float, dim) -> str:
 
     unit_system, unit_length = get_dim_unit_override(dim, unit_system, unit_length)
 
+    precision, use_unit_scale = _resolve_dim_precision_and_scale(
+        sceneProps, dim, unit_system, is_area=True)
+
+    if use_unit_scale:
+        area *= unit_scale
+
     if unit_system == 'METRIC':
-        precision = scene.MeasureItArchProps.area_precision
         if not separate_units and not unit_length == 'ADAPTIVE':
             primary_text = _format_metric_area(
                 area, precision, unit_length, hide_units)
@@ -290,7 +331,6 @@ def format_area(area: float, dim) -> str:
                 split_unit=separate_units, compatible_unit=False)
 
     elif unit_system == 'IMPERIAL':
-        precision = scene.MeasureItArchProps.area_precision
         primary_text = _format_imperial_area(area, precision, unit_length)
 
     else:

@@ -294,7 +294,7 @@ def update_text(textobj, props, context, fields=[], force_update = False):
 
                     view_matrix = Matrix([
                         [2 / width, 0, 0, -1],
-                        [0, 2 / height, 0, -1],
+                        [0, -2 / height, 0, 1],
                         [0, 0, 1, 0],
                         [0, 0, 0, 1]])
 

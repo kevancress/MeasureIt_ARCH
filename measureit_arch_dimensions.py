@@ -1360,6 +1360,7 @@ def draw_alignedDimensions_settings(dim, layout):
             col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
         elif dim.secondary_unit_mode == 'IMPERIAL':
             col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
+        draw_precision_scale_settings(dim, layout)
         col.prop(dim, 'evalMods')
 
     else:
@@ -1380,7 +1381,23 @@ def draw_alignedDimensions_settings(dim, layout):
             col.prop(dim, 'fontSize', text='Font Size')
         col.prop(dim, 'tweakOffset', text='Distance')
         col.prop(dim, 'textAlignment', text='Alignment')
+        col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+        if dim.secondary_unit_mode == 'METRIC':
+            col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+        elif dim.secondary_unit_mode == 'IMPERIAL':
+            col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
+        draw_precision_scale_settings(dim, layout)
         col.prop(dim, 'textPosition', text='Position')
+
+
+def draw_precision_scale_settings(dim, layout):
+    col = layout.column(align=True)
+    col.prop(dim, 'use_scene_precision_scale', text='Auto Precision / Scale')
+    if not dim.use_scene_precision_scale:
+        col.prop(dim, 'use_unit_scale_override', text='Use Unit Scale')
+        col.prop(dim, 'metric_precision_override', text='Metric Precision')
+        col.prop(dim, 'imperial_precision_override', text='Imperial Precision')
+        col.prop(dim, 'area_precision_override', text='Area Precision')
 
 
 def draw_boundsDimensions_settings(dim, layout):
@@ -1437,6 +1454,7 @@ def draw_boundsDimensions_settings(dim, layout):
     col.prop(dim, 'calcAxisAligned', text='Always Use Axis Aligned Bounds')
     col = layout.column(align=True)
     col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+    draw_precision_scale_settings(dim, layout)
     if dim.secondary_unit_mode == 'METRIC':
         col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
     elif dim.secondary_unit_mode == 'IMPERIAL':
@@ -1491,6 +1509,7 @@ def draw_axisDimensions_settings(dim, layout):
             col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
         elif dim.secondary_unit_mode == 'IMPERIAL':
             col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
+        draw_precision_scale_settings(dim, layout)
         col.prop(dim, 'evalMods')
 
     else:
@@ -1510,6 +1529,7 @@ def draw_axisDimensions_settings(dim, layout):
             col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
         elif dim.secondary_unit_mode == 'IMPERIAL':
             col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
+        draw_precision_scale_settings(dim, layout)
 
     # Unit Overrides
     col = layout.column(align=True)
@@ -1556,6 +1576,7 @@ def draw_angleDimensions_settings(dim, layout):
 
     col = layout.column(align=True)
     col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+    draw_precision_scale_settings(dim, layout)
 
 
 def draw_arcDimensions_settings(dim, layout):
@@ -1597,6 +1618,7 @@ def draw_arcDimensions_settings(dim, layout):
 
     col = layout.column(align=True)
     col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+    draw_precision_scale_settings(dim, layout)
 
 
 def draw_areaDimensions_settings(dim, layout):
