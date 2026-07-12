@@ -1371,7 +1371,6 @@ def draw_alignedDimensions_settings(dim, layout):
         col.prop(dim, 'tweakOffset', text='Distance')
         col.prop(dim, 'textAlignment', text='Alignment')
         col.prop(dim, 'textPosition', text='Position')
-    col.prop(dim, 'use_secondary_units', text='Use Secondary Units')
 
 
 def draw_boundsDimensions_settings(dim, layout):

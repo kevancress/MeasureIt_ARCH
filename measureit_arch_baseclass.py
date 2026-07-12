@@ -531,7 +531,6 @@ class BaseDim(BaseWithText):
         name='Dimension Offset',
         description='Offset for Dimension',
         default=(0.5),
-        min = 0.001,
         subtype='DISTANCE',
         update=update_active_dim)
 
@@ -710,7 +709,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
     hide_units: BoolProperty(
         name="Hide Units",
         description="Do not display unit of measurement on viewport",
-        default=False)
+        default=False,
+        update=update_flag)
 
     measureit_arch_dim_axis: EnumProperty(
         items=(('X', "X", "X Axis"),
@@ -732,7 +732,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
     use_unit_scale: BoolProperty(
         name='Use Unit Scale',
         description='',
-        default=False)
+        default=False,
+        update=update_flag)
 
     secondary_unit_mode: EnumProperty(
         items=(
@@ -743,7 +744,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
         ),
         name='Secondary Unit Mode',
         description='Controls how secondary units are generated for dimension text',
-        default='OFF',
+        default='AUTO',
         update=update_flag)
 
     secondary_metric_length: EnumProperty(
@@ -798,7 +799,7 @@ class MeasureItARCHSceneProps(PropertyGroup):
     default_use_secondary_units: BoolProperty(
         name='Enable Secondary Units on New Dimensions',
         description='Automatically enable secondary unit output whenever a new dimension is created',
-        default=False,
+        default=True,
         update=update_flag)
 
     text_updated: BoolProperty(
@@ -895,11 +896,13 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     angle_precision: IntProperty(
         name='Angle Precision', min=0, max=5, default=0,
-        description="Angle decimal precision")
+        description="Angle decimal precision",
+        update=update_flag)
 
     mm_precision: IntProperty(
         name='mm Precision', min=0, max=5, default=0,
-        description="mm decimal precision")
+        description="mm decimal precision",
+        update=update_flag)
 
     imperial_precision: EnumProperty(
         items=(('1', "1\"", "1 Inch"),
@@ -911,7 +914,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
                ('64', "1/64\"", "1/64th Inch")),
         name="Imperial Precision",
         description="Measurement Precision for Imperial Units",
-        default = '16')
+        default = '16',
+        update=update_flag)
 
     metric_area_units: EnumProperty(
         items = (('KILOMETERS', 'Kilometers', 'Kilometers'),
@@ -921,17 +925,19 @@ class MeasureItARCHSceneProps(PropertyGroup):
         ),
         name = 'Metric Area Units',
         description = 'Units to Use for Metric Area Dimensions',
-        default = 'METERS'
+        default = 'METERS',
+        update=update_flag
     )
 
     imperial_area_units: EnumProperty(
         items = (('HECTARE', 'Hectare', 'Hectare'),
-                ('ACRE', 'Acre', 'Acre'),
-                ('FEET', 'Feet', 'Feet'),
+            ('ACRE', 'Acre', 'Acre'),
+            ('FEET', 'Feet', 'Feet'),
         ),
         name = 'Imperial Area Units',
         description = 'Units to Use for Imperial Area Dimensions',
-        default = 'FEET'
+        default = 'FEET',
+        update=update_flag
     )
 
     use_text_autoplacement: BoolProperty(
@@ -968,11 +974,13 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     metric_precision: IntProperty(
         name='Precision', min=0, max=5, default=2,
-        description="Metric decimal precision")
+        description="Metric decimal precision",
+        update=update_flag)
 
     area_precision: IntProperty(
         name='Area Precision', min=0, max=5, default=2,
-        description="Area precision")
+        description="Area precision",
+        update=update_flag)
     
 
     offset_x_2d: IntProperty(
@@ -983,7 +991,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     metric_precision: IntProperty(
         name='Precision', min=0, max=5, default=2,
-        description="Metric decimal precision")
+        description="Metric decimal precision",
+        update=update_flag)
 
     hide_titleblock: BoolProperty(
         name="Hide Titleblock",
