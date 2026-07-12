@@ -41,35 +41,8 @@ def update_camera(self,context):
             render.resolution_y / ppi / BU_TO_INCHES) * (modelScale / paperScale)
 
 
-def sync_secondary_units(scene, enabled):
-    if not enabled:
-        return
-
-    dim_collections = (
-        'alignedDimensions',
-        'angleDimensions',
-        'axisDimensions',
-        'boundsDimensions',
-        'arcDimensions',
-        'areaDimensions',
-    )
-
-    for obj in scene.objects:
-        if not hasattr(obj, 'DimensionGenerator'):
-            continue
-
-        dimGen = obj.DimensionGenerator
-        for collection_name in dim_collections:
-            if not hasattr(dimGen, collection_name):
-                continue
-
-            for dim in getattr(dimGen, collection_name):
-                dim.use_secondary_units = True
-
-
 def update_default_use_secondary_units(self, context):
     update_flag(self, context)
-    sync_secondary_units(context.scene, self.default_use_secondary_units)
 
 def has_dimension_generator(context):
     return context.object is not None and \
