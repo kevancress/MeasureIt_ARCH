@@ -45,15 +45,15 @@ class mArchGizmoGroup(GizmoGroup):
         sceneProps = scene.MeasureItArchProps
         if sceneProps.show_gizmos and context.window_manager.measureit_arch_run_opengl:
             if obj is not None:
-                if 'DimensionGenerator' in obj:
+                if hasattr(obj, 'DimensionGenerator'):
                     return (obj)
-                if 'AnnotationGenerator' in obj:
+                if hasattr(obj, 'AnnotationGenerator'):
                     return (obj)
 
     def createGiz(self, obj):
         objIndex = 0
         for obj in bpy.context.selected_objects:
-            if 'DimensionGenerator' in obj:
+            if hasattr(obj, 'DimensionGenerator'):
                 dimGen = obj.DimensionGenerator
                 idx = 0
                 for dim in dimGen.alignedDimensions:
@@ -65,7 +65,7 @@ class mArchGizmoGroup(GizmoGroup):
                     createDimOffsetGiz(
                         self, dim, objIndex, idx, "DimensionGenerator.axisDimensions[self.idx]")
                     idx += 1
-            if 'AnnotationGenerator' in obj:
+            if hasattr(obj, 'AnnotationGenerator'):
                 annotationGen = obj.AnnotationGenerator
                 createAnnotationTranslateGiz(self, annotationGen, objIndex)
                 createAnnotationRotateGiz(self, annotationGen, objIndex)

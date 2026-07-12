@@ -116,9 +116,6 @@ class M_ARCH_UL_styles_list(UIList):
                 item = dimensionStyles[item.itemIndex]
                 draw_dimension_style_row(item, layout)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 
 class SCENE_PT_UIStyles(Panel):

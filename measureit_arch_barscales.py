@@ -184,9 +184,6 @@ class M_ARCH_UL_BarScale_List(UIList):
             subrow.scale_x = 0.6
             subrow.prop(table, 'color', text="")
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
             
 class OBJECT_PT_BarScales(Panel):
@@ -217,6 +214,26 @@ class OBJECT_PT_BarScales(Panel):
             "active_index", rows=2, type='DEFAULT')
 
         col = row.column(align=True)
+
+        # Operators Next to List
+        col = row.column(align=True)
+        op = col.operator(
+            "measureit_arch.deletepropbutton", text="", icon="X")
+        op.genPath = 'context.object.BarScaleGenerator'
+        op.tag = barScaleGen.active_index  # saves internal data
+        op.item_type = 'barScales'
+        op.is_style = False
+
+        col.separator()
+        up = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_UP")
+        up.genPath = 'context.object.BarScaleGenerator'
+        up.item_type = 'barScales'
+        up.upDown = -1
+
+        down = col.operator("measureit_arch.movepropbutton", text="", icon="TRIA_DOWN")
+        down.genPath = 'context.object.BarScaleGenerator'
+        down.item_type = 'barScales'
+        down.upDown = 1
 
         if len(barScaleGen.barScales) > 0 and barScaleGen.active_index < len(barScaleGen.barScales):
             barScale = barScaleGen.barScales[barScaleGen.active_index]

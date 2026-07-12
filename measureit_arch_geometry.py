@@ -49,7 +49,7 @@ from .measureit_arch_units import BU_TO_INCHES, format_distance, format_angle, \
     format_area
 from .measureit_arch_utils import get_rv3d, get_view, interpolate3d, get_camera_z_dist, get_camera_z, pts_to_px, recursionlimit,\
     OpenGL_Settings, get_sv3d, safe_name, _imp_scales_dict, _metric_scales_dict, _cad_col_dict, get_resolution, get_scale, px_to_m,\
-    load_shader_str, get_projection_matrix, rgb_gamma_correct, Inst_Sort, has_measureit_props
+    load_shader_str, get_projection_matrix, rgb_gamma_correct, Inst_Sort, has_measureit_props, is_visible_in_viewport
 
 from .vector_utils import get_axis_aligned_bounds
 
@@ -2515,7 +2515,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             camera = context.scene.camera
             cameraMat = camera.matrix_world
 
-                # Account for negative scale
+            # Account for negative scale
             scale = camera.scale
             scale_mat_x = Matrix.Scale(scale.x,4,Vector((1,0,0)))
             scale_mat_y = Matrix.Scale(scale.y,4,Vector((0,1,0)))
@@ -2523,7 +2523,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
             scale_mat = scale_mat_z @ scale_mat_y @ scale_mat_x
 
-            cameraRot = (scale_mat@ cameraMat).to_quaternion()
+            cameraRot = (cameraMat).to_quaternion()
 
             #cameraRot = cameraMat.decompose()[1]
             cameraRotMat = Matrix.Identity(3)
@@ -2533,7 +2533,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             fullRotMat = annoMat @ cameraRotMat
             extMat = locMatrix @ fullRotMat @ customScale
 
-            cameraX = cameraRotMat @ Vector((1, 0, 0))
+            cameraX = cameraRotMat@ scale_mat @ Vector((1, 0, 0))
             leader1 = p1 - p2
             proj = leader1.dot(cameraX)
             if proj > 0:
@@ -2577,6 +2577,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
 
         fields = []
         coords = []
+        background_filled_coords = []
         notesFlag = False
         for textField in annotation.textFields:
             fields.append(textField)
@@ -2610,6 +2611,7 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             tf_boundary_coords = get_textField_boundary(context,textField, annotationProps)
             if tf_boundary_coords != None:
                 coords += tf_boundary_coords
+                background_filled_coords.append(tf_boundary_coords)
 
         # Set Gizmo Properties
         annotation.gizLoc = p2
@@ -2679,6 +2681,11 @@ def draw_annotation(context, myobj, annotationGen, mat, svg=None, dxf=None, inst
             for fill in filledcoords:
                 svg_shaders.svg_fill_shader(
                     annotation, fill, rgb, svg, parent=svg_anno)
+            
+            for fill in background_filled_coords:
+                svg_shaders.svg_poly_fill_shader(
+                    annotation, fill, [1.0,1.0,1.0,0.8], svg, parent=svg_anno)
+
             for textField in fields:
                 textcard = textField['textcard']
                 svg_shaders.svg_text_shader(
@@ -2719,14 +2726,31 @@ def draw_table(context, myobj, tableGen, mat, svg=None, dxf=None, instance = Non
         tableProps = table
 
         # Populate Text Fields from source file
-        if table.textFile == None:
+        if table.textFile == None and not table.is_toc:
             continue
+        
+        text_string = ""
+        if table.textFile != None:
+            # Re generate text if file is modified
+            text_string = table.textFile.as_string()
+            if table.textFile.is_dirty:
+                table.text_file_updated = True
+            
+        # Populate TextFields from TOC Views
+        if table.is_toc:
+            table.text_file_updated = True
+            
+            for view in scene.ViewGenerator.views:
+                if view.include_in_toc:
+                    phase = sceneProps.project_phase
+                    if view.phase_override != "":
+                        phase = view.phase_override
+                    text_string += "{},{},{} \n".format(view.view_num,view.name,phase)
+    
 
-        # Re generate text if file is modified
-        text_string = table.textFile.as_string()
         text_lines = text_string.splitlines()
 
-        if table.textFile.is_dirty or table.text_file_updated:
+        if table.text_file_updated:
             table.text_file_updated = False
             # Figure out max rows and max columns
             max_rows = len(text_lines)
@@ -3164,6 +3188,15 @@ def set_text(textField, obj, style=None, item=None):
             sceneProps = bpy.context.scene.MeasureItArchProps
             textField.text = textField.autoFillPrefix + sceneProps.project_address
         
+        elif text_source == 'PROJECT_PHASE':
+            textField.text = ''
+            sceneProps = bpy.context.scene.MeasureItArchProps
+            view = get_view()
+            if view.phase_override != "":
+                textField.text = textField.autoFillPrefix + view.phase_override
+            else:
+                textField.text = textField.autoFillPrefix + sceneProps.project_phase
+        
         elif text_source == 'FILE_PATH':
             textField.text = ''
             textField.text = bpy.data.filepath
@@ -3249,9 +3282,9 @@ def draw_text_3D(context, textobj, textprops, myobj):
     # Get View rotation
     debug_camera = False
     if sceneProps.is_render_draw or debug_camera:
-        viewRot = context.scene.camera.rotation_euler.to_quaternion()
+        view_mat = context.scene.camera.matrix_world
     else:
-        viewRot = context.area.spaces[0].region_3d.view_rotation
+        view_mat = context.area.spaces[0].region_3d.view_matrix
 
     # Define Flip Matrix's
     flipMatrixX = Matrix([
@@ -3263,6 +3296,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
         [1, 0],
         [0, -1]
     ])
+
 
     # Check Text Cards Direction Relative to view Vector
     # Card Indices:
@@ -3280,9 +3314,10 @@ def draw_text_3D(context, textobj, textprops, myobj):
     viewAxisY = j.copy()
     viewAxisZ = k.copy()
 
-    viewAxisX.rotate(viewRot)
-    viewAxisY.rotate(viewRot)
-    viewAxisZ.rotate(viewRot)
+    viewAxisX = viewAxisX @ view_mat 
+    viewAxisY = viewAxisY @ view_mat 
+    viewAxisZ = viewAxisZ @ view_mat 
+
 
     # Skew Rotation slightly to avoid errors that occur
     # when the view Axis are perfectly orthogonal to the
@@ -3290,6 +3325,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
     rot = Quaternion(viewAxisZ, radians(0.01))
     viewAxisX.rotate(rot)
     viewAxisY.rotate(rot)
+    
 
     if cardDirZ.dot(viewAxisZ) > 0:
         viewDif = viewAxisZ.rotation_difference(cardDirZ)
@@ -3491,12 +3527,13 @@ def get_textField_boundary(context, textField, props=None):
         coords = [c0,c1,c1,c2,c2,c3,c3,c0]
 
     if textField.boundaryShape == 'ROUNDED':
-        padding = 0.25 * height
+        x_padding = -1 * height
+        y_padding = 0.75 * height
 
-        c0 = Vector(card[0]) - padding * x_dir * width - padding * y_dir * height
-        c1 = Vector(card[1]) - padding * x_dir * width + padding * y_dir * height
-        c2 = Vector(card[2]) + padding * x_dir * width + padding * y_dir * height
-        c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
+        c0 = Vector(card[0]) - x_padding * x_dir * width - y_padding * y_dir * height
+        c1 = Vector(card[1]) - x_padding * x_dir * width + y_padding * y_dir * height
+        c2 = Vector(card[2]) + x_padding * x_dir * width + y_padding * y_dir * height
+        c3 = Vector(card[3]) + x_padding * x_dir * width - y_padding * y_dir * height
 
         coords = [c1,c2,c3,c0]
 
@@ -3868,8 +3905,7 @@ def check_mods(myobj):
 def check_vis(item, props):
     context = bpy.context
     inView = False
-    if (props.visibleInView == "" or
-            props.visibleInView == context.window.view_layer.name):
+    if (props.visibleInView == "" or props.visibleInView == context.window.view_layer.name):
         inView = True
 
     if item.visible and props.visible and inView:
@@ -3968,7 +4004,7 @@ def draw_lines(lineWeight, rgb, coords, offset=-0.001, pointPass=False, dashed =
         buffer = HiddenLinesBuffer
 
     if len(coords) % 2 != 0:
-        print('ERROR: Odd Number of Coords, injecting padding to preserve other lines')
+        print('ERROR: Odd Number of Coords on: {}, injecting padding to preserve other lines'.format(obj.name))
         coords.append(Vector((0,0,0)))
     
     if obj == None:
@@ -4529,6 +4565,9 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
     #cull objs with no measureit_arch_items
     objlist = [obj for obj in objlist if has_measureit_props(obj)] 
 
+    # cull objects not in viewport
+    objlist = [obj for obj in objlist if is_visible_in_viewport(obj)]
+
     # Sort all for vector draw
     if sceneProps.is_vector_draw:
         objlist = z_order_objs(objlist, extMat, multMat)
@@ -4568,26 +4607,26 @@ def draw3d_loop(context, objlist=None, svg=None, dxf = None, extMat=None, multMa
             if (sceneProps.is_vector_draw or sceneProps.is_dxf_draw) and (myobj.type == 'MESH' or myobj.type =="CURVE"):
                 draw_material_hatches(context, myobj, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw)
 
-        if 'LineGenerator' in myobj:
+        if hasattr(myobj, 'LineGenerator'):
             if not sceneProps.hide_linework or sceneProps.is_render_draw:
                 lineGen = myobj.LineGenerator
                 draw_line_group(context, myobj, lineGen, mat, svg=svg, dxf=dxf, is_instance_draw=inst_draw,instance=obj_int)
 
-        if 'AnnotationGenerator' in myobj:
+        if hasattr(myobj, 'AnnotationGenerator'):
             annotationGen = myobj.AnnotationGenerator
             draw_annotation(
                 context, myobj, annotationGen, mat, svg=svg, dxf=dxf, instance=obj_int)
         
-        if 'TableGenerator' in myobj:
+        if hasattr(myobj, 'TableGenerator'):
             tableGen = myobj.TableGenerator
             draw_table(context, myobj, tableGen, mat, svg=svg, dxf=dxf)
 
-        if 'BarScaleGenerator' in myobj:
+        if hasattr(myobj, 'BarScaleGenerator'):
             BarScaleGen = myobj.BarScaleGenerator
             draw_barScale(context, myobj, BarScaleGen, mat, svg=svg, dxf=dxf)
 
 
-        if 'DimensionGenerator' in myobj:
+        if hasattr(myobj,'DimensionGenerator'):
             if inst_draw and not sceneProps.instance_dims:
                 continue
             DimGen = myobj.DimensionGenerator

@@ -423,10 +423,6 @@ class M_ARCH_UL_lines_list(UIList):
 
             row.prop(line, "visible", text="", icon=visIcon,emboss=False)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
-
 
 class OBJECT_PT_UILines(Panel):
     """ A panel in the Object properties window """
@@ -447,7 +443,7 @@ class OBJECT_PT_UILines(Panel):
         layout.use_property_decorate = False
 
         if context.object is not None:
-            if 'LineGenerator' in context.object:
+            if hasattr(context.object, 'LineGenerator'):
                 lineGen = context.object.LineGenerator
 
                 row = layout.row()

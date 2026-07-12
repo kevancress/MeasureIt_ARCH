@@ -329,10 +329,6 @@ class M_ARCH_UL_annotations_list(UIList):
 
             row.prop(annotation, "visible", text="", icon=visIcon,emboss=False)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
-
 
 class OBJECT_PT_UIAnnotations(Panel):
     """Creates a Panel in the Object properties window"""
@@ -353,7 +349,7 @@ class OBJECT_PT_UIAnnotations(Panel):
         layout.use_property_decorate = False
 
         if context.object is not None:
-            if 'AnnotationGenerator' in context.object:
+            if hasattr(context.object, 'AnnotationGenerator'):
                 annoGen = context.object.AnnotationGenerator
 
                 row = layout.row()
@@ -548,9 +544,6 @@ class OBJECT_MT_annotation_menu(bpy.types.Menu):
             "measureit_arch.deleteallitemsbutton", text="Delete All Annotations", icon="X")
         delOp.is_style = False
         delOp.genPath = 'bpy.context.object.AnnotationGenerator'
-        # if 'AnnotationGenerator' in context.object:
-        #     scene = context.scene
-        #     annoGen = context.object.AnnotationGenerator
 
 
 class TranslateAnnotationOp(bpy.types.Operator):

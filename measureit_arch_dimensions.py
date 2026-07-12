@@ -1083,9 +1083,6 @@ class M_ARCH_UL_AlignedDimension_list(UIList):
 
             row.prop(dim, "visible", text="", icon=visIcon, emboss=False)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 
 class M_ARCH_UL_dimension_list(UIList):
@@ -1165,9 +1162,6 @@ class M_ARCH_UL_dimension_list(UIList):
 
             row.prop(dim, "visible", text="", icon=visIcon, emboss=False)
 
-        elif self.layout_type in {'GRID'}:
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon='MESH_CUBE')
 
 
 class OBJECT_PT_UIDimensions(Panel):
@@ -1189,7 +1183,7 @@ class OBJECT_PT_UIDimensions(Panel):
         layout.use_property_decorate = False
 
         obj = context.object
-        if 'DimensionGenerator' in context.object:
+        if hasattr(context.object, 'DimensionGenerator'):
             dimGen = obj.DimensionGenerator
 
             row = layout.row()

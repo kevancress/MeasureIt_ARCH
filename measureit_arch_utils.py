@@ -91,6 +91,25 @@ def has_measureit_props(obj_int):
 
     return False
 
+def is_visible_in_viewport(obj_int):
+    if type(obj_int) == bpy.types.Object:
+        myobj = obj_int
+    else:
+        if obj_int.parent != "":
+            myobj = bpy.data.objects[obj_int.parent]
+        else:
+            myobj = bpy.data.objects[obj_int.object]
+
+
+    sceneProps = bpy.context.scene.MeasureItArchProps
+    if sceneProps.is_render_draw:
+        return True
+
+    if myobj.visible_get():
+        return True
+
+    return False
+
 def load_shader_str(file, directory = ""):
     path = os.path.dirname(os.path.abspath(__file__))
     shader_path = os.path.join(path,"glsl")
