@@ -235,6 +235,8 @@ def update_text(textobj, props, context, fields=[], force_update = False):
             # Get textitem Properties
             rgb = rgb_gamma_correct(props.color)
             size = props.fontSize
+            if getattr(textobj, 'uses_style', False) and getattr(textobj, 'overrideFontSize', False):
+                size = textobj.fontSize
             resolution = get_resolution()
 
             # Get Font Id
@@ -1616,7 +1618,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
         lengthText.textAlignment = 'C'
 
         # format text and update if necessary
-        lengthStr = format_distance(arc_length)
+        lengthStr = format_distance(arc_length, dim=dim)
 
         if dim.displayAsAngle:
             lengthStr = format_angle(arc_angle)
@@ -1626,7 +1628,7 @@ def draw_arcDimension(context, myobj, DimGen, dim, mat, svg=None, dxf=None):
             lengthText.text_updated = True
 
         if dim.showRadius:
-            radStr = 'r ' + format_distance(radius)
+            radStr = 'r ' + format_distance(radius, dim=dim)
             if radiusText.text != radStr:
                 radiusText.text = radStr
                 radiusText.text_updated = True
@@ -3280,11 +3282,15 @@ def draw_text_3D(context, textobj, textprops, myobj):
     # Get View rotation
     debug_camera = False
     if sceneProps.is_render_draw or debug_camera:
-        view_mat = context.scene.camera.matrix_world
+        # Camera matrix_world goes Local -> World
+        view_rot_mat = context.scene.camera.matrix_world.to_3x3()
     else:
-        view_mat = context.area.spaces[0].region_3d.view_matrix
+        # region_3d.view_matrix goes World -> Local. Invert for Local -> World
+        view_rot_mat = context.area.spaces[0].region_3d.view_matrix.inverted_safe().to_3x3()
 
-    # Define Flip Matrix's
+    viewAxisX = view_rot_mat @ i
+    viewAxisY = view_rot_mat @ j
+    viewAxisZ = view_rot_mat @ k
     flipMatrixX = Matrix([
         [-1, 0],
         [0, 1]
@@ -3308,13 +3314,9 @@ def draw_text_3D(context, textobj, textprops, myobj):
     cardDirY = (card[1] - card[0]).normalized()
     cardDirZ = cardDirX.cross(cardDirY)
 
-    viewAxisX = i.copy()
-    viewAxisY = j.copy()
-    viewAxisZ = k.copy()
 
-    viewAxisX = viewAxisX @ view_mat 
-    viewAxisY = viewAxisY @ view_mat 
-    viewAxisZ = viewAxisZ @ view_mat 
+
+    # Define Flip Matrix's
 
 
     # Skew Rotation slightly to avoid errors that occur
@@ -3347,6 +3349,8 @@ def draw_text_3D(context, textobj, textprops, myobj):
             uv = flipMatrixY @ Vector(uv)
             flippedUVs.append(uv)
         normalizedDeviceUVs = flippedUVs
+
+
 
     uvs = []
     for normUV in normalizedDeviceUVs:
@@ -3494,7 +3498,9 @@ def get_textField_boundary(context, textField, props=None):
         return
     
     min_characters = 3
-    size = props.fontSize
+    size = props.fontSize if props is not None else 0
+    if props is not None and getattr(textField, 'uses_style', False) and getattr(textField, 'overrideFontSize', False):
+        size = textField.fontSize
 
     # Card Indices:
     #
@@ -3605,7 +3611,7 @@ def get_textField_boundary(context, textField, props=None):
         c2 = Vector(card[2]) + padding * x_dir * width + padding * y_dir * height
         c3 = Vector(card[3]) + padding * x_dir * width - padding * y_dir * height
 
-        rad = props.fontSize * get_scale()/2500 
+        rad = size * get_scale()/2500 
         if props == None or len(textField.text) > 3:
             rad = (c2 - center).length
 
@@ -4384,7 +4390,9 @@ def dim_text_placement(dim, dimProps, origin, dist, distVec, offsetDistance, cap
     dim.textPosition = dim.textPosition
     dimLineExtension = 0  # add some extension to the line if the dimension is ext
     normDistVector = distVec.normalized()
-    if dim.fontSize != dimProps.fontSize:
+    if not dim.uses_style or dim.overrideFontSize:
+        pass
+    elif dim.fontSize != dimProps.fontSize:
         dim.fontSize = dimProps.fontSize
 
     if dim.textAlignment == 'L':

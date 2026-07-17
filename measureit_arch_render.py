@@ -382,6 +382,7 @@ def render_main(self, context):
 
         # Restore default value
         sceneProps.is_render_draw = False
+        sceneProps.text_updated = True
         RenderEndTime = time.time()
         print("Full Render Time: " + str(RenderEndTime - RenderStartTime))
     return outpath

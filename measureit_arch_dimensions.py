@@ -39,9 +39,33 @@ from .measureit_arch_utils import get_smart_selected, \
 from .measureit_arch_units import BU_TO_FEET
 
 
+def get_wrapped_dimension_item(generator, wrapper_item):
+    try:
+        collection = getattr(generator, wrapper_item.itemType)
+        return collection[wrapper_item.itemIndex]
+    except (AttributeError, IndexError, TypeError):
+        return None
+
+
+def get_active_wrapper_item(generator):
+    try:
+        return generator.wrapper[generator.active_index]
+    except (AttributeError, IndexError, TypeError):
+        return None
+
+
+def get_active_dimension_item(generator):
+    wrapper_item = get_active_wrapper_item(generator)
+    if wrapper_item is None:
+        return None
+    return get_wrapped_dimension_item(generator, wrapper_item)
+
+
 def update_active_dim(self, context):
     Generator = context.object.DimensionGenerator
-    activeWraper = Generator.wrapper[Generator.active_index]
+    activeWraper = get_active_wrapper_item(Generator)
+    if activeWraper is None:
+        return
 
     for key in Generator.keys():
         item = Generator.path_resolve(key)
@@ -50,8 +74,9 @@ def update_active_dim(self, context):
             for item in typeContainer:
                 item.is_active = False
 
-    activeItem = eval('Generator.' + activeWraper.itemType +
-                      '[activeWraper.itemIndex]')
+    activeItem = get_wrapped_dimension_item(Generator, activeWraper)
+    if activeItem is None:
+        return
     activeItem.is_active = True
 
 
@@ -242,13 +267,10 @@ class DimensionContainer(PropertyGroup):
     wrapper: CollectionProperty(type=DimensionWrapper)
 
     def get_active_item(self):
-        try:
-            wrap = self.wrapper[self.active_index]
-            active_item = eval('self.{}[{}]'.format(wrap.itemType, wrap.itemIndex))
-            return active_item
-        except IndexError:
-            pass
+        wrap = get_active_wrapper_item(self)
+        if wrap is None:
             return None
+        return get_wrapped_dimension_item(self, wrap)
 
 
 class AddAlignedDimensionButton(Operator):
@@ -323,6 +345,8 @@ class AddAlignedDimensionButton(Operator):
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
+                newDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDimension.use_secondary_units = newDimension.secondary_unit_mode != 'OFF'
 
                 newDimension.lineWeight = 1
                 newDimension.dimViewPlane = sceneProps.viewPlane
@@ -393,6 +417,8 @@ class AddBoundingDimensionButton(Operator):
                     newBoundsDimension.uses_style = True
                 else:
                     newBoundsDimension.uses_style = False
+                newBoundsDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newBoundsDimension.use_secondary_units = newBoundsDimension.secondary_unit_mode != 'OFF'
 
                 newWrapper = DimGen.wrapper.add()
                 newWrapper.itemType = 'boundsDimensions'
@@ -484,6 +510,8 @@ class AddAxisDimensionButton(Operator):
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
+                newDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDimension.use_secondary_units = newDimension.secondary_unit_mode != 'OFF'
 
                 newDimension.dimViewPlane = sceneProps.viewPlane
 
@@ -658,6 +686,8 @@ class AddAreaButton(Operator):
                     newDim.uses_style = True
                 else:
                     newDim.uses_style = False
+                newDim.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDim.use_secondary_units = newDim.secondary_unit_mode != 'OFF'
 
 
 
@@ -724,6 +754,8 @@ class AddAngleButton(Operator):
                     newDimension.uses_style = True
                 else:
                     newDimension.uses_style = False
+                newDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDimension.use_secondary_units = newDimension.secondary_unit_mode != 'OFF'
 
                 newDimension.dimPointA = mylist[0]
                 newDimension.dimPointB = mylist[1]
@@ -772,6 +804,7 @@ class AddArcButton(Operator):
         if context.area.type == 'VIEW_3D':
             # Add properties
             mainobject = context.object
+            sceneProps = context.scene.MeasureItArchProps
             mylist = get_selected_vertex_history(mainobject)
             if len(mylist) == 3:
 
@@ -787,6 +820,8 @@ class AddArcButton(Operator):
                 newDimension.dimPointA = mylist[0]
                 newDimension.dimPointB = mylist[1]
                 newDimension.dimPointC = mylist[2]
+                newDimension.secondary_unit_mode = sceneProps.secondary_unit_mode if sceneProps.default_use_secondary_units else 'OFF'
+                newDimension.use_secondary_units = newDimension.secondary_unit_mode != 'OFF'
 
                 # redraw
                 context.area.tag_redraw()
@@ -814,9 +849,8 @@ class CursorToArcOrigin(Operator):
             return False
         else:
             dimGen = myobj.DimensionGenerator
-            try:
-                activeWrapperItem = dimGen.wrapper[dimGen.active_index]
-            except:
+            activeWrapperItem = get_active_wrapper_item(dimGen)
+            if activeWrapperItem is None:
                 return False
 
             if activeWrapperItem.itemType == 'arcDimensions':
@@ -827,11 +861,15 @@ class CursorToArcOrigin(Operator):
     def execute(self, context):
         myobj = context.active_object
         dimGen = myobj.DimensionGenerator
-        activeWrapperItem = dimGen.wrapper[dimGen.active_index]
+        activeWrapperItem = get_active_wrapper_item(dimGen)
+        if activeWrapperItem is None:
+            return {'CANCELLED'}
         cursor = context.scene.cursor
 
         if activeWrapperItem.itemType == 'arcDimensions':
-            arc = dimGen.arcDimensions[activeWrapperItem.itemIndex]
+            arc = get_wrapped_dimension_item(dimGen, activeWrapperItem)
+            if arc is None:
+                return {'CANCELLED'}
             center = arc.arcCenter
             cursor.location = center
             return {'FINISHED'}
@@ -856,7 +894,9 @@ class AddFaceToArea(Operator):
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator
-                    activeWrapperItem = dimGen.wrapper[dimGen.active_index]
+                    activeWrapperItem = get_active_wrapper_item(dimGen)
+                    if activeWrapperItem is None:
+                        return False
 
                     if activeWrapperItem.itemType == 'areaDimensions':
                         return True
@@ -878,10 +918,14 @@ class AddFaceToArea(Operator):
                     myobj = context.object
                     mylist = get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator
-                    activeWrapperItem = dimGen.wrapper[dimGen.active_index]
+                    activeWrapperItem = get_active_wrapper_item(dimGen)
+                    if activeWrapperItem is None:
+                        return {'CANCELLED'}
 
                     if activeWrapperItem.itemType == 'areaDimensions':
-                        dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
+                        dim = get_wrapped_dimension_item(dimGen, activeWrapperItem)
+                        if dim is None:
+                            return {'CANCELLED'}
                     else:
                         return {'CANCELLED'}
 
@@ -930,7 +974,9 @@ class RemoveFaceFromArea(Operator):
             if myobj.type == "MESH":
                 if bpy.context.mode == 'EDIT_MESH':
                     dimGen = myobj.DimensionGenerator
-                    activeWrapperItem = dimGen.wrapper[dimGen.active_index]
+                    activeWrapperItem = get_active_wrapper_item(dimGen)
+                    if activeWrapperItem is None:
+                        return False
 
                     if activeWrapperItem.itemType == 'areaDimensions':
                         return True
@@ -952,10 +998,14 @@ class RemoveFaceFromArea(Operator):
                     myobj = context.object
                     mylist = get_selected_faces(myobj)
                     dimGen = myobj.DimensionGenerator
-                    activeWrapperItem = dimGen.wrapper[dimGen.active_index]
+                    activeWrapperItem = get_active_wrapper_item(dimGen)
+                    if activeWrapperItem is None:
+                        return {'CANCELLED'}
 
                     if activeWrapperItem.itemType == 'areaDimensions':
-                        dim = dimGen.areaDimensions[activeWrapperItem.itemIndex]
+                        dim = get_wrapped_dimension_item(dimGen, activeWrapperItem)
+                        if dim is None:
+                            return {'CANCELLED'}
                     else:
                         return {'CANCELLED'}
 
@@ -1062,28 +1112,27 @@ class M_ARCH_UL_dimension_list(UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.use_property_decorate = False
             # Get correct item and icon
+            dim = get_wrapped_dimension_item(dimGen, item)
+            if dim is None:
+                layout.label(text="Missing dimension item")
+                return
+
             if item.itemType == 'alignedDimensions':
-                dim = alignedDim[item.itemIndex]
                 nameIcon = 'DRIVER_DISTANCE'
 
             elif item.itemType == 'angleDimensions':
-                dim = angleDim[item.itemIndex]
                 nameIcon = 'DRIVER_ROTATIONAL_DIFFERENCE'
 
             elif item.itemType == 'axisDimensions':
-                dim = axisDim[item.itemIndex]
                 nameIcon = 'TRACKING_FORWARDS_SINGLE'
 
             elif item.itemType == 'boundsDimensions':
-                dim = boundsDim[item.itemIndex]
                 nameIcon = 'SHADING_BBOX'
 
             elif item.itemType == 'arcDimensions':
-                dim = arcDim[item.itemIndex]
                 nameIcon = 'MOD_THICKNESS'
 
             elif item.itemType == 'areaDimensions':
-                dim = areaDim[item.itemIndex]
                 nameIcon = 'MESH_GRID'
 
             row = layout.row()
@@ -1172,52 +1221,53 @@ class OBJECT_PT_UIDimensions(Panel):
             col.separator()
             col.menu("OBJECT_MT_dimension_menu", icon='DOWNARROW_HLT', text="")
 
-            # Settings Below List
-            if len(dimGen.wrapper) > 0 and dimGen.active_index < len(dimGen.wrapper):
-                activeWrapperItem = dimGen.wrapper[dimGen.active_index]
-                item = eval('dimGen.' + activeWrapperItem.itemType +
-                            '[activeWrapperItem.itemIndex]')
-                idxString = "bpy.context.active_object.DimensionGenerator.wrapper[bpy.context.active_object.DimensionGenerator.active_index].itemIndex"
+           # Settings Below List
+            activeWrapperItem = get_active_wrapper_item(dimGen)
+            if activeWrapperItem is None:
+                layout.label(text="No active dimension item")
+                return
 
-                ### TEXT FIELDS
-                field_types = ['alignedDimensions','axisDimensions','areaDimensions']
-                if activeWrapperItem.itemType in field_types:
-                    if dimGen.show_dimension_fields:
-                        fieldsIcon = 'DISCLOSURE_TRI_DOWN'
-                    else:
-                        fieldsIcon = 'DISCLOSURE_TRI_RIGHT'
+            item = get_wrapped_dimension_item(dimGen, activeWrapperItem)
+            if item is None:
+                layout.label(text="Active dimension item is missing")
+                return
 
-                    box = layout.box()
-                    col = box.column()
-                    row = col.row()
-                    row.prop(dimGen, 'show_dimension_fields',
-                            text="", icon= fieldsIcon, emboss=False)
+            ### TEXT FIELDS
+            field_types = ['alignedDimensions', 'axisDimensions', 'areaDimensions']
+            if activeWrapperItem.itemType in field_types:
+                if dimGen.show_dimension_fields:
+                    fieldsIcon = 'DISCLOSURE_TRI_DOWN'
+                else:
+                    fieldsIcon = 'DISCLOSURE_TRI_RIGHT'
 
-                    row.label(text=item.name + ' Text Fields:')
+                box = layout.box()
+                col = box.column()
+                row = col.row()
+                row.prop(dimGen, 'show_dimension_fields',
+                        text="", icon=fieldsIcon, emboss=False)
 
-                    row.emboss = 'PULLDOWN_MENU'
-                    txtAddOp = row.operator(
-                        "measureit_arch.additem", text="", icon="ADD")
-                    txtAddOp.propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType,idxString)
-                    txtAddOp.idx = dimGen.active_index
-                    txtAddOp.add = True
+                row.label(text=item.name + ' Text Fields:')
 
-                    txtRemoveOp = row.operator(
-                        "measureit_arch.additem", text="", icon="REMOVE")
-                    txtAddOp.propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType,idxString)
-                    txtRemoveOp.idx = activeWrapperItem.itemIndex
-                    txtRemoveOp.add = False
+                row.emboss = 'PULLDOWN_MENU'
+                txtAddOp = row.operator(
+                    "measureit_arch.additem", text="", icon="ADD")
+                txtAddOp.propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType, activeWrapperItem.itemIndex)
+                txtAddOp.idx = dimGen.active_index
+                txtAddOp.add = True
 
-                    if dimGen.show_dimension_fields:
-                        col = box.column(align=True)
-                        idx = 0
+                txtRemoveOp = row.operator(
+                    "measureit_arch.additem", text="", icon="REMOVE")
+                txtRemoveOp.propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType, activeWrapperItem.itemIndex)
+                txtRemoveOp.idx = activeWrapperItem.itemIndex
+                txtRemoveOp.add = False
 
-                        col.prop(item,"use_custom_text",text="Use Custom Dimension Text")
-                        propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType,idxString)
-                        draw_textfield_settings(item, box, propPath, dim_skip_length= not item.use_custom_text)
-                    
+                if dimGen.show_dimension_fields:
+                    col = box.column(align=True)
+                    idx = 0
 
-
+                    col.prop(item, "use_custom_text", text="Use Custom Dimension Text")
+                    propPath = 'bpy.context.active_object.DimensionGenerator.{}[{}].textFields'.format(activeWrapperItem.itemType, activeWrapperItem.itemIndex)
+                    draw_textfield_settings(item, box, propPath, dim_skip_length= not item.use_custom_text)
 
                 ### SETTINGS
                 if dimGen.show_dimension_settings:
@@ -1305,6 +1355,12 @@ def draw_alignedDimensions_settings(dim, layout):
         # Toggles
         col = layout.column(align=True)
         col.prop(dim, 'inFront', text='Draw in Front')
+        col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+        if dim.secondary_unit_mode == 'METRIC':
+            col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+        elif dim.secondary_unit_mode == 'IMPERIAL':
+            col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
+        draw_precision_scale_settings(dim, layout)
         col.prop(dim, 'evalMods')
 
     else:
@@ -1320,9 +1376,28 @@ def draw_alignedDimensions_settings(dim, layout):
             col.prop(dim, 'override_imperial_length', text='Imperial Length Override')
 
         col = layout.column(align=True)
-        col.prop(dim, 'tweakOffset', text='Tweak Distance')
+        col.prop(dim, 'overrideFontSize', text='Override Font Size')
+        if dim.overrideFontSize:
+            col.prop(dim, 'fontSize', text='Font Size')
+        col.prop(dim, 'tweakOffset', text='Distance')
         col.prop(dim, 'textAlignment', text='Alignment')
+        col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+        if dim.secondary_unit_mode == 'METRIC':
+            col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+        elif dim.secondary_unit_mode == 'IMPERIAL':
+            col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
+        draw_precision_scale_settings(dim, layout)
         col.prop(dim, 'textPosition', text='Position')
+
+
+def draw_precision_scale_settings(dim, layout):
+    col = layout.column(align=True)
+    col.prop(dim, 'use_scene_precision_scale', text='Auto Precision / Scale')
+    if not dim.use_scene_precision_scale:
+        col.prop(dim, 'use_unit_scale_override', text='Use Unit Scale')
+        col.prop(dim, 'metric_precision_override', text='Metric Precision')
+        col.prop(dim, 'imperial_precision_override', text='Imperial Precision')
+        col.prop(dim, 'area_precision_override', text='Area Precision')
 
 
 def draw_boundsDimensions_settings(dim, layout):
@@ -1377,6 +1452,13 @@ def draw_boundsDimensions_settings(dim, layout):
         col.prop(dim, 'inFront', text='Draw in Front')
 
     col.prop(dim, 'calcAxisAligned', text='Always Use Axis Aligned Bounds')
+    col = layout.column(align=True)
+    col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+    draw_precision_scale_settings(dim, layout)
+    if dim.secondary_unit_mode == 'METRIC':
+        col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+    elif dim.secondary_unit_mode == 'IMPERIAL':
+        col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
 
 
 def draw_axisDimensions_settings(dim, layout):
@@ -1422,6 +1504,12 @@ def draw_axisDimensions_settings(dim, layout):
         # Toggles
         col = layout.column(align=True)
         col.prop(dim, 'inFront', text='Draw in Front')
+        col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+        if dim.secondary_unit_mode == 'METRIC':
+            col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+        elif dim.secondary_unit_mode == 'IMPERIAL':
+            col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
+        draw_precision_scale_settings(dim, layout)
         col.prop(dim, 'evalMods')
 
     else:
@@ -1436,8 +1524,14 @@ def draw_axisDimensions_settings(dim, layout):
         col = layout.column(align=True)
         col.prop(dim, 'tweakOffset', text='Tweak Distance')
         col.prop(dim, 'textAlignment', text='Alignment')
+        col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+        if dim.secondary_unit_mode == 'METRIC':
+            col.prop(dim, 'secondary_metric_length', text='Metric Secondary Length')
+        elif dim.secondary_unit_mode == 'IMPERIAL':
+            col.prop(dim, 'secondary_imperial_length', text='Imperial Secondary Length')
+        draw_precision_scale_settings(dim, layout)
 
-       # Unit Overrides
+    # Unit Overrides
     col = layout.column(align=True)
     col.prop(dim, 'override_unit_system', text='Unit Override')
     if dim.override_unit_system == 'METRIC':
@@ -1481,6 +1575,8 @@ def draw_angleDimensions_settings(dim, layout):
     # col.prop(dim, 'textPosition', text='Position')
 
     col = layout.column(align=True)
+    col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+    draw_precision_scale_settings(dim, layout)
 
 
 def draw_arcDimensions_settings(dim, layout):
@@ -1521,6 +1617,8 @@ def draw_arcDimensions_settings(dim, layout):
     col.prop(dim, 'inFront', text='Draw in Front')
 
     col = layout.column(align=True)
+    col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
+    draw_precision_scale_settings(dim, layout)
 
 
 def draw_areaDimensions_settings(dim, layout):
@@ -1568,6 +1666,9 @@ def draw_areaDimensions_settings(dim, layout):
         col = layout.column(align=True)
         col.prop(dim, 'inFront', text='Draw in Front')
         col.prop(dim, 'evalMods')
+
+    col = layout.column(align=True)
+    col.prop(dim, 'secondary_unit_mode', text='Secondary Units')
 
 
 class TranslateDimensionOp(bpy.types.Operator):
@@ -1697,20 +1798,19 @@ class SelectLinkedAnchor(Operator):
         if obj == None:
             return {'FINISHED'}
         dimGen = obj.DimensionGenerator
-        wrap = None
-        try:
-            wrap = dimGen.wrapper[dimGen.active_index]
-        except IndexError:
-            pass
+        wrap = get_active_wrapper_item(dimGen)
         
         if wrap != None:
             itemType = wrap.itemType
             active_dim = None
             if itemType == 'alignedDimensions':
-                active_dim = dimGen.alignedDimensions[wrap.itemIndex]
+                active_dim = get_wrapped_dimension_item(dimGen, wrap)
             elif itemType == 'axisDimensions':
-                active_dim = dimGen.axisDimensions[wrap.itemIndex]
+                active_dim = get_wrapped_dimension_item(dimGen, wrap)
             else:
+                return {'FINISHED'}
+
+            if active_dim is None:
                 return {'FINISHED'}
             
 
@@ -1732,10 +1832,13 @@ class SelectLinkedAnchor(Operator):
                     itemType = wrap.itemType
                     active_dim = None
                     if itemType == 'alignedDimensions':
-                        active_dim = dimGen.alignedDimensions[wrap.itemIndex]
+                        active_dim = get_wrapped_dimension_item(dimGen, wrap)
                     elif itemType == 'axisDimensions':
-                        active_dim = dimGen.axisDimensions[wrap.itemIndex]
+                        active_dim = get_wrapped_dimension_item(dimGen, wrap)
                     else:
+                        continue
+
+                    if active_dim is None:
                         continue
                     
 

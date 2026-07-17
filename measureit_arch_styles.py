@@ -204,13 +204,13 @@ class SCENE_PT_UIDimStyles(Panel):
 
 
         # Settings Below List
-        if (len(StyleGen.line_groups) > 0 and
-            StyleGen.active_dimension_index < len(StyleGen.line_groups)):
+        if (len(StyleGen.alignedDimensions) > 0 and
+            StyleGen.active_dimension_index < len(StyleGen.alignedDimensions)):
 
             item = StyleGen.alignedDimensions[StyleGen.active_dimension_index]
 
 
-            if StyleGen.show_linegroup_style_settings:
+            if StyleGen.show_dimension_style_settings:
                 settingsIcon = 'DISCLOSURE_TRI_DOWN'
             else:
                 settingsIcon = 'DISCLOSURE_TRI_RIGHT'
@@ -481,7 +481,16 @@ class ListDeletePropButton(Operator):
     def execute(self, context):
         # Add properties
         Generator = eval(self.genPath)
-        wrapper = Generator.wrapper[self.tag]
+        try:
+            wrapper = Generator.wrapper[self.tag]
+        except (IndexError, TypeError):
+            return {'CANCELLED'}
+
+        try:
+            item_group = getattr(Generator, wrapper.itemType)
+            item_group[wrapper.itemIndex]
+        except (AttributeError, IndexError, TypeError):
+            return {'CANCELLED'}
 
         wrapperTag = self.tag
         self.item_type = wrapper.itemType

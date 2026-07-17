@@ -40,13 +40,21 @@ def update_camera(self,context):
         camera.ortho_scale = (
             render.resolution_y / ppi / BU_TO_INCHES) * (modelScale / paperScale)
 
+
+def update_default_use_secondary_units(self, context):
+    update_flag(self, context)
+
 def has_dimension_generator(context):
     return context.object is not None and \
         hasattr(context.object, "DimensionGenerator") and \
         len(context.object.DimensionGenerator) > 0
 
 def update_active_dim(self, context):
-    dimGen = context.object.DimensionGenerator
+    obj = getattr(context, "object", None)
+    if obj is None or not hasattr(obj, "DimensionGenerator"):
+        return
+
+    dimGen = obj.DimensionGenerator
     itemType = self.itemType
     idx = 0
     mark_invalid(self,context)
@@ -527,7 +535,6 @@ class BaseDim(BaseWithText):
         name='Dimension Offset',
         description='Offset for Dimension',
         default=(0.5),
-        min = 0.001,
         subtype='DISTANCE',
         update=update_active_dim)
 
@@ -537,6 +544,11 @@ class BaseDim(BaseWithText):
         default=(0.0),
         subtype='DISTANCE',
         update=update_active_dim)
+
+    overrideFontSize: BoolProperty(
+        name='Override Font Size',
+        description='Use an individual font size instead of the linked style font size',
+        default=False)
 
     dimLeaderOffset: FloatProperty(
         name='Dimension Offset',
@@ -596,6 +608,86 @@ class BaseDim(BaseWithText):
         description = "Show dimension in both unit systems",
         default = False,
         update = mark_invalid
+    )
+
+    use_scene_precision_scale: BoolProperty(
+        name = "Auto Precision / Scale",
+        description = "Use the scene precision and unit scale settings for this dimension",
+        default = True,
+        update = mark_invalid
+    )
+
+    metric_precision_override: IntProperty(
+        name='Metric Precision', min=0, max=5, default=2,
+        description='Metric decimal precision override for this dimension',
+        update=mark_invalid)
+
+    imperial_precision_override: EnumProperty(
+        items=(
+            ('0', '1', 'Use whole inches for this dimension'),
+            ('1', '1/2', 'Use half inch precision for this dimension'),
+            ('2', '1/4', 'Use quarter inch precision for this dimension'),
+            ('4', '1/8', 'Use eighth inch precision for this dimension'),
+            ('8', '1/16', 'Use sixteenth inch precision for this dimension'),
+            ('16', '1/32', 'Use thirty-second inch precision for this dimension'),
+            ('32', '1/64', 'Use sixty-fourth inch precision for this dimension'),
+            ('64', '1/128', 'Use one-hundred-twenty-eighth inch precision for this dimension'),
+        ),
+        name="Imperial Precision",
+        description="Measurement precision override for imperial dimensions",
+        default='16',
+        update=mark_invalid)
+
+    area_precision_override: IntProperty(
+        name='Area Precision', min=0, max=5, default=2,
+        description='Area precision override for this dimension',
+        update=mark_invalid)
+
+    use_unit_scale_override: BoolProperty(
+        name = "Use Unit Scale",
+        description = "Apply the scene unit scale override for this dimension",
+        default = False,
+        update = mark_invalid
+    )
+
+    secondary_unit_mode: EnumProperty(
+        items=(
+            ('OFF', 'Off', 'Do not append secondary units to this dimension'),
+            ('AUTO', 'Automatic', 'Use the opposite of the primary unit system for this dimension'),
+            ('METRIC', 'Metric', 'Always append metric units for this dimension'),
+            ('IMPERIAL', 'Imperial', 'Always append imperial units for this dimension'),
+        ),
+        name='Secondary Units',
+        description='Controls the secondary unit display for this dimension',
+        default='OFF',
+        update=mark_invalid
+    )
+
+    secondary_metric_length: EnumProperty(
+        items=(
+            ('METERS', 'Meters', 'Use meters for secondary metric length formatting'),
+            ('CENTIMETERS', 'Centimeters', 'Use centimeters for secondary metric length formatting'),
+            ('MILLIMETERS', 'Millimeters', 'Use millimeters for secondary metric length formatting'),
+            ('MICROMETERS', 'Micrometers', 'Use micrometers for secondary metric length formatting'),
+            ('KILOMETERS', 'Kilometers', 'Use kilometers for secondary metric length formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary metric unit automatically'),
+        ),
+        name='Secondary Metric Length',
+        description='Metric unit to use when converting this dimension to a secondary value',
+        default='MILLIMETERS',
+        update=mark_invalid
+    )
+
+    secondary_imperial_length: EnumProperty(
+        items=(
+            ('FEET', 'Feet & Inches', 'Show feet and inches for secondary imperial length formatting'),
+            ('INCHES', 'Inches', 'Show inches for secondary imperial length formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary imperial unit automatically'),
+        ),
+        name='Secondary Imperial Length',
+        description='Imperial unit to use when converting this dimension to a secondary value',
+        default='FEET',
+        update=mark_invalid
     )
 
     override_unit_system: EnumProperty(
@@ -701,7 +793,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
     hide_units: BoolProperty(
         name="Hide Units",
         description="Do not display unit of measurement on viewport",
-        default=False)
+        default=False,
+        update=update_flag)
 
     measureit_arch_dim_axis: EnumProperty(
         items=(('X', "X", "X Axis"),
@@ -723,7 +816,75 @@ class MeasureItARCHSceneProps(PropertyGroup):
     use_unit_scale: BoolProperty(
         name='Use Unit Scale',
         description='',
-        default=False)
+        default=False,
+        update=update_flag)
+
+    secondary_unit_mode: EnumProperty(
+        items=(
+            ('OFF', 'Off', 'Do not append secondary units to dimension text'),
+            ('AUTO', 'Automatic', 'Use the opposite of the primary unit system for the secondary display'),
+            ('METRIC', 'Metric', 'Always append metric units as the secondary display'),
+            ('IMPERIAL', 'Imperial', 'Always append imperial units as the secondary display'),
+        ),
+        name='Secondary Unit Mode',
+        description='Controls how secondary units are generated for dimension text',
+        default='AUTO',
+        update=update_flag)
+
+    secondary_metric_length: EnumProperty(
+        items=(
+            ('METERS', 'Meters', 'Use meters for secondary metric length formatting'),
+            ('CENTIMETERS', 'Centimeters', 'Use centimeters for secondary metric length formatting'),
+            ('MILLIMETERS', 'Millimeters', 'Use millimeters for secondary metric length formatting'),
+            ('MICROMETERS', 'Micrometers', 'Use micrometers for secondary metric length formatting'),
+            ('KILOMETERS', 'Kilometers', 'Use kilometers for secondary metric length formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary metric unit automatically'),
+        ),
+        name='Secondary Metric Length',
+        description='Metric unit to use when converting dimension text to a secondary metric value',
+        default='MILLIMETERS',
+        update=update_flag)
+
+    secondary_imperial_length: EnumProperty(
+        items=(
+            ('FEET', 'Feet & Inches', 'Show feet and inches for secondary imperial length formatting'),
+            ('INCHES', 'Inches', 'Show inches for secondary imperial length formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary imperial unit automatically'),
+        ),
+        name='Secondary Imperial Length',
+        description='Imperial unit to use when converting dimension text to a secondary imperial value',
+        default='FEET',
+        update=update_flag)
+
+    secondary_metric_area_units: EnumProperty(
+        items=(
+            ('KILOMETERS', 'Square Kilometers', 'Use square kilometers for secondary metric area formatting'),
+            ('METERS', 'Square Meters', 'Use square meters for secondary metric area formatting'),
+            ('CENTIMETERS', 'Square Centimeters', 'Use square centimeters for secondary metric area formatting'),
+            ('MILLIMETERS', 'Square Millimeters', 'Use square millimeters for secondary metric area formatting'),
+            ('ADAPTIVE', 'Adaptive', 'Let Blender choose an appropriate secondary metric area unit automatically'),
+        ),
+        name='Secondary Metric Area Units',
+        description='Metric unit to use when converting area measurements to a secondary value',
+        default='METERS',
+        update=update_flag)
+
+    secondary_imperial_area_units: EnumProperty(
+        items=(
+            ('HECTARE', 'Hectares', 'Use hectares for secondary imperial area formatting'),
+            ('ACRE', 'Acres', 'Use acres for secondary imperial area formatting'),
+            ('FEET', 'Square Feet', 'Use square feet for secondary imperial area formatting'),
+        ),
+        name='Secondary Imperial Area Units',
+        description='Imperial unit to use when converting area measurements to a secondary value',
+        default='FEET',
+        update=update_flag)
+
+    default_use_secondary_units: BoolProperty(
+        name='Enable Secondary Units on New Dimensions',
+        description='Automatically enable secondary unit output whenever a new dimension is created',
+        default=True,
+        update=update_default_use_secondary_units)
 
     text_updated: BoolProperty(
         name='text_updated',
@@ -819,11 +980,13 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     angle_precision: IntProperty(
         name='Angle Precision', min=0, max=5, default=0,
-        description="Angle decimal precision")
+        description="Angle decimal precision",
+        update=update_flag)
 
     mm_precision: IntProperty(
         name='mm Precision', min=0, max=5, default=0,
-        description="mm decimal precision")
+        description="mm decimal precision",
+        update=update_flag)
 
     imperial_precision: EnumProperty(
         items=(('1', "1\"", "1 Inch"),
@@ -835,7 +998,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
                ('64', "1/64\"", "1/64th Inch")),
         name="Imperial Precision",
         description="Measurement Precision for Imperial Units",
-        default = '16')
+        default = '16',
+        update=update_flag)
 
     metric_area_units: EnumProperty(
         items = (('KILOMETERS', 'Kilometers', 'Kilometers'),
@@ -845,17 +1009,19 @@ class MeasureItARCHSceneProps(PropertyGroup):
         ),
         name = 'Metric Area Units',
         description = 'Units to Use for Metric Area Dimensions',
-        default = 'METERS'
+        default = 'METERS',
+        update=update_flag
     )
 
     imperial_area_units: EnumProperty(
         items = (('HECTARE', 'Hectare', 'Hectare'),
-                ('ACRE', 'Acre', 'Acre'),
-                ('FEET', 'Feet', 'Feet'),
+            ('ACRE', 'Acre', 'Acre'),
+            ('FEET', 'Feet', 'Feet'),
         ),
         name = 'Imperial Area Units',
         description = 'Units to Use for Imperial Area Dimensions',
-        default = 'FEET'
+        default = 'FEET',
+        update=update_flag
     )
 
     use_text_autoplacement: BoolProperty(
@@ -892,11 +1058,13 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     metric_precision: IntProperty(
         name='Precision', min=0, max=5, default=2,
-        description="Metric decimal precision")
+        description="Metric decimal precision",
+        update=update_flag)
 
     area_precision: IntProperty(
         name='Area Precision', min=0, max=5, default=2,
-        description="Area precision")
+        description="Area precision",
+        update=update_flag)
     
 
     offset_x_2d: IntProperty(
@@ -907,7 +1075,8 @@ class MeasureItARCHSceneProps(PropertyGroup):
 
     metric_precision: IntProperty(
         name='Precision', min=0, max=5, default=2,
-        description="Metric decimal precision")
+        description="Metric decimal precision",
+        update=update_flag)
 
     hide_titleblock: BoolProperty(
         name="Hide Titleblock",
@@ -965,8 +1134,12 @@ class DeletePropButton(Operator):
         Generator = eval(self.genPath)
         itemGroup = eval('Generator.' + self.item_type)
         print(self.genPath)
+        try:
+            item = itemGroup[self.tag]
+        except (IndexError, TypeError):
+            return {'CANCELLED'}
         # Delete element
-        itemGroup[self.tag].free = True
+        item.free = True
         itemGroup.remove(self.tag)
 
         # Redraw
