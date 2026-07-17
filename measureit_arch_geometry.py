@@ -294,7 +294,7 @@ def update_text(textobj, props, context, fields=[], force_update = False):
 
                     view_matrix = Matrix([
                         [2 / width, 0, 0, -1],
-                        [0, -2 / height, 0, 1],
+                        [0, 2 / height, 0, -1],
                         [0, 0, 1, 0],
                         [0, 0, 0, 1]])
 
@@ -3282,11 +3282,15 @@ def draw_text_3D(context, textobj, textprops, myobj):
     # Get View rotation
     debug_camera = False
     if sceneProps.is_render_draw or debug_camera:
-        view_mat = context.scene.camera.matrix_world
+        # Camera matrix_world goes Local -> World
+        view_rot_mat = context.scene.camera.matrix_world.to_3x3()
     else:
-        view_mat = context.area.spaces[0].region_3d.view_matrix
+        # region_3d.view_matrix goes World -> Local. Invert for Local -> World
+        view_rot_mat = context.area.spaces[0].region_3d.view_matrix.inverted_safe().to_3x3()
 
-    # Define Flip Matrix's
+    viewAxisX = view_rot_mat @ i
+    viewAxisY = view_rot_mat @ j
+    viewAxisZ = view_rot_mat @ k
     flipMatrixX = Matrix([
         [-1, 0],
         [0, 1]
@@ -3310,13 +3314,9 @@ def draw_text_3D(context, textobj, textprops, myobj):
     cardDirY = (card[1] - card[0]).normalized()
     cardDirZ = cardDirX.cross(cardDirY)
 
-    viewAxisX = i.copy()
-    viewAxisY = j.copy()
-    viewAxisZ = k.copy()
 
-    viewAxisX = viewAxisX @ view_mat 
-    viewAxisY = viewAxisY @ view_mat 
-    viewAxisZ = viewAxisZ @ view_mat 
+
+    # Define Flip Matrix's
 
 
     # Skew Rotation slightly to avoid errors that occur
@@ -3350,12 +3350,7 @@ def draw_text_3D(context, textobj, textprops, myobj):
             flippedUVs.append(uv)
         normalizedDeviceUVs = flippedUVs
 
-    if not sceneProps.is_render_draw:
-        flippedUVs = []
-        for uv in normalizedDeviceUVs:
-            uv = flipMatrixY @ Vector(uv)
-            flippedUVs.append(uv)
-        normalizedDeviceUVs = flippedUVs
+
 
     uvs = []
     for normUV in normalizedDeviceUVs:
